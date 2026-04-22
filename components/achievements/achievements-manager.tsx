@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type Dispatch,
+  type FormEvent,
+  type SetStateAction,
+} from "react";
 import {
   Lock,
   Sparkles,
@@ -19,14 +26,12 @@ import {
   GlobeHemisphereWest,
   Heartbeat,
   Leaf,
-  LockSimple,
   Medal,
   PaintBrush,
   Planet,
   PuzzlePiece,
   RocketLaunch,
   SealCheck,
-  ShootingStar,
   Sparkle,
   Star,
   SunHorizon,
@@ -38,11 +43,12 @@ import {
 } from "@phosphor-icons/react";
 
 import {
-  AchievementCard,
   achievementToneStyles,
   achievementToneSwatches,
   type AchievementTone,
 } from "@/components/achievements/achievement-card";
+import { AchievementFallbackBadge } from "@/components/achievements/achievement-fallback-badge";
+import { AchievementGridItem } from "@/components/achievements/achievement-grid-item";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
@@ -54,16 +60,22 @@ type AchievementRecord = {
   description: string | null;
   category: string | null;
   icon: string | null;
+  icon_url: string | null;
   tone: AchievementTone | null;
   is_locked: boolean | null;
   achieved_at: string | null;
   created_at: string;
 };
 
-const BASE_SELECT_COLUMNS = "id,title,description,category,icon,achieved_at,created_at";
+const BASE_SELECT_COLUMNS =
+  "id,title,description,category,icon,achieved_at,created_at";
 
-function buildSelectColumns(hasTone: boolean, hasLocked: boolean) {
-  return `${BASE_SELECT_COLUMNS}${hasTone ? ",tone" : ""}${hasLocked ? ",is_locked" : ""}`;
+function buildSelectColumns(
+  hasTone: boolean,
+  hasLocked: boolean,
+  hasIconUrl: boolean,
+) {
+  return `${BASE_SELECT_COLUMNS}${hasTone ? ",tone" : ""}${hasLocked ? ",is_locked" : ""}${hasIconUrl ? ",icon_url" : ""}`;
 }
 
 function normalizeAchievement(row: Record<string, unknown>): AchievementRecord {
@@ -73,6 +85,7 @@ function normalizeAchievement(row: Record<string, unknown>): AchievementRecord {
     description: (row.description as string | null) ?? null,
     category: (row.category as string | null) ?? null,
     icon: (row.icon as string | null) ?? null,
+    icon_url: (row.icon_url as string | null) ?? null,
     tone: (row.tone as AchievementTone | null) ?? null,
     is_locked: Boolean(row.is_locked),
     achieved_at: (row.achieved_at as string | null) ?? null,
@@ -217,6 +230,7 @@ type FormState = {
   description: string;
   category: string;
   icon: AchievementIconKey;
+  iconUrl: string;
   tone: AchievementTone;
   isLocked: boolean;
   achievedAt: string;
@@ -231,10 +245,30 @@ const initialForm: FormState = {
   description: "",
   category: "",
   icon: "trophy",
+  iconUrl: "",
   tone: "gold",
   isLocked: false,
   achievedAt: todayDateString(),
 };
+
+function achievementToForm(a: AchievementRecord): FormState {
+  return {
+    title: a.title ?? "",
+    description: a.description ?? "",
+    category: a.category ?? "",
+    icon: getSafeIconKey(a.icon),
+    iconUrl: a.icon_url ?? "",
+    tone: a.tone ?? toneByIcon[getSafeIconKey(a.icon)],
+    isLocked: Boolean(a.is_locked),
+    achievedAt: a.achieved_at ?? "",
+  };
+}
+
+function formatGridDate(value: string | null) {
+  if (!value) return null;
+  const d = new Date(`${value}T00:00:00`);
+  return d.toLocaleDateString(undefined, { year: "numeric", month: "short" });
+}
 
 function formatAchievedAt(value: string | null) {
   if (!value) return undefined;
@@ -285,15 +319,15 @@ type EditorCardProps = {
   id: string;
   mode: "create" | "edit";
   form: FormState;
-  setForm: React.Dispatch<React.SetStateAction<FormState>>;
+  setForm: Dispatch<SetStateAction<FormState>>;
   submitLabel: string;
   isSaving: boolean;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: FormEvent) => void;
   onCancel?: () => void;
   toneMenuFor: string | null;
-  setToneMenuFor: React.Dispatch<React.SetStateAction<string | null>>;
+  setToneMenuFor: Dispatch<SetStateAction<string | null>>;
   iconMenuFor: string | null;
-  setIconMenuFor: React.Dispatch<React.SetStateAction<string | null>>;
+  setIconMenuFor: Dispatch<SetStateAction<string | null>>;
 };
 
 function EditableAchievementCard({
@@ -387,6 +421,16 @@ function EditableAchievementCard({
           onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
           placeholder="Participation"
           className="h-auto border-0 bg-transparent p-0 text-xs uppercase tracking-wide text-muted-foreground shadow-none focus-visible:ring-0"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-xs text-muted-foreground">Badge image URL (ImageKit, optional)</p>
+        <Input
+          value={form.iconUrl}
+          onChange={(e) => setForm((prev) => ({ ...prev, iconUrl: e.target.value }))}
+          placeholder="https://ik.imagekit.io/…"
+          className="text-xs"
         />
       </div>
 
@@ -494,42 +538,94 @@ export function AchievementsManager() {
   const [error, setError] = useState<string | null>(null);
   const [createForm, setCreateForm] = useState<FormState>(initialForm);
   const [isCreating, setIsCreating] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [activeCardId, setActiveCardId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<FormState>(initialForm);
+  const [detailAchievementId, setDetailAchievementId] = useState<string | null>(
+    null,
+  );
+  const [detailMode, setDetailMode] = useState<"view" | "edit">("view");
+  const [panelForm, setPanelForm] = useState<FormState>(initialForm);
+  const [hasIconUrlColumn, setHasIconUrlColumn] = useState(true);
   const [toneMenuFor, setToneMenuFor] = useState<string | null>(null);
   const [iconMenuFor, setIconMenuFor] = useState<string | null>(null);
+
+  const detailAchievement = useMemo(() => {
+    if (!detailAchievementId) return null;
+    return achievements.find((a) => a.id === detailAchievementId) ?? null;
+  }, [achievements, detailAchievementId]);
+
+  const DetailPhosphorIcon = detailAchievement
+    ? iconMap[getSafeIconKey(detailAchievement.icon)]
+    : Trophy;
+
+  const detailTone: AchievementTone = useMemo(() => {
+    if (!detailAchievement) return "gold";
+    return (
+      detailAchievement.tone ??
+      toneByIcon[getSafeIconKey(detailAchievement.icon)]
+    );
+  }, [detailAchievement]);
 
   useEffect(() => {
     void loadAchievements();
   }, []);
 
+  useEffect(() => {
+    if (
+      detailAchievementId &&
+      !achievements.some((a) => a.id === detailAchievementId)
+    ) {
+      setDetailAchievementId(null);
+      setDetailMode("view");
+    }
+  }, [achievements, detailAchievementId]);
+
+  function closeDetailPanel() {
+    setDetailAchievementId(null);
+    setDetailMode("view");
+    setToneMenuFor(null);
+    setIconMenuFor(null);
+  }
+
   async function loadAchievements() {
     setIsLoading(true);
     setError(null);
 
-    const selectColumns = buildSelectColumns(hasToneColumn, hasLockedColumn);
+    const selectColumns = buildSelectColumns(
+      hasToneColumn,
+      hasLockedColumn,
+      hasIconUrlColumn,
+    );
     const { data, error } = await supabase
       .from("achievements")
       .select(selectColumns)
       .order("achieved_at", { ascending: false })
       .order("created_at", { ascending: false });
 
+    const errMsg = error?.message.toLowerCase() ?? "";
     if (
       error &&
-      (error.message.toLowerCase().includes("tone") ||
-        error.message.toLowerCase().includes("is_locked"))
+      (errMsg.includes("tone") ||
+        errMsg.includes("is_locked") ||
+        errMsg.includes("icon_url"))
     ) {
-      const missingTone = error.message.toLowerCase().includes("tone");
-      const missingLocked = error.message.toLowerCase().includes("is_locked");
+      const missingTone = errMsg.includes("tone");
+      const missingLocked = errMsg.includes("is_locked");
+      const missingIconUrl = errMsg.includes("icon_url");
       const nextHasToneColumn = missingTone ? false : hasToneColumn;
       const nextHasLockedColumn = missingLocked ? false : hasLockedColumn;
+      const nextHasIconUrlColumn = missingIconUrl ? false : hasIconUrlColumn;
       setHasToneColumn(nextHasToneColumn);
       setHasLockedColumn(nextHasLockedColumn);
+      setHasIconUrlColumn(nextHasIconUrlColumn);
 
       const fallback = await supabase
         .from("achievements")
-        .select(buildSelectColumns(nextHasToneColumn, nextHasLockedColumn))
+        .select(
+          buildSelectColumns(
+            nextHasToneColumn,
+            nextHasLockedColumn,
+            nextHasIconUrlColumn,
+          ),
+        )
         .order("achieved_at", { ascending: false })
         .order("created_at", { ascending: false });
 
@@ -565,7 +661,7 @@ export function AchievementsManager() {
     setIsLoading(false);
   }
 
-  async function handleCreate(e: React.FormEvent) {
+  async function handleCreate(e: FormEvent) {
     e.preventDefault();
     if (!hasMeaningfulContent(createForm)) {
       setError("Add at least a title, category, or description.");
@@ -583,6 +679,7 @@ export function AchievementsManager() {
       achieved_at: string | null;
       tone?: AchievementTone;
       is_locked?: boolean;
+      icon_url?: string | null;
     } = {
       title: toNullable(createForm.title),
       description: toNullable(createForm.description),
@@ -597,11 +694,16 @@ export function AchievementsManager() {
     if (hasLockedColumn) {
       insertPayload.is_locked = createForm.isLocked;
     }
+    if (hasIconUrlColumn) {
+      insertPayload.icon_url = toNullable(createForm.iconUrl);
+    }
 
     const { data, error } = await supabase
       .from("achievements")
       .insert(insertPayload)
-      .select(buildSelectColumns(hasToneColumn, hasLockedColumn))
+      .select(
+        buildSelectColumns(hasToneColumn, hasLockedColumn, hasIconUrlColumn),
+      )
       .single();
 
     if (error) {
@@ -623,33 +725,16 @@ export function AchievementsManager() {
     setCreateForm({ ...initialForm, achievedAt: todayDateString() });
     setIsSaving(false);
     setIsCreating(false);
-    setActiveCardId(null);
+    setDetailAchievementId(null);
+    setDetailMode("view");
     setToneMenuFor(null);
     setIconMenuFor(null);
   }
 
-  function beginEdit(achievement: AchievementRecord) {
-    setEditingId(achievement.id);
-    setEditForm({
-      title: achievement.title ?? "",
-      description: achievement.description ?? "",
-      category: achievement.category ?? "",
-      icon: getSafeIconKey(achievement.icon),
-      tone:
-        achievement.tone ??
-        toneByIcon[getSafeIconKey(achievement.icon)],
-      isLocked: Boolean(achievement.is_locked),
-      achievedAt: achievement.achieved_at ?? "",
-    });
-    setToneMenuFor(null);
-    setIconMenuFor(null);
-    setActiveCardId(null);
-  }
-
-  async function handleUpdate(e: React.FormEvent) {
+  async function handlePanelSave(e: FormEvent) {
     e.preventDefault();
-    if (!editingId) return;
-    if (!hasMeaningfulContent(editForm)) {
+    if (!detailAchievementId) return;
+    if (!hasMeaningfulContent(panelForm)) {
       setError("Add at least a title, category, or description.");
       return;
     }
@@ -665,26 +750,32 @@ export function AchievementsManager() {
       achieved_at: string | null;
       tone?: AchievementTone;
       is_locked?: boolean;
+      icon_url?: string | null;
     } = {
-      title: toNullable(editForm.title),
-      description: toNullable(editForm.description),
-      category: toNullable(editForm.category),
-      icon: editForm.icon,
-      achieved_at: toNullable(editForm.achievedAt),
+      title: toNullable(panelForm.title),
+      description: toNullable(panelForm.description),
+      category: toNullable(panelForm.category),
+      icon: panelForm.icon,
+      achieved_at: toNullable(panelForm.achievedAt),
     };
 
     if (hasToneColumn) {
-      updatePayload.tone = editForm.tone;
+      updatePayload.tone = panelForm.tone;
     }
     if (hasLockedColumn) {
-      updatePayload.is_locked = editForm.isLocked;
+      updatePayload.is_locked = panelForm.isLocked;
+    }
+    if (hasIconUrlColumn) {
+      updatePayload.icon_url = toNullable(panelForm.iconUrl);
     }
 
     const { data, error } = await supabase
       .from("achievements")
       .update(updatePayload)
-      .eq("id", editingId)
-      .select(buildSelectColumns(hasToneColumn, hasLockedColumn))
+      .eq("id", detailAchievementId)
+      .select(
+        buildSelectColumns(hasToneColumn, hasLockedColumn, hasIconUrlColumn),
+      )
       .single();
 
     if (error) {
@@ -709,10 +800,8 @@ export function AchievementsManager() {
         ),
       ),
     );
-    setEditingId(null);
-    setEditForm({ ...initialForm, achievedAt: todayDateString() });
+    setDetailMode("view");
     setIsSaving(false);
-    setActiveCardId(null);
     setToneMenuFor(null);
     setIconMenuFor(null);
   }
@@ -730,12 +819,11 @@ export function AchievementsManager() {
     }
 
     setAchievements((prev) => prev.filter((achievement) => achievement.id !== id));
-    if (editingId === id) {
-      setEditingId(null);
-      setEditForm({ ...initialForm, achievedAt: todayDateString() });
+    if (detailAchievementId === id) {
+      setDetailAchievementId(null);
+      setDetailMode("view");
     }
     setIsSaving(false);
-    setActiveCardId(null);
   }
 
   return (
@@ -745,7 +833,7 @@ export function AchievementsManager() {
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading achievements...</p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="space-y-4">
           {isCreating ? (
             <EditableAchievementCard
               id="create"
@@ -759,7 +847,6 @@ export function AchievementsManager() {
                 setIsCreating(false);
                 setToneMenuFor(null);
                 setIconMenuFor(null);
-                setActiveCardId(null);
               }}
               toneMenuFor={toneMenuFor}
               setToneMenuFor={setToneMenuFor}
@@ -770,15 +857,17 @@ export function AchievementsManager() {
             <button
               type="button"
               className={cn(
-                "group rounded-3xl border border-dashed border-muted-foreground/30 bg-transparent p-5",
+                "group w-full rounded-3xl border border-dashed border-muted-foreground/30 bg-transparent p-5",
                 "flex flex-col items-center justify-center gap-3 text-muted-foreground transition-all",
                 "hover:border-foreground/40 hover:bg-muted/30 hover:text-foreground",
               )}
               onClick={() => {
                 setIsCreating(true);
-                setEditingId(null);
-                setActiveCardId(null);
+                setDetailAchievementId(null);
+                setDetailMode("view");
                 setCreateForm({ ...initialForm, achievedAt: todayDateString() });
+                setToneMenuFor(null);
+                setIconMenuFor(null);
               }}
             >
               <div className="rounded-full border border-current/40 p-3">
@@ -788,25 +877,153 @@ export function AchievementsManager() {
             </button>
           )}
 
-          {achievements.map((achievement) => {
-            const safeIconKey = getSafeIconKey(achievement.icon);
-            const Icon = iconMap[safeIconKey];
-            const tone = achievement.tone ?? toneByIcon[safeIconKey];
-            const isLocked = Boolean(achievement.is_locked);
+          <div
+            className={cn(
+              "-mx-2 min-h-[200px] rounded-none bg-neutral-950 px-2 py-6",
+              "sm:mx-0 sm:rounded-2xl sm:px-4",
+            )}
+          >
+            {achievements.length === 0 ? (
+              <p className="py-10 text-center text-sm text-white/45">
+                No achievements yet. Add one above.
+              </p>
+            ) : (
+              <div className="grid grid-cols-3 gap-x-2 gap-y-8">
+                {achievements.map((achievement) => {
+                  const safeIconKey = getSafeIconKey(achievement.icon);
+                  const Icon = iconMap[safeIconKey];
+                  const tone =
+                    achievement.tone ?? toneByIcon[safeIconKey];
+                  return (
+                    <AchievementGridItem
+                      key={achievement.id}
+                      title={achievement.title}
+                      dateLabel={formatGridDate(achievement.achieved_at)}
+                      iconUrl={achievement.icon_url}
+                      FallbackIcon={Icon}
+                      tone={tone}
+                      isLocked={Boolean(achievement.is_locked)}
+                      onClick={() => {
+                        setDetailAchievementId(achievement.id);
+                        setDetailMode("view");
+                        setIsCreating(false);
+                        setToneMenuFor(null);
+                        setIconMenuFor(null);
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
-            if (editingId === achievement.id) {
-              return (
+      {detailAchievement ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="achievement-detail-title"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-0 backdrop-blur-sm sm:items-center sm:p-4"
+          onClick={() => closeDetailPanel()}
+        >
+          <div
+            className="relative max-h-[min(92vh,900px)] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-white/10 bg-zinc-950 p-6 pb-8 shadow-2xl sm:rounded-2xl sm:pb-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              aria-label="Close"
+              className="absolute right-3 top-3 z-10 rounded-full border border-white/15 bg-white/5 p-2 text-white/80 transition hover:bg-white/10"
+              onClick={() => closeDetailPanel()}
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            {detailMode === "view" ? (
+              <div className="pt-2">
+                <div
+                  className={cn(
+                    "mx-auto flex h-40 w-40 items-center justify-center",
+                    Boolean(detailAchievement.is_locked) &&
+                      "opacity-75 grayscale",
+                  )}
+                >
+                  {detailAchievement.icon_url?.trim() ? (
+                    <img
+                      src={detailAchievement.icon_url.trim()}
+                      alt=""
+                      className="h-full w-full object-contain drop-shadow-lg"
+                    />
+                  ) : (
+                    <AchievementFallbackBadge
+                      tone={detailTone}
+                      isLocked={Boolean(detailAchievement.is_locked)}
+                      FallbackIcon={DetailPhosphorIcon}
+                      size="overlay"
+                    />
+                  )}
+                </div>
+
+                <p className="mt-6 text-center text-[11px] font-medium uppercase tracking-[0.2em] text-white/45">
+                  {(detailAchievement.category?.trim() ||
+                    (detailAchievement.is_locked ? "Locked" : "Uncategorized"))}
+                </p>
+                <h2
+                  id="achievement-detail-title"
+                  className="mt-2 text-center text-xl font-semibold tracking-tight text-white"
+                >
+                  {detailAchievement.title?.trim() ||
+                    (detailAchievement.is_locked ? "Locked" : "Untitled")}
+                </h2>
+                <p className="mt-4 text-center text-sm leading-relaxed text-white/65">
+                  {detailAchievement.is_locked
+                    ? detailAchievement.description?.trim() ||
+                      "This achievement is locked."
+                    : detailAchievement.description?.trim() || "No description yet."}
+                </p>
+                {formatAchievedAt(detailAchievement.achieved_at) ? (
+                  <p className="mt-4 text-center text-xs text-white/40">
+                    {formatAchievedAt(detailAchievement.achieved_at)}
+                  </p>
+                ) : null}
+
+                <div className="mt-8 flex flex-wrap justify-center gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="bg-white/10 text-white hover:bg-white/15"
+                    onClick={() => {
+                      setPanelForm(achievementToForm(detailAchievement));
+                      setDetailMode("edit");
+                      setToneMenuFor(null);
+                      setIconMenuFor(null);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => void handleDelete(detailAchievement.id)}
+                    disabled={isSaving}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="pt-8">
                 <EditableAchievementCard
-                  key={achievement.id}
-                  id={achievement.id}
+                  id="panel"
                   mode="edit"
-                  form={editForm}
-                  setForm={setEditForm}
+                  form={panelForm}
+                  setForm={setPanelForm}
                   submitLabel="Save"
                   isSaving={isSaving}
-                  onSubmit={handleUpdate}
+                  onSubmit={handlePanelSave}
                   onCancel={() => {
-                    setEditingId(null);
+                    setDetailMode("view");
                     setToneMenuFor(null);
                     setIconMenuFor(null);
                   }}
@@ -815,65 +1032,11 @@ export function AchievementsManager() {
                   iconMenuFor={iconMenuFor}
                   setIconMenuFor={setIconMenuFor}
                 />
-              );
-            }
-
-            return (
-              <AchievementCard
-                key={achievement.id}
-                  onClick={() =>
-                    setActiveCardId((prev) =>
-                      prev === achievement.id ? null : achievement.id,
-                    )
-                  }
-                title={achievement.title ?? (isLocked ? "Locked achievement" : undefined)}
-                description={
-                  isLocked
-                    ? achievement.description ?? "Keep progressing to unlock this achievement."
-                    : achievement.description
-                }
-                category={isLocked ? "Locked" : achievement.category ?? undefined}
-                awardedAt={formatAchievedAt(achievement.achieved_at)}
-                icon={isLocked ? LockSimple : Icon}
-                tone={tone}
-                className={
-                  isLocked
-                    ? "border-dashed border-muted-foreground/40 bg-transparent opacity-85 saturate-0"
-                    : undefined
-                }
-                action={
-                  activeCardId === achievement.id ? (
-                    <div
-                      className="flex items-center gap-1 rounded-full border border-white/40 bg-white/65 p-1 shadow-sm backdrop-blur-sm dark:bg-slate-900/80"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="secondary"
-                        className="h-7 rounded-full px-3 text-xs"
-                        onClick={() => beginEdit(achievement)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="destructive"
-                        className="h-7 rounded-full px-3 text-xs"
-                        onClick={() => void handleDelete(achievement.id)}
-                        disabled={isSaving}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  ) : null
-                }
-              />
-            );
-          })}
+              </div>
+            )}
+          </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
