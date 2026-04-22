@@ -101,6 +101,23 @@ function getSafeIconKey(value: string | null) {
   return value in iconMap ? (value as AchievementIconKey) : "trophy";
 }
 
+function sortAchievements(rows: AchievementRecord[]) {
+  return [...rows].sort((a, b) => {
+    const aPrimary = a.achieved_at
+      ? new Date(`${a.achieved_at}T23:59:59`).getTime()
+      : new Date(a.created_at).getTime();
+    const bPrimary = b.achieved_at
+      ? new Date(`${b.achieved_at}T23:59:59`).getTime()
+      : new Date(b.created_at).getTime();
+
+    if (bPrimary !== aPrimary) {
+      return bPrimary - aPrimary;
+    }
+
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+}
+
 function hasMeaningfulContent(form: FormState) {
   return (
     form.title.trim().length > 0 ||
@@ -336,7 +353,7 @@ export function AchievementsManager() {
         ...row,
         tone: null,
       }));
-      setAchievements(fallbackRows);
+      setAchievements(sortAchievements(fallbackRows));
       setIsLoading(false);
       return;
     }
@@ -348,7 +365,7 @@ export function AchievementsManager() {
       return;
     }
 
-    setAchievements(data ?? []);
+    setAchievements(sortAchievements(data ?? []));
     setIsLoading(false);
   }
 
@@ -393,7 +410,7 @@ export function AchievementsManager() {
       return;
     }
 
-    setAchievements((prev) => [data, ...prev]);
+    setAchievements((prev) => sortAchievements([data, ...prev]));
     setCreateForm({ ...initialForm, achievedAt: todayDateString() });
     setIsSaving(false);
     setIsCreating(false);
@@ -461,8 +478,10 @@ export function AchievementsManager() {
     }
 
     setAchievements((prev) =>
-      prev.map((achievement) =>
-        achievement.id === data.id ? data : achievement,
+      sortAchievements(
+        prev.map((achievement) =>
+          achievement.id === data.id ? data : achievement,
+        ),
       ),
     );
     setEditingId(null);
