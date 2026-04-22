@@ -3,11 +3,31 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Award,
+  BookOpen,
+  Brain,
+  Camera,
+  Compass,
+  Crown,
+  Flag,
+  Gem,
+  Globe,
   Flame,
+  Heart,
+  Leaf,
   Medal,
+  Orbit,
+  Palette,
+  PenTool,
+  Puzzle,
+  Rocket,
+  ShieldCheck,
   Sparkles,
   Star,
+  Sunrise,
+  Target,
   Trophy,
+  Waves,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 
@@ -39,7 +59,27 @@ type AchievementIconKey =
   | "star"
   | "sparkles"
   | "flame"
-  | "award";
+  | "award"
+  | "rocket"
+  | "shield"
+  | "compass"
+  | "globe"
+  | "leaf"
+  | "gem"
+  | "zap"
+  | "crown"
+  | "brain"
+  | "heart"
+  | "target"
+  | "book"
+  | "camera"
+  | "palette"
+  | "orbit"
+  | "puzzle"
+  | "waves"
+  | "sunrise"
+  | "flag"
+  | "pen";
 
 const iconMap: Record<AchievementIconKey, LucideIcon> = {
   trophy: Trophy,
@@ -48,6 +88,26 @@ const iconMap: Record<AchievementIconKey, LucideIcon> = {
   sparkles: Sparkles,
   flame: Flame,
   award: Award,
+  rocket: Rocket,
+  shield: ShieldCheck,
+  compass: Compass,
+  globe: Globe,
+  leaf: Leaf,
+  gem: Gem,
+  zap: Zap,
+  crown: Crown,
+  brain: Brain,
+  heart: Heart,
+  target: Target,
+  book: BookOpen,
+  camera: Camera,
+  palette: Palette,
+  orbit: Orbit,
+  puzzle: Puzzle,
+  waves: Waves,
+  sunrise: Sunrise,
+  flag: Flag,
+  pen: PenTool,
 };
 
 const toneByIcon: Record<AchievementIconKey, AchievementTone> = {
@@ -57,6 +117,26 @@ const toneByIcon: Record<AchievementIconKey, AchievementTone> = {
   sparkles: "emerald",
   flame: "gold",
   award: "sky",
+  rocket: "indigo",
+  shield: "teal",
+  compass: "violet",
+  globe: "teal",
+  leaf: "emerald",
+  gem: "rose",
+  zap: "sky",
+  crown: "gold",
+  brain: "indigo",
+  heart: "rose",
+  target: "orange",
+  book: "teal",
+  camera: "cyan",
+  palette: "fuchsia",
+  orbit: "violet",
+  puzzle: "lime",
+  waves: "cyan",
+  sunrise: "orange",
+  flag: "sky",
+  pen: "teal",
 };
 
 type FormState = {
@@ -244,7 +324,7 @@ function EditableAchievementCard({
             <Icon className="h-5 w-5" />
           </button>
           {iconMenuOpen ? (
-            <div className="absolute right-0 top-11 w-36 grid grid-cols-3 gap-2 rounded-2xl border bg-background/95 p-2 shadow-lg backdrop-blur-sm">
+            <div className="absolute right-0 top-11 w-64 grid grid-cols-6 gap-2 rounded-2xl border bg-background/95 p-2 shadow-lg backdrop-blur-sm">
               {(Object.keys(iconMap) as AchievementIconKey[]).map((iconKey) => {
                 const OptionIcon = iconMap[iconKey];
                 return (
