@@ -1,4 +1,4 @@
-import { Trophy, type LucideIcon } from "lucide-react";
+import { Trophy, type Icon as PhosphorIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -53,12 +53,14 @@ export const achievementToneSwatches: Record<AchievementTone, string> = {
 type AchievementCardProps = {
   description?: string | null;
   title?: string;
-  icon?: LucideIcon;
+  icon?: PhosphorIcon;
   category?: string;
   awardedAt?: string;
   tone?: AchievementTone;
+  action?: ReactNode;
   footer?: ReactNode;
   className?: string;
+  onClick?: () => void;
 };
 
 export function AchievementCard({
@@ -68,19 +70,24 @@ export function AchievementCard({
   category,
   awardedAt,
   tone = "gold",
+  action,
   footer,
   className,
+  onClick,
 }: AchievementCardProps) {
   return (
     <article
+      onClick={onClick}
       className={cn(
         "relative overflow-hidden rounded-3xl border bg-card/90 p-5 shadow-sm transition-transform duration-200",
         "hover:-translate-y-1 hover:shadow-lg",
         "flex min-h-52 flex-col justify-between",
+        onClick ? "cursor-pointer" : "",
         `bg-gradient-to-br ${achievementToneStyles[tone]}`,
         className,
       )}
     >
+      {action ? <div className="absolute left-3 top-3 z-20">{action}</div> : null}
       <div
         aria-hidden
         className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-white/20 blur-2xl"
@@ -100,8 +107,8 @@ export function AchievementCard({
           ) : null}
         </div>
 
-        <div className="rounded-2xl border border-white/30 bg-white/40 p-2.5 text-foreground/80 backdrop-blur-sm dark:bg-white/10">
-          <Icon className="h-5 w-5" />
+        <div className="rounded-full border border-white/60 bg-gradient-to-br from-white/75 to-white/25 p-2.5 text-foreground/90 shadow-sm ring-2 ring-white/20 backdrop-blur-sm dark:from-white/20 dark:to-white/5">
+          <Icon className="h-5 w-5" weight="fill" />
         </div>
       </header>
 

@@ -27,11 +27,13 @@ export default function AchievementsPage() {
               Achievements
             </p>
             <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-              Track your life milestones
+              Regard rewards you deserved
             </h1>
             <p className="max-w-xl text-sm text-muted-foreground sm:text-base">
-              Save exceptional actions, event participation, and personal
-              moments you want to celebrate.
+              Gain experience by promoting rewarding behavior.<br />
+              Exceptional, uniquely novel or consistently committed to
+              developing good habit or breaking bad.<br />
+              You deserve regard and reward for your achievements.
             </p>
           </header>
           <AchievementsManager />

@@ -2,34 +2,39 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  Award,
-  BookOpen,
+  Lock,
+  Sparkles,
+  Unlock,
+} from "lucide-react";
+import {
+  BookOpenText,
   Brain,
   Camera,
   Compass,
   Crown,
-  Flag,
-  Gem,
-  Globe,
+  Drop,
+  FlagPennant,
   Flame,
-  Heart,
+  GlobeHemisphereWest,
+  Heartbeat,
   Leaf,
+  LockSimple,
   Medal,
-  Orbit,
-  Palette,
-  PenTool,
-  Puzzle,
-  Rocket,
-  ShieldCheck,
-  Sparkles,
+  PaintBrush,
+  Planet,
+  PuzzlePiece,
+  RocketLaunch,
+  SealCheck,
+  ShootingStar,
+  Sparkle,
   Star,
-  Sunrise,
+  SunHorizon,
   Target,
   Trophy,
-  Waves,
-  Zap,
-  type LucideIcon,
-} from "lucide-react";
+  WaveSine,
+  Lightning,
+  type Icon as PhosphorIcon,
+} from "@phosphor-icons/react";
 
 import {
   AchievementCard,
@@ -49,9 +54,30 @@ type AchievementRecord = {
   category: string | null;
   icon: string | null;
   tone: AchievementTone | null;
+  is_locked: boolean | null;
   achieved_at: string | null;
   created_at: string;
 };
+
+const BASE_SELECT_COLUMNS = "id,title,description,category,icon,achieved_at,created_at";
+
+function buildSelectColumns(hasTone: boolean, hasLocked: boolean) {
+  return `${BASE_SELECT_COLUMNS}${hasTone ? ",tone" : ""}${hasLocked ? ",is_locked" : ""}`;
+}
+
+function normalizeAchievement(row: Record<string, unknown>): AchievementRecord {
+  return {
+    id: String(row.id),
+    title: (row.title as string | null) ?? null,
+    description: (row.description as string | null) ?? null,
+    category: (row.category as string | null) ?? null,
+    icon: (row.icon as string | null) ?? null,
+    tone: (row.tone as AchievementTone | null) ?? null,
+    is_locked: Boolean(row.is_locked),
+    achieved_at: (row.achieved_at as string | null) ?? null,
+    created_at: String(row.created_at),
+  };
+}
 
 type AchievementIconKey =
   | "trophy"
@@ -81,33 +107,33 @@ type AchievementIconKey =
   | "flag"
   | "pen";
 
-const iconMap: Record<AchievementIconKey, LucideIcon> = {
+const iconMap: Record<AchievementIconKey, PhosphorIcon> = {
   trophy: Trophy,
   medal: Medal,
   star: Star,
-  sparkles: Sparkles,
+  sparkles: Sparkle,
   flame: Flame,
-  award: Award,
-  rocket: Rocket,
-  shield: ShieldCheck,
+  award: SealCheck,
+  rocket: RocketLaunch,
+  shield: SealCheck,
   compass: Compass,
-  globe: Globe,
+  globe: GlobeHemisphereWest,
   leaf: Leaf,
-  gem: Gem,
-  zap: Zap,
+  gem: Star,
+  zap: Lightning,
   crown: Crown,
   brain: Brain,
-  heart: Heart,
+  heart: Heartbeat,
   target: Target,
-  book: BookOpen,
+  book: BookOpenText,
   camera: Camera,
-  palette: Palette,
-  orbit: Orbit,
-  puzzle: Puzzle,
-  waves: Waves,
-  sunrise: Sunrise,
-  flag: Flag,
-  pen: PenTool,
+  palette: PaintBrush,
+  orbit: Planet,
+  puzzle: PuzzlePiece,
+  waves: WaveSine,
+  sunrise: SunHorizon,
+  flag: FlagPennant,
+  pen: Drop,
 };
 
 const toneByIcon: Record<AchievementIconKey, AchievementTone> = {
@@ -145,6 +171,7 @@ type FormState = {
   category: string;
   icon: AchievementIconKey;
   tone: AchievementTone;
+  isLocked: boolean;
   achievedAt: string;
 };
 
@@ -158,6 +185,7 @@ const initialForm: FormState = {
   category: "",
   icon: "trophy",
   tone: "gold",
+  isLocked: false,
   achievedAt: todayDateString(),
 };
 
@@ -292,8 +320,21 @@ function EditableAchievementCard({
           </div>
         ) : null}
       </div>
+      <button
+        type="button"
+        aria-label={form.isLocked ? "Set unlocked" : "Set locked"}
+        className="absolute right-10 top-3 z-30 rounded-full border border-white/70 bg-white/60 p-1.5 text-foreground/80 shadow-sm backdrop-blur-sm dark:bg-white/10"
+        onClick={() =>
+          setForm((prev) => ({
+            ...prev,
+            isLocked: !prev.isLocked,
+          }))
+        }
+      >
+        {form.isLocked ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
+      </button>
 
-      <div className="pr-12">
+      <div className="pr-20">
         <Input
           value={form.category}
           onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
@@ -321,7 +362,7 @@ function EditableAchievementCard({
               setToneMenuFor(null);
             }}
           >
-            <Icon className="h-5 w-5" />
+            <Icon className="h-5 w-5" weight="fill" />
           </button>
           {iconMenuOpen ? (
             <div className="absolute right-0 top-11 w-64 grid grid-cols-6 gap-2 rounded-2xl border bg-background/95 p-2 shadow-lg backdrop-blur-sm">
@@ -341,7 +382,7 @@ function EditableAchievementCard({
                       setIconMenuFor(null);
                     }}
                   >
-                    <OptionIcon className="h-4 w-4" />
+                    <OptionIcon className="h-4 w-4" weight="fill" />
                   </button>
                 );
               })}
@@ -392,10 +433,12 @@ export function AchievementsManager() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [hasToneColumn, setHasToneColumn] = useState(true);
+  const [hasLockedColumn, setHasLockedColumn] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [createForm, setCreateForm] = useState<FormState>(initialForm);
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [activeCardId, setActiveCardId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<FormState>(initialForm);
   const [toneMenuFor, setToneMenuFor] = useState<string | null>(null);
   const [iconMenuFor, setIconMenuFor] = useState<string | null>(null);
@@ -408,17 +451,28 @@ export function AchievementsManager() {
     setIsLoading(true);
     setError(null);
 
+    const selectColumns = buildSelectColumns(hasToneColumn, hasLockedColumn);
     const { data, error } = await supabase
       .from("achievements")
-      .select("id,title,description,category,icon,tone,achieved_at,created_at")
+      .select(selectColumns)
       .order("achieved_at", { ascending: false })
       .order("created_at", { ascending: false });
 
-    if (error && error.message.toLowerCase().includes("tone")) {
-      setHasToneColumn(false);
+    if (
+      error &&
+      (error.message.toLowerCase().includes("tone") ||
+        error.message.toLowerCase().includes("is_locked"))
+    ) {
+      const missingTone = error.message.toLowerCase().includes("tone");
+      const missingLocked = error.message.toLowerCase().includes("is_locked");
+      const nextHasToneColumn = missingTone ? false : hasToneColumn;
+      const nextHasLockedColumn = missingLocked ? false : hasLockedColumn;
+      setHasToneColumn(nextHasToneColumn);
+      setHasLockedColumn(nextHasLockedColumn);
+
       const fallback = await supabase
         .from("achievements")
-        .select("id,title,description,category,icon,achieved_at,created_at")
+        .select(buildSelectColumns(nextHasToneColumn, nextHasLockedColumn))
         .order("achieved_at", { ascending: false })
         .order("created_at", { ascending: false });
 
@@ -429,10 +483,10 @@ export function AchievementsManager() {
         return;
       }
 
-      const fallbackRows = (fallback.data ?? []).map((row) => ({
-        ...row,
-        tone: null,
-      }));
+      const fallbackRawRows = Array.isArray(fallback.data) ? fallback.data : [];
+      const fallbackRows = fallbackRawRows.map((row) =>
+        normalizeAchievement(row as unknown as Record<string, unknown>),
+      );
       setAchievements(sortAchievements(fallbackRows));
       setIsLoading(false);
       return;
@@ -445,7 +499,12 @@ export function AchievementsManager() {
       return;
     }
 
-    setAchievements(sortAchievements(data ?? []));
+    const rawRows = Array.isArray(data) ? data : [];
+    setAchievements(
+      sortAchievements(
+        rawRows.map((row) => normalizeAchievement(row as unknown as Record<string, unknown>)),
+      ),
+    );
     setIsLoading(false);
   }
 
@@ -466,22 +525,26 @@ export function AchievementsManager() {
       icon: AchievementIconKey;
       achieved_at: string | null;
       tone?: AchievementTone;
+      is_locked?: boolean;
     } = {
-        title: toNullable(createForm.title),
+      title: toNullable(createForm.title),
       description: toNullable(createForm.description),
-        category: toNullable(createForm.category),
-        icon: createForm.icon,
-        achieved_at: toNullable(createForm.achievedAt),
-      };
+      category: toNullable(createForm.category),
+      icon: createForm.icon,
+      achieved_at: toNullable(createForm.achievedAt),
+    };
 
     if (hasToneColumn) {
       insertPayload.tone = createForm.tone;
+    }
+    if (hasLockedColumn) {
+      insertPayload.is_locked = createForm.isLocked;
     }
 
     const { data, error } = await supabase
       .from("achievements")
       .insert(insertPayload)
-      .select("id,title,description,category,icon,tone,achieved_at,created_at")
+      .select(buildSelectColumns(hasToneColumn, hasLockedColumn))
       .single();
 
     if (error) {
@@ -489,11 +552,18 @@ export function AchievementsManager() {
       setIsSaving(false);
       return;
     }
+    if (!data || typeof data === "string") {
+      setError("Unexpected response while creating achievement.");
+      setIsSaving(false);
+      return;
+    }
 
-    setAchievements((prev) => sortAchievements([data, ...prev]));
+    const normalized = normalizeAchievement(data as unknown as Record<string, unknown>);
+    setAchievements((prev) => sortAchievements([normalized, ...prev]));
     setCreateForm({ ...initialForm, achievedAt: todayDateString() });
     setIsSaving(false);
     setIsCreating(false);
+    setActiveCardId(null);
     setToneMenuFor(null);
     setIconMenuFor(null);
   }
@@ -508,10 +578,12 @@ export function AchievementsManager() {
       tone:
         achievement.tone ??
         toneByIcon[getSafeIconKey(achievement.icon)],
+      isLocked: Boolean(achievement.is_locked),
       achievedAt: achievement.achieved_at ?? todayDateString(),
     });
     setToneMenuFor(null);
     setIconMenuFor(null);
+    setActiveCardId(null);
   }
 
   async function handleUpdate(e: React.FormEvent) {
@@ -532,23 +604,27 @@ export function AchievementsManager() {
       icon: AchievementIconKey;
       achieved_at: string | null;
       tone?: AchievementTone;
+      is_locked?: boolean;
     } = {
-        title: toNullable(editForm.title),
+      title: toNullable(editForm.title),
       description: toNullable(editForm.description),
-        category: toNullable(editForm.category),
-        icon: editForm.icon,
-        achieved_at: toNullable(editForm.achievedAt),
-      };
+      category: toNullable(editForm.category),
+      icon: editForm.icon,
+      achieved_at: toNullable(editForm.achievedAt),
+    };
 
     if (hasToneColumn) {
       updatePayload.tone = editForm.tone;
+    }
+    if (hasLockedColumn) {
+      updatePayload.is_locked = editForm.isLocked;
     }
 
     const { data, error } = await supabase
       .from("achievements")
       .update(updatePayload)
       .eq("id", editingId)
-      .select("id,title,description,category,icon,tone,achieved_at,created_at")
+      .select(buildSelectColumns(hasToneColumn, hasLockedColumn))
       .single();
 
     if (error) {
@@ -556,17 +632,24 @@ export function AchievementsManager() {
       setIsSaving(false);
       return;
     }
+    if (!data || typeof data === "string") {
+      setError("Unexpected response while updating achievement.");
+      setIsSaving(false);
+      return;
+    }
 
+    const normalized = normalizeAchievement(data as unknown as Record<string, unknown>);
     setAchievements((prev) =>
       sortAchievements(
         prev.map((achievement) =>
-          achievement.id === data.id ? data : achievement,
+          achievement.id === normalized.id ? normalized : achievement,
         ),
       ),
     );
     setEditingId(null);
     setEditForm({ ...initialForm, achievedAt: todayDateString() });
     setIsSaving(false);
+    setActiveCardId(null);
     setToneMenuFor(null);
     setIconMenuFor(null);
   }
@@ -589,6 +672,7 @@ export function AchievementsManager() {
       setEditForm({ ...initialForm, achievedAt: todayDateString() });
     }
     setIsSaving(false);
+    setActiveCardId(null);
   }
 
   return (
@@ -599,10 +683,53 @@ export function AchievementsManager() {
         <p className="text-sm text-muted-foreground">Loading achievements...</p>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {isCreating ? (
+            <EditableAchievementCard
+              id="create"
+              mode="create"
+              form={createForm}
+              setForm={setCreateForm}
+              submitLabel="Save"
+              isSaving={isSaving}
+              onSubmit={handleCreate}
+              onCancel={() => {
+                setIsCreating(false);
+                setToneMenuFor(null);
+                setIconMenuFor(null);
+                setActiveCardId(null);
+              }}
+              toneMenuFor={toneMenuFor}
+              setToneMenuFor={setToneMenuFor}
+              iconMenuFor={iconMenuFor}
+              setIconMenuFor={setIconMenuFor}
+            />
+          ) : (
+            <button
+              type="button"
+              className={cn(
+                "group rounded-3xl border border-dashed border-muted-foreground/30 bg-transparent p-5",
+                "flex flex-col items-center justify-center gap-3 text-muted-foreground transition-all",
+                "hover:border-foreground/40 hover:bg-muted/30 hover:text-foreground",
+              )}
+              onClick={() => {
+                setIsCreating(true);
+                setEditingId(null);
+                setActiveCardId(null);
+                setCreateForm({ ...initialForm, achievedAt: todayDateString() });
+              }}
+            >
+              <div className="rounded-full border border-current/40 p-3">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <p className="text-sm font-medium">Add achievement</p>
+            </button>
+          )}
+
           {achievements.map((achievement) => {
             const safeIconKey = getSafeIconKey(achievement.icon);
             const Icon = iconMap[safeIconKey];
             const tone = achievement.tone ?? toneByIcon[safeIconKey];
+            const isLocked = Boolean(achievement.is_locked);
 
             if (editingId === achievement.id) {
               return (
@@ -631,76 +758,57 @@ export function AchievementsManager() {
             return (
               <AchievementCard
                 key={achievement.id}
-                title={achievement.title ?? undefined}
-                description={achievement.description}
-                category={achievement.category ?? undefined}
+                  onClick={() =>
+                    setActiveCardId((prev) =>
+                      prev === achievement.id ? null : achievement.id,
+                    )
+                  }
+                title={achievement.title ?? (isLocked ? "Locked achievement" : undefined)}
+                description={
+                  isLocked
+                    ? achievement.description ?? "Keep progressing to unlock this achievement."
+                    : achievement.description
+                }
+                category={isLocked ? "Locked" : achievement.category ?? undefined}
                 awardedAt={formatAchievedAt(achievement.achieved_at)}
-                icon={Icon}
+                icon={isLocked ? LockSimple : Icon}
                 tone={tone}
-                footer={
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => beginEdit(achievement)}
+                className={
+                  isLocked
+                    ? "border-dashed border-muted-foreground/40 bg-transparent opacity-85 saturate-0"
+                    : undefined
+                }
+                action={
+                  activeCardId === achievement.id ? (
+                    <div
+                      className="flex items-center gap-1 rounded-full border border-white/40 bg-white/65 p-1 shadow-sm backdrop-blur-sm dark:bg-slate-900/80"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      Edit
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => void handleDelete(achievement.id)}
-                      disabled={isSaving}
-                    >
-                      Delete
-                    </Button>
-                  </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        className="h-7 rounded-full px-3 text-xs"
+                        onClick={() => beginEdit(achievement)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="destructive"
+                        className="h-7 rounded-full px-3 text-xs"
+                        onClick={() => void handleDelete(achievement.id)}
+                        disabled={isSaving}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  ) : null
                 }
               />
             );
           })}
-
-          {isCreating ? (
-            <EditableAchievementCard
-              id="create"
-              mode="create"
-              form={createForm}
-              setForm={setCreateForm}
-              submitLabel="Save"
-              isSaving={isSaving}
-              onSubmit={handleCreate}
-              onCancel={() => {
-                setIsCreating(false);
-                setToneMenuFor(null);
-                setIconMenuFor(null);
-              }}
-              toneMenuFor={toneMenuFor}
-              setToneMenuFor={setToneMenuFor}
-              iconMenuFor={iconMenuFor}
-              setIconMenuFor={setIconMenuFor}
-            />
-          ) : (
-            <button
-              type="button"
-              className={cn(
-                "group rounded-3xl border border-dashed border-muted-foreground/30 bg-transparent p-5",
-                "flex flex-col items-center justify-center gap-3 text-muted-foreground transition-all",
-                "hover:border-foreground/40 hover:bg-muted/30 hover:text-foreground"
-              )}
-              onClick={() => {
-                setIsCreating(true);
-                setEditingId(null);
-                setCreateForm({ ...initialForm, achievedAt: todayDateString() });
-              }}
-            >
-              <div className="rounded-full border border-current/40 p-3">
-                <Sparkles className="h-5 w-5" />
-              </div>
-              <p className="text-sm font-medium">Add achievement</p>
-            </button>
-          )}
         </div>
       )}
     </div>
