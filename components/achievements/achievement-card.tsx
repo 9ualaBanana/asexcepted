@@ -1,10 +1,11 @@
 import { Trophy, type LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-type AchievementTone = "gold" | "violet" | "emerald" | "sky";
+export type AchievementTone = "gold" | "violet" | "emerald" | "sky";
 
-const toneStyles: Record<AchievementTone, string> = {
+export const achievementToneStyles: Record<AchievementTone, string> = {
   gold:
     "from-amber-300/20 via-amber-200/10 to-transparent border-amber-300/30",
   violet:
@@ -14,13 +15,21 @@ const toneStyles: Record<AchievementTone, string> = {
   sky: "from-sky-300/20 via-cyan-200/10 to-transparent border-sky-300/30",
 };
 
+export const achievementToneSwatches: Record<AchievementTone, string> = {
+  gold: "bg-amber-400",
+  violet: "bg-violet-400",
+  emerald: "bg-emerald-400",
+  sky: "bg-sky-400",
+};
+
 type AchievementCardProps = {
-  description: string;
+  description?: string | null;
   title?: string;
   icon?: LucideIcon;
   category?: string;
   awardedAt?: string;
   tone?: AchievementTone;
+  footer?: ReactNode;
   className?: string;
 };
 
@@ -31,6 +40,7 @@ export function AchievementCard({
   category,
   awardedAt,
   tone = "gold",
+  footer,
   className,
 }: AchievementCardProps) {
   return (
@@ -39,7 +49,7 @@ export function AchievementCard({
         "relative overflow-hidden rounded-3xl border bg-card/90 p-5 shadow-sm transition-transform duration-200",
         "hover:-translate-y-1 hover:shadow-lg",
         "flex min-h-52 flex-col justify-between",
-        `bg-gradient-to-br ${toneStyles[tone]}`,
+        `bg-gradient-to-br ${achievementToneStyles[tone]}`,
         className,
       )}
     >
@@ -68,11 +78,15 @@ export function AchievementCard({
       </header>
 
       <div className="space-y-3">
-        <p className="text-sm leading-relaxed text-foreground/90">{description}</p>
+        {description ? (
+          <p className="text-sm leading-relaxed text-foreground/90">{description}</p>
+        ) : null
+        }
         {awardedAt ? (
           <p className="text-xs text-muted-foreground">Awarded {awardedAt}</p>
         ) : null}
       </div>
+      {footer ? <div className="mt-4">{footer}</div> : null}
     </article>
   );
 }
