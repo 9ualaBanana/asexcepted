@@ -118,7 +118,7 @@ export function AchievementCard({
         ) : null
         }
         {awardedAt ? (
-          <p className="text-xs text-muted-foreground">Awarded {awardedAt}</p>
+          <p className="text-xs text-muted-foreground">{awardedAt}</p>
         ) : null}
       </div>
       {footer ? <div className="mt-4">{footer}</div> : null}

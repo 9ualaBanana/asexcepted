@@ -5,6 +5,7 @@ import {
   Lock,
   Sparkles,
   Unlock,
+  X,
 } from "lucide-react";
 import {
   BookOpenText,
@@ -448,15 +449,25 @@ function EditableAchievementCard({
         />
       </div>
 
-      <div className="pt-1">
+      <div className="flex flex-wrap items-center gap-2 pt-1">
         <Input
           type="date"
           value={form.achievedAt}
           onChange={(e) =>
             setForm((prev) => ({ ...prev, achievedAt: e.target.value }))
           }
-          className="h-8 w-fit text-xs"
+          className="h-9 min-w-0 flex-1 text-xs sm:h-8 sm:flex-none sm:w-fit"
         />
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-9 shrink-0 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground sm:h-8"
+          onClick={() => setForm((prev) => ({ ...prev, achievedAt: "" }))}
+        >
+          <X className="h-3.5 w-3.5" aria-hidden />
+          Clear date
+        </Button>
       </div>
 
       <div className="flex gap-2 pt-1">
@@ -628,7 +639,7 @@ export function AchievementsManager() {
         achievement.tone ??
         toneByIcon[getSafeIconKey(achievement.icon)],
       isLocked: Boolean(achievement.is_locked),
-      achievedAt: achievement.achieved_at ?? todayDateString(),
+      achievedAt: achievement.achieved_at ?? "",
     });
     setToneMenuFor(null);
     setIconMenuFor(null);
