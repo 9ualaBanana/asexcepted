@@ -1171,7 +1171,11 @@ export function AchievementsManager() {
                   onClick={() => closeDetailPanel()}
                 >
                   <div
-                    className="relative mx-auto my-auto w-full max-w-lg max-h-[min(88dvh,56rem)] overflow-y-auto overscroll-y-contain rounded-2xl border border-white/10 bg-zinc-950 p-6 pb-8 shadow-2xl sm:pb-6"
+                    className={cn(
+                      "relative mx-auto my-auto w-full max-w-lg max-h-[min(88dvh,56rem)] overflow-y-auto overscroll-y-contain rounded-2xl border border-white/10 bg-zinc-950 p-6 pb-8 shadow-2xl sm:pb-6",
+                      (isCreating || detailMode === "edit") &&
+                        "overflow-x-hidden",
+                    )}
                     onClick={(e) => e.stopPropagation()}
                   >
             <button
