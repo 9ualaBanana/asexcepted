@@ -57,6 +57,23 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      keyframes: {
+        /** Smooth continuous rotation for upload “tide” halo on badge editor */
+        "badge-upload-tide": {
+          from: { transform: "rotate(0deg)" },
+          to: { transform: "rotate(360deg)" },
+        },
+        "badge-upload-tide-reverse": {
+          from: { transform: "rotate(360deg)" },
+          to: { transform: "rotate(0deg)" },
+        },
+      },
+      animation: {
+        "badge-upload-tide":
+          "badge-upload-tide 5.5s cubic-bezier(0.45, 0, 0.55, 1) infinite",
+        "badge-upload-tide-slow":
+          "badge-upload-tide-reverse 8.25s cubic-bezier(0.33, 0, 0.2, 1) infinite",
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],

@@ -1,4 +1,4 @@
-import { Trophy, type Icon as PhosphorIcon } from "@phosphor-icons/react";
+import { Trophy, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -53,7 +53,7 @@ export const achievementToneSwatches: Record<AchievementTone, string> = {
 type AchievementCardProps = {
   description?: string | null;
   title?: string;
-  icon?: PhosphorIcon;
+  icon?: LucideIcon;
   category?: string;
   awardedAt?: string;
   tone?: AchievementTone;
@@ -108,7 +108,7 @@ export function AchievementCard({
         </div>
 
         <div className="rounded-full border border-white/60 bg-gradient-to-br from-white/75 to-white/25 p-2.5 text-foreground/90 shadow-sm ring-2 ring-white/20 backdrop-blur-sm dark:from-white/20 dark:to-white/5">
-          <Icon className="h-5 w-5" weight="fill" />
+          <Icon className="h-5 w-5" />
         </div>
       </header>
 

@@ -1,4 +1,4 @@
-import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
+import type { LucideIcon } from "lucide-react";
 
 import { AchievementFallbackBadge } from "@/components/achievements/achievement-fallback-badge";
 import type { AchievementTone } from "@/components/achievements/achievement-card";
@@ -8,7 +8,7 @@ type AchievementGridItemProps = {
   title: string | null;
   dateLabel: string | null;
   iconUrl: string | null;
-  FallbackIcon: PhosphorIcon;
+  FallbackIcon: LucideIcon;
   /** Matches legacy achievement cards; drives gradient + border on the icon disc. */
   tone?: AchievementTone;
   isLocked: boolean;
