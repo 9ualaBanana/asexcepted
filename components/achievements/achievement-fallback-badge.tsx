@@ -9,8 +9,8 @@ type AchievementFallbackBadgeProps = {
   tone: AchievementTone;
   isLocked: boolean;
   FallbackIcon: LucideIcon;
-  /** Compact grid cell vs. larger detail overlay */
-  size?: "grid" | "overlay";
+  /** Compact grid cell vs. larger detail overlay; overlay-xl is ~2× overlay for prominent sheet badge */
+  size?: "grid" | "overlay" | "overlay-xl";
   className?: string;
 };
 
@@ -26,6 +26,12 @@ const sizeStyles = {
     inner: "p-4",
     iconUnlocked: "h-14 w-14",
     iconLocked: "h-12 w-12",
+  },
+  "overlay-xl": {
+    orb: "-right-16 -top-16 h-56 w-56",
+    inner: "p-8",
+    iconUnlocked: "h-28 w-28",
+    iconLocked: "h-24 w-24",
   },
 } as const;
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { createPortal } from "react-dom";
 import {
   useEffect,
   useMemo,
@@ -491,7 +492,7 @@ function EditableAchievementCard({
       </div>
 
       {hasIconUrlColumn ? (
-        <div className="mt-5">
+        <div className={cn(isOverlay ? "mt-8" : "mt-5")}>
           <AchievementRoundBadgeEditor
             instanceId={id}
             imageUrl={form.iconUrl}
@@ -566,6 +567,7 @@ function EditableAchievementCard({
             }
             disabled={isSaving}
             surface={isOverlay ? "overlay" : "form"}
+            prominent={isOverlay}
           />
         </div>
       ) : null}
@@ -1147,22 +1149,34 @@ export function AchievementsManager() {
         </div>
       )}
 
-      {detailAchievement || isCreating ? (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="achievement-detail-title"
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-0 backdrop-blur-sm sm:items-center sm:p-4"
-          onClick={() => closeDetailPanel()}
-        >
-          <div
-            className="relative max-h-[min(92vh,900px)] w-full max-w-lg overflow-x-hidden overflow-y-auto rounded-t-2xl border border-white/10 bg-zinc-950 p-6 pb-8 shadow-2xl sm:rounded-2xl sm:pb-6"
-            onClick={(e) => e.stopPropagation()}
-          >
+      {detailAchievement || isCreating
+        ? typeof document !== "undefined"
+          ? createPortal(
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="achievement-detail-title"
+                className="fixed inset-0 z-[200] flex min-h-0 w-full min-w-0 flex-col overscroll-contain min-h-screen min-h-[100dvh]"
+              >
+                {/* Edge-to-edge dimmer (absolute so it always fills the fixed shell; no padding) */}
+                <div
+                  aria-hidden
+                  className="absolute inset-0 z-0 bg-black/70 backdrop-blur-sm"
+                  onClick={() => closeDetailPanel()}
+                />
+                {/* Scroll + center sheet; safe-area padding only here */}
+                <div
+                  className="relative z-10 flex min-h-0 w-full flex-1 items-center justify-center overflow-y-auto px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] sm:px-6"
+                  onClick={() => closeDetailPanel()}
+                >
+                  <div
+                    className="relative mx-auto my-auto w-full max-w-lg max-h-[min(88dvh,56rem)] overflow-x-hidden overflow-y-auto overscroll-y-contain rounded-2xl border border-white/10 bg-zinc-950 p-6 pb-8 shadow-2xl sm:pb-6"
+                    onClick={(e) => e.stopPropagation()}
+                  >
             <button
               type="button"
               aria-label="Close"
-              className="absolute right-3 top-3 z-10 rounded-full border border-white/15 bg-white/5 p-2 text-white/80 transition hover:bg-white/10"
+              className="absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-10 rounded-full border border-white/15 bg-white/5 p-2 text-white/80 transition hover:bg-white/10"
               onClick={() => closeDetailPanel()}
             >
               <X className="h-4 w-4" />
@@ -1201,7 +1215,7 @@ export function AchievementsManager() {
               <div className="pt-2">
                 <div
                   className={cn(
-                    "mx-auto flex h-40 w-40 items-center justify-center",
+                    "mx-auto flex h-80 w-80 shrink-0 items-center justify-center",
                     Boolean(detailAchievement.is_locked) &&
                       "opacity-75 grayscale",
                   )}
@@ -1217,12 +1231,12 @@ export function AchievementsManager() {
                       tone={detailTone}
                       isLocked={Boolean(detailAchievement.is_locked)}
                       FallbackIcon={DetailFallbackIcon}
-                      size="overlay"
+                      size="overlay-xl"
                     />
                   )}
                 </div>
 
-                <p className="mt-6 text-center text-[11px] font-medium uppercase tracking-[0.2em] text-white/45">
+                <p className="mt-8 text-center text-[11px] font-medium uppercase tracking-[0.2em] text-white/45">
                   {(detailAchievement.category?.trim() ||
                     (detailAchievement.is_locked ? "Locked" : "Uncategorized"))}
                 </p>
@@ -1304,16 +1318,20 @@ export function AchievementsManager() {
                 setIconMenuFor={setIconMenuFor}
               />
             ) : null}
-          </div>
-        </div>
-      ) : null}
+                  </div>
+                </div>
+              </div>,
+              document.body,
+            )
+        : null
+      : null}
 
       {deleteConfirmId ? (
         <div
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="delete-achievement-title"
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[220] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
           onClick={() => setDeleteConfirmId(null)}
         >
           <div

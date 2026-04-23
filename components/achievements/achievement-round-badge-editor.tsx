@@ -55,6 +55,8 @@ type AchievementRoundBadgeEditorProps = {
   menuAccessory?: ReactNode;
   disabled?: boolean;
   surface?: Surface;
+  /** With `surface="overlay"`, renders a ~2× badge (detail / edit sheet). */
+  prominent?: boolean;
 };
 
 export function AchievementRoundBadgeEditor({
@@ -72,6 +74,7 @@ export function AchievementRoundBadgeEditor({
   menuAccessory,
   disabled = false,
   surface = "form",
+  prominent = false,
 }: AchievementRoundBadgeEditorProps) {
   const uppyRef = useRef<Uppy | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -250,6 +253,8 @@ export function AchievementRoundBadgeEditor({
         : "ring-0";
 
   const isOverlay = surface === "overlay";
+  const isProminentOverlay = isOverlay && prominent;
+  const fallbackSize = isProminentOverlay ? "overlay-xl" : "overlay";
 
   async function confirmRemoveImage() {
     setBusy(true);
@@ -297,7 +302,8 @@ export function AchievementRoundBadgeEditor({
         onDragLeave={onDragLeave}
         onDrop={onDrop}
         className={cn(
-          "relative flex h-40 w-40 shrink-0 cursor-pointer items-center justify-center rounded-full outline-none transition-shadow",
+          "relative flex shrink-0 cursor-pointer items-center justify-center rounded-full outline-none transition-shadow",
+          isProminentOverlay ? "h-80 w-80" : "h-40 w-40",
           "focus-visible:ring-2 focus-visible:ring-offset-2",
           isOverlay
             ? "focus-visible:ring-white/50 focus-visible:ring-offset-zinc-950"
@@ -310,7 +316,10 @@ export function AchievementRoundBadgeEditor({
         {busy ? (
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-[-14px] isolate flex items-center justify-center rounded-full"
+            className={cn(
+              "pointer-events-none absolute isolate flex items-center justify-center rounded-full",
+              isProminentOverlay ? "inset-[-28px]" : "inset-[-14px]",
+            )}
           >
             {/* Soft outer tide — titanium-white glow, slow sweep */}
             <div
@@ -323,7 +332,8 @@ export function AchievementRoundBadgeEditor({
             {/* Crisp inner ring tide — counter-rotates for smooth interference */}
             <div
               className={cn(
-                "absolute inset-[3px] rounded-full opacity-[0.92] will-change-transform animate-badge-upload-tide-slow",
+                "absolute rounded-full opacity-[0.92] will-change-transform animate-badge-upload-tide-slow",
+                isProminentOverlay ? "inset-[6px]" : "inset-[3px]",
                 "[mask-image:radial-gradient(closest-side,transparent_70%,#000_71%,#000_86%,transparent_87%)]",
                 "[background:conic-gradient(from_90deg_at_50%_50%,transparent_0deg,rgba(241,245,249,0.1)_52deg,rgba(252,252,253,0.88)_112deg,rgba(229,231,235,0.38)_162deg,rgba(248,250,252,0.12)_210deg,transparent_258deg,transparent_360deg)]",
               )}
@@ -351,7 +361,7 @@ export function AchievementRoundBadgeEditor({
               tone={tone}
               isLocked={isLocked}
               FallbackIcon={FallbackIcon}
-              size="overlay"
+              size={fallbackSize}
             />
           </div>
         )}
