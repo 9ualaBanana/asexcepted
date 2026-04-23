@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
+import { AchievementBadgeSlot } from "@/components/achievements/achievement-badge-slot";
 import { AchievementFallbackBadge } from "@/components/achievements/achievement-fallback-badge";
 import type { AchievementTone } from "@/components/achievements/achievement-card";
 import { cn } from "@/lib/utils";
@@ -36,7 +37,7 @@ export function AchievementGridItem({
         isLocked && "opacity-70 grayscale",
       )}
     >
-      <div className="relative flex aspect-square w-full max-w-[104px] items-center justify-center">
+      <AchievementBadgeSlot size="grid">
         {iconUrl?.trim() ? (
           // user-supplied ImageKit URLs — plain img avoids Next remotePatterns
           <img
@@ -52,7 +53,7 @@ export function AchievementGridItem({
             size="grid"
           />
         )}
-      </div>
+      </AchievementBadgeSlot>
       <p className="line-clamp-2 w-full text-[11px] font-medium leading-tight text-white sm:text-xs">
         {displayTitle}
       </p>

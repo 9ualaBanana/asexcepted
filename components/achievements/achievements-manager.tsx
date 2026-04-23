@@ -49,6 +49,7 @@ import {
   achievementToneSwatches,
   type AchievementTone,
 } from "@/components/achievements/achievement-card";
+import { AchievementBadgeSlot } from "@/components/achievements/achievement-badge-slot";
 import { AchievementRoundBadgeEditor } from "@/components/achievements/achievement-round-badge-editor";
 import { AchievementFallbackBadge } from "@/components/achievements/achievement-fallback-badge";
 import { AchievementGridItem } from "@/components/achievements/achievement-grid-item";
@@ -1170,7 +1171,7 @@ export function AchievementsManager() {
                   onClick={() => closeDetailPanel()}
                 >
                   <div
-                    className="relative mx-auto my-auto w-full max-w-lg max-h-[min(88dvh,56rem)] overflow-x-hidden overflow-y-auto overscroll-y-contain rounded-2xl border border-white/10 bg-zinc-950 p-6 pb-8 shadow-2xl sm:pb-6"
+                    className="relative mx-auto my-auto w-full max-w-lg max-h-[min(88dvh,56rem)] overflow-y-auto overscroll-y-contain rounded-2xl border border-white/10 bg-zinc-950 p-6 pb-8 shadow-2xl sm:pb-6"
                     onClick={(e) => e.stopPropagation()}
                   >
             <button
@@ -1212,19 +1213,18 @@ export function AchievementsManager() {
                 setIconMenuFor={setIconMenuFor}
               />
             ) : detailMode === "view" && detailAchievement ? (
-              <div className="pt-2">
-                <div
+              <div className="flex w-full flex-col items-center pt-2">
+                <AchievementBadgeSlot
+                  size="overlay-xl"
                   className={cn(
-                    "mx-auto flex h-80 w-80 shrink-0 items-center justify-center",
-                    Boolean(detailAchievement.is_locked) &&
-                      "opacity-75 grayscale",
+                    Boolean(detailAchievement.is_locked) && "opacity-75 grayscale",
                   )}
                 >
                   {detailAchievement.icon_url?.trim() ? (
                     <img
                       src={detailAchievement.icon_url.trim()}
                       alt=""
-                      className="h-full w-full rounded-full object-contain p-1 drop-shadow-lg"
+                      className="h-full w-full object-contain p-1 drop-shadow-lg"
                     />
                   ) : (
                     <AchievementFallbackBadge
@@ -1234,9 +1234,9 @@ export function AchievementsManager() {
                       size="overlay-xl"
                     />
                   )}
-                </div>
+                </AchievementBadgeSlot>
 
-                <p className="mt-8 text-center text-[11px] font-medium uppercase tracking-[0.2em] text-white/45">
+                <p className="mt-8 w-full text-center text-[11px] font-medium uppercase tracking-[0.2em] text-white/45">
                   {(detailAchievement.category?.trim() ||
                     (detailAchievement.is_locked ? "Locked" : "Uncategorized"))}
                 </p>
@@ -1247,7 +1247,7 @@ export function AchievementsManager() {
                   {detailAchievement.title?.trim() ||
                     (detailAchievement.is_locked ? "Locked" : "Untitled")}
                 </h2>
-                <p className="mt-4 text-center text-sm leading-relaxed text-white/65">
+                <p className="mt-4 break-words text-center text-sm leading-relaxed text-white/65">
                   {detailAchievement.is_locked
                     ? detailAchievement.description?.trim() ||
                       "This achievement is locked."

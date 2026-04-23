@@ -13,6 +13,7 @@ import {
 } from "react";
 
 import type { AchievementTone } from "@/components/achievements/achievement-card";
+import { AchievementBadgeSlot } from "@/components/achievements/achievement-badge-slot";
 import { AchievementFallbackBadge } from "@/components/achievements/achievement-fallback-badge";
 import { Button } from "@/components/ui/button";
 import { deleteImageKitFile, getImageKitUploadAuth } from "@/lib/imagekit-client";
@@ -243,18 +244,29 @@ export function AchievementRoundBadgeEditor({
     setDragActive(false);
   }, []);
 
-  const ring =
-    surface === "overlay"
-      ? dragActive
-        ? "ring-2 ring-white/50 ring-offset-2 ring-offset-zinc-950"
-        : "ring-0 ring-offset-0"
-      : dragActive
-        ? "ring-2 ring-primary/60 ring-offset-2 ring-offset-background"
-        : "ring-0";
+  const ringHalo = cn(
+    surface === "overlay" &&
+      dragActive &&
+      "ring-2 ring-inset ring-white/55",
+    surface === "overlay" &&
+      !dragActive &&
+      !disabled &&
+      !busy &&
+      "hover:ring-2 hover:ring-inset hover:ring-white/40",
+    surface !== "overlay" &&
+      dragActive &&
+      "ring-2 ring-primary/60 ring-offset-2 ring-offset-background",
+    surface !== "overlay" &&
+      !dragActive &&
+      !disabled &&
+      !busy &&
+      "hover:ring-2 hover:ring-primary/50 hover:ring-offset-2 hover:ring-offset-background",
+  );
 
   const isOverlay = surface === "overlay";
   const isProminentOverlay = isOverlay && prominent;
   const fallbackSize = isProminentOverlay ? "overlay-xl" : "overlay";
+  const slotSize = isOverlay ? "overlay-xl" : "editor";
 
   async function confirmRemoveImage() {
     setBusy(true);
@@ -293,48 +305,47 @@ export function AchievementRoundBadgeEditor({
         }}
       />
 
-      <button
-        type="button"
-        disabled={disabled || busy}
-        onClick={() => !disabled && !busy && setMenuOpen((o) => !o)}
-        onDragEnter={onDragOver}
-        onDragOver={onDragOver}
-        onDragLeave={onDragLeave}
-        onDrop={onDrop}
-        className={cn(
-          "relative flex shrink-0 cursor-pointer items-center justify-center rounded-full outline-none transition-shadow",
-          isProminentOverlay ? "h-80 w-80" : "h-40 w-40",
-          "focus-visible:ring-2 focus-visible:ring-offset-2",
-          isOverlay
-            ? "focus-visible:ring-white/50 focus-visible:ring-offset-zinc-950"
-            : "focus-visible:ring-ring focus-visible:ring-offset-background",
-          ring,
-          isLocked && "opacity-75 grayscale",
-        )}
-        aria-label="Badge"
-      >
+      <AchievementBadgeSlot size={slotSize}>
+        <button
+          type="button"
+          disabled={disabled || busy}
+          onClick={() => !disabled && !busy && setMenuOpen((o) => !o)}
+          onDragEnter={onDragOver}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onDrop={onDrop}
+          className={cn(
+            "relative flex h-full w-full min-h-0 min-w-0 cursor-pointer items-center justify-center rounded-none bg-transparent outline-none transition-shadow",
+            hasRemote ? "overflow-hidden" : "overflow-visible",
+            "focus-visible:ring-2 focus-visible:ring-offset-2",
+            isOverlay
+              ? "focus-visible:ring-white/50 focus-visible:ring-inset focus-visible:ring-offset-0"
+              : "focus-visible:ring-ring focus-visible:ring-offset-background",
+            ringHalo,
+            isLocked && "opacity-75 grayscale",
+          )}
+          aria-label="Badge"
+        >
         {busy ? (
           <div
             aria-hidden
             className={cn(
-              "pointer-events-none absolute isolate flex items-center justify-center rounded-full",
-              isProminentOverlay ? "inset-[-28px]" : "inset-[-14px]",
+              "pointer-events-none absolute isolate flex items-center justify-center rounded-none",
+              isProminentOverlay ? "inset-[-10px]" : "inset-[-6px]",
             )}
           >
-            {/* Soft outer tide — titanium-white glow, slow sweep */}
             <div
               className={cn(
-                "absolute inset-0 rounded-full opacity-[0.88] blur-[2.5px] will-change-transform animate-badge-upload-tide",
+                "absolute inset-0 rounded-none opacity-[0.88] blur-[2.5px] will-change-transform animate-badge-upload-tide",
                 "[background:conic-gradient(from_0deg_at_50%_50%,transparent_0deg,rgba(248,250,252,0.06)_55deg,rgba(255,255,255,0.42)_118deg,rgba(226,232,240,0.28)_168deg,rgba(248,250,252,0.08)_228deg,transparent_280deg,transparent_360deg)]",
                 isOverlay && "opacity-[0.92]",
               )}
             />
-            {/* Crisp inner ring tide — counter-rotates for smooth interference */}
             <div
               className={cn(
-                "absolute rounded-full opacity-[0.92] will-change-transform animate-badge-upload-tide-slow",
-                isProminentOverlay ? "inset-[6px]" : "inset-[3px]",
-                "[mask-image:radial-gradient(closest-side,transparent_70%,#000_71%,#000_86%,transparent_87%)]",
+                "absolute rounded-none opacity-[0.92] will-change-transform animate-badge-upload-tide-slow",
+                isProminentOverlay ? "inset-[5px]" : "inset-[3px]",
+                "[mask-image:linear-gradient(to_bottom,transparent,#000_12%,#000_88%,transparent)]",
                 "[background:conic-gradient(from_90deg_at_50%_50%,transparent_0deg,rgba(241,245,249,0.1)_52deg,rgba(252,252,253,0.88)_112deg,rgba(229,231,235,0.38)_162deg,rgba(248,250,252,0.12)_210deg,transparent_258deg,transparent_360deg)]",
               )}
             />
@@ -346,7 +357,7 @@ export function AchievementRoundBadgeEditor({
             src={trimmed}
             alt=""
             className={cn(
-              "h-full w-full rounded-full object-contain p-1 drop-shadow-lg transition-all duration-500 ease-out",
+              "h-full w-full object-contain p-1 drop-shadow-lg transition-all duration-500 ease-out",
               busy && "scale-[0.96] blur-[3.5px] opacity-[0.72]",
             )}
           />
@@ -362,10 +373,12 @@ export function AchievementRoundBadgeEditor({
               isLocked={isLocked}
               FallbackIcon={FallbackIcon}
               size={fallbackSize}
+              frame="disc"
             />
           </div>
         )}
-      </button>
+        </button>
+      </AchievementBadgeSlot>
 
       {menuOpen && !removeConfirmOpen ? (
         <div

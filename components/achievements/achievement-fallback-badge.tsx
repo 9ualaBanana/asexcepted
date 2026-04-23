@@ -11,6 +11,8 @@ type AchievementFallbackBadgeProps = {
   FallbackIcon: LucideIcon;
   /** Compact grid cell vs. larger detail overlay; overlay-xl is ~2× overlay for prominent sheet badge */
   size?: "grid" | "overlay" | "overlay-xl";
+  /** Square fills the badge slot like grid/close-up images; disc keeps the circular badge look (grid default). */
+  frame?: "disc" | "square";
   className?: string;
 };
 
@@ -78,9 +80,55 @@ export function AchievementFallbackBadge({
   isLocked,
   FallbackIcon,
   size = "grid",
+  frame = "disc",
   className,
 }: AchievementFallbackBadgeProps) {
   const s = sizeStyles[size];
+  const isSquare = frame === "square";
+
+  if (isSquare) {
+    return (
+      <div
+        className={cn(
+          "relative flex h-full w-full items-center justify-center overflow-hidden rounded-none border",
+          isLocked
+            ? "border-dashed border-muted-foreground/40 bg-transparent shadow-none"
+            : cn(
+                "border-solid bg-card/90 bg-gradient-to-br shadow-sm",
+                toneDiscStyles[tone],
+              ),
+          className,
+        )}
+      >
+        <div
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute inset-0 opacity-40 blur-2xl",
+            isLocked ? "bg-white/10" : toneGlowStyles[tone],
+          )}
+        />
+        <div className={cn("relative z-10 flex h-full w-full items-center justify-center", s.inner)}>
+          {isLocked ? (
+            <Lock
+              className={cn(
+                "text-foreground/70 dark:text-white/65",
+                s.iconLocked,
+              )}
+              aria-hidden
+            />
+          ) : (
+            <FallbackIcon
+              className={cn(
+                "text-foreground/90 dark:text-white/90",
+                s.iconUnlocked,
+              )}
+              aria-hidden
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
