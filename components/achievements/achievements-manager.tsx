@@ -73,17 +73,8 @@ type AchievementRecord = {
   created_at: string;
 };
 
-const BASE_SELECT_COLUMNS =
-  "id,title,description,category,icon,achieved_at,created_at";
-
-function buildSelectColumns(
-  hasTone: boolean,
-  hasLocked: boolean,
-  hasIconUrl: boolean,
-  hasIconFileId: boolean,
-) {
-  return `${BASE_SELECT_COLUMNS}${hasTone ? ",tone" : ""}${hasLocked ? ",is_locked" : ""}${hasIconUrl ? ",icon_url" : ""}${hasIconFileId ? ",icon_file_id" : ""}`;
-}
+const SELECT_COLUMNS =
+  "id,title,description,category,icon,icon_url,icon_file_id,tone,is_locked,achieved_at,created_at";
 
 function normalizeAchievement(row: Record<string, unknown>): AchievementRecord {
   return {
@@ -91,10 +82,10 @@ function normalizeAchievement(row: Record<string, unknown>): AchievementRecord {
     title: (row.title as string | null) ?? null,
     description: (row.description as string | null) ?? null,
     category: (row.category as string | null) ?? null,
-    icon: (row.icon as string | null) ?? null,
+    icon: row.icon as string,
     icon_url: (row.icon_url as string | null) ?? null,
     icon_file_id: (row.icon_file_id as string | null) ?? null,
-    tone: (row.tone as AchievementTone | null) ?? null,
+    tone: row.tone as AchievementTone,
     is_locked: Boolean(row.is_locked),
     achieved_at: (row.achieved_at as string | null) ?? null,
     created_at: String(row.created_at),
@@ -158,38 +149,8 @@ const iconMap: Record<AchievementIconKey, LucideIcon> = {
   pen: PenLine,
 };
 
-const toneByIcon: Record<AchievementIconKey, AchievementTone> = {
-  trophy: "gold",
-  medal: "sky",
-  star: "violet",
-  sparkles: "emerald",
-  flame: "gold",
-  award: "sky",
-  rocket: "indigo",
-  shield: "teal",
-  compass: "violet",
-  globe: "teal",
-  leaf: "emerald",
-  gem: "rose",
-  zap: "sky",
-  crown: "gold",
-  brain: "indigo",
-  heart: "rose",
-  target: "orange",
-  book: "teal",
-  camera: "cyan",
-  palette: "fuchsia",
-  orbit: "violet",
-  puzzle: "lime",
-  waves: "cyan",
-  sunrise: "orange",
-  flag: "sky",
-  pen: "teal",
-};
-
 function resolveTone(achievement: AchievementRecord | null) {
-  if (!achievement) return "gold";
-  return achievement.tone ?? toneByIcon[getSafeIconKey(achievement.icon)];
+  return achievement?.tone ?? "gold";
 }
 
 type FormState = {
@@ -203,6 +164,14 @@ type FormState = {
   isLocked: boolean;
   achievedAt: string;
 };
+
+function hasMeaningfulContent(form: FormState) {
+  return (
+    form.title.trim().length > 0 ||
+    form.description.trim().length > 0 ||
+    form.category.trim().length > 0
+  );
+}
 
 function todayDateString() {
   return new Date().toISOString().slice(0, 10);
@@ -282,14 +251,6 @@ function sortAchievements(rows: AchievementRecord[]) {
   });
 }
 
-function hasMeaningfulContent(form: FormState) {
-  return (
-    form.title.trim().length > 0 ||
-    form.description.trim().length > 0 ||
-    form.category.trim().length > 0
-  );
-}
-
 type BadgeIkSession = {
   baselineUrl: string;
   baselineFileId: string;
@@ -313,8 +274,6 @@ type EditorCardProps = {
   isSaving: boolean;
   onSubmit: (e: FormEvent) => void;
   onCancel?: () => void;
-  hasIconUrlColumn: boolean;
-  hasIconFileIdColumn: boolean;
   /** ImageKit session for staged uploads (replace chain + cancel restore). */
   badgeIkSessionRef: RefObject<BadgeIkSession>;
   /** Saved ImageKit file id at session start (empty for create). */
@@ -335,8 +294,6 @@ function EditableAchievementCard({
   isSaving,
   onSubmit,
   onCancel,
-  hasIconUrlColumn,
-  hasIconFileIdColumn,
   badgeIkSessionRef,
   baselineIconFileId,
   appearance,
@@ -456,12 +413,11 @@ function EditableAchievementCard({
         </button>
       </div>
 
-      {hasIconUrlColumn ? (
         <div className={cn(isOverlay ? "mt-8" : "mt-5")}>
           <AchievementRoundBadgeEditor
             instanceId={id}
             imageUrl={form.iconUrl}
-            iconFileId={hasIconFileIdColumn ? form.iconFileId : ""}
+            iconFileId={form.iconFileId}
             baselineIconFileId={baselineIconFileId}
             tone={form.tone}
             isLocked={form.isLocked}
@@ -535,7 +491,6 @@ function EditableAchievementCard({
             prominent={isOverlay}
           />
         </div>
-      ) : null}
 
       <div className="mt-6 w-full max-w-md px-1">
         <Input
@@ -638,18 +593,12 @@ export function AchievementsManager() {
   const [achievements, setAchievements] = useState<AchievementRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [hasToneColumn, setHasToneColumn] = useState(true);
-  const [hasLockedColumn, setHasLockedColumn] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [createForm, setCreateForm] = useState<FormState>(initialForm);
   const [isCreating, setIsCreating] = useState(false);
-  const [detailAchievementId, setDetailAchievementId] = useState<string | null>(
-    null,
-  );
+  const [detailAchievementId, setDetailAchievementId] = useState<string | null>(null);
   const [detailMode, setDetailMode] = useState<"view" | "edit">("view");
   const [panelForm, setPanelForm] = useState<FormState>(initialForm);
-  const [hasIconUrlColumn, setHasIconUrlColumn] = useState(true);
-  const [hasIconFileIdColumn, setHasIconFileIdColumn] = useState(true);
   const [toneMenuFor, setToneMenuFor] = useState<string | null>(null);
   const [iconMenuFor, setIconMenuFor] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -723,69 +672,11 @@ export function AchievementsManager() {
     setIsLoading(true);
     setError(null);
 
-    const selectColumns = buildSelectColumns(
-      hasToneColumn,
-      hasLockedColumn,
-      hasIconUrlColumn,
-      hasIconFileIdColumn,
-    );
     const { data, error } = await supabase
       .from("achievements")
-      .select(selectColumns)
+      .select(SELECT_COLUMNS)
       .order("achieved_at", { ascending: false })
       .order("created_at", { ascending: false });
-
-    const errMsg = error?.message.toLowerCase() ?? "";
-    if (
-      error &&
-      (errMsg.includes("tone") ||
-        errMsg.includes("is_locked") ||
-        errMsg.includes("icon_url") ||
-        errMsg.includes("icon_file_id"))
-    ) {
-      const missingTone = errMsg.includes("tone");
-      const missingLocked = errMsg.includes("is_locked");
-      const missingIconUrl = errMsg.includes("icon_url");
-      const missingIconFileId = errMsg.includes("icon_file_id");
-      const nextHasToneColumn = missingTone ? false : hasToneColumn;
-      const nextHasLockedColumn = missingLocked ? false : hasLockedColumn;
-      const nextHasIconUrlColumn = missingIconUrl ? false : hasIconUrlColumn;
-      const nextHasIconFileIdColumn = missingIconFileId
-        ? false
-        : hasIconFileIdColumn;
-      setHasToneColumn(nextHasToneColumn);
-      setHasLockedColumn(nextHasLockedColumn);
-      setHasIconUrlColumn(nextHasIconUrlColumn);
-      setHasIconFileIdColumn(nextHasIconFileIdColumn);
-
-      const fallback = await supabase
-        .from("achievements")
-        .select(
-          buildSelectColumns(
-            nextHasToneColumn,
-            nextHasLockedColumn,
-            nextHasIconUrlColumn,
-            nextHasIconFileIdColumn,
-          ),
-        )
-        .order("achieved_at", { ascending: false })
-        .order("created_at", { ascending: false });
-
-      if (fallback.error) {
-        setError(fallback.error.message);
-        setAchievements([]);
-        setIsLoading(false);
-        return;
-      }
-
-      const fallbackRawRows = Array.isArray(fallback.data) ? fallback.data : [];
-      const fallbackRows = fallbackRawRows.map((row) =>
-        normalizeAchievement(row as unknown as Record<string, unknown>),
-      );
-      setAchievements(sortAchievements(fallbackRows));
-      setIsLoading(false);
-      return;
-    }
 
     if (error) {
       setError(error.message);
@@ -828,35 +719,20 @@ export function AchievementsManager() {
       description: toNullable(createForm.description),
       category: toNullable(createForm.category),
       icon: createForm.icon,
+      icon_url: toNullable(createForm.iconUrl),
+      icon_file_id: createForm.iconFileId.trim()
+        ? createForm.iconFileId.trim()
+        : null,
+      tone: createForm.tone,
+      is_locked: createForm.isLocked,
       achieved_at: toNullable(createForm.achievedAt),
     };
 
-    if (hasToneColumn) {
-      insertPayload.tone = createForm.tone;
-    }
-    if (hasLockedColumn) {
-      insertPayload.is_locked = createForm.isLocked;
-    }
-    if (hasIconUrlColumn) {
-      insertPayload.icon_url = toNullable(createForm.iconUrl);
-    }
-    if (hasIconFileIdColumn) {
-      insertPayload.icon_file_id = createForm.iconFileId.trim()
-        ? createForm.iconFileId.trim()
-        : null;
-    }
 
     const { data, error } = await supabase
       .from("achievements")
       .insert(insertPayload)
-      .select(
-        buildSelectColumns(
-          hasToneColumn,
-          hasLockedColumn,
-          hasIconUrlColumn,
-          hasIconFileIdColumn,
-        ),
-      )
+      .select(SELECT_COLUMNS)
       .single();
 
     if (error) {
@@ -913,36 +789,20 @@ export function AchievementsManager() {
       description: toNullable(panelForm.description),
       category: toNullable(panelForm.category),
       icon: panelForm.icon,
+      icon_url: toNullable(panelForm.iconUrl),
+      icon_file_id: panelForm.iconFileId.trim()
+        ? panelForm.iconFileId.trim()
+        : null,
+      tone: panelForm.tone,
+      is_locked: panelForm.isLocked,
       achieved_at: toNullable(panelForm.achievedAt),
     };
-
-    if (hasToneColumn) {
-      updatePayload.tone = panelForm.tone;
-    }
-    if (hasLockedColumn) {
-      updatePayload.is_locked = panelForm.isLocked;
-    }
-    if (hasIconUrlColumn) {
-      updatePayload.icon_url = toNullable(panelForm.iconUrl);
-    }
-    if (hasIconFileIdColumn) {
-      updatePayload.icon_file_id = panelForm.iconFileId.trim()
-        ? panelForm.iconFileId.trim()
-        : null;
-    }
 
     const { data, error } = await supabase
       .from("achievements")
       .update(updatePayload)
       .eq("id", detailAchievementId)
-      .select(
-        buildSelectColumns(
-          hasToneColumn,
-          hasLockedColumn,
-          hasIconUrlColumn,
-          hasIconFileIdColumn,
-        ),
-      )
+      .select(SELECT_COLUMNS)
       .single();
 
     if (error) {
@@ -1159,8 +1019,6 @@ export function AchievementsManager() {
                   setToneMenuFor(null);
                   setIconMenuFor(null);
                 }}
-                hasIconUrlColumn={hasIconUrlColumn}
-                hasIconFileIdColumn={hasIconFileIdColumn}
                 badgeIkSessionRef={createBadgeIkSessionRef}
                 baselineIconFileId={createBadgeIkSessionRef.current.baselineFileId}
                 appearance="overlay"
@@ -1262,8 +1120,6 @@ export function AchievementsManager() {
                   setToneMenuFor(null);
                   setIconMenuFor(null);
                 }}
-                hasIconUrlColumn={hasIconUrlColumn}
-                hasIconFileIdColumn={hasIconFileIdColumn}
                 badgeIkSessionRef={panelBadgeIkSessionRef}
                 baselineIconFileId={
                   panelBadgeIkSessionRef.current.baselineFileId
