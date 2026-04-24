@@ -233,6 +233,11 @@ const toneByIcon: Record<AchievementIconKey, AchievementTone> = {
   pen: "teal",
 };
 
+function resolveTone(achievement: AchievementRecord | null) {
+  if (!achievement) return "gold";
+  return achievement.tone ?? toneByIcon[getSafeIconKey(achievement.icon)];
+}
+
 type FormState = {
   title: string;
   description: string;
@@ -269,7 +274,7 @@ function achievementToForm(a: AchievementRecord): FormState {
     icon: getSafeIconKey(a.icon),
     iconUrl: a.icon_url ?? "",
     iconFileId: a.icon_file_id ?? "",
-    tone: a.tone ?? toneByIcon[getSafeIconKey(a.icon)],
+    tone: resolveTone(a),
     isLocked: Boolean(a.is_locked),
     achievedAt: a.achieved_at ?? "",
   };
@@ -297,8 +302,9 @@ function toNullable(value: string) {
 }
 
 function getSafeIconKey(value: string | null) {
-  if (!value) return "trophy";
-  return value in iconMap ? (value as AchievementIconKey) : "trophy";
+  if (value && value in iconMap)
+    return value as AchievementIconKey;
+  else return "trophy";
 }
 
 function sortAchievements(rows: AchievementRecord[]) {
@@ -720,13 +726,10 @@ export function AchievementsManager() {
     ? iconMap[getSafeIconKey(detailAchievement.icon)]
     : Trophy;
 
-  const detailTone: AchievementTone = useMemo(() => {
-    if (!detailAchievement) return "gold";
-    return (
-      detailAchievement.tone ??
-      toneByIcon[getSafeIconKey(detailAchievement.icon)]
-    );
-  }, [detailAchievement]);
+  const detailTone: AchievementTone = useMemo(
+    () => resolveTone(detailAchievement),
+    [detailAchievement]
+  );
 
   useEffect(() => {
     void loadAchievements();
@@ -1117,9 +1120,8 @@ export function AchievementsManager() {
               </button>
 
               {achievements.map((achievement) => {
-                const safeIconKey = getSafeIconKey(achievement.icon);
-                const Icon = iconMap[safeIconKey];
-                const tone = achievement.tone ?? toneByIcon[safeIconKey];
+                const Icon = iconMap[getSafeIconKey(achievement.icon)];
+                const tone = resolveTone(achievement);
                 return (
                   <AchievementGridItem
                     key={achievement.id}
