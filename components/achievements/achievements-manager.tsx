@@ -257,6 +257,12 @@ type BadgeIkSession = {
   lastSessionFileId: string | null;
 };
 
+const EMPTY_BADGE_IK_SESSION: BadgeIkSession = Object.freeze({
+  baselineUrl: "",
+  baselineFileId: "",
+  lastSessionFileId: null as string | null,
+});
+
 function deletePreviousSessionUpload(ref: RefObject<BadgeIkSession>) {
   const s = ref.current;
   const prev = s.lastSessionFileId?.trim() ?? "";
@@ -603,16 +609,8 @@ export function AchievementsManager() {
   const [iconMenuFor, setIconMenuFor] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
-  const createBadgeIkSessionRef = useRef<BadgeIkSession>({
-    baselineUrl: "",
-    baselineFileId: "",
-    lastSessionFileId: null,
-  });
-  const panelBadgeIkSessionRef = useRef<BadgeIkSession>({
-    baselineUrl: "",
-    baselineFileId: "",
-    lastSessionFileId: null,
-  });
+  const createBadgeIkSessionRef = useRef<BadgeIkSession>(EMPTY_BADGE_IK_SESSION);
+  const panelBadgeIkSessionRef = useRef<BadgeIkSession>(EMPTY_BADGE_IK_SESSION);
 
   function rollbackBadgeSession(ref: RefObject<BadgeIkSession>) {
     const r = ref.current;
@@ -750,11 +748,7 @@ export function AchievementsManager() {
     tryPlayUnlockSaveChime(normalized);
     setAchievements((prev) => sortAchievements([normalized, ...prev]));
     setCreateForm({ ...initialForm, achievedAt: todayDateString() });
-    createBadgeIkSessionRef.current = {
-      baselineUrl: "",
-      baselineFileId: "",
-      lastSessionFileId: null,
-    };
+    createBadgeIkSessionRef.current = EMPTY_BADGE_IK_SESSION;
     setIsSaving(false);
     setIsCreating(false);
     setDetailAchievementId(null);
@@ -897,11 +891,7 @@ export function AchievementsManager() {
                   "focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
                 )}
                 onClick={() => {
-                  createBadgeIkSessionRef.current = {
-                    baselineUrl: "",
-                    baselineFileId: "",
-                    lastSessionFileId: null,
-                  };
+                  createBadgeIkSessionRef.current = EMPTY_BADGE_IK_SESSION;
                   setIsCreating(true);
                   setDetailAchievementId(null);
                   setDetailMode("edit");
