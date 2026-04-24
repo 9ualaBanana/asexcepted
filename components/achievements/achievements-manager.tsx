@@ -255,7 +255,11 @@ function toNullable(value: string) {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-function getSafeIconKey(value: string | null) {
+function getSafeIcon(achievement: AchievementRecord | null): LucideIcon {
+  return iconMap[getSafeIconKey(achievement?.icon)];
+}
+
+function getSafeIconKey(value?: string | null): AchievementIconKey {
   if (value && value in iconMap)
     return value as AchievementIconKey;
   else return "trophy";
@@ -676,10 +680,7 @@ export function AchievementsManager() {
     return achievements.find((a) => a.id === detailAchievementId) ?? null;
   }, [achievements, detailAchievementId]);
 
-  const DetailFallbackIcon = detailAchievement
-    ? iconMap[getSafeIconKey(detailAchievement.icon)]
-    : Trophy;
-
+  const DetailFallbackIcon = getSafeIcon(detailAchievement);
   const detailTone: AchievementTone = useMemo(
     () => resolveTone(detailAchievement),
     [detailAchievement]
@@ -1070,7 +1071,7 @@ export function AchievementsManager() {
               </button>
 
               {achievements.map((achievement) => {
-                const Icon = iconMap[getSafeIconKey(achievement.icon)];
+                const Icon = getSafeIcon(achievement);
                 const tone = resolveTone(achievement);
                 return (
                   <AchievementGridItem
