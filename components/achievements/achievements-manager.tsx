@@ -408,7 +408,7 @@ export function AchievementsManager() {
                     <Sparkles className="h-6 w-6" />
                   </div>
                 </div>
-                <p className="line-clamp-2 w-full text-[11px] font-medium leading-tight text-white/55 group-hover:text-white/80 sm:text-xs">
+                <p className="line-clamp-2 h-[2.7em] max-h-[2.7em] w-full shrink-0 overflow-hidden text-[11px] font-medium leading-[1.35] text-white/55 group-hover:text-white/80 sm:text-xs">
                   Add achievement
                 </p>
                 <p className="text-[10px] text-white/35 sm:text-[11px]">—</p>
@@ -467,7 +467,7 @@ export function AchievementsManager() {
                 >
                   <div
                     className={cn(
-                      "relative mx-auto my-auto w-full max-w-lg max-h-[min(88dvh,56rem)] overflow-y-auto overscroll-y-contain rounded-2xl border border-white/10 bg-zinc-950 p-6 pb-8 shadow-2xl sm:pb-6",
+                      "relative mx-auto my-auto w-full max-w-lg max-h-[min(92dvh,56rem)] overflow-y-auto overscroll-y-contain rounded-2xl border border-white/10 bg-zinc-950 p-4 pb-6 shadow-2xl sm:p-6 sm:pb-6",
                       (isCreating || detailMode === "edit") &&
                         "overflow-x-hidden",
                     )}
@@ -508,7 +508,7 @@ export function AchievementsManager() {
                 setIconMenuFor={setIconMenuFor}
               />
             ) : detailMode === "view" && detailAchievement ? (
-              <div className="flex w-full flex-col items-center pt-2">
+              <div className="flex w-full flex-col items-center pt-1">
                 <AchievementBadgeSlot
                   size="overlay-xl"
                   className={cn(
@@ -531,30 +531,30 @@ export function AchievementsManager() {
                   )}
                 </AchievementBadgeSlot>
 
-                <p className="mt-8 w-full text-center text-[11px] font-medium uppercase tracking-[0.2em] text-white/45">
+                <p className="mt-6 w-full text-center text-base font-medium uppercase tracking-[0.2em] text-white/45 sm:mt-8">
                   {(detailAchievement.category?.trim() ||
                     (detailAchievement.is_locked ? "Locked" : "Uncategorized"))}
                 </p>
                 <h2
                   id="achievement-detail-title"
-                  className="mt-2 text-center text-xl font-semibold tracking-tight text-white"
+                  className="mt-1.5 text-center text-xl font-semibold tracking-tight text-white"
                 >
                   {detailAchievement.title?.trim() ||
                     (detailAchievement.is_locked ? "Locked" : "Untitled")}
                 </h2>
-                <p className="mt-4 break-words text-center text-sm leading-relaxed text-white/65">
+                <p className="mt-2 break-words text-center text-base leading-relaxed text-white/65 sm:mt-3">
                   {detailAchievement.is_locked
                     ? detailAchievement.description?.trim() ||
                       "This achievement is locked."
                     : detailAchievement.description?.trim() || "No description yet."}
                 </p>
                 {formatAchievedAt(detailAchievement.achieved_at) ? (
-                  <p className="mt-4 text-center text-xs text-white/40">
+                  <p className="mt-2 text-center text-base text-white/40 sm:mt-3">
                     {formatAchievedAt(detailAchievement.achieved_at)}
                   </p>
                 ) : null}
 
-                <div className="mt-8 flex flex-wrap justify-center gap-2">
+                <div className="mt-6 flex flex-wrap justify-center gap-2 sm:mt-8">
                   <Button
                     type="button"
                     variant="secondary"

@@ -54,7 +54,12 @@ export function AchievementGridItem({
           />
         )}
       </AchievementBadgeSlot>
-      <p className="line-clamp-2 w-full text-[11px] font-medium leading-tight text-white sm:text-xs">
+      <p
+        className={cn(
+          "line-clamp-2 w-full shrink-0 overflow-hidden text-[11px] font-medium leading-[1.35] text-white sm:text-xs",
+          "h-[2.7em] max-h-[2.7em]",
+        )}
+      >
         {displayTitle}
       </p>
       {dateLabel ? (
