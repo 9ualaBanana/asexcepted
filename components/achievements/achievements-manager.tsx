@@ -9,7 +9,7 @@ import {
   type FormEvent,
   type RefObject,
 } from "react";
-import { Sparkles, X } from "lucide-react";
+import { PenLine, Sparkles, Trash2, X } from "lucide-react";
 
 import { type AchievementTone } from "@/components/achievements/achievement-card";
 import { AchievementBadgeSlot } from "@/components/achievements/achievement-badge-slot";
@@ -17,8 +17,11 @@ import { AchievementFallbackBadge } from "@/components/achievements/achievement-
 import { AchievementGridItem } from "@/components/achievements/achievement-grid-item";
 import {
   type AchievementIconKey,
+  achievementBadgeChromeWidth,
+  achievementDialogChromeInset,
+  achievementDialogIconBtn,
   type BadgeIkSession,
-  EMPTY_BADGE_IK_SESSION,
+  createEmptyBadgeIkSession,
   type FormState,
   formatAchievedAt,
   formatGridDate,
@@ -146,8 +149,8 @@ export function AchievementsManager() {
   const [panelForm, setPanelForm] = useState<FormState>(INITIAL_FORM);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
-  const createBadgeIkSessionRef = useRef<BadgeIkSession>(EMPTY_BADGE_IK_SESSION);
-  const panelBadgeIkSessionRef = useRef<BadgeIkSession>(EMPTY_BADGE_IK_SESSION);
+  const createBadgeIkSessionRef = useRef<BadgeIkSession>(createEmptyBadgeIkSession());
+  const panelBadgeIkSessionRef = useRef<BadgeIkSession>(createEmptyBadgeIkSession());
 
   function rollbackBadgeSession(ref: RefObject<BadgeIkSession>) {
     const r = ref.current;
@@ -260,7 +263,7 @@ export function AchievementsManager() {
     tryPlayUnlockSaveChime(normalized);
     setAchievements((prev) => sortAchievements([normalized, ...prev]));
     setCreateForm({ ...INITIAL_FORM, achievedAt: todayDateString() });
-    createBadgeIkSessionRef.current = EMPTY_BADGE_IK_SESSION;
+    createBadgeIkSessionRef.current = createEmptyBadgeIkSession();
     setIsSaving(false);
     setIsCreating(false);
     setDetailAchievementId(null);
@@ -377,7 +380,7 @@ export function AchievementsManager() {
                   "focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
                 )}
                 onClick={() => {
-                  createBadgeIkSessionRef.current = EMPTY_BADGE_IK_SESSION;
+                  createBadgeIkSessionRef.current = createEmptyBadgeIkSession();
                   setIsCreating(true);
                   setDetailAchievementId(null);
                   setDetailMode("edit");
@@ -450,28 +453,17 @@ export function AchievementsManager() {
                 />
                 {/* Scroll + center sheet; safe-area padding only here */}
                 <div
-                  className="relative z-10 flex min-h-0 w-full flex-1 items-center justify-center overflow-y-auto px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] sm:px-6"
+                  className="relative z-10 flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden px-4 pt-[max(0.5rem,env(safe-area-inset-top))] pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-6"
                   onClick={() => closeDetailPanel()}
                 >
                   <div
                     className={cn(
-                      "relative mx-auto my-auto flex w-full max-w-lg max-h-[min(92dvh,56rem)] flex-col overflow-y-auto overscroll-y-contain rounded-2xl border border-white/10 bg-zinc-950 p-4 pb-6 shadow-2xl sm:p-6 sm:pb-6",
+                      "relative mx-auto my-auto flex w-full max-w-lg max-h-[min(92dvh,56rem)] min-h-0 flex-col overflow-x-hidden overflow-y-auto overscroll-y-contain rounded-2xl border border-white/10 bg-zinc-950 p-4 pb-6 shadow-2xl sm:p-6 sm:pb-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
                       (isCreating || detailMode === "edit") &&
                         "overflow-x-hidden",
                     )}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="flex w-full shrink-0 justify-end pb-3">
-                      <button
-                        type="button"
-                        aria-label="Close"
-                        className="rounded-full border border-white/15 bg-white/5 p-2 text-white/80 transition hover:bg-white/10"
-                        onClick={() => closeDetailPanel()}
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-
             {isCreating ? (
               <EditableAchievementCard
                 form={createForm}
@@ -489,59 +481,88 @@ export function AchievementsManager() {
                 }}
                 badgeIkSessionRef={createBadgeIkSessionRef}
                 baselineIconFileId={createBadgeIkSessionRef.current.baselineFileId}
+                onClosePanel={() => closeDetailPanel()}
               />
             ) : detailMode === "view" && detailAchievement ? (
-              <div className="flex w-full flex-col items-center">
-                <AchievementBadgeSlot
-                  size="overlay-xl"
-                  className={cn(
-                    Boolean(detailAchievement.is_locked) && "opacity-75 grayscale",
-                  )}
-                >
-                  {detailAchievement.icon_url?.trim() ? (
-                    <img
-                      src={detailAchievement.icon_url.trim()}
-                      alt=""
-                      className="h-full w-full object-contain p-1 drop-shadow-lg"
-                    />
-                  ) : (
-                    <AchievementFallbackBadge
-                      tone={detailTone}
-                      isLocked={Boolean(detailAchievement.is_locked)}
-                      FallbackIcon={DetailFallbackIcon}
+              <div className="flex w-full flex-col items-center pt-1">
+                <div className={achievementBadgeChromeWidth}>
+                  <div
+                    className={cn(
+                      "flex w-full items-center justify-end pb-1",
+                      achievementDialogChromeInset,
+                    )}
+                  >
+                    <button
+                      type="button"
+                      aria-label="Close"
+                      className={achievementDialogIconBtn}
+                      onClick={() => closeDetailPanel()}
+                    >
+                      <X className="h-4 w-4" aria-hidden />
+                    </button>
+                  </div>
+                  <div className="flex justify-center">
+                    <AchievementBadgeSlot
                       size="overlay-xl"
-                    />
-                  )}
-                </AchievementBadgeSlot>
+                      className={cn(
+                        Boolean(detailAchievement.is_locked) &&
+                          "opacity-75 grayscale",
+                      )}
+                    >
+                      {detailAchievement.icon_url?.trim() ? (
+                        <img
+                          src={detailAchievement.icon_url.trim()}
+                          alt=""
+                          className="h-full w-full object-contain p-1 drop-shadow-lg"
+                        />
+                      ) : (
+                        <AchievementFallbackBadge
+                          tone={detailTone}
+                          isLocked={Boolean(detailAchievement.is_locked)}
+                          FallbackIcon={DetailFallbackIcon}
+                          size="overlay-xl"
+                        />
+                      )}
+                    </AchievementBadgeSlot>
+                  </div>
+                </div>
 
-                <p className="mt-6 w-full text-center text-base font-medium uppercase tracking-[0.2em] text-white/45 sm:mt-8">
+                <p className="mt-8 w-full text-center text-[11px] font-medium uppercase tracking-[0.2em] text-white/45">
                   {(detailAchievement.category?.trim() ||
                     (detailAchievement.is_locked ? "Locked" : "Uncategorized"))}
                 </p>
                 <h2
                   id="achievement-detail-title"
-                  className="mt-1.5 text-center text-xl font-semibold tracking-tight text-white"
+                  className="mt-2 text-center text-xl font-semibold tracking-tight text-white"
                 >
                   {detailAchievement.title?.trim() ||
                     (detailAchievement.is_locked ? "Locked" : "Untitled")}
                 </h2>
-                <p className="mt-2 break-words text-center text-base leading-relaxed text-white/65 sm:mt-3">
+                <p className="mt-4 break-words text-center text-sm leading-relaxed text-white/65">
                   {detailAchievement.is_locked
                     ? detailAchievement.description?.trim() ||
                       "This achievement is locked."
                     : detailAchievement.description?.trim() || "No description yet."}
                 </p>
                 {formatAchievedAt(detailAchievement.achieved_at) ? (
-                  <p className="mt-2 text-center text-base text-white/40 sm:mt-3">
+                  <p className="mt-4 text-center text-xs text-white/40">
                     {formatAchievedAt(detailAchievement.achieved_at)}
                   </p>
                 ) : null}
 
-                <div className="mt-6 flex flex-wrap justify-center gap-2 sm:mt-8">
-                  <Button
+                <div
+                  className={cn(
+                    achievementBadgeChromeWidth,
+                    achievementDialogChromeInset,
+                    "mt-3 flex min-h-10 items-center justify-between",
+                    !formatAchievedAt(detailAchievement.achieved_at) && "mt-6",
+                  )}
+                >
+                  <button
                     type="button"
-                    variant="secondary"
-                    className="bg-white/10 text-white hover:bg-white/15"
+                    aria-label="Edit"
+                    className={achievementDialogIconBtn}
+                    disabled={isSaving}
                     onClick={() => {
                       panelBadgeIkSessionRef.current = {
                         baselineUrl: detailAchievement.icon_url ?? "",
@@ -552,16 +573,17 @@ export function AchievementsManager() {
                       setDetailMode("edit");
                     }}
                   >
-                    Edit
-                  </Button>
-                  <Button
+                    <PenLine className="h-4 w-4" aria-hidden />
+                  </button>
+                  <button
                     type="button"
-                    variant="destructive"
-                    onClick={() => setDeleteConfirmId(detailAchievement.id)}
+                    aria-label="Delete"
+                    className={achievementDialogIconBtn}
                     disabled={isSaving}
+                    onClick={() => setDeleteConfirmId(detailAchievement.id)}
                   >
-                    Delete
-                  </Button>
+                    <Trash2 className="h-4 w-4" aria-hidden />
+                  </button>
                 </div>
               </div>
             ) : detailAchievement ? (
@@ -581,6 +603,8 @@ export function AchievementsManager() {
                 baselineIconFileId={
                   panelBadgeIkSessionRef.current.baselineFileId
                 }
+                onClosePanel={() => closeDetailPanel()}
+                showBackArrow
               />
             ) : null}
                   </div>

@@ -1,15 +1,20 @@
 "use client";
 
 import {
+  useId,
   type Dispatch,
   type FormEvent,
   type RefObject,
   type SetStateAction,
 } from "react";
-import { X } from "lucide-react";
+import { ArrowLeft, Loader2, Save, X } from "lucide-react";
 
 import { AchievementRoundBadgeEditor } from "@/components/achievements/achievement-round-badge-editor";
 import {
+  achievementBadgeChromeWidth,
+  achievementDialogChromeInset,
+  achievementDialogIconBtn,
+  achievementDialogIconSideSlot,
   type BadgeIkSession,
   type FormState,
 } from "@/components/achievements/achievement-editor-shared";
@@ -37,6 +42,10 @@ export type EditorCardProps = {
   badgeIkSessionRef: RefObject<BadgeIkSession>;
   /** Saved ImageKit file id at session start (empty for create). */
   baselineIconFileId: string;
+  /** Close entire achievement dialog (X above badge, right). */
+  onClosePanel?: () => void;
+  /** Back arrow under the date (edit existing only; hidden while creating). */
+  showBackArrow?: boolean;
 };
 
 export function EditableAchievementCard({
@@ -47,7 +56,12 @@ export function EditableAchievementCard({
   onCancel,
   badgeIkSessionRef,
   baselineIconFileId,
+  onClosePanel,
+  showBackArrow = false,
 }: EditorCardProps) {
+  const formId = useId();
+  const showDialogChrome = Boolean(onClosePanel);
+
   function resizeTextarea(target: HTMLTextAreaElement) {
     target.style.height = "0px";
     target.style.height = `${target.scrollHeight}px`;
@@ -59,6 +73,7 @@ export function EditableAchievementCard({
 
   return (
     <form
+      id={formId}
       onSubmit={onSubmit}
       className={cn(
         "relative flex flex-col items-center text-center",
@@ -73,42 +88,66 @@ export function EditableAchievementCard({
         )}
       />
 
-      <div className="mt-1">
-        <AchievementRoundBadgeEditor
-          imageUrl={form.iconUrl}
-          iconFileId={form.iconFileId}
-          baselineIconFileId={baselineIconFileId}
-          tone={form.tone}
-          isLocked={form.isLocked}
-          icon={form.icon}
-          onToneChange={(tone) => setForm((prev) => ({ ...prev, tone }))}
-          onToggleLocked={() =>
-            setForm((prev) => ({ ...prev, isLocked: !prev.isLocked }))
-          }
-          onIconChange={(icon) => setForm((prev) => ({ ...prev, icon }))}
-          onRemoteUploadCommit={(url, fileId) => {
-            deletePreviousSessionUpload(badgeIkSessionRef);
-            badgeIkSessionRef.current = {
-              ...badgeIkSessionRef.current,
-              lastSessionFileId: fileId.trim() || null,
-            };
-            setForm((prev) => ({
-              ...prev,
-              iconUrl: url,
-              iconFileId: fileId,
-            }));
-          }}
-          onImageUrlChange={(url) =>
-            setForm((prev) => ({ ...prev, iconUrl: url }))
-          }
-          onIconFileIdChange={(fid) =>
-            setForm((prev) => ({ ...prev, iconFileId: fid }))
-          }
-          onStagedUploadCleared={() => {
-            badgeIkSessionRef.current.lastSessionFileId = null;
-          }}
-          disabled={isSaving}
-        />
+      <div
+        className={cn(
+          showDialogChrome ? achievementBadgeChromeWidth : "mt-1 w-full",
+        )}
+      >
+        {showDialogChrome ? (
+          <div
+            className={cn(
+              "flex w-full items-center justify-end pb-1",
+              achievementDialogChromeInset,
+            )}
+          >
+            <button
+              type="button"
+              aria-label="Close"
+              className={achievementDialogIconBtn}
+              disabled={isSaving}
+              onClick={() => onClosePanel?.()}
+            >
+              <X className="h-4 w-4" aria-hidden />
+            </button>
+          </div>
+        ) : null}
+        <div className={cn(showDialogChrome && "flex justify-center")}>
+          <AchievementRoundBadgeEditor
+            imageUrl={form.iconUrl}
+            iconFileId={form.iconFileId}
+            baselineIconFileId={baselineIconFileId}
+            tone={form.tone}
+            isLocked={form.isLocked}
+            icon={form.icon}
+            onToneChange={(tone) => setForm((prev) => ({ ...prev, tone }))}
+            onToggleLocked={() =>
+              setForm((prev) => ({ ...prev, isLocked: !prev.isLocked }))
+            }
+            onIconChange={(icon) => setForm((prev) => ({ ...prev, icon }))}
+            onRemoteUploadCommit={(url, fileId) => {
+              deletePreviousSessionUpload(badgeIkSessionRef);
+              badgeIkSessionRef.current = {
+                ...badgeIkSessionRef.current,
+                lastSessionFileId: fileId.trim() || null,
+              };
+              setForm((prev) => ({
+                ...prev,
+                iconUrl: url,
+                iconFileId: fileId,
+              }));
+            }}
+            onImageUrlChange={(url) =>
+              setForm((prev) => ({ ...prev, iconUrl: url }))
+            }
+            onIconFileIdChange={(fid) =>
+              setForm((prev) => ({ ...prev, iconFileId: fid }))
+            }
+            onStagedUploadCleared={() => {
+              badgeIkSessionRef.current.lastSessionFileId = null;
+            }}
+            disabled={isSaving}
+          />
+        </div>
       </div>
 
       <div className="mt-3 w-full max-w-md px-1">
@@ -179,26 +218,73 @@ export function EditableAchievementCard({
         </Button>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-        <Button
-          type="submit"
-          disabled={isSaving}
-          className="bg-white text-zinc-950 hover:bg-white/90"
+      {showDialogChrome ? (
+        <div
+          className={cn(
+            achievementBadgeChromeWidth,
+            achievementDialogChromeInset,
+            "mt-3 flex min-h-10 items-center",
+          )}
         >
-          {isSaving ? "Saving..." : "Save"}
-        </Button>
-        {onCancel ? (
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={onCancel}
-            disabled={isSaving}
-            className="bg-white/10 text-white hover:bg-white/15"
+          <div
+            className={cn(achievementDialogIconSideSlot, "justify-start")}
           >
-            Cancel
+            {onCancel && showBackArrow ? (
+              <button
+                type="button"
+                aria-label="Back"
+                className={achievementDialogIconBtn}
+                disabled={isSaving}
+                onClick={() => onCancel()}
+              >
+                <ArrowLeft className="h-4 w-4" aria-hidden />
+              </button>
+            ) : null}
+          </div>
+          <div className="flex min-w-0 flex-1 justify-center">
+            <button
+              type="submit"
+              aria-label={isSaving ? "Saving" : "Save"}
+              disabled={isSaving}
+              className={cn(
+                achievementDialogIconBtn,
+                "bg-white/10 text-white hover:bg-white/15",
+              )}
+            >
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              ) : (
+                <Save className="h-4 w-4" aria-hidden />
+              )}
+            </button>
+          </div>
+          <div
+            className={cn(achievementDialogIconSideSlot, "justify-end")}
+            aria-hidden
+          />
+        </div>
+      ) : (
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+          <Button
+            type="submit"
+            disabled={isSaving}
+            className="bg-white text-zinc-950 hover:bg-white/90"
+          >
+            {isSaving ? "Saving..." : "Save"}
           </Button>
-        ) : null}
-      </div>
+          {onCancel ? (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={onCancel}
+              disabled={isSaving}
+              className="bg-white/10 text-white hover:bg-white/15"
+            >
+              Cancel
+            </Button>
+          ) : null}
+        </div>
+      )}
     </form>
   );
 }
