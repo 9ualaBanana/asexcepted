@@ -8,7 +8,7 @@ import {
   useState,
   type Dispatch,
   type FormEvent,
-  type MutableRefObject,
+  type RefObject,
   type SetStateAction,
 } from "react";
 import {
@@ -292,7 +292,7 @@ type BadgeIkSession = {
   lastSessionFileId: string | null;
 };
 
-function deletePreviousSessionUpload(ref: MutableRefObject<BadgeIkSession>) {
+function deletePreviousSessionUpload(ref: RefObject<BadgeIkSession>) {
   const s = ref.current;
   const prev = s.lastSessionFileId?.trim() ?? "";
   const baseline = s.baselineFileId.trim();
@@ -312,7 +312,7 @@ type EditorCardProps = {
   hasIconUrlColumn: boolean;
   hasIconFileIdColumn: boolean;
   /** ImageKit session for staged uploads (replace chain + cancel restore). */
-  badgeIkSessionRef: MutableRefObject<BadgeIkSession>;
+  badgeIkSessionRef: RefObject<BadgeIkSession>;
   /** Saved ImageKit file id at session start (empty for create). */
   baselineIconFileId: string;
   /** Sheet edit matches close-up overlay; inline is the create card on the page. */
@@ -661,7 +661,7 @@ export function AchievementsManager() {
     lastSessionFileId: null,
   });
 
-  function rollbackBadgeSession(ref: MutableRefObject<BadgeIkSession>) {
+  function rollbackBadgeSession(ref: RefObject<BadgeIkSession>) {
     const r = ref.current;
     const last = r.lastSessionFileId?.trim() ?? "";
     const baseline = r.baselineFileId.trim();
