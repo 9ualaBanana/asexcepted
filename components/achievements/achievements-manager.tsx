@@ -6,55 +6,30 @@ import {
   useMemo,
   useRef,
   useState,
-  type Dispatch,
   type FormEvent,
   type RefObject,
-  type SetStateAction,
 } from "react";
-import {
-  Award,
-  BookOpen,
-  Brain,
-  Camera,
-  Compass,
-  Crown,
-  Flag,
-  Flame,
-  Gem,
-  Globe2,
-  Heart,
-  Leaf,
-  Lock,
-  Medal,
-  Orbit,
-  Palette,
-  PenLine,
-  Puzzle,
-  Rocket,
-  Shield,
-  Sparkles,
-  Star,
-  Sunrise,
-  Target,
-  Trophy,
-  Unlock,
-  Waves,
-  X,
-  Zap,
-  type LucideIcon,
-} from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 
-import {
-  achievementToneStyles,
-  achievementToneSwatches,
-  type AchievementTone,
-} from "@/components/achievements/achievement-card";
+import { type AchievementTone } from "@/components/achievements/achievement-card";
 import { AchievementBadgeSlot } from "@/components/achievements/achievement-badge-slot";
-import { AchievementRoundBadgeEditor } from "@/components/achievements/achievement-round-badge-editor";
 import { AchievementFallbackBadge } from "@/components/achievements/achievement-fallback-badge";
 import { AchievementGridItem } from "@/components/achievements/achievement-grid-item";
+import {
+  type AchievementIconKey,
+  type BadgeIkSession,
+  EMPTY_BADGE_IK_SESSION,
+  type FormState,
+  formatAchievedAt,
+  formatGridDate,
+  getSafeIcon,
+  getSafeIconKey,
+  hasMeaningfulContent,
+  toNullable,
+  todayDateString,
+} from "@/components/achievements/achievement-editor-shared";
+import { EditableAchievementCard } from "@/components/achievements/editable-achievement-card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
 import { deleteImageKitFile } from "@/lib/imagekit-client";
 import { cn } from "@/lib/utils";
@@ -64,13 +39,30 @@ type AchievementRecord = {
   title: string | null;
   description: string | null;
   category: string | null;
-  icon: string | null;
+  icon: AchievementIconKey;
   icon_url: string | null;
   icon_file_id: string | null;
-  tone: AchievementTone | null;
-  is_locked: boolean | null;
+  tone: AchievementTone;
+  is_locked: boolean;
   achieved_at: string | null;
   created_at: string;
+};
+
+type AchievementPayloadBase = Omit<AchievementRecord, "id" | "created_at">;
+
+type AchievementInsertPayload = AchievementPayloadBase;
+type AchievementUpdatePayload = AchievementPayloadBase;
+
+const INITIAL_FORM: FormState = {
+  title: "",
+  description: "",
+  category: "",
+  icon: "trophy",
+  iconUrl: "",
+  iconFileId: "",
+  tone: "gold",
+  isLocked: false,
+  achievedAt: todayDateString(),
 };
 
 const SELECT_COLUMNS =
@@ -82,7 +74,7 @@ function normalizeAchievement(row: Record<string, unknown>): AchievementRecord {
     title: (row.title as string | null) ?? null,
     description: (row.description as string | null) ?? null,
     category: (row.category as string | null) ?? null,
-    icon: row.icon as string,
+    icon: getSafeIconKey(row.icon as string | null | undefined),
     icon_url: (row.icon_url as string | null) ?? null,
     icon_file_id: (row.icon_file_id as string | null) ?? null,
     tone: row.tone as AchievementTone,
@@ -92,102 +84,9 @@ function normalizeAchievement(row: Record<string, unknown>): AchievementRecord {
   };
 }
 
-type AchievementIconKey =
-  | "trophy"
-  | "medal"
-  | "star"
-  | "sparkles"
-  | "flame"
-  | "award"
-  | "rocket"
-  | "shield"
-  | "compass"
-  | "globe"
-  | "leaf"
-  | "gem"
-  | "zap"
-  | "crown"
-  | "brain"
-  | "heart"
-  | "target"
-  | "book"
-  | "camera"
-  | "palette"
-  | "orbit"
-  | "puzzle"
-  | "waves"
-  | "sunrise"
-  | "flag"
-  | "pen";
-
-const iconMap: Record<AchievementIconKey, LucideIcon> = {
-  trophy: Trophy,
-  medal: Medal,
-  star: Star,
-  sparkles: Sparkles,
-  flame: Flame,
-  award: Award,
-  rocket: Rocket,
-  shield: Shield,
-  compass: Compass,
-  globe: Globe2,
-  leaf: Leaf,
-  gem: Gem,
-  zap: Zap,
-  crown: Crown,
-  brain: Brain,
-  heart: Heart,
-  target: Target,
-  book: BookOpen,
-  camera: Camera,
-  palette: Palette,
-  orbit: Orbit,
-  puzzle: Puzzle,
-  waves: Waves,
-  sunrise: Sunrise,
-  flag: Flag,
-  pen: PenLine,
-};
-
 function resolveTone(achievement: AchievementRecord | null) {
   return achievement?.tone ?? "gold";
 }
-
-type FormState = {
-  title: string;
-  description: string;
-  category: string;
-  icon: AchievementIconKey;
-  iconUrl: string;
-  iconFileId: string;
-  tone: AchievementTone;
-  isLocked: boolean;
-  achievedAt: string;
-};
-
-function hasMeaningfulContent(form: FormState) {
-  return (
-    form.title.trim().length > 0 ||
-    form.description.trim().length > 0 ||
-    form.category.trim().length > 0
-  );
-}
-
-function todayDateString() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-const initialForm: FormState = {
-  title: "",
-  description: "",
-  category: "",
-  icon: "trophy",
-  iconUrl: "",
-  iconFileId: "",
-  tone: "gold",
-  isLocked: false,
-  achievedAt: todayDateString(),
-};
 
 function achievementToForm(a: AchievementRecord): FormState {
   return {
@@ -203,35 +102,18 @@ function achievementToForm(a: AchievementRecord): FormState {
   };
 }
 
-function formatGridDate(value: string | null) {
-  if (!value) return null;
-  const d = new Date(`${value}T00:00:00`);
-  return d.toLocaleDateString(undefined, { year: "numeric", month: "short" });
-}
-
-function formatAchievedAt(value: string | null) {
-  if (!value) return undefined;
-  const parsed = new Date(`${value}T00:00:00`);
-  return parsed.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-
-function toNullable(value: string) {
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
-}
-
-function getSafeIcon(achievement: AchievementRecord | null): LucideIcon {
-  return iconMap[getSafeIconKey(achievement?.icon)];
-}
-
-function getSafeIconKey(value?: string | null): AchievementIconKey {
-  if (value && value in iconMap)
-    return value as AchievementIconKey;
-  else return "trophy";
+function formToPayload(form: FormState): AchievementPayloadBase {
+  return {
+    title: toNullable(form.title),
+    description: toNullable(form.description),
+    category: toNullable(form.category),
+    icon: form.icon,
+    icon_url: toNullable(form.iconUrl),
+    icon_file_id: form.iconFileId.trim() ? form.iconFileId.trim() : null,
+    tone: form.tone,
+    is_locked: form.isLocked,
+    achieved_at: toNullable(form.achievedAt),
+  };
 }
 
 function sortAchievements(rows: AchievementRecord[]) {
@@ -251,360 +133,17 @@ function sortAchievements(rows: AchievementRecord[]) {
   });
 }
 
-type BadgeIkSession = {
-  baselineUrl: string;
-  baselineFileId: string;
-  lastSessionFileId: string | null;
-};
-
-const EMPTY_BADGE_IK_SESSION: BadgeIkSession = Object.freeze({
-  baselineUrl: "",
-  baselineFileId: "",
-  lastSessionFileId: null as string | null,
-});
-
-function deletePreviousSessionUpload(ref: RefObject<BadgeIkSession>) {
-  const s = ref.current;
-  const prev = s.lastSessionFileId?.trim() ?? "";
-  const baseline = s.baselineFileId.trim();
-  if (prev && prev !== baseline) {
-    void deleteImageKitFile(prev).catch(() => undefined);
-  }
-}
-
-type EditorCardProps = {
-  id: string;
-  form: FormState;
-  setForm: Dispatch<SetStateAction<FormState>>;
-  submitLabel: string;
-  isSaving: boolean;
-  onSubmit: (e: FormEvent) => void;
-  onCancel?: () => void;
-  /** ImageKit session for staged uploads (replace chain + cancel restore). */
-  badgeIkSessionRef: RefObject<BadgeIkSession>;
-  /** Saved ImageKit file id at session start (empty for create). */
-  baselineIconFileId: string;
-  /** Sheet edit matches close-up overlay; inline is the create card on the page. */
-  appearance: "overlay" | "inline";
-  toneMenuFor: string | null;
-  setToneMenuFor: Dispatch<SetStateAction<string | null>>;
-  iconMenuFor: string | null;
-  setIconMenuFor: Dispatch<SetStateAction<string | null>>;
-};
-
-function EditableAchievementCard({
-  id,
-  form,
-  setForm,
-  submitLabel,
-  isSaving,
-  onSubmit,
-  onCancel,
-  badgeIkSessionRef,
-  baselineIconFileId,
-  appearance,
-  toneMenuFor,
-  setToneMenuFor,
-  iconMenuFor,
-  setIconMenuFor,
-}: EditorCardProps) {
-  const tonePickerRef = useRef<HTMLDivElement>(null);
-  const iconPickerRef = useRef<HTMLDivElement>(null);
-  const Icon = iconMap[form.icon];
-  const toneMenuOpen = toneMenuFor === id;
-  const iconMenuOpen = iconMenuFor === id;
-  const isOverlay = appearance === "overlay";
-
-  function resizeTextarea(target: HTMLTextAreaElement) {
-    target.style.height = "0px";
-    target.style.height = `${target.scrollHeight}px`;
-  }
-
-  const fieldMuted = isOverlay ? "text-white/45" : "text-muted-foreground";
-  const fieldBody = isOverlay ? "text-white/70" : "text-foreground/90";
-  const fieldTitle = isOverlay ? "text-white" : "text-foreground";
-  const chipBtn = isOverlay
-    ? "border-white/25 bg-white/10 text-white hover:bg-white/15"
-    : "border-white/30 bg-white/40 text-foreground/80 backdrop-blur-sm dark:bg-white/10";
-
-  useEffect(() => {
-    if (!toneMenuOpen && !iconMenuOpen) return;
-    function onPointerDown(e: PointerEvent) {
-      const target = e.target as Node;
-      const toneEl = tonePickerRef.current;
-      const iconEl = iconPickerRef.current;
-      const inTone = toneEl ? toneEl.contains(target) : false;
-      const inIcon = iconEl ? iconEl.contains(target) : false;
-      if (!inTone && !inIcon) {
-        setToneMenuFor(null);
-        setIconMenuFor(null);
-      }
-    }
-    document.addEventListener("pointerdown", onPointerDown);
-    return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [iconMenuOpen, setIconMenuFor, setToneMenuFor, toneMenuOpen]);
-
-  return (
-    <form
-      onSubmit={onSubmit}
-      className={cn(
-        "relative flex flex-col items-center text-center",
-        isOverlay
-          ? "pt-2 text-white"
-          : cn(
-              "overflow-visible rounded-3xl border bg-card/90 p-6 shadow-sm",
-              "bg-gradient-to-br",
-              achievementToneStyles[form.tone],
-            ),
-      )}
-    >
-      <div
-        aria-hidden
-        className={cn(
-          "pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full blur-2xl",
-          isOverlay ? "bg-white/12" : "bg-white/20",
-        )}
-      />
-
-      <div className="relative z-20 flex h-11 flex-wrap items-center justify-center gap-2">
-        <div ref={tonePickerRef} className="relative flex h-11 items-center">
-          <button
-            type="button"
-            aria-label="Select tone"
-            className={cn(
-              "h-11 w-11 shrink-0 rounded-full border shadow-sm",
-              achievementToneSwatches[form.tone],
-              isOverlay ? "border-white/50" : "border-white/70",
-            )}
-            onClick={() => {
-              setToneMenuFor(toneMenuOpen ? null : id);
-              setIconMenuFor(null);
-            }}
-          />
-          {toneMenuOpen ? (
-            <div className="absolute left-1/2 top-9 z-40 flex -translate-x-1/2 gap-2 rounded-full border bg-background/95 p-2 shadow-lg backdrop-blur-sm">
-              {(Object.keys(achievementToneSwatches) as AchievementTone[]).map((tone) => (
-                <button
-                  key={tone}
-                  type="button"
-                  aria-label={`Set tone ${tone}`}
-                  className={cn(
-                    "h-8 w-8 rounded-full border transition-transform",
-                    achievementToneSwatches[tone],
-                    form.tone === tone ? "scale-110 border-foreground" : "border-white/60",
-                  )}
-                  onClick={() => {
-                    setForm((prev) => ({ ...prev, tone }));
-                  }}
-                />
-              ))}
-            </div>
-          ) : null}
-        </div>
-        <button
-          type="button"
-          aria-label={form.isLocked ? "Set unlocked" : "Set locked"}
-          className={cn(
-            "flex h-11 w-11 shrink-0 items-center justify-center rounded-full border shadow-sm",
-            chipBtn,
-          )}
-          onClick={() =>
-            setForm((prev) => ({
-              ...prev,
-              isLocked: !prev.isLocked,
-            }))
-          }
-        >
-          {form.isLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
-        </button>
-      </div>
-
-        <div className={cn(isOverlay ? "mt-8" : "mt-5")}>
-          <AchievementRoundBadgeEditor
-            instanceId={id}
-            imageUrl={form.iconUrl}
-            iconFileId={form.iconFileId}
-            baselineIconFileId={baselineIconFileId}
-            tone={form.tone}
-            isLocked={form.isLocked}
-            FallbackIcon={Icon}
-            onRemoteUploadCommit={(url, fileId) => {
-              deletePreviousSessionUpload(badgeIkSessionRef);
-              badgeIkSessionRef.current = {
-                ...badgeIkSessionRef.current,
-                lastSessionFileId: fileId.trim() || null,
-              };
-              setForm((prev) => ({
-                ...prev,
-                iconUrl: url,
-                iconFileId: fileId,
-              }));
-            }}
-            onImageUrlChange={(url) =>
-              setForm((prev) => ({ ...prev, iconUrl: url }))
-            }
-            onIconFileIdChange={(fid) =>
-              setForm((prev) => ({ ...prev, iconFileId: fid }))
-            }
-            onStagedUploadCleared={() => {
-              badgeIkSessionRef.current.lastSessionFileId = null;
-            }}
-            menuAccessory={
-              <div ref={iconPickerRef} className="relative flex h-11 items-center">
-                <button
-                  type="button"
-                  aria-label="Select icon"
-                  className={cn(
-                    "flex h-11 w-11 items-center justify-center rounded-full border shadow-sm",
-                    chipBtn,
-                  )}
-                  onClick={() => {
-                    setIconMenuFor(iconMenuOpen ? null : id);
-                    setToneMenuFor(null);
-                  }}
-                >
-                  <Icon className="h-4 w-4" />
-                </button>
-                {iconMenuOpen ? (
-                  <div className="absolute left-1/2 top-12 z-40 grid w-64 -translate-x-1/2 grid-cols-6 gap-2 rounded-2xl border bg-background/95 p-2 shadow-lg backdrop-blur-sm">
-                    {(Object.keys(iconMap) as AchievementIconKey[]).map((iconKey) => {
-                      const OptionIcon = iconMap[iconKey];
-                      return (
-                        <button
-                          key={iconKey}
-                          type="button"
-                          aria-label={`Set icon ${iconKey}`}
-                          className={cn(
-                            "rounded-xl border p-2",
-                            form.icon === iconKey
-                              ? "border-foreground bg-accent"
-                              : "border-input",
-                          )}
-                          onClick={() => {
-                            setForm((prev) => ({ ...prev, icon: iconKey }));
-                          }}
-                        >
-                          <OptionIcon className="h-4 w-4" />
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : null}
-              </div>
-            }
-            disabled={isSaving}
-            surface={isOverlay ? "overlay" : "form"}
-            prominent={isOverlay}
-          />
-        </div>
-
-      <div className="mt-6 w-full max-w-md px-1">
-        <Input
-          value={form.category}
-          onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
-          placeholder="Category"
-          className={cn(
-            "h-auto border-0 bg-transparent p-0 text-center text-xs uppercase tracking-[0.2em] shadow-none focus-visible:ring-0",
-            fieldMuted,
-            isOverlay && "placeholder:text-white/35",
-          )}
-        />
-      </div>
-
-      <div className="mt-2 w-full max-w-md px-1">
-        <Input
-          value={form.title}
-          onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
-          placeholder="Title"
-          className={cn(
-            "h-auto border-0 bg-transparent p-0 text-center text-xl font-semibold leading-tight shadow-none focus-visible:ring-0",
-            fieldTitle,
-            isOverlay && "placeholder:text-white/35",
-          )}
-        />
-      </div>
-
-      <div className="mt-4 w-full max-w-md px-1">
-        <textarea
-          value={form.description}
-          onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-          onInput={(e) => resizeTextarea(e.currentTarget)}
-          placeholder="Description"
-          rows={1}
-          className={cn(
-            "w-full resize-none overflow-hidden border-0 bg-transparent p-0 text-center text-sm leading-relaxed shadow-none focus-visible:ring-0",
-            fieldBody,
-            isOverlay && "placeholder:text-white/35",
-          )}
-        />
-      </div>
-
-      <div className="relative mx-auto mt-4 flex w-full max-w-[15rem] justify-center">
-        <Input
-          type="date"
-          value={form.achievedAt}
-          onChange={(e) =>
-            setForm((prev) => ({ ...prev, achievedAt: e.target.value }))
-          }
-          className={cn(
-            "h-11 w-full border-0 bg-transparent pr-[4.5rem] text-center text-xs shadow-none focus-visible:ring-0",
-            isOverlay ? "text-white/80" : "",
-          )}
-        />
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          aria-label="Clear date"
-          className={cn(
-            "absolute right-8 top-1/2 h-8 w-8 -translate-y-1/2 p-0",
-            isOverlay
-              ? "text-white/45 hover:bg-white/10 hover:text-white"
-              : "text-muted-foreground hover:text-foreground",
-          )}
-          onClick={() => setForm((prev) => ({ ...prev, achievedAt: "" }))}
-        >
-          <X className="h-4 w-4" aria-hidden />
-        </Button>
-      </div>
-
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
-        <Button
-          type="submit"
-          disabled={isSaving}
-          className={isOverlay ? "bg-white text-zinc-950 hover:bg-white/90" : ""}
-        >
-          {isSaving ? "Saving..." : submitLabel}
-        </Button>
-        {onCancel ? (
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={onCancel}
-            disabled={isSaving}
-            className={
-              isOverlay ? "bg-white/10 text-white hover:bg-white/15" : ""
-            }
-          >
-            Cancel
-          </Button>
-        ) : null}
-      </div>
-    </form>
-  );
-}
-
 export function AchievementsManager() {
   const supabase = useMemo(() => createClient(), []);
   const [achievements, setAchievements] = useState<AchievementRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [createForm, setCreateForm] = useState<FormState>(initialForm);
+  const [createForm, setCreateForm] = useState<FormState>(INITIAL_FORM);
   const [isCreating, setIsCreating] = useState(false);
   const [detailAchievementId, setDetailAchievementId] = useState<string | null>(null);
   const [detailMode, setDetailMode] = useState<"view" | "edit">("view");
-  const [panelForm, setPanelForm] = useState<FormState>(initialForm);
+  const [panelForm, setPanelForm] = useState<FormState>(INITIAL_FORM);
   const [toneMenuFor, setToneMenuFor] = useState<string | null>(null);
   const [iconMenuFor, setIconMenuFor] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -627,7 +166,7 @@ export function AchievementsManager() {
     return achievements.find((a) => a.id === detailAchievementId) ?? null;
   }, [achievements, detailAchievementId]);
 
-  const DetailFallbackIcon = getSafeIcon(detailAchievement);
+  const DetailFallbackIcon = getSafeIcon(detailAchievement?.icon);
   const detailTone: AchievementTone = useMemo(
     () => resolveTone(detailAchievement),
     [detailAchievement]
@@ -651,7 +190,7 @@ export function AchievementsManager() {
     if (isCreating) {
       rollbackBadgeSession(createBadgeIkSessionRef);
       setCreateForm({
-        ...initialForm,
+        ...INITIAL_FORM,
         achievedAt: todayDateString(),
       });
       setIsCreating(false);
@@ -702,30 +241,7 @@ export function AchievementsManager() {
     setIsSaving(true);
     setError(null);
 
-    const insertPayload: {
-      title: string | null;
-      description: string | null;
-      category: string | null;
-      icon: AchievementIconKey;
-      achieved_at: string | null;
-      tone?: AchievementTone;
-      is_locked?: boolean;
-      icon_url?: string | null;
-      icon_file_id?: string | null;
-    } = {
-      title: toNullable(createForm.title),
-      description: toNullable(createForm.description),
-      category: toNullable(createForm.category),
-      icon: createForm.icon,
-      icon_url: toNullable(createForm.iconUrl),
-      icon_file_id: createForm.iconFileId.trim()
-        ? createForm.iconFileId.trim()
-        : null,
-      tone: createForm.tone,
-      is_locked: createForm.isLocked,
-      achieved_at: toNullable(createForm.achievedAt),
-    };
-
+    const insertPayload: AchievementInsertPayload = formToPayload(createForm);
 
     const { data, error } = await supabase
       .from("achievements")
@@ -747,7 +263,7 @@ export function AchievementsManager() {
     const normalized = normalizeAchievement(data as unknown as Record<string, unknown>);
     tryPlayUnlockSaveChime(normalized);
     setAchievements((prev) => sortAchievements([normalized, ...prev]));
-    setCreateForm({ ...initialForm, achievedAt: todayDateString() });
+    setCreateForm({ ...INITIAL_FORM, achievedAt: todayDateString() });
     createBadgeIkSessionRef.current = EMPTY_BADGE_IK_SESSION;
     setIsSaving(false);
     setIsCreating(false);
@@ -768,29 +284,7 @@ export function AchievementsManager() {
     setIsSaving(true);
     setError(null);
 
-    const updatePayload: {
-      title: string | null;
-      description: string | null;
-      category: string | null;
-      icon: AchievementIconKey;
-      achieved_at: string | null;
-      tone?: AchievementTone;
-      is_locked?: boolean;
-      icon_url?: string | null;
-      icon_file_id?: string | null;
-    } = {
-      title: toNullable(panelForm.title),
-      description: toNullable(panelForm.description),
-      category: toNullable(panelForm.category),
-      icon: panelForm.icon,
-      icon_url: toNullable(panelForm.iconUrl),
-      icon_file_id: panelForm.iconFileId.trim()
-        ? panelForm.iconFileId.trim()
-        : null,
-      tone: panelForm.tone,
-      is_locked: panelForm.isLocked,
-      achieved_at: toNullable(panelForm.achievedAt),
-    };
+    const updatePayload: AchievementUpdatePayload = formToPayload(panelForm);
 
     const { data, error } = await supabase
       .from("achievements")
@@ -896,7 +390,7 @@ export function AchievementsManager() {
                   setDetailAchievementId(null);
                   setDetailMode("edit");
                   setCreateForm({
-                    ...initialForm,
+                    ...INITIAL_FORM,
                     achievedAt: todayDateString(),
                   });
                   setToneMenuFor(null);
@@ -921,16 +415,14 @@ export function AchievementsManager() {
               </button>
 
               {achievements.map((achievement) => {
-                const Icon = getSafeIcon(achievement);
-                const tone = resolveTone(achievement);
                 return (
                   <AchievementGridItem
                     key={achievement.id}
                     title={achievement.title}
                     dateLabel={formatGridDate(achievement.achieved_at)}
                     iconUrl={achievement.icon_url}
-                    FallbackIcon={Icon}
-                    tone={tone}
+                    FallbackIcon={getSafeIcon(achievement.icon)}
+                    tone={resolveTone(achievement)}
                     isLocked={Boolean(achievement.is_locked)}
                     onClick={() => {
                       setDetailAchievementId(achievement.id);
@@ -1001,7 +493,7 @@ export function AchievementsManager() {
                 onCancel={() => {
                   rollbackBadgeSession(createBadgeIkSessionRef);
                   setCreateForm({
-                    ...initialForm,
+                    ...INITIAL_FORM,
                     achievedAt: todayDateString(),
                   });
                   setIsCreating(false);
