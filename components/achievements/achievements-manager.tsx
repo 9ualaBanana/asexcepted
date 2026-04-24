@@ -455,20 +455,22 @@ export function AchievementsManager() {
                 >
                   <div
                     className={cn(
-                      "relative mx-auto my-auto w-full max-w-lg max-h-[min(92dvh,56rem)] overflow-y-auto overscroll-y-contain rounded-2xl border border-white/10 bg-zinc-950 p-4 pb-6 shadow-2xl sm:p-6 sm:pb-6",
+                      "relative mx-auto my-auto flex w-full max-w-lg max-h-[min(92dvh,56rem)] flex-col overflow-y-auto overscroll-y-contain rounded-2xl border border-white/10 bg-zinc-950 p-4 pb-6 shadow-2xl sm:p-6 sm:pb-6",
                       (isCreating || detailMode === "edit") &&
                         "overflow-x-hidden",
                     )}
                     onClick={(e) => e.stopPropagation()}
                   >
-            <button
-              type="button"
-              aria-label="Close"
-              className="absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-10 rounded-full border border-white/15 bg-white/5 p-2 text-white/80 transition hover:bg-white/10"
-              onClick={() => closeDetailPanel()}
-            >
-              <X className="h-4 w-4" />
-            </button>
+                    <div className="flex w-full shrink-0 justify-end pb-3">
+                      <button
+                        type="button"
+                        aria-label="Close"
+                        className="rounded-full border border-white/15 bg-white/5 p-2 text-white/80 transition hover:bg-white/10"
+                        onClick={() => closeDetailPanel()}
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
 
             {isCreating ? (
               <EditableAchievementCard
@@ -489,7 +491,7 @@ export function AchievementsManager() {
                 baselineIconFileId={createBadgeIkSessionRef.current.baselineFileId}
               />
             ) : detailMode === "view" && detailAchievement ? (
-              <div className="flex w-full flex-col items-center pt-1">
+              <div className="flex w-full flex-col items-center">
                 <AchievementBadgeSlot
                   size="overlay-xl"
                   className={cn(
