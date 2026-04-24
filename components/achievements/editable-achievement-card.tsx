@@ -40,7 +40,6 @@ export type EditorCardProps = {
   id: string;
   form: FormState;
   setForm: Dispatch<SetStateAction<FormState>>;
-  submitLabel: string;
   isSaving: boolean;
   onSubmit: (e: FormEvent) => void;
   onCancel?: () => void;
@@ -48,8 +47,6 @@ export type EditorCardProps = {
   badgeIkSessionRef: RefObject<BadgeIkSession>;
   /** Saved ImageKit file id at session start (empty for create). */
   baselineIconFileId: string;
-  /** Sheet edit matches close-up overlay; inline is the create card on the page. */
-  appearance: "overlay" | "inline";
   toneMenuFor: string | null;
   setToneMenuFor: Dispatch<SetStateAction<string | null>>;
   iconMenuFor: string | null;
@@ -60,13 +57,11 @@ export function EditableAchievementCard({
   id,
   form,
   setForm,
-  submitLabel,
   isSaving,
   onSubmit,
   onCancel,
   badgeIkSessionRef,
   baselineIconFileId,
-  appearance,
   toneMenuFor,
   setToneMenuFor,
   iconMenuFor,
@@ -77,19 +72,16 @@ export function EditableAchievementCard({
   const Icon = iconMap[form.icon];
   const toneMenuOpen = toneMenuFor === id;
   const iconMenuOpen = iconMenuFor === id;
-  const isOverlay = appearance === "overlay";
 
   function resizeTextarea(target: HTMLTextAreaElement) {
     target.style.height = "0px";
     target.style.height = `${target.scrollHeight}px`;
   }
 
-  const fieldMuted = isOverlay ? "text-white/45" : "text-muted-foreground";
-  const fieldBody = isOverlay ? "text-white/70" : "text-foreground/90";
-  const fieldTitle = isOverlay ? "text-white" : "text-foreground";
-  const chipBtn = isOverlay
-    ? "border-white/25 bg-white/10 text-white hover:bg-white/15"
-    : "border-white/30 bg-white/40 text-foreground/80 backdrop-blur-sm dark:bg-white/10";
+  const fieldMuted = "text-white/45";
+  const fieldBody = "text-white/70";
+  const fieldTitle = "text-white";
+  const chipBtn = "border-white/25 bg-white/10 text-white hover:bg-white/15";
 
   useEffect(() => {
     if (!toneMenuOpen && !iconMenuOpen) return;
@@ -113,20 +105,14 @@ export function EditableAchievementCard({
       onSubmit={onSubmit}
       className={cn(
         "relative flex flex-col items-center text-center",
-        isOverlay
-          ? "pt-2 text-white"
-          : cn(
-              "overflow-visible rounded-3xl border bg-card/90 p-6 shadow-sm",
-              "bg-gradient-to-br",
-              achievementToneStyles[form.tone],
-            ),
+        "pt-2 text-white"
       )}
     >
       <div
         aria-hidden
         className={cn(
           "pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full blur-2xl",
-          isOverlay ? "bg-white/12" : "bg-white/20",
+          "bg-white/12"
         )}
       />
 
@@ -138,7 +124,7 @@ export function EditableAchievementCard({
             className={cn(
               "h-11 w-11 shrink-0 rounded-full border shadow-sm",
               achievementToneSwatches[form.tone],
-              isOverlay ? "border-white/50" : "border-white/70",
+              "border-white/50"
             )}
             onClick={() => {
               setToneMenuFor(toneMenuOpen ? null : id);
@@ -183,7 +169,7 @@ export function EditableAchievementCard({
         </button>
       </div>
 
-      <div className={cn(isOverlay ? "mt-8" : "mt-5")}>
+      <div className="mt-8">
         <AchievementRoundBadgeEditor
           instanceId={id}
           imageUrl={form.iconUrl}
@@ -257,8 +243,6 @@ export function EditableAchievementCard({
             </div>
           }
           disabled={isSaving}
-          surface={isOverlay ? "overlay" : "form"}
-          prominent={isOverlay}
         />
       </div>
 
@@ -270,7 +254,7 @@ export function EditableAchievementCard({
           className={cn(
             "h-auto border-0 bg-transparent p-0 text-center text-xs uppercase tracking-[0.2em] shadow-none focus-visible:ring-0",
             fieldMuted,
-            isOverlay && "placeholder:text-white/35",
+            "placeholder:text-white/35",
           )}
         />
       </div>
@@ -283,7 +267,7 @@ export function EditableAchievementCard({
           className={cn(
             "h-auto border-0 bg-transparent p-0 text-center text-xl font-semibold leading-tight shadow-none focus-visible:ring-0",
             fieldTitle,
-            isOverlay && "placeholder:text-white/35",
+            "placeholder:text-white/35",
           )}
         />
       </div>
@@ -298,7 +282,7 @@ export function EditableAchievementCard({
           className={cn(
             "w-full resize-none overflow-hidden border-0 bg-transparent p-0 text-center text-sm leading-relaxed shadow-none focus-visible:ring-0",
             fieldBody,
-            isOverlay && "placeholder:text-white/35",
+            "placeholder:text-white/35",
           )}
         />
       </div>
@@ -312,7 +296,7 @@ export function EditableAchievementCard({
           }
           className={cn(
             "h-11 w-full border-0 bg-transparent pr-[4.5rem] text-center text-xs shadow-none focus-visible:ring-0",
-            isOverlay ? "text-white/80" : "",
+            "text-white/80",
           )}
         />
         <Button
@@ -322,9 +306,7 @@ export function EditableAchievementCard({
           aria-label="Clear date"
           className={cn(
             "absolute right-8 top-1/2 h-8 w-8 -translate-y-1/2 p-0",
-            isOverlay
-              ? "text-white/45 hover:bg-white/10 hover:text-white"
-              : "text-muted-foreground hover:text-foreground",
+            "text-white/45 hover:bg-white/10 hover:text-white"
           )}
           onClick={() => setForm((prev) => ({ ...prev, achievedAt: "" }))}
         >
@@ -336,9 +318,9 @@ export function EditableAchievementCard({
         <Button
           type="submit"
           disabled={isSaving}
-          className={isOverlay ? "bg-white text-zinc-950 hover:bg-white/90" : ""}
+          className="bg-white text-zinc-950 hover:bg-white/90"
         >
-          {isSaving ? "Saving..." : submitLabel}
+          {isSaving ? "Saving..." : "Save"}
         </Button>
         {onCancel ? (
           <Button
@@ -346,9 +328,7 @@ export function EditableAchievementCard({
             variant="secondary"
             onClick={onCancel}
             disabled={isSaving}
-            className={
-              isOverlay ? "bg-white/10 text-white hover:bg-white/15" : ""
-            }
+            className="bg-white/10 text-white hover:bg-white/15"
           >
             Cancel
           </Button>

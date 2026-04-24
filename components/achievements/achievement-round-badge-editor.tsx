@@ -35,8 +35,6 @@ const META_FIELDS = [
   "responseFields",
 ] as const;
 
-type Surface = "overlay" | "form";
-
 type AchievementRoundBadgeEditorProps = {
   instanceId: string;
   imageUrl: string;
@@ -55,9 +53,6 @@ type AchievementRoundBadgeEditorProps = {
   /** Icon picker (button + dropdown) shown next to image actions when the badge menu is open. */
   menuAccessory?: ReactNode;
   disabled?: boolean;
-  surface?: Surface;
-  /** With `surface="overlay"`, renders a ~2× badge (detail / edit sheet). */
-  prominent?: boolean;
 };
 
 export function AchievementRoundBadgeEditor({
@@ -74,8 +69,6 @@ export function AchievementRoundBadgeEditor({
   onStagedUploadCleared,
   menuAccessory,
   disabled = false,
-  surface = "form",
-  prominent = false,
 }: AchievementRoundBadgeEditorProps) {
   const uppyRef = useRef<Uppy | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -245,28 +238,12 @@ export function AchievementRoundBadgeEditor({
   }, []);
 
   const ringHalo = cn(
-    surface === "overlay" &&
-      dragActive &&
-      "ring-2 ring-inset ring-white/55",
-    surface === "overlay" &&
-      !dragActive &&
-      !disabled &&
-      !busy &&
-      "hover:ring-2 hover:ring-inset hover:ring-white/40",
-    surface !== "overlay" &&
-      dragActive &&
-      "ring-2 ring-primary/60 ring-offset-2 ring-offset-background",
-    surface !== "overlay" &&
-      !dragActive &&
-      !disabled &&
-      !busy &&
-      "hover:ring-2 hover:ring-primary/50 hover:ring-offset-2 hover:ring-offset-background",
+    dragActive && "ring-2 ring-inset ring-white/55",
+    !dragActive && !disabled && !busy && "hover:ring-2 hover:ring-inset hover:ring-white/40",
   );
 
-  const isOverlay = surface === "overlay";
-  const isProminentOverlay = isOverlay && prominent;
-  const fallbackSize = isProminentOverlay ? "overlay-xl" : "overlay";
-  const slotSize = isOverlay ? "overlay-xl" : "editor";
+  const fallbackSize = "overlay-xl";
+  const slotSize = "overlay-xl";
 
   async function confirmRemoveImage() {
     setBusy(true);
@@ -318,9 +295,7 @@ export function AchievementRoundBadgeEditor({
             "relative flex h-full w-full min-h-0 min-w-0 cursor-pointer items-center justify-center rounded-none bg-transparent outline-none transition-shadow",
             hasRemote ? "overflow-hidden" : "overflow-visible",
             "focus-visible:ring-2 focus-visible:ring-offset-2",
-            isOverlay
-              ? "focus-visible:ring-white/50 focus-visible:ring-inset focus-visible:ring-offset-0"
-              : "focus-visible:ring-ring focus-visible:ring-offset-background",
+            "focus-visible:ring-white/50 focus-visible:ring-inset focus-visible:ring-offset-0",
             ringHalo,
             isLocked && "opacity-75 grayscale",
           )}
@@ -331,20 +306,20 @@ export function AchievementRoundBadgeEditor({
             aria-hidden
             className={cn(
               "pointer-events-none absolute isolate flex items-center justify-center rounded-none",
-              isProminentOverlay ? "inset-[-10px]" : "inset-[-6px]",
+              "inset-[-10px]"
             )}
           >
             <div
               className={cn(
                 "absolute inset-0 rounded-none opacity-[0.88] blur-[2.5px] will-change-transform animate-badge-upload-tide",
                 "[background:conic-gradient(from_0deg_at_50%_50%,transparent_0deg,rgba(248,250,252,0.06)_55deg,rgba(255,255,255,0.42)_118deg,rgba(226,232,240,0.28)_168deg,rgba(248,250,252,0.08)_228deg,transparent_280deg,transparent_360deg)]",
-                isOverlay && "opacity-[0.92]",
+                "opacity-[0.92]",
               )}
             />
             <div
               className={cn(
                 "absolute rounded-none opacity-[0.92] will-change-transform animate-badge-upload-tide-slow",
-                isProminentOverlay ? "inset-[5px]" : "inset-[3px]",
+                "inset-[5px]",
                 "[mask-image:linear-gradient(to_bottom,transparent,#000_12%,#000_88%,transparent)]",
                 "[background:conic-gradient(from_90deg_at_50%_50%,transparent_0deg,rgba(241,245,249,0.1)_52deg,rgba(252,252,253,0.88)_112deg,rgba(229,231,235,0.38)_162deg,rgba(248,250,252,0.12)_210deg,transparent_258deg,transparent_360deg)]",
               )}
@@ -390,9 +365,7 @@ export function AchievementRoundBadgeEditor({
             disabled={disabled || busy}
             className={cn(
               "flex h-11 w-11 items-center justify-center rounded-full border shadow-md transition",
-              isOverlay
-                ? "border-white/20 bg-white/10 text-white hover:bg-white/15"
-                : "border-border bg-background hover:bg-muted",
+              "border-white/20 bg-white/10 text-white hover:bg-white/15",
             )}
             aria-label="Choose badge image"
             onClick={() => {
@@ -409,9 +382,7 @@ export function AchievementRoundBadgeEditor({
               disabled={disabled || busy}
               className={cn(
                 "flex h-11 w-11 items-center justify-center rounded-full border shadow-md transition",
-                isOverlay
-                  ? "border-red-400/40 bg-red-500/15 text-red-100 hover:bg-red-500/25"
-                  : "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15",
+                "border-red-400/40 bg-red-500/15 text-red-100 hover:bg-red-500/25",
               )}
               aria-label="Remove badge image"
               onClick={() => {
@@ -472,7 +443,7 @@ export function AchievementRoundBadgeEditor({
         <p
           className={cn(
             "mt-2 max-w-[220px] text-center text-xs",
-            isOverlay ? "text-red-300" : "text-destructive",
+            "text-red-300",
           )}
         >
           {error}

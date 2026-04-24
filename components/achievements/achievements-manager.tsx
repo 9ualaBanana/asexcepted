@@ -487,7 +487,6 @@ export function AchievementsManager() {
                 id="create-overlay"
                 form={createForm}
                 setForm={setCreateForm}
-                submitLabel="Save"
                 isSaving={isSaving}
                 onSubmit={handleCreate}
                 onCancel={() => {
@@ -503,7 +502,6 @@ export function AchievementsManager() {
                 }}
                 badgeIkSessionRef={createBadgeIkSessionRef}
                 baselineIconFileId={createBadgeIkSessionRef.current.baselineFileId}
-                appearance="overlay"
                 toneMenuFor={toneMenuFor}
                 setToneMenuFor={setToneMenuFor}
                 iconMenuFor={iconMenuFor}
@@ -590,7 +588,6 @@ export function AchievementsManager() {
                 id="panel"
                 form={panelForm}
                 setForm={setPanelForm}
-                submitLabel="Save"
                 isSaving={isSaving}
                 onSubmit={handlePanelSave}
                 onCancel={() => {
@@ -606,7 +603,6 @@ export function AchievementsManager() {
                 baselineIconFileId={
                   panelBadgeIkSessionRef.current.baselineFileId
                 }
-                appearance="overlay"
                 toneMenuFor={toneMenuFor}
                 setToneMenuFor={setToneMenuFor}
                 iconMenuFor={iconMenuFor}
