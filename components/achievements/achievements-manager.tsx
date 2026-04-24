@@ -101,52 +101,6 @@ function normalizeAchievement(row: Record<string, unknown>): AchievementRecord {
   };
 }
 
-/** Short pleasant chime when an achievement is saved unlocked (no audio files). */
-function playUnlockSaveChime() {
-  if (typeof window === "undefined") return;
-  try {
-    const Ctor =
-      window.AudioContext ||
-      (
-        window as unknown as {
-          webkitAudioContext?: typeof AudioContext;
-        }
-      ).webkitAudioContext;
-    if (!Ctor) return;
-
-    const ctx = new Ctor();
-    void ctx.resume?.();
-
-    const now = ctx.currentTime;
-    const master = ctx.createGain();
-    master.gain.setValueAtTime(0.12, now);
-    master.connect(ctx.destination);
-
-    const notes = [523.25, 659.25, 783.99];
-    notes.forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const g = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(freq, now);
-      const start = now + i * 0.06;
-      g.gain.setValueAtTime(0, start);
-      g.gain.linearRampToValueAtTime(0.35, start + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.001, start + 0.22);
-      osc.connect(g);
-      g.connect(master);
-      osc.start(start);
-      osc.stop(start + 0.25);
-    });
-
-    const end = now + notes.length * 0.06 + 0.35;
-    setTimeout(() => {
-      void ctx.close?.();
-    }, Math.ceil((end - now) * 1000) + 50);
-  } catch {
-    // ignore unsupported / blocked audio
-  }
-}
-
 type AchievementIconKey =
   | "trophy"
   | "medal"
@@ -916,9 +870,7 @@ export function AchievementsManager() {
     }
 
     const normalized = normalizeAchievement(data as unknown as Record<string, unknown>);
-    if (!normalized.is_locked) {
-      playUnlockSaveChime();
-    }
+    tryPlayUnlockSaveChime(normalized);
     setAchievements((prev) => sortAchievements([normalized, ...prev]));
     setCreateForm({ ...initialForm, achievedAt: todayDateString() });
     createBadgeIkSessionRef.current = {
@@ -1004,9 +956,7 @@ export function AchievementsManager() {
     }
 
     const normalized = normalizeAchievement(data as unknown as Record<string, unknown>);
-    if (!normalized.is_locked) {
-      playUnlockSaveChime();
-    }
+    tryPlayUnlockSaveChime(normalized);
 
     const baselineId = panelBadgeIkSessionRef.current.baselineFileId.trim();
     const savedFileId = (normalized.icon_file_id ?? "").trim();
@@ -1377,4 +1327,60 @@ export function AchievementsManager() {
       ) : null}
     </div>
   );
+  
+  // #region Save Sound Effects
+
+  function tryPlayUnlockSaveChime(achievement: AchievementRecord) {
+    if (!achievement.is_locked) {
+      playUnlockSaveChime();
+    }
+  }
+  
+  /** Short pleasant chime when an achievement is saved unlocked (no audio files). */
+  function playUnlockSaveChime() {
+    if (typeof window === "undefined") return;
+    try {
+      const Ctor =
+        window.AudioContext ||
+        (
+          window as unknown as {
+            webkitAudioContext?: typeof AudioContext;
+          }
+        ).webkitAudioContext;
+      if (!Ctor) return;
+  
+      const ctx = new Ctor();
+      void ctx.resume?.();
+  
+      const now = ctx.currentTime;
+      const master = ctx.createGain();
+      master.gain.setValueAtTime(0.12, now);
+      master.connect(ctx.destination);
+  
+      const notes = [523.25, 659.25, 783.99];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, now);
+        const start = now + i * 0.06;
+        g.gain.setValueAtTime(0, start);
+        g.gain.linearRampToValueAtTime(0.35, start + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, start + 0.22);
+        osc.connect(g);
+        g.connect(master);
+        osc.start(start);
+        osc.stop(start + 0.25);
+      });
+  
+      const end = now + notes.length * 0.06 + 0.35;
+      setTimeout(() => {
+        void ctx.close?.();
+      }, Math.ceil((end - now) * 1000) + 50);
+    } catch {
+      // ignore unsupported / blocked audio
+    }
+  }
+
+  // #endregion
 }
