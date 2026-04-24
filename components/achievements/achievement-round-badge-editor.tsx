@@ -2,8 +2,7 @@
 
 import Uppy from "@uppy/core";
 import XHRUpload from "@uppy/xhr-upload";
-import { ImagePlus, Trash2, type LucideIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import { ImagePlus, Lock, Trash2, Unlock } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -12,9 +11,16 @@ import {
   useState,
 } from "react";
 
-import type { AchievementTone } from "@/components/achievements/achievement-card";
+import {
+  achievementToneSwatches,
+  type AchievementTone,
+} from "@/components/achievements/achievement-card";
 import { AchievementBadgeSlot } from "@/components/achievements/achievement-badge-slot";
 import { AchievementFallbackBadge } from "@/components/achievements/achievement-fallback-badge";
+import {
+  type AchievementIconKey,
+  iconMap,
+} from "@/components/achievements/achievement-editor-shared";
 import { Button } from "@/components/ui/button";
 import { deleteImageKitFile, getImageKitUploadAuth } from "@/lib/imagekit-client";
 import { cn } from "@/lib/utils";
@@ -35,54 +41,88 @@ const META_FIELDS = [
   "responseFields",
 ] as const;
 
+const chipBtn =
+  "border-white/25 bg-white/10 text-white hover:bg-white/15";
+
 type AchievementRoundBadgeEditorProps = {
-  instanceId: string;
   imageUrl: string;
   iconFileId: string;
   /** Saved badge file id at edit/create session start (empty when creating). */
   baselineIconFileId: string;
   tone: AchievementTone;
   isLocked: boolean;
-  FallbackIcon: LucideIcon;
+  icon: AchievementIconKey;
+  onToneChange: (tone: AchievementTone) => void;
+  onToggleLocked: () => void;
+  onIconChange: (icon: AchievementIconKey) => void;
   /** Called after a successful ImageKit upload with the new URL + fileId. */
   onRemoteUploadCommit: (url: string, fileId: string) => void;
   onImageUrlChange: (url: string) => void;
   onIconFileIdChange: (fileId: string) => void;
   /** Clear staged-upload pointer when the in-progress image is removed locally. */
   onStagedUploadCleared?: () => void;
-  /** Icon picker (button + dropdown) shown next to image actions when the badge menu is open. */
-  menuAccessory?: ReactNode;
   disabled?: boolean;
 };
 
 export function AchievementRoundBadgeEditor({
-  instanceId,
   imageUrl,
   iconFileId,
   baselineIconFileId,
   tone,
   isLocked,
-  FallbackIcon,
+  icon,
+  onToneChange,
+  onToggleLocked,
+  onIconChange,
   onRemoteUploadCommit,
   onImageUrlChange,
   onIconFileIdChange,
   onStagedUploadCleared,
-  menuAccessory,
   disabled = false,
 }: AchievementRoundBadgeEditorProps) {
+  const uppyInstanceId = useId();
   const uppyRef = useRef<Uppy | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const tonePickerRef = useRef<HTMLDivElement>(null);
+  const iconPickerRef = useRef<HTMLDivElement>(null);
   const onRemoteCommitRef = useRef(onRemoteUploadCommit);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [toneMenuOpen, setToneMenuOpen] = useState(false);
+  const [iconMenuOpen, setIconMenuOpen] = useState(false);
   const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const removeTitleId = useId();
+  const FallbackIcon = iconMap[icon];
 
   onRemoteCommitRef.current = onRemoteUploadCommit;
+
+  useEffect(() => {
+    if (!menuOpen) {
+      setToneMenuOpen(false);
+      setIconMenuOpen(false);
+    }
+  }, [menuOpen]);
+
+  useEffect(() => {
+    if (!toneMenuOpen && !iconMenuOpen) return;
+    function onPointerDown(e: PointerEvent) {
+      const target = e.target as Node;
+      const toneEl = tonePickerRef.current;
+      const iconEl = iconPickerRef.current;
+      const inTone = toneEl ? toneEl.contains(target) : false;
+      const inIcon = iconEl ? iconEl.contains(target) : false;
+      if (!inTone && !inIcon) {
+        setToneMenuOpen(false);
+        setIconMenuOpen(false);
+      }
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [iconMenuOpen, toneMenuOpen]);
 
   const trimmed = imageUrl.trim();
   const hasRemote = trimmed.length > 0;
@@ -91,7 +131,7 @@ export function AchievementRoundBadgeEditor({
 
   useEffect(() => {
     const uppy = new Uppy({
-      id: `round-badge-${instanceId}`,
+      id: `round-badge-${uppyInstanceId}`,
       autoProceed: true,
       restrictions: {
         maxNumberOfFiles: 1,
@@ -179,7 +219,7 @@ export function AchievementRoundBadgeEditor({
       uppy.destroy();
       uppyRef.current = null;
     };
-  }, [instanceId]);
+  }, [uppyInstanceId]);
 
   useEffect(() => {
     if (!menuOpen && !removeConfirmOpen) return;
@@ -286,7 +326,9 @@ export function AchievementRoundBadgeEditor({
         <button
           type="button"
           disabled={disabled || busy}
-          onClick={() => !disabled && !busy && setMenuOpen((o) => !o)}
+          onClick={() =>
+            !disabled && !busy && setMenuOpen((o) => !o)
+          }
           onDragEnter={onDragOver}
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
@@ -357,14 +399,14 @@ export function AchievementRoundBadgeEditor({
 
       {menuOpen && !removeConfirmOpen ? (
         <div
-          className="mt-3 flex flex-wrap items-center justify-center gap-3"
+          className="mt-2 flex max-w-[min(100%,22rem)] flex-wrap items-center justify-center gap-2 sm:gap-2.5"
           onClick={(e) => e.stopPropagation()}
         >
           <button
             type="button"
             disabled={disabled || busy}
             className={cn(
-              "flex h-11 w-11 items-center justify-center rounded-full border shadow-md transition",
+              "flex h-10 w-10 items-center justify-center rounded-full border shadow-md transition sm:h-11 sm:w-11",
               "border-white/20 bg-white/10 text-white hover:bg-white/15",
             )}
             aria-label="Choose badge image"
@@ -375,13 +417,104 @@ export function AchievementRoundBadgeEditor({
           >
             <ImagePlus className="h-5 w-5" />
           </button>
-          {menuAccessory}
+
+          <div ref={tonePickerRef} className="relative flex h-10 items-center sm:h-11">
+            <button
+              type="button"
+              aria-label="Select tone"
+              className={cn(
+                "h-10 w-10 shrink-0 rounded-full border shadow-sm sm:h-11 sm:w-11",
+                achievementToneSwatches[tone],
+                "border-white/50",
+              )}
+              onClick={() => {
+                setToneMenuOpen((o) => !o);
+                setIconMenuOpen(false);
+              }}
+            />
+            {toneMenuOpen ? (
+              <div className="absolute left-1/2 top-10 z-40 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-wrap justify-center gap-1.5 rounded-2xl border bg-background/95 p-2 shadow-lg backdrop-blur-sm sm:top-11 sm:gap-2">
+                {(Object.keys(achievementToneSwatches) as AchievementTone[]).map((toneKey) => (
+                  <button
+                    key={toneKey}
+                    type="button"
+                    aria-label={`Set tone ${toneKey}`}
+                    className={cn(
+                      "h-8 w-8 shrink-0 rounded-full border transition-transform",
+                      achievementToneSwatches[toneKey],
+                      tone === toneKey
+                        ? "scale-110 border-foreground"
+                        : "border-white/60",
+                    )}
+                    onClick={() => {
+                      onToneChange(toneKey);
+                    }}
+                  />
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          <button
+            type="button"
+            aria-label={isLocked ? "Set unlocked" : "Set locked"}
+            className={cn(
+              "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-sm sm:h-11 sm:w-11",
+              chipBtn,
+            )}
+            onClick={onToggleLocked}
+          >
+            {isLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+          </button>
+
+          <div ref={iconPickerRef} className="relative flex h-10 items-center sm:h-11">
+            <button
+              type="button"
+              aria-label="Select icon"
+              className={cn(
+                "flex h-10 w-10 items-center justify-center rounded-full border shadow-sm sm:h-11 sm:w-11",
+                chipBtn,
+              )}
+              onClick={() => {
+                setIconMenuOpen((o) => !o);
+                setToneMenuOpen(false);
+              }}
+            >
+              <FallbackIcon className="h-4 w-4" />
+            </button>
+            {iconMenuOpen ? (
+              <div className="absolute left-1/2 top-11 z-40 grid w-64 max-w-[calc(100vw-2rem)] -translate-x-1/2 grid-cols-6 gap-1.5 rounded-2xl border bg-background/95 p-2 shadow-lg backdrop-blur-sm sm:top-12 sm:gap-2">
+                {(Object.keys(iconMap) as AchievementIconKey[]).map((iconKey) => {
+                  const OptionIcon = iconMap[iconKey];
+                  return (
+                    <button
+                      key={iconKey}
+                      type="button"
+                      aria-label={`Set icon ${iconKey}`}
+                      className={cn(
+                        "rounded-xl border p-2",
+                        icon === iconKey
+                          ? "border-foreground bg-accent"
+                          : "border-input",
+                      )}
+                      onClick={() => {
+                        onIconChange(iconKey);
+                      }}
+                    >
+                      <OptionIcon className="h-4 w-4" />
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
+          </div>
+
           {(hasRemote || fileIdTrim) && (
             <button
               type="button"
               disabled={disabled || busy}
               className={cn(
-                "flex h-11 w-11 items-center justify-center rounded-full border shadow-md transition",
+                "flex h-10 w-10 items-center justify-center rounded-full border shadow-md transition sm:h-11 sm:w-11",
                 "border-red-400/40 bg-red-500/15 text-red-100 hover:bg-red-500/25",
               )}
               aria-label="Remove badge image"

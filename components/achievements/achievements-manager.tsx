@@ -144,8 +144,6 @@ export function AchievementsManager() {
   const [detailAchievementId, setDetailAchievementId] = useState<string | null>(null);
   const [detailMode, setDetailMode] = useState<"view" | "edit">("view");
   const [panelForm, setPanelForm] = useState<FormState>(INITIAL_FORM);
-  const [toneMenuFor, setToneMenuFor] = useState<string | null>(null);
-  const [iconMenuFor, setIconMenuFor] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const createBadgeIkSessionRef = useRef<BadgeIkSession>(EMPTY_BADGE_IK_SESSION);
@@ -201,8 +199,6 @@ export function AchievementsManager() {
     }
     setDetailAchievementId(null);
     setDetailMode("view");
-    setToneMenuFor(null);
-    setIconMenuFor(null);
   }
 
   async function loadAchievements() {
@@ -269,8 +265,6 @@ export function AchievementsManager() {
     setIsCreating(false);
     setDetailAchievementId(null);
     setDetailMode("view");
-    setToneMenuFor(null);
-    setIconMenuFor(null);
   }
 
   async function handlePanelSave(e: FormEvent) {
@@ -327,8 +321,6 @@ export function AchievementsManager() {
     );
     setDetailMode("view");
     setIsSaving(false);
-    setToneMenuFor(null);
-    setIconMenuFor(null);
   }
 
   async function handleDelete(id: string) {
@@ -393,8 +385,6 @@ export function AchievementsManager() {
                     ...INITIAL_FORM,
                     achievedAt: todayDateString(),
                   });
-                  setToneMenuFor(null);
-                  setIconMenuFor(null);
                 }}
               >
                 <div
@@ -428,8 +418,6 @@ export function AchievementsManager() {
                       setDetailAchievementId(achievement.id);
                       setDetailMode("view");
                       setIsCreating(false);
-                      setToneMenuFor(null);
-                      setIconMenuFor(null);
                     }}
                   />
                 );
@@ -484,7 +472,6 @@ export function AchievementsManager() {
 
             {isCreating ? (
               <EditableAchievementCard
-                id="create-overlay"
                 form={createForm}
                 setForm={setCreateForm}
                 isSaving={isSaving}
@@ -497,15 +484,9 @@ export function AchievementsManager() {
                   });
                   setIsCreating(false);
                   setDetailMode("view");
-                  setToneMenuFor(null);
-                  setIconMenuFor(null);
                 }}
                 badgeIkSessionRef={createBadgeIkSessionRef}
                 baselineIconFileId={createBadgeIkSessionRef.current.baselineFileId}
-                toneMenuFor={toneMenuFor}
-                setToneMenuFor={setToneMenuFor}
-                iconMenuFor={iconMenuFor}
-                setIconMenuFor={setIconMenuFor}
               />
             ) : detailMode === "view" && detailAchievement ? (
               <div className="flex w-full flex-col items-center pt-1">
@@ -567,8 +548,6 @@ export function AchievementsManager() {
                       };
                       setPanelForm(achievementToForm(detailAchievement));
                       setDetailMode("edit");
-                      setToneMenuFor(null);
-                      setIconMenuFor(null);
                     }}
                   >
                     Edit
@@ -585,7 +564,6 @@ export function AchievementsManager() {
               </div>
             ) : detailAchievement ? (
               <EditableAchievementCard
-                id="panel"
                 form={panelForm}
                 setForm={setPanelForm}
                 isSaving={isSaving}
@@ -596,17 +574,11 @@ export function AchievementsManager() {
                     setPanelForm(achievementToForm(detailAchievement));
                   }
                   setDetailMode("view");
-                  setToneMenuFor(null);
-                  setIconMenuFor(null);
                 }}
                 badgeIkSessionRef={panelBadgeIkSessionRef}
                 baselineIconFileId={
                   panelBadgeIkSessionRef.current.baselineFileId
                 }
-                toneMenuFor={toneMenuFor}
-                setToneMenuFor={setToneMenuFor}
-                iconMenuFor={iconMenuFor}
-                setIconMenuFor={setIconMenuFor}
               />
             ) : null}
                   </div>
