@@ -385,7 +385,7 @@ export function AchievementsManager() {
         <div className="space-y-4">
           <div
             className={cn(
-              "-mx-2 min-h-[200px] rounded-none bg-neutral-950 px-2 py-6",
+              "-mx-2 min-h-[200px] rounded-none bg-background px-2 py-6",
               "sm:mx-0 sm:rounded-2xl sm:px-4",
             )}
           >
@@ -395,7 +395,7 @@ export function AchievementsManager() {
                 className={cn(
                   "group flex w-full flex-col items-center gap-1.5 px-0.5 py-1 text-center outline-none transition-opacity",
                   "text-white/45 hover:text-white/80",
-                  "focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
+                  "focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                 )}
                 onClick={() => {
                   createBadgeIkSessionRef.current = createEmptyBadgeIkSession();
@@ -466,7 +466,7 @@ export function AchievementsManager() {
                 {/* Edge-to-edge dimmer (absolute so it always fills the fixed shell; no padding) */}
                 <div
                   aria-hidden
-                  className="absolute inset-0 z-0 bg-black/70 backdrop-blur-sm"
+                  className="absolute inset-0 z-0 bg-black/[65.5%] backdrop-blur-sm"
                   onClick={() => closeDetailPanel()}
                 />
                 {/* Scroll + center sheet; safe-area padding only here */}
@@ -476,7 +476,9 @@ export function AchievementsManager() {
                 >
                   <div
                     className={cn(
-                      "relative mx-auto my-auto flex w-full max-w-lg max-h-[min(92dvh,56rem)] min-h-0 flex-col overflow-x-hidden overflow-y-auto overscroll-y-contain rounded-2xl border border-white/10 bg-zinc-950 p-4 pb-6 shadow-2xl sm:p-6 sm:pb-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
+                      "relative mx-auto my-auto flex w-full max-w-lg max-h-[min(92dvh,56rem)] min-h-0 flex-col overflow-x-hidden overflow-y-auto overscroll-y-contain rounded-3xl border border-white/12 bg-card p-4 pb-6 text-card-foreground sm:p-6 sm:pb-6",
+                      "shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12),inset_0_1px_0_0_rgba(255,255,255,0.08),inset_0_-1px_0_0_rgba(0,0,0,0.12),inset_1px_0_0_0_rgba(255,255,255,0.05),inset_-1px_0_0_0_rgba(255,255,255,0.05),inset_0_0_12px_rgba(0,0,0,0.1),0_4px_14px_-3px_rgba(0,0,0,0.24),0_16px_44px_-12px_rgba(0,0,0,0.32)]",
+                      "outline-none focus-visible:outline-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
                       (isCreating || detailMode === "edit") &&
                         "overflow-x-hidden",
                     )}
@@ -637,11 +639,11 @@ export function AchievementsManager() {
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="delete-achievement-title"
-          className="fixed inset-0 z-[220] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[220] flex items-center justify-center bg-background/70 p-4 backdrop-blur-sm"
           onClick={() => setDeleteConfirmId(null)}
         >
           <div
-            className="w-full max-w-sm rounded-2xl border border-border bg-background p-6 shadow-xl"
+            className="w-full max-w-sm rounded-2xl border border-transparent bg-background p-6 shadow-none"
             onClick={(e) => e.stopPropagation()}
           >
             <h2

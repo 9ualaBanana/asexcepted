@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   description: "The fastest way to build apps with Next.js and Supabase",
   applicationName: "AsExcepted",
   manifest: "/manifest.webmanifest",
-  themeColor: "#0f172a",
+  themeColor: "#14121c",
   icons: {
     icon: [
       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
@@ -36,12 +36,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className="dark">
       <body className={`${geistSans.className} antialiased`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="dark"
+          forcedTheme="dark"
+          enableSystem={false}
           disableTransitionOnChange
         >
           <PwaInit />

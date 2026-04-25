@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "AsExcepted Progressive Web App",
     start_url: "/",
     display: "standalone",
-    background_color: "#0f172a",
-    theme_color: "#0f172a",
+    background_color: "#14121c",
+    theme_color: "#14121c",
     icons: [
       {
         src: "/icons/icon-192.png",

@@ -47,15 +47,15 @@ const toneGlowStyles: Record<AchievementTone, string> = {
 };
 
 const toneDiscStyles: Record<AchievementTone, string> = {
-  rose: "from-rose-300/35 via-pink-200/18 to-black/25 border-rose-300/45",
+  rose: "from-rose-300/35 via-pink-200/18 to-background/30 border-rose-300/45",
   indigo:
-    "from-indigo-300/35 via-blue-200/18 to-black/25 border-indigo-300/45",
-  teal: "from-teal-300/35 via-cyan-200/18 to-black/25 border-teal-300/45",
+    "from-indigo-300/35 via-blue-200/18 to-background/30 border-indigo-300/45",
+  teal: "from-teal-300/35 via-cyan-200/18 to-background/30 border-teal-300/45",
   orange:
-    "from-orange-300/35 via-amber-200/18 to-black/25 border-orange-300/45",
-  lime: "from-lime-300/35 via-emerald-200/18 to-black/25 border-lime-300/45",
+    "from-orange-300/35 via-amber-200/18 to-background/30 border-orange-300/45",
+  lime: "from-lime-300/35 via-emerald-200/18 to-background/30 border-lime-300/45",
   fuchsia:
-    "from-fuchsia-300/35 via-pink-200/18 to-black/25 border-fuchsia-300/45",
+    "from-fuchsia-300/35 via-pink-200/18 to-background/30 border-fuchsia-300/45",
 };
 
 /**
@@ -81,7 +81,7 @@ export function AchievementFallbackBadge({
           isLocked
             ? "border-dashed border-muted-foreground/40 bg-transparent shadow-none"
             : cn(
-                "border-solid bg-card/90 bg-gradient-to-br shadow-sm",
+                "border-solid bg-background/90 bg-gradient-to-br shadow-sm",
                 toneDiscStyles[tone],
               ),
           className,
@@ -124,7 +124,7 @@ export function AchievementFallbackBadge({
         isLocked
           ? "border-dashed border-muted-foreground/40 bg-transparent shadow-none"
           : cn(
-              "border-solid bg-card/90 bg-gradient-to-br shadow-sm",
+              "border-solid bg-background/90 bg-gradient-to-br shadow-sm",
               toneDiscStyles[tone],
             ),
         className,

@@ -29,7 +29,7 @@ export function AchievementGridLoadingSkeleton() {
   return (
     <div
       className={cn(
-        "-mx-2 flex min-h-[calc(100dvh-9.5rem)] flex-col rounded-none bg-neutral-950 px-2 py-6",
+        "-mx-2 flex min-h-[calc(100dvh-9.5rem)] flex-col rounded-none bg-background px-2 py-6",
         "sm:mx-0 sm:min-h-[calc(100dvh-10rem)] sm:rounded-2xl sm:px-4",
       )}
     >

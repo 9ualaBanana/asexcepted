@@ -68,7 +68,7 @@ export function AchievementCard({
     <article
       onClick={onClick}
       className={cn(
-        "relative overflow-hidden rounded-3xl border bg-card/90 p-5 shadow-sm transition-transform duration-200",
+        "relative overflow-hidden rounded-3xl border bg-background/90 p-5 shadow-sm transition-transform duration-200",
         "hover:-translate-y-1 hover:shadow-lg",
         "flex min-h-52 flex-col justify-between",
         onClick ? "cursor-pointer" : "",

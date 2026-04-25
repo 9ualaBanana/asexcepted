@@ -556,7 +556,7 @@ export function AchievementRoundBadgeEditor({
           onClick={() => !busy && setRemoveConfirmOpen(false)}
         >
           <div
-            className="w-full max-w-sm rounded-2xl border border-white/10 bg-zinc-950 p-6 shadow-xl"
+            className="w-full max-w-sm rounded-2xl border border-white/10 bg-card p-6 text-card-foreground shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 id={removeTitleId} className="text-lg font-semibold text-white">

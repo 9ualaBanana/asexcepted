@@ -268,7 +268,7 @@ export function EditableAchievementCard({
           <Button
             type="submit"
             disabled={isSaving}
-            className="bg-white text-zinc-950 hover:bg-white/90"
+            className="bg-white text-background hover:bg-white/90"
           >
             {isSaving ? "Saving..." : "Save"}
           </Button>
