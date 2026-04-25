@@ -926,20 +926,10 @@ export function AchievementsManager() {
                         <>
                           <AchievementFallbackBadge
                             tone={detailTone}
-                            isLocked={false}
+                            isLocked={detailIsLockedUi}
                             FallbackIcon={DetailFallbackIcon}
                             size="overlay-xl"
                           />
-                          {detailIsLockedUi ? (
-                            <div className="absolute inset-0 opacity-80 grayscale">
-                              <AchievementFallbackBadge
-                                tone={detailTone}
-                                isLocked={false}
-                                FallbackIcon={DetailFallbackIcon}
-                                size="overlay-xl"
-                              />
-                            </div>
-                          ) : null}
                           {detailIsUnlocking ? (
                             <>
                               <div
