@@ -38,27 +38,15 @@ const sizeStyles = {
 } as const;
 
 const toneGlowStyles: Record<AchievementTone, string> = {
-  gold: "bg-amber-300/35",
-  violet: "bg-violet-300/35",
-  emerald: "bg-emerald-300/35",
-  sky: "bg-sky-300/35",
   rose: "bg-rose-300/35",
   indigo: "bg-indigo-300/35",
   teal: "bg-teal-300/35",
   orange: "bg-orange-300/35",
   lime: "bg-lime-300/35",
-  cyan: "bg-cyan-300/35",
   fuchsia: "bg-fuchsia-300/35",
 };
 
 const toneDiscStyles: Record<AchievementTone, string> = {
-  gold:
-    "from-amber-300/35 via-amber-200/18 to-black/25 border-amber-300/45",
-  violet:
-    "from-violet-300/35 via-fuchsia-200/18 to-black/25 border-violet-300/45",
-  emerald:
-    "from-emerald-300/35 via-lime-200/18 to-black/25 border-emerald-300/45",
-  sky: "from-sky-300/35 via-cyan-200/18 to-black/25 border-sky-300/45",
   rose: "from-rose-300/35 via-pink-200/18 to-black/25 border-rose-300/45",
   indigo:
     "from-indigo-300/35 via-blue-200/18 to-black/25 border-indigo-300/45",
@@ -66,7 +54,6 @@ const toneDiscStyles: Record<AchievementTone, string> = {
   orange:
     "from-orange-300/35 via-amber-200/18 to-black/25 border-orange-300/45",
   lime: "from-lime-300/35 via-emerald-200/18 to-black/25 border-lime-300/45",
-  cyan: "from-cyan-300/35 via-sky-200/18 to-black/25 border-cyan-300/45",
   fuchsia:
     "from-fuchsia-300/35 via-pink-200/18 to-black/25 border-fuchsia-300/45",
 };

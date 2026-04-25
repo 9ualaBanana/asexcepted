@@ -129,6 +129,7 @@ export function AchievementRoundBadgeEditor({
   const hasRemote = trimmed.length > 0;
   const fileIdTrim = iconFileId.trim();
   const baselineIdTrim = baselineIconFileId.trim();
+  const hasCustomBadge = hasRemote || !!fileIdTrim;
 
   useEffect(() => {
     const uppy = new Uppy({
@@ -309,7 +310,7 @@ export function AchievementRoundBadgeEditor({
   }
 
   return (
-    <div ref={rootRef} className="relative flex flex-col items-center">
+    <div ref={rootRef} className="group/badge relative flex flex-col items-center">
       <input
         ref={fileInputRef}
         type="file"
@@ -395,6 +396,22 @@ export function AchievementRoundBadgeEditor({
           </div>
         )}
         </button>
+        <div className="group/lock pointer-events-none absolute inset-0 z-30 flex items-center justify-center">
+          <button
+            type="button"
+            aria-label={isLocked ? "Set unlocked" : "Set locked"}
+            className={cn(
+              "pointer-events-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-sm transition-opacity duration-300 sm:h-11 sm:w-11",
+              chipBtn,
+              isLocked
+                ? "opacity-100"
+                : "opacity-55",
+            )}
+            onClick={onToggleLocked}
+          >
+            {isLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+          </button>
+        </div>
       </AchievementBadgeSlot>
 
       {menuOpen && !removeConfirmOpen ? (
@@ -418,98 +435,90 @@ export function AchievementRoundBadgeEditor({
             <ImagePlus className="h-5 w-5" />
           </button>
 
-          <div ref={tonePickerRef} className="relative flex h-10 items-center sm:h-11">
-            <button
-              type="button"
-              aria-label="Select tone"
-              className={cn(
-                "h-10 w-10 shrink-0 rounded-full border shadow-sm sm:h-11 sm:w-11",
-                achievementToneSwatches[tone],
-                "border-white/50",
-              )}
-              onClick={() => {
-                setToneMenuOpen((o) => !o);
-                setIconMenuOpen(false);
-              }}
-            />
-            {toneMenuOpen ? (
-              <div className="absolute left-1/2 top-10 z-40 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-wrap justify-center gap-1.5 rounded-2xl border bg-background/95 p-2 shadow-lg backdrop-blur-sm sm:top-11 sm:gap-2">
-                {(Object.keys(achievementToneSwatches) as AchievementTone[]).map((toneKey) => (
-                  <button
-                    key={toneKey}
-                    type="button"
-                    aria-label={`Set tone ${toneKey}`}
-                    className={cn(
-                      "h-8 w-8 shrink-0 rounded-full border transition-transform",
-                      achievementToneSwatches[toneKey],
-                      tone === toneKey
-                        ? "scale-110 border-foreground"
-                        : "border-white/60",
-                    )}
-                    onClick={() => {
-                      onToneChange(toneKey);
-                    }}
-                  />
-                ))}
+          {!hasCustomBadge ? (
+            <>
+              <div ref={tonePickerRef} className="relative flex h-10 items-center sm:h-11">
+                <button
+                  type="button"
+                  aria-label="Select tone"
+                  className={cn(
+                    "h-10 w-10 shrink-0 rounded-full border shadow-sm sm:h-11 sm:w-11",
+                    achievementToneSwatches[tone],
+                    "border-white/50",
+                  )}
+                  onClick={() => {
+                    setToneMenuOpen((o) => !o);
+                    setIconMenuOpen(false);
+                  }}
+                />
+                {toneMenuOpen ? (
+                  <div className="absolute left-1/2 top-10 z-40 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-wrap justify-center gap-1.5 rounded-2xl border bg-background/95 p-2 shadow-lg backdrop-blur-sm sm:top-11 sm:gap-2">
+                    {(Object.keys(achievementToneSwatches) as AchievementTone[]).map((toneKey) => (
+                      <button
+                        key={toneKey}
+                        type="button"
+                        aria-label={`Set tone ${toneKey}`}
+                        className={cn(
+                          "h-8 w-8 shrink-0 rounded-full border transition-transform",
+                          achievementToneSwatches[toneKey],
+                          tone === toneKey
+                            ? "scale-110 border-foreground"
+                            : "border-white/60",
+                        )}
+                        onClick={() => {
+                          onToneChange(toneKey);
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : null}
               </div>
-            ) : null}
-          </div>
 
-          <button
-            type="button"
-            aria-label={isLocked ? "Set unlocked" : "Set locked"}
-            className={cn(
-              "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-sm sm:h-11 sm:w-11",
-              chipBtn,
-            )}
-            onClick={onToggleLocked}
-          >
-            {isLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
-          </button>
-
-          <div ref={iconPickerRef} className="relative flex h-10 items-center sm:h-11">
-            <button
-              type="button"
-              aria-label="Select icon"
-              className={cn(
-                "flex h-10 w-10 items-center justify-center rounded-full border shadow-sm sm:h-11 sm:w-11",
-                chipBtn,
-              )}
-              onClick={() => {
-                setIconMenuOpen((o) => !o);
-                setToneMenuOpen(false);
-              }}
-            >
-              <FallbackIcon className="h-4 w-4" />
-            </button>
-            {iconMenuOpen ? (
-              <div className="absolute left-1/2 top-11 z-40 grid w-64 max-w-[calc(100vw-2rem)] -translate-x-1/2 grid-cols-6 gap-1.5 rounded-2xl border bg-background/95 p-2 shadow-lg backdrop-blur-sm sm:top-12 sm:gap-2">
-                {(Object.keys(iconMap) as AchievementIconKey[]).map((iconKey) => {
-                  const OptionIcon = iconMap[iconKey];
-                  return (
-                    <button
-                      key={iconKey}
-                      type="button"
-                      aria-label={`Set icon ${iconKey}`}
-                      className={cn(
-                        "rounded-xl border p-2",
-                        icon === iconKey
-                          ? "border-foreground bg-accent"
-                          : "border-input",
-                      )}
-                      onClick={() => {
-                        onIconChange(iconKey);
-                      }}
-                    >
-                      <OptionIcon className="h-4 w-4" />
-                    </button>
-                  );
-                })}
+              <div ref={iconPickerRef} className="relative flex h-10 items-center sm:h-11">
+                <button
+                  type="button"
+                  aria-label="Select icon"
+                  className={cn(
+                    "flex h-10 w-10 items-center justify-center rounded-full border shadow-sm sm:h-11 sm:w-11",
+                    chipBtn,
+                  )}
+                  onClick={() => {
+                    setIconMenuOpen((o) => !o);
+                    setToneMenuOpen(false);
+                  }}
+                >
+                  <FallbackIcon className="h-4 w-4" />
+                </button>
+                {iconMenuOpen ? (
+                  <div className="absolute left-1/2 top-11 z-40 grid w-64 max-w-[calc(100vw-2rem)] -translate-x-1/2 grid-cols-6 gap-1.5 rounded-2xl border bg-background/95 p-2 shadow-lg backdrop-blur-sm sm:top-12 sm:gap-2">
+                    {(Object.keys(iconMap) as AchievementIconKey[]).map((iconKey) => {
+                      const OptionIcon = iconMap[iconKey];
+                      return (
+                        <button
+                          key={iconKey}
+                          type="button"
+                          aria-label={`Set icon ${iconKey}`}
+                          className={cn(
+                            "rounded-xl border p-2",
+                            icon === iconKey
+                              ? "border-foreground bg-accent"
+                              : "border-input",
+                          )}
+                          onClick={() => {
+                            onIconChange(iconKey);
+                          }}
+                        >
+                          <OptionIcon className="h-4 w-4" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
               </div>
-            ) : null}
-          </div>
+            </>
+          ) : null}
 
-          {(hasRemote || fileIdTrim) && (
+          {hasCustomBadge && (
             <button
               type="button"
               disabled={disabled || busy}
