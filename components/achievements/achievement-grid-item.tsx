@@ -22,7 +22,7 @@ export function AchievementGridItem({
   dateLabel,
   iconUrl,
   FallbackIcon,
-  tone = "gold",
+  tone = "teal",
   isLocked,
   onClick,
 }: AchievementGridItemProps) {

@@ -42,6 +42,15 @@ const META_FIELDS = [
   "responseFields",
 ] as const;
 
+const EDITOR_TONE_OPTIONS: AchievementTone[] = [
+  "teal",
+  "rose",
+  "lime",
+  "fuchsia",
+  "orange",
+  "indigo",
+];
+
 const chipBtn =
   "border-white/25 bg-white/10 text-white hover:bg-white/15";
 
@@ -452,8 +461,8 @@ export function AchievementRoundBadgeEditor({
                   }}
                 />
                 {toneMenuOpen ? (
-                  <div className="absolute left-1/2 top-10 z-40 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-wrap justify-center gap-1.5 rounded-2xl border bg-background/95 p-2 shadow-lg backdrop-blur-sm sm:top-11 sm:gap-2">
-                    {(Object.keys(achievementToneSwatches) as AchievementTone[]).map((toneKey) => (
+                  <div className="absolute left-1/2 top-10 z-40 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-nowrap items-center gap-1.5 overflow-x-auto rounded-2xl border bg-background/95 p-2 shadow-lg backdrop-blur-sm [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:top-11 sm:gap-2">
+                    {EDITOR_TONE_OPTIONS.map((toneKey) => (
                       <button
                         key={toneKey}
                         type="button"

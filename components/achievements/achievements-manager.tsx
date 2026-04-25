@@ -11,7 +11,10 @@ import {
 } from "react";
 import { PenLine, Sparkles, Trash2, X } from "lucide-react";
 
-import { type AchievementTone } from "@/components/achievements/achievement-card";
+import {
+  getSafeTone,
+  type AchievementTone,
+} from "@/components/achievements/achievement-card";
 import { AchievementBadgeSlot } from "@/components/achievements/achievement-badge-slot";
 import { AchievementFallbackBadge } from "@/components/achievements/achievement-fallback-badge";
 import { AchievementGridItem } from "@/components/achievements/achievement-grid-item";
@@ -65,7 +68,7 @@ const INITIAL_FORM: FormState = {
   icon: "trophy",
   iconUrl: "",
   iconFileId: "",
-  tone: "gold",
+  tone: "teal",
   isLocked: false,
   achievedAt: todayDateString(),
 };
@@ -82,7 +85,7 @@ function normalizeAchievement(row: Record<string, unknown>): AchievementRecord {
     icon: getSafeIconKey(row.icon as string | null | undefined),
     icon_url: (row.icon_url as string | null) ?? null,
     icon_file_id: (row.icon_file_id as string | null) ?? null,
-    tone: row.tone as AchievementTone,
+    tone: getSafeTone(row.tone as string | null | undefined),
     is_locked: Boolean(row.is_locked),
     achieved_at: (row.achieved_at as string | null) ?? null,
     created_at: String(row.created_at),
@@ -90,7 +93,7 @@ function normalizeAchievement(row: Record<string, unknown>): AchievementRecord {
 }
 
 function resolveTone(achievement: AchievementRecord | null) {
-  return achievement?.tone ?? "gold";
+  return getSafeTone(achievement?.tone);
 }
 
 function achievementToForm(a: AchievementRecord): FormState {

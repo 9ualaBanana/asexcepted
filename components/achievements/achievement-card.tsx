@@ -4,26 +4,14 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export type AchievementTone =
-  | "gold"
-  | "violet"
-  | "emerald"
-  | "sky"
   | "rose"
   | "indigo"
   | "teal"
   | "orange"
   | "lime"
-  | "cyan"
   | "fuchsia";
 
 export const achievementToneStyles: Record<AchievementTone, string> = {
-  gold:
-    "from-amber-300/20 via-amber-200/10 to-transparent border-amber-300/30",
-  violet:
-    "from-violet-300/20 via-fuchsia-200/10 to-transparent border-violet-300/30",
-  emerald:
-    "from-emerald-300/20 via-lime-200/10 to-transparent border-emerald-300/30",
-  sky: "from-sky-300/20 via-cyan-200/10 to-transparent border-sky-300/30",
   rose: "from-rose-300/20 via-pink-200/10 to-transparent border-rose-300/30",
   indigo:
     "from-indigo-300/20 via-blue-200/10 to-transparent border-indigo-300/30",
@@ -31,24 +19,25 @@ export const achievementToneStyles: Record<AchievementTone, string> = {
   orange:
     "from-orange-300/20 via-amber-200/10 to-transparent border-orange-300/30",
   lime: "from-lime-300/20 via-emerald-200/10 to-transparent border-lime-300/30",
-  cyan: "from-cyan-300/20 via-sky-200/10 to-transparent border-cyan-300/30",
   fuchsia:
     "from-fuchsia-300/20 via-pink-200/10 to-transparent border-fuchsia-300/30",
 };
 
 export const achievementToneSwatches: Record<AchievementTone, string> = {
-  gold: "bg-amber-400",
-  violet: "bg-violet-400",
-  emerald: "bg-emerald-400",
-  sky: "bg-sky-400",
   rose: "bg-rose-400",
   indigo: "bg-indigo-400",
   teal: "bg-teal-400",
   orange: "bg-orange-400",
   lime: "bg-lime-400",
-  cyan: "bg-cyan-400",
   fuchsia: "bg-fuchsia-400",
 };
+
+export function getSafeTone(value?: string | null): AchievementTone {
+  if (value && value in achievementToneStyles) {
+    return value as AchievementTone;
+  }
+  return "teal";
+}
 
 type AchievementCardProps = {
   description?: string | null;
@@ -69,7 +58,7 @@ export function AchievementCard({
   icon: Icon = Trophy,
   category,
   awardedAt,
-  tone = "gold",
+  tone = "teal",
   action,
   footer,
   className,
