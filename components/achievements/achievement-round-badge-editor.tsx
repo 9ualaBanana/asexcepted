@@ -17,6 +17,7 @@ import {
 } from "@/components/achievements/achievement-card";
 import { AchievementBadgeSlot } from "@/components/achievements/achievement-badge-slot";
 import { AchievementFallbackBadge } from "@/components/achievements/achievement-fallback-badge";
+import { RemoteBadgeImage } from "@/components/achievements/achievement-remote-badge-image";
 import {
   type AchievementIconKey,
   iconMap,
@@ -369,12 +370,11 @@ export function AchievementRoundBadgeEditor({
           </div>
         ) : null}
         {hasRemote ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <RemoteBadgeImage
             src={trimmed}
-            alt=""
             className={cn(
-              "h-full w-full object-contain p-1 drop-shadow-lg transition-all duration-500 ease-out",
+              "p-1 transition-all duration-500 ease-out",
+              "h-full w-full object-contain drop-shadow-lg",
               busy && "scale-[0.96] blur-[3.5px] opacity-[0.72]",
             )}
           />

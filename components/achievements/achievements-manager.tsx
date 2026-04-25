@@ -15,6 +15,8 @@ import { type AchievementTone } from "@/components/achievements/achievement-card
 import { AchievementBadgeSlot } from "@/components/achievements/achievement-badge-slot";
 import { AchievementFallbackBadge } from "@/components/achievements/achievement-fallback-badge";
 import { AchievementGridItem } from "@/components/achievements/achievement-grid-item";
+import { AchievementGridLoadingSkeleton } from "@/components/achievements/achievement-grid-skeleton";
+import { RemoteBadgeImage } from "@/components/achievements/achievement-remote-badge-image";
 import {
   type AchievementIconKey,
   achievementBadgeChromeWidth,
@@ -373,7 +375,9 @@ export function AchievementsManager() {
       {error ? <p className="text-sm text-red-500">{error}</p> : null}
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading achievements...</p>
+        <div className="space-y-4">
+          <AchievementGridLoadingSkeleton />
+        </div>
       ) : (
         <div className="space-y-4">
           <div
@@ -521,10 +525,9 @@ export function AchievementsManager() {
                       )}
                     >
                       {detailAchievement.icon_url?.trim() ? (
-                        <img
+                        <RemoteBadgeImage
                           src={detailAchievement.icon_url.trim()}
-                          alt=""
-                          className="h-full w-full object-contain p-1 drop-shadow-lg"
+                          className="p-1 drop-shadow-lg h-full w-full object-contain"
                         />
                       ) : (
                         <AchievementFallbackBadge
