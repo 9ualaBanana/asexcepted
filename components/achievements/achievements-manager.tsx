@@ -7,6 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type FormEvent,
   type RefObject,
 } from "react";
@@ -102,6 +103,21 @@ function buildUnlockRevealClipPath(progress: number, phase: number) {
   return `polygon(${points.join(",")})`;
 }
 
+function getAlphaMaskStyle(src: string): CSSProperties {
+  const safeSrc = src.replace(/"/g, '\\"');
+  const maskUrl = `url("${safeSrc}")`;
+  return {
+    WebkitMaskImage: maskUrl,
+    maskImage: maskUrl,
+    WebkitMaskRepeat: "no-repeat",
+    maskRepeat: "no-repeat",
+    WebkitMaskPosition: "center",
+    maskPosition: "center",
+    WebkitMaskSize: "contain",
+    maskSize: "contain",
+  };
+}
+
 function normalizeAchievement(row: Record<string, unknown>): AchievementRecord {
   return {
     id: String(row.id),
@@ -181,6 +197,7 @@ export function AchievementsManager() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [isUnlockHolding, setIsUnlockHolding] = useState(false);
   const [unlockingAchievementId, setUnlockingAchievementId] = useState<string | null>(null);
+  const [optimisticUnlockedAchievementId, setOptimisticUnlockedAchievementId] = useState<string | null>(null);
   const [unlockRevealProgress, setUnlockRevealProgress] = useState(0);
   const [unlockWavePhase, setUnlockWavePhase] = useState(0);
 
@@ -190,6 +207,12 @@ export function AchievementsManager() {
   const unlockRevealRafRef = useRef<number | null>(null);
   const unlockHoldPressedRef = useRef(false);
   const unlockRevealProgressRef = useRef(0);
+  const unlockRevealCompleteProgressRef = useRef(1);
+  const unlockAlphaMaskRef = useRef<{
+    data: Uint8ClampedArray;
+    width: number;
+    height: number;
+  } | null>(null);
 
   function rollbackBadgeSession(ref: RefObject<BadgeIkSession>) {
     const r = ref.current;
@@ -213,6 +236,13 @@ export function AchievementsManager() {
   );
   const detailIsUnlocking =
     Boolean(detailAchievement?.id) && unlockingAchievementId === detailAchievement?.id;
+  const detailIsLockedUi =
+    Boolean(detailAchievement?.is_locked) &&
+    optimisticUnlockedAchievementId !== detailAchievement?.id;
+  const detailMaskStyle = useMemo(() => {
+    const src = detailAchievement?.icon_url?.trim() ?? "";
+    return src ? getAlphaMaskStyle(src) : null;
+  }, [detailAchievement?.icon_url]);
   const unlockRevealClipPath = useMemo(
     () => buildUnlockRevealClipPath(unlockRevealProgress, unlockWavePhase),
     [unlockRevealProgress, unlockWavePhase],
@@ -221,6 +251,62 @@ export function AchievementsManager() {
   useEffect(() => {
     unlockRevealProgressRef.current = unlockRevealProgress;
   }, [unlockRevealProgress]);
+
+  useEffect(() => {
+    const src = detailAchievement?.icon_url?.trim() ?? "";
+    unlockAlphaMaskRef.current = null;
+    unlockRevealCompleteProgressRef.current = 1;
+    if (!src) return;
+
+    let cancelled = false;
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      if (cancelled) return;
+      const w = Math.max(1, img.naturalWidth || img.width || 1);
+      const h = Math.max(1, img.naturalHeight || img.height || 1);
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      if (!ctx) return;
+      ctx.drawImage(img, 0, 0, w, h);
+      try {
+        const imageData = ctx.getImageData(0, 0, w, h);
+        unlockAlphaMaskRef.current = { data: imageData.data, width: w, height: h };
+        let maxDist = 0;
+        for (let y = 0; y < h; y += 1) {
+          for (let x = 0; x < w; x += 1) {
+            const alpha = imageData.data[(y * w + x) * 4 + 3];
+            if (alpha <= 10) continue;
+            const nx = (x + 0.5) / w - 0.5;
+            const ny = (y + 0.5) / h - 0.5;
+            const dist = Math.sqrt(nx * nx + ny * ny);
+            if (dist > maxDist) maxDist = dist;
+          }
+        }
+        // Match reveal completion to the opaque silhouette extent.
+        const maxRadiusPct = maxDist * 100;
+        const estimatedProgress = (maxRadiusPct - 5) / 72;
+        unlockRevealCompleteProgressRef.current = Math.max(
+          0.58,
+          Math.min(1, estimatedProgress + 0.02),
+        );
+      } catch {
+        unlockAlphaMaskRef.current = null;
+        unlockRevealCompleteProgressRef.current = 1;
+      }
+    };
+    img.onerror = () => {
+      unlockAlphaMaskRef.current = null;
+      unlockRevealCompleteProgressRef.current = 1;
+    };
+    img.src = src;
+
+    return () => {
+      cancelled = true;
+    };
+  }, [detailAchievement?.icon_url]);
 
   useEffect(() => {
     void loadAchievements();
@@ -268,6 +354,7 @@ export function AchievementsManager() {
     }
     cancelUnlockHold();
     setUnlockingAchievementId(null);
+    setOptimisticUnlockedAchievementId(null);
     setUnlockRevealProgress(0);
     setUnlockWavePhase(0);
   }
@@ -481,7 +568,12 @@ export function AchievementsManager() {
           if (startTs === null) startTs = ts;
           const elapsed = ts - startTs;
           const t = Math.min(elapsed / durationMs, 1);
-          const nextProgress = fromProgress + (targetProgress - fromProgress) * t;
+          const linearProgress = fromProgress + (targetProgress - fromProgress) * t;
+          const completionScale = unlockRevealCompleteProgressRef.current || 1;
+          const nextProgress =
+            targetProgress >= fromProgress
+              ? Math.min(1, linearProgress / completionScale)
+              : linearProgress;
           setUnlockRevealProgress(nextProgress);
           setUnlockWavePhase((prev) => prev + 0.035);
 
@@ -491,7 +583,7 @@ export function AchievementsManager() {
             return;
           }
 
-          if (t >= 1) {
+          if (nextProgress >= 1 || t >= 1) {
             unlockRevealRafRef.current = null;
             resolve("completed");
             return;
@@ -520,6 +612,24 @@ export function AchievementsManager() {
       return;
     }
 
+    // End the visual sequence immediately when reveal reaches 100%.
+    setAchievements((prev) =>
+      sortAchievements(
+        prev.map((achievement) =>
+          achievement.id === targetId
+            ? { ...achievement, is_locked: false }
+            : achievement,
+        ),
+      ),
+    );
+    setOptimisticUnlockedAchievementId(targetId);
+    setUnlockingAchievementId(null);
+    setUnlockRevealProgress(0);
+    setUnlockWavePhase(0);
+    playUnlockSaveChime();
+    // UI should be instantly interactive once reveal is complete.
+    setIsSaving(false);
+
     const { data, error } = await supabase
       .from("achievements")
       .update({ is_locked: false })
@@ -529,15 +639,21 @@ export function AchievementsManager() {
 
     if (error || !data || typeof data === "string") {
       setError(error?.message ?? "Unexpected response while unlocking achievement.");
-      setIsSaving(false);
-      setUnlockingAchievementId(null);
-      setUnlockRevealProgress(0);
-      setUnlockWavePhase(0);
+      // Roll back optimistic unlock if persistence fails.
+      setAchievements((prev) =>
+        sortAchievements(
+          prev.map((achievement) =>
+            achievement.id === targetId
+              ? { ...achievement, is_locked: true }
+              : achievement,
+          ),
+        ),
+      );
+      setOptimisticUnlockedAchievementId(null);
       return;
     }
 
     const normalized = normalizeAchievement(data as unknown as Record<string, unknown>);
-    tryPlayUnlockSaveChime(normalized);
     setAchievements((prev) =>
       sortAchievements(
         prev.map((achievement) =>
@@ -545,14 +661,11 @@ export function AchievementsManager() {
         ),
       ),
     );
-    setIsSaving(false);
-    setUnlockingAchievementId(null);
-    setUnlockRevealProgress(0);
-    setUnlockWavePhase(0);
+    setOptimisticUnlockedAchievementId(null);
   }
 
   function startUnlockHold() {
-    if (!detailAchievement?.is_locked || isSaving || unlockHoldTimeoutRef.current !== null) return;
+    if (!detailIsLockedUi || isSaving || unlockHoldTimeoutRef.current !== null) return;
     unlockHoldPressedRef.current = true;
     setIsUnlockHolding(true);
     unlockHoldTimeoutRef.current = window.setTimeout(() => {
@@ -560,6 +673,45 @@ export function AchievementsManager() {
       setIsUnlockHolding(false);
       void handlePressHoldUnlock();
     }, UNLOCK_HOLD_DURATION_MS);
+  }
+
+  function isOpaqueBadgeHit(clientX: number, clientY: number, rect: DOMRect) {
+    const mask = unlockAlphaMaskRef.current;
+    if (!mask) return true;
+
+    const localX = clientX - rect.left;
+    const localY = clientY - rect.top;
+    if (localX < 0 || localY < 0 || localX > rect.width || localY > rect.height) return false;
+
+    // Matches `p-1` applied to rendered badge art.
+    const pad = 4;
+    const innerW = Math.max(1, rect.width - pad * 2);
+    const innerH = Math.max(1, rect.height - pad * 2);
+    const scale = Math.min(innerW / mask.width, innerH / mask.height);
+    const drawW = mask.width * scale;
+    const drawH = mask.height * scale;
+    const drawX = pad + (innerW - drawW) / 2;
+    const drawY = pad + (innerH - drawH) / 2;
+
+    if (
+      localX < drawX ||
+      localY < drawY ||
+      localX > drawX + drawW ||
+      localY > drawY + drawH
+    ) {
+      return false;
+    }
+
+    const srcX = Math.max(
+      0,
+      Math.min(mask.width - 1, Math.floor(((localX - drawX) / drawW) * mask.width)),
+    );
+    const srcY = Math.max(
+      0,
+      Math.min(mask.height - 1, Math.floor(((localY - drawY) / drawH) * mask.height)),
+    );
+    const alpha = mask.data[(srcY * mask.width + srcX) * 4 + 3];
+    return alpha > 10;
   }
 
   return (
@@ -714,16 +866,22 @@ export function AchievementsManager() {
                     <AchievementBadgeSlot
                       size="overlay-xl"
                     >
-                      {detailAchievement.is_locked ? (
+                      {detailIsLockedUi ? (
                         <button
                           type="button"
                           aria-label="Press and hold to unlock"
                           className={cn(
-                            "absolute inset-0 z-20 rounded-full",
+                            "absolute inset-0 z-20",
                             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40",
                             isUnlockHolding && "ring-2 ring-white/40",
                           )}
-                          onPointerDown={startUnlockHold}
+                          style={detailMaskStyle ?? undefined}
+                          onPointerDown={(e) => {
+                            if (!isOpaqueBadgeHit(e.clientX, e.clientY, e.currentTarget.getBoundingClientRect())) {
+                              return;
+                            }
+                            startUnlockHold();
+                          }}
                           onPointerUp={cancelUnlockHold}
                           onPointerLeave={cancelUnlockHold}
                           onPointerCancel={cancelUnlockHold}
@@ -736,7 +894,7 @@ export function AchievementsManager() {
                             src={detailAchievement.icon_url.trim()}
                             className="p-1 drop-shadow-lg h-full w-full object-contain"
                           />
-                          {detailAchievement.is_locked ? (
+                          {detailIsLockedUi ? (
                             <div className="absolute inset-0">
                               <RemoteBadgeImage
                                 src={detailAchievement.icon_url.trim()}
@@ -751,18 +909,16 @@ export function AchievementsManager() {
                             <>
                               <div
                                 className="absolute inset-0"
-                                style={{ clipPath: unlockRevealClipPath }}
+                                style={{
+                                  ...(detailMaskStyle ?? {}),
+                                  clipPath: unlockRevealClipPath,
+                                }}
                               >
                                 <RemoteBadgeImage
                                   src={detailAchievement.icon_url.trim()}
                                   className="p-1 h-full w-full object-contain"
                                 />
                               </div>
-                              <div
-                                aria-hidden
-                                className="pointer-events-none absolute inset-0 unlock-reveal-border"
-                                style={{ clipPath: unlockRevealClipPath }}
-                              />
                             </>
                           ) : null}
                         </>
@@ -774,7 +930,7 @@ export function AchievementsManager() {
                             FallbackIcon={DetailFallbackIcon}
                             size="overlay-xl"
                           />
-                          {detailAchievement.is_locked ? (
+                          {detailIsLockedUi ? (
                             <div className="absolute inset-0 opacity-80 grayscale">
                               <AchievementFallbackBadge
                                 tone={detailTone}
@@ -788,7 +944,10 @@ export function AchievementsManager() {
                             <>
                               <div
                                 className="absolute inset-0"
-                                style={{ clipPath: unlockRevealClipPath }}
+                                style={{
+                                  ...(detailMaskStyle ?? {}),
+                                  clipPath: unlockRevealClipPath,
+                                }}
                               >
                                 <AchievementFallbackBadge
                                   tone={detailTone}
@@ -797,11 +956,6 @@ export function AchievementsManager() {
                                   size="overlay-xl"
                                 />
                               </div>
-                              <div
-                                aria-hidden
-                                className="pointer-events-none absolute inset-0 unlock-reveal-border"
-                                style={{ clipPath: unlockRevealClipPath }}
-                              />
                             </>
                           ) : null}
                         </>
@@ -812,17 +966,17 @@ export function AchievementsManager() {
 
                 <p className="mt-8 w-full text-center text-[11px] font-medium uppercase tracking-[0.2em] text-white/45">
                   {(detailAchievement.category?.trim() ||
-                    (detailAchievement.is_locked ? "Locked" : "Uncategorized"))}
+                    (detailIsLockedUi ? "Locked" : "Uncategorized"))}
                 </p>
                 <h2
                   id="achievement-detail-title"
                   className="mt-2 text-center text-xl font-semibold tracking-tight text-white"
                 >
                   {detailAchievement.title?.trim() ||
-                    (detailAchievement.is_locked ? "Locked" : "Untitled")}
+                    (detailIsLockedUi ? "Locked" : "Untitled")}
                 </h2>
                 <p className="mt-4 break-words text-center text-sm leading-relaxed text-white/65">
-                  {detailAchievement.is_locked
+                  {detailIsLockedUi
                     ? detailAchievement.description?.trim() ||
                       "This achievement is locked."
                     : detailAchievement.description?.trim() || "No description yet."}

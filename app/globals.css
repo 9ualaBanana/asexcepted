@@ -73,33 +73,3 @@
   }
 }
 
-@keyframes unlock-border-drift {
-  0% {
-    transform: rotate(0deg) scale(1);
-    opacity: 0.65;
-  }
-  50% {
-    transform: rotate(2deg) scale(1.01);
-    opacity: 0.95;
-  }
-  100% {
-    transform: rotate(0deg) scale(1);
-    opacity: 0.7;
-  }
-}
-
-.unlock-reveal-border {
-  mix-blend-mode: screen;
-  animation: unlock-border-drift 1300ms ease-in-out infinite;
-  background:
-    radial-gradient(
-      circle at center,
-      transparent 58%,
-      rgba(255, 255, 255, 0.7) 66%,
-      rgba(187, 154, 255, 0.68) 74%,
-      rgba(97, 232, 221, 0.58) 82%,
-      rgba(255, 191, 154, 0.36) 91%,
-      transparent 100%
-    );
-  filter: blur(1.15px) saturate(1.2);
-}
