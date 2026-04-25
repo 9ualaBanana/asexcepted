@@ -187,6 +187,17 @@ export function AchievementsManager() {
     }
   }, [achievements, detailAchievementId]);
 
+  const achievementOverlayOpen = Boolean(detailAchievement) || isCreating;
+
+  useEffect(() => {
+    if (!achievementOverlayOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [achievementOverlayOpen]);
+
   function closeDetailPanel() {
     if (isCreating) {
       rollbackBadgeSession(createBadgeIkSessionRef);
