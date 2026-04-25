@@ -33,7 +33,7 @@ export function AchievementGridItem({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex w-full flex-col items-center gap-1.5 px-0.5 py-1 text-center outline-none transition-opacity",
+        "no-tap-highlight flex w-full flex-col items-center gap-1.5 px-0.5 py-1 text-center outline-none transition-opacity",
         "focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         isLocked && "opacity-70 grayscale",
       )}

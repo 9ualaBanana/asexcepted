@@ -734,7 +734,7 @@ export function AchievementsManager() {
               <button
                 type="button"
                 className={cn(
-                  "group flex w-full flex-col items-center gap-1.5 px-0.5 py-1 text-center outline-none transition-opacity",
+                  "no-tap-highlight group flex w-full flex-col items-center gap-1.5 px-0.5 py-1 text-center outline-none transition-opacity",
                   "text-white/45 hover:text-white/80",
                   "focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                 )}
@@ -845,7 +845,7 @@ export function AchievementsManager() {
                 onClosePanel={() => closeDetailPanel()}
               />
             ) : detailMode === "view" && detailAchievement ? (
-              <div className="flex w-full flex-col items-center pt-1">
+              <div className="no-tap-highlight flex w-full flex-col items-center pt-1">
                 <div className={achievementBadgeChromeWidth}>
                   <div
                     className={cn(
@@ -871,7 +871,7 @@ export function AchievementsManager() {
                           type="button"
                           aria-label="Press and hold to unlock"
                           className={cn(
-                            "absolute inset-0 z-20",
+                            "no-tap-highlight absolute inset-0 z-20",
                             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40",
                             isUnlockHolding && "ring-2 ring-white/40",
                           )}
