@@ -82,6 +82,7 @@ const UNLOCK_REVEAL_DURATION_MS = 5000;
 const AUDIO_ASSET_VERSION = process.env.NEXT_PUBLIC_BUILD_ID?.trim() || "dev";
 const UNLOCK_PEEL_AUDIO_SRC = `/audio/unlock-peel.wav?v=${AUDIO_ASSET_VERSION}`;
 const UNLOCK_EASE_OUT_AUDIO_SRC = `/audio/unlock-ease-out.wav?v=${AUDIO_ASSET_VERSION}`;
+const SAVE_POP_AUDIO_SRC = `/audio/pop.mp3?v=${AUDIO_ASSET_VERSION}`;
 
 function buildUnlockRevealClipPath(progress: number, phase: number) {
   const p = Math.max(0, Math.min(1, progress));
@@ -219,6 +220,7 @@ export function AchievementsManager() {
   const unlockSfxContextRef = useRef<AudioContext | null>(null);
   const unlockEaseOutBufferRef = useRef<AudioBuffer | null>(null);
   const unlockEaseOutSourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const savePopPreparedRef = useRef<HTMLAudioElement | null>(null);
   const unlockAlphaMaskRef = useRef<{
     data: Uint8ClampedArray;
     width: number;
@@ -506,6 +508,11 @@ export function AchievementsManager() {
     peel.load();
     unlockAudioPreparedRef.current = peel;
 
+    const savePop = new Audio(SAVE_POP_AUDIO_SRC);
+    savePop.preload = "auto";
+    savePop.load();
+    savePopPreparedRef.current = savePop;
+
     return () => {
       if (unlockHoldTimeoutRef.current !== null) {
         window.clearTimeout(unlockHoldTimeoutRef.current);
@@ -513,6 +520,8 @@ export function AchievementsManager() {
       interruptUnlockReveal();
       stopUnlockSound();
       unlockAudioPreparedRef.current = null;
+      savePopPreparedRef.current?.pause();
+      savePopPreparedRef.current = null;
       unlockEaseOutBufferRef.current = null;
       try {
         unlockEaseOutSourceRef.current?.stop();
@@ -592,7 +601,7 @@ export function AchievementsManager() {
     }
 
     const normalized = normalizeAchievement(data as unknown as Record<string, unknown>);
-    tryPlayUnlockSaveChime(normalized);
+    playSavePop();
     setAchievements((prev) => sortAchievements([normalized, ...prev]));
     setCreateForm({ ...INITIAL_FORM, achievedAt: todayDateString() });
     createBadgeIkSessionRef.current = createEmptyBadgeIkSession();
@@ -634,7 +643,7 @@ export function AchievementsManager() {
     }
 
     const normalized = normalizeAchievement(data as unknown as Record<string, unknown>);
-    tryPlayUnlockSaveChime(normalized);
+    playSavePop();
 
     const baselineId = panelBadgeIkSessionRef.current.baselineFileId.trim();
     const savedFileId = (normalized.icon_file_id ?? "").trim();
@@ -1243,115 +1252,19 @@ export function AchievementsManager() {
     </div>
   );
   
-  // #region Save Sound Effects
-
-  function tryPlayUnlockSaveChime(achievement: AchievementRecord) {
-    if (!achievement.is_locked) {
-      playUnlockSaveChime();
-    }
-  }
-  
-  /** Premium "unwrap" cue: peel + adhesive pull + tiny release pop. */
-  function playUnlockSaveChime() {
+  function playSavePop() {
     if (typeof window === "undefined") return;
     try {
-      const Ctor =
-        window.AudioContext ||
-        (
-          window as unknown as {
-            webkitAudioContext?: typeof AudioContext;
-          }
-        ).webkitAudioContext;
-      if (!Ctor) return;
-  
-      const ctx = new Ctor();
-      void ctx.resume?.();
-  
-      const now = ctx.currentTime;
-      const master = ctx.createGain();
-      master.gain.setValueAtTime(0.09, now);
-      master.connect(ctx.destination);
-
-      // 1) Peel texture: filtered pink-ish noise with downward spectral sweep.
-      const noiseBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 1.05), ctx.sampleRate);
-      const channel = noiseBuffer.getChannelData(0);
-      let b0 = 0;
-      let b1 = 0;
-      let b2 = 0;
-      for (let i = 0; i < channel.length; i += 1) {
-        const white = Math.random() * 2 - 1;
-        b0 = 0.99765 * b0 + white * 0.0990460;
-        b1 = 0.96300 * b1 + white * 0.2965164;
-        b2 = 0.57000 * b2 + white * 1.0526913;
-        channel[i] = (b0 + b1 + b2 + white * 0.1848) * 0.16;
-      }
-
-      const peelNoise = ctx.createBufferSource();
-      peelNoise.buffer = noiseBuffer;
-      const peelBand = ctx.createBiquadFilter();
-      peelBand.type = "bandpass";
-      peelBand.frequency.setValueAtTime(2500, now);
-      peelBand.frequency.exponentialRampToValueAtTime(480, now + 0.95);
-      peelBand.Q.setValueAtTime(1.3, now);
-      peelBand.Q.linearRampToValueAtTime(0.55, now + 0.95);
-      const peelHigh = ctx.createBiquadFilter();
-      peelHigh.type = "highpass";
-      peelHigh.frequency.setValueAtTime(260, now);
-      const peelGain = ctx.createGain();
-      peelGain.gain.setValueAtTime(0.0001, now);
-      peelGain.gain.exponentialRampToValueAtTime(0.28, now + 0.06);
-      peelGain.gain.exponentialRampToValueAtTime(0.085, now + 0.6);
-      peelGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.02);
-      peelNoise.connect(peelBand);
-      peelBand.connect(peelHigh);
-      peelHigh.connect(peelGain);
-      peelGain.connect(master);
-      peelNoise.start(now);
-      peelNoise.stop(now + 1.04);
-
-      // 2) Adhesive pull body: soft dual-tone tension dropping down.
-      const bodyA = ctx.createOscillator();
-      bodyA.type = "triangle";
-      bodyA.frequency.setValueAtTime(178, now + 0.02);
-      bodyA.frequency.exponentialRampToValueAtTime(114, now + 0.48);
-      const bodyB = ctx.createOscillator();
-      bodyB.type = "sine";
-      bodyB.frequency.setValueAtTime(224, now + 0.02);
-      bodyB.frequency.exponentialRampToValueAtTime(146, now + 0.48);
-      const bodyGain = ctx.createGain();
-      bodyGain.gain.setValueAtTime(0.0001, now);
-      bodyGain.gain.exponentialRampToValueAtTime(0.055, now + 0.08);
-      bodyGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.56);
-      bodyA.connect(bodyGain);
-      bodyB.connect(bodyGain);
-      bodyGain.connect(master);
-      bodyA.start(now + 0.02);
-      bodyB.start(now + 0.02);
-      bodyA.stop(now + 0.58);
-      bodyB.stop(now + 0.58);
-
-      // 3) Tiny release pop right at peel end.
-      const pop = ctx.createOscillator();
-      pop.type = "square";
-      pop.frequency.setValueAtTime(930, now + 0.96);
-      pop.frequency.exponentialRampToValueAtTime(520, now + 1.04);
-      const popGain = ctx.createGain();
-      popGain.gain.setValueAtTime(0.0001, now + 0.95);
-      popGain.gain.exponentialRampToValueAtTime(0.12, now + 0.985);
-      popGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.08);
-      pop.connect(popGain);
-      popGain.connect(master);
-      pop.start(now + 0.95);
-      pop.stop(now + 1.1);
-
-      const end = now + 1.18;
-      setTimeout(() => {
-        void ctx.close?.();
-      }, Math.ceil((end - now) * 1000) + 50);
+      const audio = savePopPreparedRef.current ?? new Audio(SAVE_POP_AUDIO_SRC);
+      audio.preload = "auto";
+      audio.currentTime = 0;
+      audio.volume = 1;
+      savePopPreparedRef.current = audio;
+      void audio.play().catch(() => {
+        // ignore blocked autoplay / unavailable media
+      });
     } catch {
       // ignore unsupported / blocked audio
     }
   }
-
-  // #endregion
 }
