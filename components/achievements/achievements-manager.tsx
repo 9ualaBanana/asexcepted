@@ -77,8 +77,11 @@ const INITIAL_FORM: FormState = {
 
 const SELECT_COLUMNS =
   "id,title,description,category,icon,icon_url,icon_file_id,tone,is_locked,achieved_at,created_at";
-const UNLOCK_HOLD_DURATION_MS = 900;
+const UNLOCK_HOLD_DURATION_MS = 500;
 const UNLOCK_REVEAL_DURATION_MS = 5000;
+const AUDIO_ASSET_VERSION = process.env.NEXT_PUBLIC_BUILD_ID?.trim() || "dev";
+const UNLOCK_PEEL_AUDIO_SRC = `/audio/unlock-peel.wav?v=${AUDIO_ASSET_VERSION}`;
+const UNLOCK_EASE_OUT_AUDIO_SRC = `/audio/unlock-ease-out.wav?v=${AUDIO_ASSET_VERSION}`;
 
 function buildUnlockRevealClipPath(progress: number, phase: number) {
   const p = Math.max(0, Math.min(1, progress));
@@ -385,7 +388,8 @@ export function AchievementsManager() {
     if (typeof window === "undefined") return;
     try {
       stopUnlockSound();
-      const audio = unlockAudioPreparedRef.current ?? new Audio("/audio/unlock-peel.wav");
+      const audio =
+        unlockAudioPreparedRef.current ?? new Audio(UNLOCK_PEEL_AUDIO_SRC);
       audio.preload = "auto";
       audio.currentTime = 0;
       audio.volume = 1;
@@ -407,7 +411,7 @@ export function AchievementsManager() {
         previous.currentTime = 0;
       }
       const audio =
-        unlockEaseOutPreparedRef.current ?? new Audio("/audio/unlock-ease-out.wav");
+        unlockEaseOutPreparedRef.current ?? new Audio(UNLOCK_EASE_OUT_AUDIO_SRC);
       audio.preload = "auto";
       audio.currentTime = 0;
       audio.volume = 1;
@@ -427,12 +431,12 @@ export function AchievementsManager() {
 
   useEffect(() => {
     // Preload once to avoid first-play lag on deployed environments.
-    const peel = new Audio("/audio/unlock-peel.wav");
+    const peel = new Audio(UNLOCK_PEEL_AUDIO_SRC);
     peel.preload = "auto";
     peel.load();
     unlockAudioPreparedRef.current = peel;
 
-    const easeOut = new Audio("/audio/unlock-ease-out.wav");
+    const easeOut = new Audio(UNLOCK_EASE_OUT_AUDIO_SRC);
     easeOut.preload = "auto";
     easeOut.load();
     unlockEaseOutPreparedRef.current = easeOut;
