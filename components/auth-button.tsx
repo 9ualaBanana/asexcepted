@@ -1,20 +1,31 @@
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { createClient } from "@/lib/supabase/server";
-import { LogoutButton } from "./logout-button";
+
+function headerLabelFromUser(user: {
+  email?: string | null;
+  user_metadata?: Record<string, unknown> | null;
+}) {
+  const meta = user.user_metadata ?? {};
+  const dn = meta.display_name ?? meta.full_name ?? meta.name;
+  if (typeof dn === "string" && dn.trim()) return dn.trim();
+  return user.email ?? "";
+}
 
 export async function AuthButton() {
   const supabase = await createClient();
 
-  // You can also use getUser() which will be slower.
-  const { data } = await supabase.auth.getClaims();
-
-  const user = data?.claims;
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData.user;
 
   return user ? (
     <div className="flex flex-col justify-center items-center w-full pt-2">
-      <p className="text-xs font-medium text-muted-foreground/90 tracking-tight">{user.email}</p>
-      <LogoutButton />
+      <Link
+        href="/profile"
+        className="text-xs font-medium text-muted-foreground/90 tracking-tight hover:text-foreground hover:underline underline-offset-2"
+      >
+        {headerLabelFromUser(user)}
+      </Link>
     </div>
   ) : (
     <div className="flex gap-2">
