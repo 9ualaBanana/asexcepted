@@ -210,6 +210,8 @@ export function AchievementsManager() {
   const unlockRevealCompleteProgressRef = useRef(1);
   const unlockAudioRef = useRef<HTMLAudioElement | null>(null);
   const unlockEaseOutAudioRef = useRef<HTMLAudioElement | null>(null);
+  const unlockAudioPreparedRef = useRef<HTMLAudioElement | null>(null);
+  const unlockEaseOutPreparedRef = useRef<HTMLAudioElement | null>(null);
   const unlockAlphaMaskRef = useRef<{
     data: Uint8ClampedArray;
     width: number;
@@ -383,7 +385,7 @@ export function AchievementsManager() {
     if (typeof window === "undefined") return;
     try {
       stopUnlockSound();
-      const audio = new Audio(`/audio/unlock-peel.wav?v=${Date.now()}`);
+      const audio = unlockAudioPreparedRef.current ?? new Audio("/audio/unlock-peel.wav");
       audio.preload = "auto";
       audio.currentTime = 0;
       audio.volume = 1;
@@ -404,7 +406,8 @@ export function AchievementsManager() {
         previous.pause();
         previous.currentTime = 0;
       }
-      const audio = new Audio(`/audio/unlock-ease-out.wav?v=${Date.now()}`);
+      const audio =
+        unlockEaseOutPreparedRef.current ?? new Audio("/audio/unlock-ease-out.wav");
       audio.preload = "auto";
       audio.currentTime = 0;
       audio.volume = 1;
@@ -423,6 +426,17 @@ export function AchievementsManager() {
   }
 
   useEffect(() => {
+    // Preload once to avoid first-play lag on deployed environments.
+    const peel = new Audio("/audio/unlock-peel.wav");
+    peel.preload = "auto";
+    peel.load();
+    unlockAudioPreparedRef.current = peel;
+
+    const easeOut = new Audio("/audio/unlock-ease-out.wav");
+    easeOut.preload = "auto";
+    easeOut.load();
+    unlockEaseOutPreparedRef.current = easeOut;
+
     return () => {
       if (unlockHoldTimeoutRef.current !== null) {
         window.clearTimeout(unlockHoldTimeoutRef.current);
@@ -431,6 +445,8 @@ export function AchievementsManager() {
         cancelAnimationFrame(unlockRevealRafRef.current);
       }
       stopUnlockSound();
+      unlockAudioPreparedRef.current = null;
+      unlockEaseOutPreparedRef.current = null;
     };
   }, [stopUnlockSound]);
 
