@@ -215,9 +215,10 @@ export function AchievementsManager() {
     null,
   );
   const unlockAudioRef = useRef<HTMLAudioElement | null>(null);
-  const unlockEaseOutAudioRef = useRef<HTMLAudioElement | null>(null);
   const unlockAudioPreparedRef = useRef<HTMLAudioElement | null>(null);
-  const unlockEaseOutPreparedRef = useRef<HTMLAudioElement | null>(null);
+  const unlockSfxContextRef = useRef<AudioContext | null>(null);
+  const unlockEaseOutBufferRef = useRef<AudioBuffer | null>(null);
+  const unlockEaseOutSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const unlockAlphaMaskRef = useRef<{
     data: Uint8ClampedArray;
     width: number;
@@ -415,28 +416,86 @@ export function AchievementsManager() {
 
   function playUnlockEaseOutSound() {
     if (typeof window === "undefined") return;
-    try {
-      const previous = unlockEaseOutAudioRef.current;
-      if (previous) {
-        previous.pause();
-        previous.currentTime = 0;
+    const Ctor =
+      window.AudioContext ||
+      (
+        window as unknown as {
+          webkitAudioContext?: typeof AudioContext;
+        }
+      ).webkitAudioContext;
+    if (!Ctor) return;
+
+    const ctx =
+      unlockSfxContextRef.current ?? new Ctor();
+    unlockSfxContextRef.current = ctx;
+
+    const playWithBuffer = (buffer: AudioBuffer) => {
+      try {
+        unlockEaseOutSourceRef.current?.stop();
+      } catch {
+        // ignore
       }
-      const audio =
-        unlockEaseOutPreparedRef.current ?? new Audio(UNLOCK_EASE_OUT_AUDIO_SRC);
-      audio.preload = "auto";
-      audio.currentTime = 0;
-      audio.volume = 1;
-      audio.onended = () => {
-        if (unlockEaseOutAudioRef.current === audio) {
-          unlockEaseOutAudioRef.current = null;
+      const source = ctx.createBufferSource();
+      const gain = ctx.createGain();
+      gain.gain.value = 1;
+      source.buffer = buffer;
+      source.connect(gain);
+      gain.connect(ctx.destination);
+      source.onended = () => {
+        if (unlockEaseOutSourceRef.current === source) {
+          unlockEaseOutSourceRef.current = null;
         }
       };
-      unlockEaseOutAudioRef.current = audio;
-      void audio.play().catch(() => {
-        // ignore blocked autoplay / unavailable media
-      });
+      unlockEaseOutSourceRef.current = source;
+      source.start(0);
+    };
+
+    const run = async () => {
+      if (ctx.state !== "running") {
+        await ctx.resume();
+      }
+      if (!unlockEaseOutBufferRef.current) {
+        const response = await fetch(UNLOCK_EASE_OUT_AUDIO_SRC, { cache: "force-cache" });
+        const arr = await response.arrayBuffer();
+        unlockEaseOutBufferRef.current = await ctx.decodeAudioData(arr);
+      }
+      if (unlockEaseOutBufferRef.current) {
+        playWithBuffer(unlockEaseOutBufferRef.current);
+      }
+    };
+
+    void run().catch(() => {
+      // Intentionally no fallback: this cue must come from its own audio asset.
+    });
+  }
+
+  function primeUnlockAudioGestureContext() {
+    if (typeof window === "undefined") return;
+    try {
+      const Ctor =
+        window.AudioContext ||
+        (
+          window as unknown as {
+            webkitAudioContext?: typeof AudioContext;
+          }
+        ).webkitAudioContext;
+      if (!Ctor) return;
+      const ctx = unlockSfxContextRef.current ?? new Ctor();
+      unlockSfxContextRef.current = ctx;
+      void ctx.resume();
+      if (!unlockEaseOutBufferRef.current) {
+        void fetch(UNLOCK_EASE_OUT_AUDIO_SRC, { cache: "force-cache" })
+          .then((res) => res.arrayBuffer())
+          .then((arr) => ctx.decodeAudioData(arr))
+          .then((buffer) => {
+            unlockEaseOutBufferRef.current = buffer;
+          })
+          .catch(() => {
+            // keep silent, retry on play
+          });
+      }
     } catch {
-      // ignore unsupported / blocked audio
+      // no-op
     }
   }
 
@@ -447,11 +506,6 @@ export function AchievementsManager() {
     peel.load();
     unlockAudioPreparedRef.current = peel;
 
-    const easeOut = new Audio(UNLOCK_EASE_OUT_AUDIO_SRC);
-    easeOut.preload = "auto";
-    easeOut.load();
-    unlockEaseOutPreparedRef.current = easeOut;
-
     return () => {
       if (unlockHoldTimeoutRef.current !== null) {
         window.clearTimeout(unlockHoldTimeoutRef.current);
@@ -459,7 +513,15 @@ export function AchievementsManager() {
       interruptUnlockReveal();
       stopUnlockSound();
       unlockAudioPreparedRef.current = null;
-      unlockEaseOutPreparedRef.current = null;
+      unlockEaseOutBufferRef.current = null;
+      try {
+        unlockEaseOutSourceRef.current?.stop();
+      } catch {
+        // ignore
+      }
+      unlockEaseOutSourceRef.current = null;
+      unlockSfxContextRef.current?.close().catch(() => undefined);
+      unlockSfxContextRef.current = null;
     };
   }, [interruptUnlockReveal, stopUnlockSound]);
 
@@ -759,6 +821,7 @@ export function AchievementsManager() {
     if (!detailIsLockedUi || isSaving || unlockHoldTimeoutRef.current !== null) return;
     unlockHoldPressedRef.current = true;
     setIsUnlockHolding(true);
+    primeUnlockAudioGestureContext();
     playUnlockTimelineSound(UNLOCK_REVEAL_DURATION_MS + UNLOCK_HOLD_DURATION_MS);
     unlockHoldTimeoutRef.current = window.setTimeout(() => {
       unlockHoldTimeoutRef.current = null;
