@@ -1,17 +1,17 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { AuthButton } from "@/components/auth-button";
 import { AchievementsManager } from "@/components/achievements/achievements-manager";
 import { EnvVarWarning } from "@/components/env-var-warning";
 import { hasEnvVars } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
-import { isAuthUserIdSegment, userAchievementsPath } from "@/lib/user-achievements-path";
+import { isAuthUserIdSegment } from "@/lib/user-achievements-path";
 import { Suspense } from "react";
 
 type PageProps = {
   params: Promise<{ userId: string }>;
 };
 
-/** Achievements for the signed-in user only; `userId` is Supabase Auth user id (`auth.users.id`). */
+/** `userId` is Supabase Auth user id (`auth.users.id`). Owners edit; everyone else (including signed out) can view. */
 async function UserAchievementsContent({ params }: PageProps) {
   const { userId } = await params;
   if (!isAuthUserIdSegment(userId)) {
@@ -21,13 +21,8 @@ async function UserAchievementsContent({ params }: PageProps) {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
   const user = userData.user;
-  if (!user) {
-    return redirect(`/auth/login?next=${encodeURIComponent(userAchievementsPath(userId))}`);
-  }
-
-  if (user.id !== userId) {
-    return redirect(userAchievementsPath(user.id));
-  }
+  const isOwner = Boolean(user?.id === userId);
+  const readOnly = !isOwner;
 
   return (
     <main className="min-h-screen flex flex-col items-center overflow-x-hidden">
@@ -50,11 +45,20 @@ async function UserAchievementsContent({ params }: PageProps) {
               Achievements
             </p>
             <p className="text-md tracking-tight text-center text-muted-foreground/80 font-medium text-xs sm:text-sm leading-relaxed">
-              Recognize your own unique experience<br />
-              Collect achievements you deserve<br />
+              {isOwner ? (
+                <>
+                  Recognize your own unique experience<br />
+                  Collect achievements you deserve<br />
+                </>
+              ) : (
+                <>
+                  Viewing this member&apos;s public achievements.<br />
+                  Sign in to manage your own collection.
+                </>
+              )}
             </p>
           </header>
-          <AchievementsManager ownerUserId={userId} />
+          <AchievementsManager ownerUserId={userId} readOnly={readOnly} />
         </section>
       </div>
     </main>

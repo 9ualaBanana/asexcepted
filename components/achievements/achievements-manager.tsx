@@ -190,9 +190,14 @@ function sortAchievements(rows: AchievementRecord[]) {
 export type AchievementsManagerProps = {
   /** Supabase Auth user id (`auth.users.id`); scopes achievements rows. */
   ownerUserId: string;
+  /** When true, list and detail are view-only (no create / edit / delete / unlock). */
+  readOnly?: boolean;
 };
 
-export function AchievementsManager({ ownerUserId }: AchievementsManagerProps) {
+export function AchievementsManager({
+  ownerUserId,
+  readOnly = false,
+}: AchievementsManagerProps) {
   const supabase = useMemo(() => createClient(), []);
   const [achievements, setAchievements] = useState<AchievementRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -579,6 +584,7 @@ export function AchievementsManager({ ownerUserId }: AchievementsManagerProps) {
 
   async function handleCreate(e: FormEvent) {
     e.preventDefault();
+    if (readOnly) return;
     if (!hasMeaningfulContent(createForm)) {
       setError("Add at least a title, category, or description.");
       return;
@@ -619,6 +625,7 @@ export function AchievementsManager({ ownerUserId }: AchievementsManagerProps) {
 
   async function handlePanelSave(e: FormEvent) {
     e.preventDefault();
+    if (readOnly) return;
     if (!detailAchievementId) return;
     if (!hasMeaningfulContent(panelForm)) {
       setError("Add at least a title, category, or description.");
@@ -674,6 +681,7 @@ export function AchievementsManager({ ownerUserId }: AchievementsManagerProps) {
   }
 
   async function handleDelete(id: string) {
+    if (readOnly) return;
     setIsSaving(true);
     setError(null);
 
@@ -705,6 +713,7 @@ export function AchievementsManager({ ownerUserId }: AchievementsManagerProps) {
   }
 
   async function handlePressHoldUnlock() {
+    if (readOnly) return;
     if (!detailAchievement || !detailAchievement.is_locked || isSaving) return;
     const targetId = detailAchievement.id;
 
@@ -833,6 +842,7 @@ export function AchievementsManager({ ownerUserId }: AchievementsManagerProps) {
   }
 
   function startUnlockHold() {
+    if (readOnly) return;
     if (!detailIsLockedUi || isSaving || unlockHoldTimeoutRef.current !== null) return;
     unlockHoldPressedRef.current = true;
     setIsUnlockHolding(true);
@@ -901,40 +911,42 @@ export function AchievementsManager({ ownerUserId }: AchievementsManagerProps) {
             )}
           >
             <div className="grid grid-cols-3 gap-x-2 gap-y-8">
-              <button
-                type="button"
-                className={cn(
-                  "no-tap-highlight group flex w-full flex-col items-center gap-1.5 px-0.5 py-1 text-center outline-none transition-opacity",
-                  "text-white/45 hover:text-white/80",
-                  "focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                )}
-                onClick={() => {
-                  createBadgeIkSessionRef.current = createEmptyBadgeIkSession();
-                  setIsCreating(true);
-                  setDetailAchievementId(null);
-                  setDetailMode("edit");
-                  setCreateForm({
-                    ...INITIAL_FORM,
-                    achievedAt: todayDateString(),
-                  });
-                }}
-              >
-                <div
+              {!readOnly ? (
+                <button
+                  type="button"
                   className={cn(
-                    "relative flex aspect-square w-full max-w-[104px] items-center justify-center rounded-3xl",
-                    "border border-dashed border-white/25 bg-transparent transition-colors",
-                    "group-hover:border-white/45 group-hover:bg-white/[0.04]",
+                    "no-tap-highlight group flex w-full flex-col items-center gap-1.5 px-0.5 py-1 text-center outline-none transition-opacity",
+                    "text-white/45 hover:text-white/80",
+                    "focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                   )}
+                  onClick={() => {
+                    createBadgeIkSessionRef.current = createEmptyBadgeIkSession();
+                    setIsCreating(true);
+                    setDetailAchievementId(null);
+                    setDetailMode("edit");
+                    setCreateForm({
+                      ...INITIAL_FORM,
+                      achievedAt: todayDateString(),
+                    });
+                  }}
                 >
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full border border-current/40">
-                    <Sparkles className="h-6 w-6" />
+                  <div
+                    className={cn(
+                      "relative flex aspect-square w-full max-w-[104px] items-center justify-center rounded-3xl",
+                      "border border-dashed border-white/25 bg-transparent transition-colors",
+                      "group-hover:border-white/45 group-hover:bg-white/[0.04]",
+                    )}
+                  >
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full border border-current/40">
+                      <Sparkles className="h-6 w-6" />
+                    </div>
                   </div>
-                </div>
-                <p className="line-clamp-2 h-[2.7em] max-h-[2.7em] w-full shrink-0 overflow-hidden text-[11px] font-medium leading-[1.35] text-white/55 group-hover:text-white/80 sm:text-xs">
-                  Add achievement
-                </p>
-                <p className="text-[10px] text-white/35 sm:text-[11px]">—</p>
-              </button>
+                  <p className="line-clamp-2 h-[2.7em] max-h-[2.7em] w-full shrink-0 overflow-hidden text-[11px] font-medium leading-[1.35] text-white/55 group-hover:text-white/80 sm:text-xs">
+                    Add achievement
+                  </p>
+                  <p className="text-[10px] text-white/35 sm:text-[11px]">—</p>
+                </button>
+              ) : null}
 
               {achievements.map((achievement) => {
                 return (
@@ -958,7 +970,9 @@ export function AchievementsManager({ ownerUserId }: AchievementsManagerProps) {
 
             {achievements.length === 0 ? (
               <p className="mt-6 text-center text-sm text-white/45">
-                No achievements yet. Tap Add achievement to create one.
+                {readOnly
+                  ? "No achievements to show yet."
+                  : "No achievements yet. Tap Add achievement to create one."}
               </p>
             ) : null}
           </div>
@@ -1036,7 +1050,7 @@ export function AchievementsManager({ ownerUserId }: AchievementsManagerProps) {
                     <AchievementBadgeSlot
                       size="overlay-xl"
                     >
-                      {detailIsLockedUi ? (
+                      {detailIsLockedUi && !readOnly ? (
                         <button
                           type="button"
                           aria-label="Press and hold to unlock"
@@ -1147,41 +1161,45 @@ export function AchievementsManager({ ownerUserId }: AchievementsManagerProps) {
                   </p>
                 ) : null}
 
-                <div
-                  className={cn(
-                    achievementBadgeChromeWidth,
-                    achievementDialogChromeInset,
-                    "mt-3 flex min-h-10 items-center justify-between",
-                    !formatAchievedAt(detailAchievement.achieved_at) && "mt-6",
-                  )}
-                >
-                  <button
-                    type="button"
-                    aria-label="Edit"
-                    className={achievementDialogIconBtn}
-                    disabled={isSaving}
-                    onClick={() => {
-                      panelBadgeIkSessionRef.current = {
-                        baselineUrl: detailAchievement.icon_url ?? "",
-                        baselineFileId: detailAchievement.icon_file_id ?? "",
-                        lastSessionFileId: null,
-                      };
-                      setPanelForm(achievementToForm(detailAchievement));
-                      setDetailMode("edit");
-                    }}
+                {!readOnly ? (
+                  <div
+                    className={cn(
+                      achievementBadgeChromeWidth,
+                      achievementDialogChromeInset,
+                      "mt-3 flex min-h-10 items-center justify-between",
+                      !formatAchievedAt(detailAchievement.achieved_at) && "mt-6",
+                    )}
                   >
-                    <PenLine className="h-4 w-4" aria-hidden />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Delete"
-                    className={achievementDialogIconBtn}
-                    disabled={isSaving}
-                    onClick={() => setDeleteConfirmId(detailAchievement.id)}
-                  >
-                    <Trash2 className="h-4 w-4" aria-hidden />
-                  </button>
-                </div>
+                    <button
+                      type="button"
+                      aria-label="Edit"
+                      className={achievementDialogIconBtn}
+                      disabled={isSaving}
+                      onClick={() => {
+                        panelBadgeIkSessionRef.current = {
+                          baselineUrl: detailAchievement.icon_url ?? "",
+                          baselineFileId: detailAchievement.icon_file_id ?? "",
+                          lastSessionFileId: null,
+                        };
+                        setPanelForm(achievementToForm(detailAchievement));
+                        setDetailMode("edit");
+                      }}
+                    >
+                      <PenLine className="h-4 w-4" aria-hidden />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Delete"
+                      className={achievementDialogIconBtn}
+                      disabled={isSaving}
+                      onClick={() => setDeleteConfirmId(detailAchievement.id)}
+                    >
+                      <Trash2 className="h-4 w-4" aria-hidden />
+                    </button>
+                  </div>
+                ) : formatAchievedAt(detailAchievement.achieved_at) ? null : (
+                  <div className="mt-6" aria-hidden />
+                )}
               </div>
             ) : detailAchievement ? (
               <EditableAchievementCard

@@ -40,10 +40,21 @@ create index if not exists achievements_user_date_idx on public.achievements (us
 alter table public.achievements enable row level security;
 
 drop policy if exists "Users can view own achievements" on public.achievements;
-create policy "Users can view own achievements"
+drop policy if exists "Achievements are publicly readable (authenticated)" on public.achievements;
+drop policy if exists "Achievements are publicly readable (anon)" on public.achievements;
+
+-- Any signed-in or anonymous client may read rows; writes remain owner-scoped below.
+create policy "Achievements are publicly readable (authenticated)"
   on public.achievements
   for select
-  using (auth.uid() = user_id);
+  to authenticated
+  using (true);
+
+create policy "Achievements are publicly readable (anon)"
+  on public.achievements
+  for select
+  to anon
+  using (true);
 
 drop policy if exists "Users can insert own achievements" on public.achievements;
 create policy "Users can insert own achievements"
