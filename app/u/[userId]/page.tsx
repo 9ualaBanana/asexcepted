@@ -24,6 +24,17 @@ async function UserAchievementsContent({ params }: PageProps) {
   const isOwner = Boolean(user?.id === userId);
   const readOnly = !isOwner;
 
+  let ownerPublicLabel: string | null = null;
+  if (!isOwner && hasEnvVars) {
+    const { data: label, error: labelError } = await supabase.rpc(
+      "public_user_display_name",
+      { target_user_id: userId },
+    );
+    if (!labelError && typeof label === "string" && label.trim()) {
+      ownerPublicLabel = label.trim();
+    }
+  }
+
   return (
     <main className="min-h-screen flex flex-col items-center overflow-x-hidden">
       <div className="flex-1 w-full flex flex-col gap-10 items-center">
@@ -52,7 +63,10 @@ async function UserAchievementsContent({ params }: PageProps) {
                 </>
               ) : (
                 <>
-                  Viewing this member&apos;s public achievements.<br />
+                  {ownerPublicLabel
+                    ? `Viewing ${ownerPublicLabel}'s public achievements.`
+                    : "Viewing public achievements."}
+                  <br />
                   Sign in to manage your own collection.
                 </>
               )}
