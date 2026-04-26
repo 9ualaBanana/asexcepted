@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { AuthButton } from "@/components/auth-button";
 import { AchievementsManager } from "@/components/achievements/achievements-manager";
+import { FollowButton } from "@/components/social/follow-button";
 import { EnvVarWarning } from "@/components/env-var-warning";
 import { hasEnvVars } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
@@ -23,6 +24,17 @@ async function UserAchievementsContent({ params }: PageProps) {
   const user = userData.user;
   const isOwner = Boolean(user?.id === userId);
   const readOnly = !isOwner;
+
+  let initialIsFollowing = false;
+  if (user && !isOwner && hasEnvVars) {
+    const { data: followRow } = await supabase
+      .from("profile_follow")
+      .select("follower_id")
+      .eq("follower_id", user.id)
+      .eq("following_id", userId)
+      .maybeSingle();
+    initialIsFollowing = Boolean(followRow);
+  }
 
   let ownerPublicLabel: string | null = null;
   if (!isOwner && hasEnvVars) {
@@ -72,6 +84,14 @@ async function UserAchievementsContent({ params }: PageProps) {
               )}
             </p>
           </header>
+          {user && !isOwner && hasEnvVars ? (
+            <div className="flex justify-center pb-2">
+              <FollowButton
+                targetUserId={userId}
+                initialFollowing={initialIsFollowing}
+              />
+            </div>
+          ) : null}
           <AchievementsManager ownerUserId={userId} readOnly={readOnly} />
         </section>
       </div>

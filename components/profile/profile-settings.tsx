@@ -16,8 +16,8 @@ function displayNameFromMetadata(meta: Record<string, unknown> | null | undefine
 }
 
 /**
- * Profile fields backed by Supabase Auth user_metadata (display name, etc.).
- * Editable: user_metadata display name (also syncs full_name + name for dashboard compatibility).
+ * Profile fields backed by Supabase Auth `user_metadata` only (single source of truth for display name).
+ * Search and social UIs read the same fields from the database via `auth.users` (RPCs), not a duplicate column.
  */
 export function ProfileSettings() {
   const supabase = useMemo(() => createClient(), []);
@@ -41,7 +41,8 @@ export function ProfileSettings() {
     }
     const u = data.user;
     setEmail(u.email ?? "");
-    setDisplayName(displayNameFromMetadata(u.user_metadata as Record<string, unknown>));
+    const name = displayNameFromMetadata(u.user_metadata as Record<string, unknown>);
+    setDisplayName(name);
     setLoading(false);
   }, [supabase]);
 

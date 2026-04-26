@@ -52,7 +52,8 @@ export async function updateSession(request: NextRequest) {
     !user &&
     (pathname.startsWith("/protected") ||
       pathname.startsWith("/achievements") ||
-      pathname.startsWith("/profile"))
+      pathname.startsWith("/profile") ||
+      pathname.startsWith("/friends"))
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();

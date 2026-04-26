@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AccountMenu } from "@/components/account-menu";
 import { Button } from "./ui/button";
 import { createClient } from "@/lib/supabase/server";
 
@@ -19,13 +20,8 @@ export async function AuthButton() {
   const user = userData.user;
 
   return user ? (
-    <div className="flex flex-col justify-center items-center w-full pt-2">
-      <Link
-        href="/profile"
-        className="text-xs font-medium text-muted-foreground/90 tracking-tight hover:text-foreground hover:underline underline-offset-2"
-      >
-        {headerLabelFromUser(user)}
-      </Link>
+    <div className="flex w-full justify-center pt-2">
+      <AccountMenu label={headerLabelFromUser(user)} />
     </div>
   ) : (
     <div className="flex gap-2">
