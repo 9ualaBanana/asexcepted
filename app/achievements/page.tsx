@@ -7,9 +7,9 @@ import { Suspense } from "react";
 export default function AchievementsPage() {
   return (
     <main className="min-h-screen flex flex-col items-center overflow-x-hidden">
-      <div className="flex-1 w-full flex flex-col gap-12 items-center">
-        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-          <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
+      <div className="flex-1 w-full flex flex-col gap-10 items-center">
+        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-14">
+          <div className="w-full max-w-5xl flex justify-center items-center p-3 px-5 text-sm">
             {!hasEnvVars ? (
               <EnvVarWarning />
             ) : (
@@ -20,19 +20,16 @@ export default function AchievementsPage() {
           </div>
         </nav>
 
-        <section className="w-full max-w-5xl px-5 pb-8 space-y-6">
+        <section className="w-full max-w-5xl px-5 pb-8 space-y-4">
           <header className="space-y-2">
-            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
+            <p className="text-md uppercase tracking-[0.22em] text-center">
               Achievements
             </p>
-            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-              Regard rewards you deserved
-            </h1>
-            <p className="max-w-xl text-sm text-muted-foreground sm:text-base">
-              Gain experience by promoting rewarding behavior.<br />
-              Exceptional, uniquely novel or consistently committed to
-              developing good habit or breaking bad.<br />
-              You deserve regard and reward for your achievements.
+            <p className="text-md tracking-tight text-center text-muted-foreground/80 font-medium text-xs sm:text-sm leading-relaxed">
+              {/* Collect achievements for recognizing experience you've earned. */}
+              Recognize your own unique experience<br />
+              Collect achievements you deserve<br />
+              {/* Promote rewarding behavior<br /> */}
             </p>
           </header>
           <AchievementsManager />
