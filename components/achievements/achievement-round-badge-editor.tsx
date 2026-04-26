@@ -71,6 +71,8 @@ type AchievementRoundBadgeEditorProps = {
   onIconFileIdChange: (fileId: string) => void;
   /** Clear staged-upload pointer when the in-progress image is removed locally. */
   onStagedUploadCleared?: () => void;
+  /** Signals when remote badge upload is currently in flight. */
+  onUploadInProgressChange?: (inProgress: boolean) => void;
   disabled?: boolean;
 };
 
@@ -88,6 +90,7 @@ export function AchievementRoundBadgeEditor({
   onImageUrlChange,
   onIconFileIdChange,
   onStagedUploadCleared,
+  onUploadInProgressChange,
   disabled = false,
 }: AchievementRoundBadgeEditorProps) {
   const uppyInstanceId = useId();
@@ -103,12 +106,17 @@ export function AchievementRoundBadgeEditor({
   const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [uploadInProgress, setUploadInProgress] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const removeTitleId = useId();
   const FallbackIcon = iconMap[icon];
 
   onRemoteCommitRef.current = onRemoteUploadCommit;
+
+  useEffect(() => {
+    onUploadInProgressChange?.(uploadInProgress);
+  }, [onUploadInProgressChange, uploadInProgress]);
 
   useEffect(() => {
     if (!menuOpen) {
@@ -190,6 +198,7 @@ export function AchievementRoundBadgeEditor({
       const newFileId = typeof body?.fileId === "string" ? body.fileId : "";
       if (!url) {
         setError("Upload finished without a URL.");
+        setUploadInProgress(false);
         setBusy(false);
         return;
       }
@@ -217,10 +226,12 @@ export function AchievementRoundBadgeEditor({
       onRemoteCommitRef.current(url, newFileId);
       uppy.cancelAll();
       setMenuOpen(false);
+      setUploadInProgress(false);
       setBusy(false);
     });
 
     uppy.on("upload-error", (_file, err) => {
+      setUploadInProgress(false);
       setBusy(false);
       setError(err?.message ?? "Upload failed.");
     });
@@ -249,6 +260,7 @@ export function AchievementRoundBadgeEditor({
     (file: File) => {
       const uppy = uppyRef.current;
       if (!uppy || disabled) return;
+      setUploadInProgress(true);
       setBusy(true);
       setError(null);
       try {
@@ -259,6 +271,7 @@ export function AchievementRoundBadgeEditor({
           data: file,
         });
       } catch (e) {
+        setUploadInProgress(false);
         setBusy(false);
         setError(e instanceof Error ? e.message : "Could not add file.");
       }

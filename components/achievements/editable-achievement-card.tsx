@@ -2,6 +2,7 @@
 
 import {
   useId,
+  useState,
   type Dispatch,
   type FormEvent,
   type RefObject,
@@ -17,6 +18,7 @@ import {
   achievementDialogIconSideSlot,
   type BadgeIkSession,
   type FormState,
+  hasMeaningfulContent,
 } from "@/components/achievements/achievement-editor-shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +63,9 @@ export function EditableAchievementCard({
 }: EditorCardProps) {
   const formId = useId();
   const showDialogChrome = Boolean(onClosePanel);
+  const [isBadgeUploadInProgress, setIsBadgeUploadInProgress] = useState(false);
+  const isSaveDisabled =
+    isSaving || isBadgeUploadInProgress || !hasMeaningfulContent(form);
 
   function resizeTextarea(target: HTMLTextAreaElement) {
     target.style.height = "0px";
@@ -74,7 +79,13 @@ export function EditableAchievementCard({
   return (
     <form
       id={formId}
-      onSubmit={onSubmit}
+      onSubmit={(e) => {
+        if (isBadgeUploadInProgress) {
+          e.preventDefault();
+          return;
+        }
+        onSubmit(e);
+      }}
       className={cn(
         "relative flex flex-col items-center text-center",
         "pt-0 text-white",
@@ -145,6 +156,7 @@ export function EditableAchievementCard({
             onStagedUploadCleared={() => {
               badgeIkSessionRef.current.lastSessionFileId = null;
             }}
+            onUploadInProgressChange={setIsBadgeUploadInProgress}
             disabled={isSaving}
           />
         </div>
@@ -245,7 +257,7 @@ export function EditableAchievementCard({
             <button
               type="submit"
               aria-label={isSaving ? "Saving" : "Save"}
-              disabled={isSaving}
+              disabled={isSaveDisabled}
               className={cn(
                 achievementDialogIconBtn,
                 "bg-white/10 text-white hover:bg-white/15",
@@ -267,7 +279,7 @@ export function EditableAchievementCard({
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
           <Button
             type="submit"
-            disabled={isSaving}
+            disabled={isSaveDisabled}
             className="bg-white text-background hover:bg-white/90"
           >
             {isSaving ? "Saving..." : "Save"}
