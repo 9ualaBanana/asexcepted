@@ -128,7 +128,8 @@ export function hasMeaningfulContent(form: FormState) {
   return (
     form.title.trim().length > 0 ||
     form.description.trim().length > 0 ||
-    form.category.trim().length > 0
+    form.category.trim().length > 0 ||
+    form.iconUrl.trim().length > 0
   );
 }
 
