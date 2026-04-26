@@ -211,6 +211,9 @@ export function AchievementsManager() {
   const unlockHoldPressedRef = useRef(false);
   const unlockRevealProgressRef = useRef(0);
   const unlockRevealCompleteProgressRef = useRef(1);
+  const unlockRevealResolverRef = useRef<((result: "completed" | "cancelled") => void) | null>(
+    null,
+  );
   const unlockAudioRef = useRef<HTMLAudioElement | null>(null);
   const unlockEaseOutAudioRef = useRef<HTMLAudioElement | null>(null);
   const unlockAudioPreparedRef = useRef<HTMLAudioElement | null>(null);
@@ -355,16 +358,14 @@ export function AchievementsManager() {
     }
     setDetailAchievementId(null);
     setDetailMode("view");
-    if (unlockRevealRafRef.current !== null) {
-      cancelAnimationFrame(unlockRevealRafRef.current);
-      unlockRevealRafRef.current = null;
-    }
+    interruptUnlockReveal();
     stopUnlockSound();
     cancelUnlockHold();
     setUnlockingAchievementId(null);
     setOptimisticUnlockedAchievementId(null);
     setUnlockRevealProgress(0);
     setUnlockWavePhase(0);
+    setIsSaving(false);
   }
 
   const cancelUnlockHold = useCallback(() => {
@@ -382,6 +383,16 @@ export function AchievementsManager() {
     if (!audio) return;
     audio.pause();
     audio.currentTime = 0;
+  }, []);
+
+  const interruptUnlockReveal = useCallback(() => {
+    if (unlockRevealRafRef.current !== null) {
+      cancelAnimationFrame(unlockRevealRafRef.current);
+      unlockRevealRafRef.current = null;
+    }
+    const resolver = unlockRevealResolverRef.current;
+    unlockRevealResolverRef.current = null;
+    resolver?.("cancelled");
   }, []);
 
   function playUnlockTimelineSound(_durationMs: number) {
@@ -445,14 +456,12 @@ export function AchievementsManager() {
       if (unlockHoldTimeoutRef.current !== null) {
         window.clearTimeout(unlockHoldTimeoutRef.current);
       }
-      if (unlockRevealRafRef.current !== null) {
-        cancelAnimationFrame(unlockRevealRafRef.current);
-      }
+      interruptUnlockReveal();
       stopUnlockSound();
       unlockAudioPreparedRef.current = null;
       unlockEaseOutPreparedRef.current = null;
     };
-  }, [stopUnlockSound]);
+  }, [interruptUnlockReveal, stopUnlockSound]);
 
   useEffect(() => {
     if (!isUnlockHolding && !detailIsUnlocking) return;
@@ -628,15 +637,19 @@ export function AchievementsManager() {
       requireHold: boolean,
     ) =>
       new Promise<"completed" | "cancelled">((resolve) => {
+        interruptUnlockReveal();
+        const finish = (result: "completed" | "cancelled") => {
+          if (unlockRevealResolverRef.current === finish) {
+            unlockRevealResolverRef.current = null;
+          }
+          resolve(result);
+        };
+        unlockRevealResolverRef.current = finish;
         const fromProgress = unlockRevealProgressRef.current;
         if (durationMs <= 0 || Math.abs(targetProgress - fromProgress) < 0.0001) {
           setUnlockRevealProgress(targetProgress);
-          resolve(requireHold && !unlockHoldPressedRef.current ? "cancelled" : "completed");
+          finish(requireHold && !unlockHoldPressedRef.current ? "cancelled" : "completed");
           return;
-        }
-        if (unlockRevealRafRef.current !== null) {
-          cancelAnimationFrame(unlockRevealRafRef.current);
-          unlockRevealRafRef.current = null;
         }
         let startTs: number | null = null;
         const tick = (ts: number) => {
@@ -654,13 +667,13 @@ export function AchievementsManager() {
 
           if (requireHold && !unlockHoldPressedRef.current) {
             unlockRevealRafRef.current = null;
-            resolve("cancelled");
+            finish("cancelled");
             return;
           }
 
           if (nextProgress >= 1 || t >= 1) {
             unlockRevealRafRef.current = null;
-            resolve("completed");
+            finish("completed");
             return;
           }
           unlockRevealRafRef.current = requestAnimationFrame(tick);
