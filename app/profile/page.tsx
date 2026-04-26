@@ -7,11 +7,11 @@ import { hasEnvVars } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
 import { Suspense } from "react";
 
-export default async function ProfilePage() {
+async function ProfilePageInner() {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) {
-    redirect("/auth/login?next=/profile");
+    return redirect("/auth/login?next=/profile");
   }
 
   return (
@@ -50,5 +50,19 @@ export default async function ProfilePage() {
         <LogoutButton />
       </footer>
     </main>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="relative min-h-[100dvh] flex flex-col items-center justify-center overflow-x-hidden">
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        </main>
+      }
+    >
+      <ProfilePageInner />
+    </Suspense>
   );
 }

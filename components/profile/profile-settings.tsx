@@ -16,7 +16,7 @@ function displayNameFromMetadata(meta: Record<string, unknown> | null | undefine
 }
 
 /**
- * Profile fields backed by Supabase Auth only (no public.profiles table).
+ * Profile fields backed by Supabase Auth user_metadata (display name, etc.).
  * Editable: user_metadata display name (also syncs full_name + name for dashboard compatibility).
  */
 export function ProfileSettings() {

@@ -187,7 +187,12 @@ function sortAchievements(rows: AchievementRecord[]) {
   });
 }
 
-export function AchievementsManager() {
+export type AchievementsManagerProps = {
+  /** Supabase Auth user id (`auth.users.id`); scopes achievements rows. */
+  ownerUserId: string;
+};
+
+export function AchievementsManager({ ownerUserId }: AchievementsManagerProps) {
   const supabase = useMemo(() => createClient(), []);
   const [achievements, setAchievements] = useState<AchievementRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -323,7 +328,7 @@ export function AchievementsManager() {
 
   useEffect(() => {
     void loadAchievements();
-  }, []);
+  }, [ownerUserId]);
 
   useEffect(() => {
     if (
@@ -552,6 +557,7 @@ export function AchievementsManager() {
     const { data, error } = await supabase
       .from("achievements")
       .select(SELECT_COLUMNS)
+      .eq("user_id", ownerUserId)
       .order("achieved_at", { ascending: false })
       .order("created_at", { ascending: false });
 

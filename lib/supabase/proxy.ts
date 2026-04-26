@@ -51,6 +51,7 @@ export async function updateSession(request: NextRequest) {
   if (
     !user &&
     (pathname.startsWith("/protected") ||
+      pathname.startsWith("/u/") ||
       pathname.startsWith("/achievements") ||
       pathname.startsWith("/profile"))
   ) {
