@@ -122,6 +122,40 @@ function getAlphaMaskStyle(src: string): CSSProperties {
   };
 }
 
+function hashSeed(seed: string) {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i += 1) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function makeBadgeMotionStyle(seed: string): CSSProperties {
+  const h = hashSeed(seed);
+  const pick = (offset: number) => ((h >>> offset) & 255) / 255;
+  const floatDuration = 5.2 + pick(0) * 1.9;
+  const shadowDuration = floatDuration * (0.97 + pick(8) * 0.06);
+  const delay = -(pick(16) * floatDuration);
+  const dx = 0.38 + pick(12) * 0.65;
+  const dx2 = 0.14 + pick(6) * 0.25;
+  const up = 1.55 + pick(20) * 1.35;
+  const up2 = 0.26 + pick(10) * 0.44;
+  const rot = 0.16 + pick(24) * 0.22;
+
+  return {
+    ["--badge-float-duration" as string]: `${floatDuration.toFixed(2)}s`,
+    ["--badge-shadow-duration" as string]: `${shadowDuration.toFixed(2)}s`,
+    ["--badge-float-delay" as string]: `${delay.toFixed(2)}s`,
+    ["--badge-shadow-delay" as string]: `${(delay * 0.82).toFixed(2)}s`,
+    ["--badge-float-dx" as string]: `${dx.toFixed(2)}px`,
+    ["--badge-float-up" as string]: `${up.toFixed(2)}px`,
+    ["--badge-float-dx2" as string]: `${dx2.toFixed(2)}px`,
+    ["--badge-float-up2" as string]: `${up2.toFixed(2)}px`,
+    ["--badge-float-rot" as string]: `${rot.toFixed(2)}deg`,
+  };
+}
+
 function normalizeAchievement(row: Record<string, unknown>): AchievementRecord {
   return {
     id: String(row.id),
@@ -262,10 +296,15 @@ export function AchievementsManager({
   const detailIsLockedUi =
     Boolean(detailAchievement?.is_locked) &&
     optimisticUnlockedAchievementId !== detailAchievement?.id;
+  const detailFloating = !detailIsLockedUi && !detailIsUnlocking;
   const detailMaskStyle = useMemo(() => {
     const src = detailAchievement?.icon_url?.trim() ?? "";
     return src ? getAlphaMaskStyle(src) : null;
   }, [detailAchievement?.icon_url]);
+  const detailMotionStyle = useMemo(
+    () => makeBadgeMotionStyle(detailAchievement?.id ?? "detail-default"),
+    [detailAchievement?.id],
+  );
   const unlockRevealClipPath = useMemo(
     () => buildUnlockRevealClipPath(unlockRevealProgress, unlockWavePhase),
     [unlockRevealProgress, unlockWavePhase],
@@ -1074,10 +1113,35 @@ export function AchievementsManager({
                       ) : null}
                       {detailAchievement.icon_url?.trim() ? (
                         <>
-                          <RemoteBadgeImage
-                            src={detailAchievement.icon_url.trim()}
-                            className="p-1 drop-shadow-lg h-full w-full object-contain"
-                          />
+                          <div
+                            className={cn(
+                              "relative h-full w-full",
+                            )}
+                          >
+                            {detailFloating ? (
+                              <div
+                                aria-hidden
+                                className="achievement-badge-float-room achievement-badge-silhouette-shadow"
+                                style={{
+                                  ...(detailMaskStyle ?? {}),
+                                  ...detailMotionStyle,
+                                }}
+                              />
+                            ) : null}
+                            <div
+                              className={cn(
+                                "relative h-full w-full",
+                                detailFloating && "achievement-badge-float-room",
+                                detailFloating && "achievement-badge-object-float",
+                              )}
+                              style={detailFloating ? detailMotionStyle : undefined}
+                            >
+                              <RemoteBadgeImage
+                                src={detailAchievement.icon_url.trim()}
+                                className="p-1 drop-shadow-lg h-full w-full object-contain"
+                              />
+                            </div>
+                          </div>
                           {detailIsLockedUi ? (
                             <div className="absolute inset-0">
                               <RemoteBadgeImage

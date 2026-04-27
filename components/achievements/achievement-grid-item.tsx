@@ -6,6 +6,21 @@ import type { AchievementTone } from "@/components/achievements/achievement-card
 import { RemoteBadgeImage } from "@/components/achievements/achievement-remote-badge-image";
 import { cn } from "@/lib/utils";
 
+function getAlphaMaskStyle(src: string) {
+  const safeSrc = src.replace(/"/g, '\\"');
+  const maskUrl = `url("${safeSrc}")`;
+  return {
+    WebkitMaskImage: maskUrl,
+    maskImage: maskUrl,
+    WebkitMaskRepeat: "no-repeat" as const,
+    maskRepeat: "no-repeat" as const,
+    WebkitMaskPosition: "center" as const,
+    maskPosition: "center" as const,
+    WebkitMaskSize: "contain" as const,
+    maskSize: "contain" as const,
+  };
+}
+
 type AchievementGridItemProps = {
   title: string | null;
   dateLabel: string | null;
@@ -27,6 +42,8 @@ export function AchievementGridItem({
   onClick,
 }: AchievementGridItemProps) {
   const displayTitle = title?.trim() || (isLocked ? "Locked" : "Untitled");
+  const cleanIconUrl = iconUrl?.trim() ?? "";
+  const silhouetteMaskStyle = cleanIconUrl ? getAlphaMaskStyle(cleanIconUrl) : null;
 
   return (
     <button
@@ -39,16 +56,37 @@ export function AchievementGridItem({
       )}
     >
       <AchievementBadgeSlot size="grid">
-        {iconUrl?.trim() ? (
-          <RemoteBadgeImage src={iconUrl.trim()} />
-        ) : (
-          <AchievementFallbackBadge
-            tone={tone}
-            isLocked={isLocked}
-            FallbackIcon={FallbackIcon}
-            size="grid"
-          />
-        )}
+        <div
+          className={cn(
+            "relative h-full w-full",
+          )}
+        >
+          {cleanIconUrl ? (
+            <>
+              {!isLocked && silhouetteMaskStyle ? (
+                <div
+                  aria-hidden
+                  className="achievement-badge-silhouette-shadow"
+                  style={silhouetteMaskStyle}
+                />
+              ) : null}
+              <div
+                className={cn(
+                  "relative h-full w-full",
+                )}
+              >
+                <RemoteBadgeImage src={cleanIconUrl} />
+              </div>
+            </>
+          ) : (
+            <AchievementFallbackBadge
+              tone={tone}
+              isLocked={isLocked}
+              FallbackIcon={FallbackIcon}
+              size="grid"
+            />
+          )}
+        </div>
       </AchievementBadgeSlot>
       <p
         className={cn(

@@ -80,3 +80,91 @@
   user-select: none;
 }
 
+@property --badge-phase {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes badge-phase-spin {
+  from {
+    --badge-phase: 0deg;
+  }
+  to {
+    --badge-phase: 360deg;
+  }
+}
+
+@keyframes badge-shadow-breathe {
+  0% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.22;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
+
+/* Unlocked remote badges: depth and light follow the true opaque silhouette mask. */
+.achievement-badge-object-float {
+  animation: badge-phase-spin var(--badge-float-duration, 4.6s) linear
+    var(--badge-float-delay, 0s) infinite;
+  transform-origin: center;
+  will-change: transform;
+  transform: translate3d(
+      calc(
+        sin(var(--badge-phase)) * var(--badge-float-dx, 1px) +
+          sin(calc(var(--badge-phase) * 2)) * var(--badge-float-dx2, 0.35px)
+      ),
+      calc(
+        cos(var(--badge-phase)) * var(--badge-float-up, 2px) * -1 +
+          sin(calc(var(--badge-phase) * 3)) * var(--badge-float-up2, 0.55px)
+      ),
+      0
+    )
+    rotate(
+      calc(
+        sin(calc(var(--badge-phase) * 2)) * var(--badge-float-rot, 0.3deg)
+      )
+    );
+}
+
+/* Slightly larger stage so the badge can "breathe" while floating. */
+.achievement-badge-float-room {
+  position: absolute;
+  inset: -4px;
+}
+
+.achievement-badge-silhouette-shadow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse at 50% 58%,
+      rgba(0, 0, 0, 0.5) 0%,
+      rgba(0, 0, 0, 0.34) 36%,
+      rgba(0, 0, 0, 0.18) 60%,
+      rgba(0, 0, 0, 0) 82%
+    ),
+    radial-gradient(
+      ellipse at 34% 54%,
+      rgba(0, 0, 0, 0.2) 0%,
+      rgba(0, 0, 0, 0) 64%
+    ),
+    radial-gradient(
+      ellipse at 68% 55%,
+      rgba(0, 0, 0, 0.18) 0%,
+      rgba(0, 0, 0, 0) 62%
+    );
+  opacity: 0.34;
+  transform: translateY(2.2px) scale(1.0, 1.06);
+  transform-origin: 50% 50%;
+  filter: blur(4.4px);
+  mix-blend-mode: multiply;
+  animation: badge-shadow-breathe var(--badge-shadow-duration, 4.6s) ease-in-out
+    var(--badge-shadow-delay, 0s) infinite;
+}
+
