@@ -247,7 +247,6 @@ export function AchievementsManager({
   const [unlockingAchievementId, setUnlockingAchievementId] = useState<string | null>(null);
   const [optimisticUnlockedAchievementId, setOptimisticUnlockedAchievementId] = useState<string | null>(null);
   const [unlockRevealProgress, setUnlockRevealProgress] = useState(0);
-  const [unlockWavePhase, setUnlockWavePhase] = useState(0);
 
   const createBadgeIkSessionRef = useRef<BadgeIkSession>(createEmptyBadgeIkSession());
   const panelBadgeIkSessionRef = useRef<BadgeIkSession>(createEmptyBadgeIkSession());
@@ -306,8 +305,8 @@ export function AchievementsManager({
     [detailAchievement?.id],
   );
   const unlockRevealClipPath = useMemo(
-    () => buildUnlockRevealClipPath(unlockRevealProgress, unlockWavePhase),
-    [unlockRevealProgress, unlockWavePhase],
+    () => buildUnlockRevealClipPath(unlockRevealProgress, unlockRevealProgress * Math.PI * 3.6),
+    [unlockRevealProgress],
   );
 
   useEffect(() => {
@@ -416,7 +415,6 @@ export function AchievementsManager({
     setUnlockingAchievementId(null);
     setOptimisticUnlockedAchievementId(null);
     setUnlockRevealProgress(0);
-    setUnlockWavePhase(0);
     setIsSaving(false);
   }
 
@@ -788,7 +786,6 @@ export function AchievementsManager({
               ? Math.min(1, linearProgress / completionScale)
               : linearProgress;
           setUnlockRevealProgress(nextProgress);
-          setUnlockWavePhase((prev) => prev + 0.035);
 
           if (requireHold && !unlockHoldPressedRef.current) {
             unlockRevealRafRef.current = null;
@@ -808,7 +805,6 @@ export function AchievementsManager({
 
     setUnlockingAchievementId(detailAchievement.id);
     setUnlockRevealProgress(0);
-    setUnlockWavePhase(0);
     setIsSaving(true);
     setError(null);
     const forwardResult = await animateReveal(1, UNLOCK_REVEAL_DURATION_MS, true);
@@ -822,7 +818,6 @@ export function AchievementsManager({
       setIsSaving(false);
       setUnlockingAchievementId(null);
       setUnlockRevealProgress(0);
-      setUnlockWavePhase(0);
       return;
     }
 
@@ -839,7 +834,6 @@ export function AchievementsManager({
     setOptimisticUnlockedAchievementId(targetId);
     setUnlockingAchievementId(null);
     setUnlockRevealProgress(0);
-    setUnlockWavePhase(0);
     stopUnlockSound();
     playUnlockEaseOutSound();
     // UI should be instantly interactive once reveal is complete.
