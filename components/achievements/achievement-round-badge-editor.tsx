@@ -435,7 +435,6 @@ export function AchievementRoundBadgeEditor({
           </button>
         </div>
       </AchievementBadgeSlot>
-
       {menuOpen && !removeConfirmOpen ? (
         <div
           className="mt-2 flex max-w-[min(100%,22rem)] flex-wrap items-center justify-center gap-2 sm:gap-2.5"

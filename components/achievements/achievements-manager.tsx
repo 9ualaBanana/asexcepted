@@ -21,6 +21,7 @@ import { AchievementBadgeSlot } from "@/components/achievements/achievement-badg
 import { AchievementFallbackBadge } from "@/components/achievements/achievement-fallback-badge";
 import { AchievementGridItem } from "@/components/achievements/achievement-grid-item";
 import { AchievementGridLoadingSkeleton } from "@/components/achievements/achievement-grid-skeleton";
+import { AchievementBadge3DViewer } from "@/components/achievements/achievement-badge-3d-viewer";
 import { RemoteBadgeImage } from "@/components/achievements/achievement-remote-badge-image";
 import {
   buildUnlockRevealClipPath,
@@ -1033,16 +1034,6 @@ export function AchievementsManager({
                               "relative h-full w-full",
                             )}
                           >
-                            {detailFloating ? (
-                              <div
-                                aria-hidden
-                                className="achievement-badge-silhouette-shadow"
-                                style={{
-                                  ...(detailMaskStyle ?? {}),
-                                  ...detailMotionStyle,
-                                }}
-                              />
-                            ) : null}
                             <div
                               className={cn(
                                 "relative h-full w-full",
@@ -1050,9 +1041,10 @@ export function AchievementsManager({
                               )}
                               style={detailFloating ? detailMotionStyle : undefined}
                             >
-                              <RemoteBadgeImage
+                              <AchievementBadge3DViewer
                                 src={detailAchievement.icon_url.trim()}
-                                className="p-1 drop-shadow-lg h-full w-full object-contain"
+                                className="p-1"
+                                interactive
                               />
                             </div>
                           </div>
