@@ -23,6 +23,16 @@ import { AchievementGridItem } from "@/components/achievements/achievement-grid-
 import { AchievementGridLoadingSkeleton } from "@/components/achievements/achievement-grid-skeleton";
 import { RemoteBadgeImage } from "@/components/achievements/achievement-remote-badge-image";
 import {
+  buildUnlockRevealClipPath,
+  buildUnlockRevealClipPathLut,
+  estimateUnlockRevealCompletionProgress,
+  getAlphaMaskStyle,
+  isOpaqueBadgeHit,
+  loadAlphaMaskDataFromImage,
+  type AlphaMaskData,
+  unlockRevealLutSteps,
+} from "@/components/achievements/badge-shape-utils";
+import {
   type AchievementIconKey,
   achievementBadgeChromeWidth,
   achievementDialogChromeInset,
@@ -79,62 +89,11 @@ const SELECT_COLUMNS =
   "id,title,description,category,icon,icon_url,icon_file_id,tone,is_locked,achieved_at,created_at";
 const UNLOCK_HOLD_DURATION_MS = 500;
 const UNLOCK_REVEAL_DURATION_MS = 5000;
-const UNLOCK_REVEAL_LUT_STEPS = 220;
+const UNLOCK_REVEAL_LUT_STEPS = unlockRevealLutSteps();
 const AUDIO_ASSET_VERSION = process.env.NEXT_PUBLIC_BUILD_ID?.trim() || "dev";
 const UNLOCK_PEEL_AUDIO_SRC = `/audio/unlock-peel.wav?v=${AUDIO_ASSET_VERSION}`;
 const UNLOCK_EASE_OUT_AUDIO_SRC = `/audio/unlock-ease-out.wav?v=${AUDIO_ASSET_VERSION}`;
 const SAVE_POP_AUDIO_SRC = `/audio/pop.mp3?v=${AUDIO_ASSET_VERSION}`;
-
-function buildUnlockRevealClipPath(progress: number, phase: number) {
-  const p = Math.max(0, Math.min(1, progress));
-  if (p <= 0) return "circle(0% at 50% 50%)";
-  if (p >= 1) return "circle(120% at 50% 50%)";
-  if (p < 0.035) {
-    const earlyRadius = (p / 0.035) * 6;
-    return `circle(${earlyRadius.toFixed(2)}% at 50% 50%)`;
-  }
-
-  const points: string[] = [];
-  const segments = 72;
-  const baseRadius = p * 72;
-  const amplitude = Math.max(0.7, 3.4 * (1 - p) + 0.7);
-
-  for (let i = 0; i < segments; i += 1) {
-    const theta = (i / segments) * Math.PI * 2;
-    const waveA = Math.sin(theta * 5 + phase) * amplitude;
-    const waveB = Math.sin(theta * 9 - phase * 1.2) * amplitude * 0.45;
-    const radius = Math.max(0, Math.min(84, baseRadius + waveA + waveB));
-    const x = 50 + Math.cos(theta) * radius;
-    const y = 50 + Math.sin(theta) * radius;
-    points.push(`${x.toFixed(2)}% ${y.toFixed(2)}%`);
-  }
-
-  return `polygon(${points.join(",")})`;
-}
-
-function buildUnlockRevealClipPathLut() {
-  const lut: string[] = [];
-  for (let i = 0; i <= UNLOCK_REVEAL_LUT_STEPS; i += 1) {
-    const p = i / UNLOCK_REVEAL_LUT_STEPS;
-    lut.push(buildUnlockRevealClipPath(p, p * Math.PI * 3.6));
-  }
-  return lut;
-}
-
-function getAlphaMaskStyle(src: string): CSSProperties {
-  const safeSrc = src.replace(/"/g, '\\"');
-  const maskUrl = `url("${safeSrc}")`;
-  return {
-    WebkitMaskImage: maskUrl,
-    maskImage: maskUrl,
-    WebkitMaskRepeat: "no-repeat",
-    maskRepeat: "no-repeat",
-    WebkitMaskPosition: "center",
-    maskPosition: "center",
-    WebkitMaskSize: "contain",
-    maskSize: "contain",
-  };
-}
 
 function hashSeed(seed: string) {
   let h = 2166136261;
@@ -278,11 +237,7 @@ export function AchievementsManager({
   const unlockEaseOutBufferRef = useRef<AudioBuffer | null>(null);
   const unlockEaseOutSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const savePopPreparedRef = useRef<HTMLAudioElement | null>(null);
-  const unlockAlphaMaskRef = useRef<{
-    data: Uint8ClampedArray;
-    width: number;
-    height: number;
-  } | null>(null);
+  const unlockAlphaMaskRef = useRef<AlphaMaskData | null>(null);
 
   function rollbackBadgeSession(ref: RefObject<BadgeIkSession>) {
     const r = ref.current;
@@ -354,49 +309,13 @@ export function AchievementsManager({
     if (!src) return;
 
     let cancelled = false;
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
+    void loadAlphaMaskDataFromImage(src).then((maskData) => {
       if (cancelled) return;
-      const w = Math.max(1, img.naturalWidth || img.width || 1);
-      const h = Math.max(1, img.naturalHeight || img.height || 1);
-      const canvas = document.createElement("canvas");
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext("2d", { willReadFrequently: true });
-      if (!ctx) return;
-      ctx.drawImage(img, 0, 0, w, h);
-      try {
-        const imageData = ctx.getImageData(0, 0, w, h);
-        unlockAlphaMaskRef.current = { data: imageData.data, width: w, height: h };
-        let maxDist = 0;
-        for (let y = 0; y < h; y += 1) {
-          for (let x = 0; x < w; x += 1) {
-            const alpha = imageData.data[(y * w + x) * 4 + 3];
-            if (alpha <= 10) continue;
-            const nx = (x + 0.5) / w - 0.5;
-            const ny = (y + 0.5) / h - 0.5;
-            const dist = Math.sqrt(nx * nx + ny * ny);
-            if (dist > maxDist) maxDist = dist;
-          }
-        }
-        // Match reveal completion to the opaque silhouette extent.
-        const maxRadiusPct = maxDist * 100;
-        const estimatedProgress = maxRadiusPct / 72;
-        unlockRevealCompleteProgressRef.current = Math.max(
-          0.58,
-          Math.min(1, estimatedProgress + 0.02),
-        );
-      } catch {
-        unlockAlphaMaskRef.current = null;
-        unlockRevealCompleteProgressRef.current = 1;
-      }
-    };
-    img.onerror = () => {
-      unlockAlphaMaskRef.current = null;
-      unlockRevealCompleteProgressRef.current = 1;
-    };
-    img.src = src;
+      unlockAlphaMaskRef.current = maskData;
+      unlockRevealCompleteProgressRef.current = maskData
+        ? estimateUnlockRevealCompletionProgress(maskData)
+        : 1;
+    });
 
     return () => {
       cancelled = true;
@@ -922,45 +841,6 @@ export function AchievementsManager({
     }, UNLOCK_HOLD_DURATION_MS);
   }
 
-  function isOpaqueBadgeHit(clientX: number, clientY: number, rect: DOMRect) {
-    const mask = unlockAlphaMaskRef.current;
-    if (!mask) return true;
-
-    const localX = clientX - rect.left;
-    const localY = clientY - rect.top;
-    if (localX < 0 || localY < 0 || localX > rect.width || localY > rect.height) return false;
-
-    // Matches `p-1` applied to rendered badge art.
-    const pad = 4;
-    const innerW = Math.max(1, rect.width - pad * 2);
-    const innerH = Math.max(1, rect.height - pad * 2);
-    const scale = Math.min(innerW / mask.width, innerH / mask.height);
-    const drawW = mask.width * scale;
-    const drawH = mask.height * scale;
-    const drawX = pad + (innerW - drawW) / 2;
-    const drawY = pad + (innerH - drawH) / 2;
-
-    if (
-      localX < drawX ||
-      localY < drawY ||
-      localX > drawX + drawW ||
-      localY > drawY + drawH
-    ) {
-      return false;
-    }
-
-    const srcX = Math.max(
-      0,
-      Math.min(mask.width - 1, Math.floor(((localX - drawX) / drawW) * mask.width)),
-    );
-    const srcY = Math.max(
-      0,
-      Math.min(mask.height - 1, Math.floor(((localY - drawY) / drawH) * mask.height)),
-    );
-    const alpha = mask.data[(srcY * mask.width + srcX) * 4 + 3];
-    return alpha > 10;
-  }
-
   return (
     <div className="space-y-6">
       {error ? <p className="text-sm text-red-500">{error}</p> : null}
@@ -1128,7 +1008,14 @@ export function AchievementsManager({
                           )}
                           style={detailMaskStyle ?? undefined}
                           onPointerDown={(e) => {
-                            if (!isOpaqueBadgeHit(e.clientX, e.clientY, e.currentTarget.getBoundingClientRect())) {
+                            if (
+                              !isOpaqueBadgeHit(
+                                e.clientX,
+                                e.clientY,
+                                e.currentTarget.getBoundingClientRect(),
+                                unlockAlphaMaskRef.current,
+                              )
+                            ) {
                               return;
                             }
                             startUnlockHold();
