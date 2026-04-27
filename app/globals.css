@@ -119,7 +119,7 @@
           sin(calc(var(--badge-phase) * 2)) * var(--badge-float-dx2, 0.35px)
       ),
       calc(
-        cos(var(--badge-phase)) * var(--badge-float-up, 2px) * -1 +
+        sin(var(--badge-phase)) * var(--badge-float-up, 2px) * -1 +
           sin(calc(var(--badge-phase) * 3)) * var(--badge-float-up2, 0.55px)
       ),
       0

@@ -145,12 +145,12 @@ function hashSeed(seed: string) {
   return h >>> 0;
 }
 
-function makeBadgeMotionStyle(seed: string): CSSProperties {
+function makeBadgeMotionStyle(seed: string, startCentered = false): CSSProperties {
   const h = hashSeed(seed);
   const pick = (offset: number) => ((h >>> offset) & 255) / 255;
   const floatDuration = 5.2 + pick(0) * 1.9;
   const shadowDuration = floatDuration * (0.97 + pick(8) * 0.06);
-  const delay = -(pick(16) * floatDuration);
+  const delay = startCentered ? 0 : -(pick(16) * floatDuration);
   const dx = 0.38 + pick(12) * 0.65;
   const dx2 = 0.14 + pick(6) * 0.25;
   const up = 1.55 + pick(20) * 1.35;
@@ -315,8 +315,12 @@ export function AchievementsManager({
     return src ? getAlphaMaskStyle(src) : null;
   }, [detailAchievement?.icon_url]);
   const detailMotionStyle = useMemo(
-    () => makeBadgeMotionStyle(detailAchievement?.id ?? "detail-default"),
-    [detailAchievement?.id],
+    () =>
+      makeBadgeMotionStyle(
+        detailAchievement?.id ?? "detail-default",
+        optimisticUnlockedAchievementId === detailAchievement?.id,
+      ),
+    [detailAchievement?.id, optimisticUnlockedAchievementId],
   );
   const unlockRevealClipPathLut = useMemo(
     () => (detailAchievement ? buildUnlockRevealClipPathLut() : null),
@@ -1145,7 +1149,7 @@ export function AchievementsManager({
                             {detailFloating ? (
                               <div
                                 aria-hidden
-                                className="achievement-badge-float-room achievement-badge-silhouette-shadow"
+                                className="achievement-badge-silhouette-shadow"
                                 style={{
                                   ...(detailMaskStyle ?? {}),
                                   ...detailMotionStyle,
@@ -1155,7 +1159,6 @@ export function AchievementsManager({
                             <div
                               className={cn(
                                 "relative h-full w-full",
-                                detailFloating && "achievement-badge-float-room",
                                 detailFloating && "achievement-badge-object-float",
                               )}
                               style={detailFloating ? detailMotionStyle : undefined}
