@@ -5,7 +5,7 @@
  * - IMAGEKIT_PUBLIC_KEY   — Dashboard → Developer options → Public API key
  * - IMAGEKIT_PRIVATE_KEY  — same, Private API key (never expose to client except via this route’s response pairing w/ signature)
  * - IMAGEKIT_URL_ENDPOINT — e.g. https://ik.imagekit.io/your_imagekit_id
- * - IMAGEKIT_UPLOAD_FOLDER — optional, default "achievements" (folder path in media library)
+ * - IMAGEKIT_UPLOAD_BASE_FOLDER — optional, default "achievements" (folder path prefix in media library)
  *
  * Database (Supabase): store ImageKit `fileId` from upload responses in column
  *   icon_file_id text null
@@ -30,8 +30,12 @@ export async function POST() {
   const publicKey = process.env.IMAGEKIT_PUBLIC_KEY?.trim() ?? "";
   const privateKey = process.env.IMAGEKIT_PRIVATE_KEY?.trim() ?? "";
   const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT?.trim() ?? "";
-  const folder =
-    process.env.IMAGEKIT_UPLOAD_FOLDER?.trim() || "achievements";
+  const uploadBaseFolderRaw =
+    process.env.IMAGEKIT_UPLOAD_BASE_FOLDER?.trim() || "achievements";
+  const uploadBaseFolder = uploadBaseFolderRaw.replace(/^\/+|\/+$/g, "");
+  const folder = uploadBaseFolder
+    ? `${uploadBaseFolder}/${user.id}`
+    : user.id;
 
   if (!publicKey || !privateKey || !urlEndpoint) {
     return NextResponse.json(
