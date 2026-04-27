@@ -89,10 +89,14 @@ function buildUnlockRevealClipPath(progress: number, phase: number) {
   const p = Math.max(0, Math.min(1, progress));
   if (p <= 0) return "circle(0% at 50% 50%)";
   if (p >= 1) return "circle(120% at 50% 50%)";
+  if (p < 0.035) {
+    const earlyRadius = (p / 0.035) * 6;
+    return `circle(${earlyRadius.toFixed(2)}% at 50% 50%)`;
+  }
 
   const points: string[] = [];
   const segments = 72;
-  const baseRadius = 5 + p * 72;
+  const baseRadius = p * 72;
   const amplitude = Math.max(0.7, 3.4 * (1 - p) + 0.7);
 
   for (let i = 0; i < segments; i += 1) {
@@ -374,7 +378,7 @@ export function AchievementsManager({
         }
         // Match reveal completion to the opaque silhouette extent.
         const maxRadiusPct = maxDist * 100;
-        const estimatedProgress = (maxRadiusPct - 5) / 72;
+        const estimatedProgress = maxRadiusPct / 72;
         unlockRevealCompleteProgressRef.current = Math.max(
           0.58,
           Math.min(1, estimatedProgress + 0.02),
