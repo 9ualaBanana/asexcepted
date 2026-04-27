@@ -79,6 +79,7 @@ const SELECT_COLUMNS =
   "id,title,description,category,icon,icon_url,icon_file_id,tone,is_locked,achieved_at,created_at";
 const UNLOCK_HOLD_DURATION_MS = 500;
 const UNLOCK_REVEAL_DURATION_MS = 5000;
+const UNLOCK_REVEAL_LUT_STEPS = 220;
 const AUDIO_ASSET_VERSION = process.env.NEXT_PUBLIC_BUILD_ID?.trim() || "dev";
 const UNLOCK_PEEL_AUDIO_SRC = `/audio/unlock-peel.wav?v=${AUDIO_ASSET_VERSION}`;
 const UNLOCK_EASE_OUT_AUDIO_SRC = `/audio/unlock-ease-out.wav?v=${AUDIO_ASSET_VERSION}`;
@@ -105,6 +106,15 @@ function buildUnlockRevealClipPath(progress: number, phase: number) {
   }
 
   return `polygon(${points.join(",")})`;
+}
+
+function buildUnlockRevealClipPathLut() {
+  const lut: string[] = [];
+  for (let i = 0; i <= UNLOCK_REVEAL_LUT_STEPS; i += 1) {
+    const p = i / UNLOCK_REVEAL_LUT_STEPS;
+    lut.push(buildUnlockRevealClipPath(p, p * Math.PI * 3.6));
+  }
+  return lut;
 }
 
 function getAlphaMaskStyle(src: string): CSSProperties {
@@ -304,10 +314,26 @@ export function AchievementsManager({
     () => makeBadgeMotionStyle(detailAchievement?.id ?? "detail-default"),
     [detailAchievement?.id],
   );
-  const unlockRevealClipPath = useMemo(
-    () => buildUnlockRevealClipPath(unlockRevealProgress, unlockRevealProgress * Math.PI * 3.6),
-    [unlockRevealProgress],
+  const unlockRevealClipPathLut = useMemo(
+    () => (detailAchievement ? buildUnlockRevealClipPathLut() : null),
+    [detailAchievement?.id, detailIsLockedUi],
   );
+  const unlockRevealClipPath = useMemo(() => {
+    if (!unlockRevealClipPathLut || unlockRevealClipPathLut.length === 0) {
+      return buildUnlockRevealClipPath(
+        unlockRevealProgress,
+        unlockRevealProgress * Math.PI * 3.6,
+      );
+    }
+    const idx = Math.max(
+      0,
+      Math.min(
+        UNLOCK_REVEAL_LUT_STEPS,
+        Math.round(unlockRevealProgress * UNLOCK_REVEAL_LUT_STEPS),
+      ),
+    );
+    return unlockRevealClipPathLut[idx];
+  }, [unlockRevealProgress, unlockRevealClipPathLut]);
 
   useEffect(() => {
     unlockRevealProgressRef.current = unlockRevealProgress;
