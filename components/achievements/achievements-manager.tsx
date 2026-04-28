@@ -95,6 +95,31 @@ const UNLOCK_PEEL_AUDIO_SRC = `/audio/unlock-peel.wav?v=${AUDIO_ASSET_VERSION}`;
 const UNLOCK_EASE_OUT_AUDIO_SRC = `/audio/unlock-ease-out.wav?v=${AUDIO_ASSET_VERSION}`;
 const SAVE_POP_AUDIO_SRC = `/audio/pop.mp3?v=${AUDIO_ASSET_VERSION}`;
 
+async function copyTextToClipboard(text: string): Promise<boolean> {
+  try {
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // Fallback below handles browsers/contexts that block Clipboard API (common on iOS).
+  }
+
+  if (typeof document === "undefined") return false;
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "true");
+  textarea.style.position = "fixed";
+  textarea.style.top = "-1000px";
+  textarea.style.left = "-1000px";
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+  const copied = document.execCommand("copy");
+  textarea.remove();
+  return copied;
+}
+
 function normalizeAchievement(row: Record<string, unknown>): AchievementRecord {
   return {
     id: String(row.id),
@@ -239,11 +264,23 @@ export function AchievementsManager({
       const data = (await res.json()) as { embedUrl?: string; error?: string };
       if (!res.ok) throw new Error(data.error ?? "Could not create embed link.");
       if (!data.embedUrl) throw new Error("Missing embed URL.");
-      await navigator.clipboard.writeText(data.embedUrl);
+      const copied = await copyTextToClipboard(data.embedUrl);
+      if (!copied) {
+        throw new Error(
+          "Could not copy automatically on this device. Please long-press and copy the link manually.",
+        );
+      }
       setEmbedCopyHint("Embed link copied.");
       window.setTimeout(() => setEmbedCopyHint(null), 2500);
     } catch (e) {
-      setEmbedCopyHint(e instanceof Error ? e.message : "Could not copy link.");
+      const msg = e instanceof Error ? e.message : "Could not copy link.";
+      if (/not allowed|denied permission|permission/i.test(msg)) {
+        setEmbedCopyHint(
+          "Clipboard permission was blocked. Please allow paste/clipboard access and try again.",
+        );
+      } else {
+        setEmbedCopyHint(msg);
+      }
     } finally {
       setEmbedCopyBusy(false);
     }
