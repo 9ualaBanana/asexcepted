@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +16,8 @@ export function AccountMenu({ label }: AccountMenuProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const panelId = useId().replace(/:/g, "");
+  const router = useRouter();
+  const pathname = usePathname();
 
   const close = useCallback(() => setOpen(false), []);
 
@@ -77,7 +80,20 @@ export function AccountMenu({ label }: AccountMenuProps) {
         id={`${panelId}-trigger`}
         aria-expanded={open}
         aria-controls={panelId}
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          if (!open) {
+            setOpen(true);
+            return;
+          }
+          setOpen(false);
+          if (pathname === "/achievements") {
+            if (typeof window !== "undefined") {
+              window.location.assign("/achievements");
+            }
+            return;
+          }
+          router.push("/achievements");
+        }}
         className={cn(
           linkClass,
           "max-w-[min(100%,14rem)] shrink-0 truncate bg-transparent p-0 shadow-none border-0 outline-none cursor-pointer",
