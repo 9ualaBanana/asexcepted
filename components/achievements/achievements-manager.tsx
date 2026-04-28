@@ -209,6 +209,7 @@ export function AchievementsManager({
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [embedCopyBusy, setEmbedCopyBusy] = useState(false);
   const [embedCopyHint, setEmbedCopyHint] = useState<string | null>(null);
+  const [manualEmbedUrl, setManualEmbedUrl] = useState<string | null>(null);
   const [isUnlockHolding, setIsUnlockHolding] = useState(false);
   const [unlockingAchievementId, setUnlockingAchievementId] = useState<string | null>(null);
   const [optimisticUnlockedAchievementId, setOptimisticUnlockedAchievementId] = useState<string | null>(null);
@@ -249,6 +250,7 @@ export function AchievementsManager({
 
   useEffect(() => {
     setEmbedCopyHint(null);
+    setManualEmbedUrl(null);
   }, [detailAchievementId]);
 
   const copyEmbedLink = useCallback(async () => {
@@ -268,10 +270,8 @@ export function AchievementsManager({
       embedUrlForFallback = data.embedUrl;
       const copied = await copyTextToClipboard(data.embedUrl);
       if (!copied) {
-        if (typeof window !== "undefined") {
-          window.prompt("Copy embed link", data.embedUrl);
-        }
-        setEmbedCopyHint("Copy was blocked; a manual copy prompt has been opened.");
+        setManualEmbedUrl(data.embedUrl);
+        setEmbedCopyHint("Copy was blocked. Use the manual copy sheet below.");
         window.setTimeout(() => setEmbedCopyHint(null), 3000);
         return;
       }
@@ -280,11 +280,11 @@ export function AchievementsManager({
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Could not copy link.";
       if (/not allowed|denied permission|permission/i.test(msg)) {
-        if (embedUrlForFallback && typeof window !== "undefined") {
-          window.prompt("Copy embed link", embedUrlForFallback);
+        if (embedUrlForFallback) {
+          setManualEmbedUrl(embedUrlForFallback);
         }
         setEmbedCopyHint(
-          "Clipboard permission was blocked; use the opened prompt to copy the link.",
+          "Clipboard permission was blocked. Use the manual copy sheet below.",
         );
       } else {
         setEmbedCopyHint(msg);
@@ -1284,6 +1284,51 @@ export function AchievementsManager({
                 disabled={isSaving}
               >
                 {isSaving ? "Deleting…" : "Delete"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {manualEmbedUrl ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="manual-copy-title"
+          className="fixed inset-0 z-[230] flex items-center justify-center bg-background/70 p-4 backdrop-blur-sm"
+          onClick={() => setManualEmbedUrl(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border border-white/10 bg-[#12101a] p-4 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="manual-copy-title" className="text-base font-semibold text-white">
+              Copy embed link
+            </h2>
+            <p className="mt-1 text-xs text-white/60">
+              Auto-copy is blocked on this device. Tap and hold the field, then copy.
+            </p>
+            <textarea
+              readOnly
+              value={manualEmbedUrl}
+              className="mt-3 h-28 w-full resize-none rounded-md border border-white/15 bg-black/25 p-3 text-xs text-white/85"
+              onFocus={(e) => e.currentTarget.select()}
+            />
+            <div className="mt-3 flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  void copyTextToClipboard(manualEmbedUrl);
+                  setEmbedCopyHint("Embed link copied.");
+                  setManualEmbedUrl(null);
+                  window.setTimeout(() => setEmbedCopyHint(null), 2500);
+                }}
+              >
+                Try copy again
+              </Button>
+              <Button type="button" onClick={() => setManualEmbedUrl(null)}>
+                Done
               </Button>
             </div>
           </div>
