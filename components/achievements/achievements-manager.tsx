@@ -10,7 +10,7 @@ import {
   type FormEvent,
   type RefObject,
 } from "react";
-import { Link2, PenLine, Sparkles, Trash2, X } from "lucide-react";
+import { Copy, Link2, PenLine, Sparkles, Trash2, X } from "lucide-react";
 
 import {
   getSafeTone,
@@ -1305,19 +1305,17 @@ export function AchievementsManager({
             <h2 id="manual-copy-title" className="text-base font-semibold text-white">
               Copy embed link
             </h2>
-            <p className="mt-1 text-xs text-white/60">
-              Auto-copy is blocked on this device. Tap and hold the field, then copy.
-            </p>
-            <textarea
-              readOnly
-              value={manualEmbedUrl}
-              className="mt-3 h-28 w-full resize-none rounded-md border border-white/15 bg-black/25 p-3 text-xs text-white/85"
-              onFocus={(e) => e.currentTarget.select()}
-            />
-            <div className="mt-3 flex justify-end gap-2">
-              <Button
+            <div className="relative mt-3">
+              <input
+                readOnly
+                value={manualEmbedUrl}
+                className="h-10 w-full overflow-hidden rounded-md border border-white/15 bg-black/25 pl-3 pr-11 text-xs text-white/85"
+                onFocus={(e) => e.currentTarget.select()}
+              />
+              <button
                 type="button"
-                variant="secondary"
+                aria-label="Copy embed link"
+                className="absolute right-1 top-1 inline-flex h-8 w-8 items-center justify-center rounded-md text-white/75 transition hover:bg-white/10 hover:text-white"
                 onClick={() => {
                   void copyTextToClipboard(manualEmbedUrl);
                   setEmbedCopyHint("Embed link copied.");
@@ -1325,8 +1323,10 @@ export function AchievementsManager({
                   window.setTimeout(() => setEmbedCopyHint(null), 2500);
                 }}
               >
-                Try copy again
-              </Button>
+                <Copy className="h-4 w-4" aria-hidden />
+              </button>
+            </div>
+            <div className="mt-3 flex justify-end gap-2">
               <Button type="button" onClick={() => setManualEmbedUrl(null)}>
                 Done
               </Button>
