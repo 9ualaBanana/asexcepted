@@ -59,6 +59,7 @@ import {
   useBadgeDebugOverlayPreference,
   useBadgeRenderOptimizedPreference,
 } from "@/lib/badge-render-optimization";
+import { toOptimizedBadgeRenderSrc } from "@/lib/badge-render-src";
 import { createClient } from "@/lib/supabase/client";
 import { deleteImageKitFile } from "@/lib/imagekit-client";
 import { cn } from "@/lib/utils";
@@ -389,9 +390,14 @@ export function AchievementsManager({
     const src = detailAchievement?.icon_url?.trim() ?? "";
     return src ? getAlphaMaskStyle(src) : null;
   }, [detailAchievement?.icon_url]);
+  const detailRenderSrc = useMemo(() => {
+    const src = detailAchievement?.icon_url?.trim() ?? "";
+    if (!src) return "";
+    return badgeRenderOptimized ? toOptimizedBadgeRenderSrc(src) : src;
+  }, [badgeRenderOptimized, detailAchievement?.icon_url]);
   useEffect(() => {
     if (!badgeRenderOptimized) return;
-    const src = detailAchievement?.icon_url?.trim() ?? "";
+    const src = detailRenderSrc;
     if (!src) return;
     prewarmBadgeRenderCache(src, {
       motionSeed: detailAchievement?.id ?? "detail-default",
@@ -400,7 +406,7 @@ export function AchievementsManager({
     });
   }, [
     badgeRenderOptimized,
-    detailAchievement?.icon_url,
+    detailRenderSrc,
     detailAchievement?.id,
     detailIsLockedUi,
     optimisticUnlockedAchievementId,
@@ -464,8 +470,9 @@ export function AchievementsManager({
     const run = () => {
       // Prewarm all custom badges after initial grid render; keep UI responsive.
       for (const achievement of achievements) {
-        const src = achievement.icon_url?.trim() ?? "";
-        if (!src) continue;
+        const rawSrc = achievement.icon_url?.trim() ?? "";
+        if (!rawSrc) continue;
+        const src = badgeRenderOptimized ? toOptimizedBadgeRenderSrc(rawSrc) : rawSrc;
         prewarmBadgeRenderCache(src, { motionSeed: achievement.id });
       }
     };
@@ -770,10 +777,12 @@ export function AchievementsManager({
     const normalized = normalizeAchievement(data as unknown as Record<string, unknown>);
     const createdSrc = normalized.icon_url?.trim() ?? "";
     if (badgeRenderOptimized && createdSrc) {
+      const renderSrc = toOptimizedBadgeRenderSrc(createdSrc);
       prewarmBadgeRenderCache(createdSrc, {
         motionSeed: normalized.id,
         includeAlphaMaskData: Boolean(normalized.is_locked) && !readOnly,
       });
+      prewarmBadgeRenderCache(renderSrc, { motionSeed: normalized.id });
     }
     playSavePop();
     setAchievements((prev) => sortAchievements([normalized, ...prev]));
@@ -823,12 +832,15 @@ export function AchievementsManager({
     if (badgeRenderOptimized) {
       if (previousSrc && previousSrc !== nextSrc) {
         clearBadgeRenderCacheForSrc(previousSrc);
+        clearBadgeRenderCacheForSrc(toOptimizedBadgeRenderSrc(previousSrc));
       }
       if (nextSrc) {
+        const renderSrc = toOptimizedBadgeRenderSrc(nextSrc);
         prewarmBadgeRenderCache(nextSrc, {
           motionSeed: normalized.id,
           includeAlphaMaskData: Boolean(normalized.is_locked) && !readOnly,
         });
+        prewarmBadgeRenderCache(renderSrc, { motionSeed: normalized.id });
       }
     }
     playSavePop();
@@ -882,6 +894,7 @@ export function AchievementsManager({
     setAchievements((prev) => prev.filter((achievement) => achievement.id !== id));
     if (badgeRenderOptimized && targetSrc) {
       clearBadgeRenderCacheForSrc(targetSrc);
+      clearBadgeRenderCacheForSrc(toOptimizedBadgeRenderSrc(targetSrc));
     }
     if (detailAchievementId === id) {
       setDetailAchievementId(null);
@@ -1220,7 +1233,7 @@ export function AchievementsManager({
                         <>
                           <div className="relative h-full w-full">
                             <AchievementBadge3DViewer
-                              src={detailAchievement.icon_url.trim()}
+                              src={detailRenderSrc}
                               className="p-1"
                               interactive
                               float={detailFloating}
