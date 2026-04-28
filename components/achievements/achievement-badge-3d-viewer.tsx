@@ -32,7 +32,6 @@ type AchievementBadge3DViewerProps = {
 };
 
 const MODEL_DEPTH_LAYERS = 7;
-const OPTIMIZED_MODEL_DEPTH_LAYERS = 5;
 const MODEL_LAYER_STEP_PX = 1.02;
 const MAX_PITCH_DEG = 86;
 const DRAG_YAW_SENSITIVITY = 0.28;
@@ -65,7 +64,6 @@ export function AchievementBadge3DViewer({
   const velocityRef = useRef({ pitch: 0, yaw: 0 });
 
   const safeSrc = useMemo(() => src.replace(/"/g, '\\"'), [src]);
-  const depthLayers = optimized ? OPTIMIZED_MODEL_DEPTH_LAYERS : MODEL_DEPTH_LAYERS;
   const maskStyle = useMemo(
     () => (optimized ? getCachedBadgeMaskStyle(src) : getAlphaMaskStyle(src)),
     [optimized, src],
@@ -84,14 +82,14 @@ export function AchievementBadge3DViewer({
   );
   const sideLayerStyle = useMemo(
     () =>
-      Array.from({ length: depthLayers }).map((_, i) => {
-        const z = -(depthLayers - i) * MODEL_LAYER_STEP_PX;
+      Array.from({ length: MODEL_DEPTH_LAYERS }).map((_, i) => {
+        const z = -(MODEL_DEPTH_LAYERS - i) * MODEL_LAYER_STEP_PX;
         return {
           transform: `translateZ(${z.toFixed(2)}px) translateY(${(Math.abs(z) * 0.16).toFixed(2)}px)`,
-          opacity: 0.72 - (depthLayers - i) * 0.02,
+          opacity: 0.72 - (MODEL_DEPTH_LAYERS - i) * 0.02,
         };
       }),
-    [depthLayers],
+    [],
   );
 
   useEffect(() => {
@@ -283,11 +281,9 @@ export function AchievementBadge3DViewer({
                 backgroundPosition: "center, center",
                 backgroundRepeat: "no-repeat, no-repeat",
                 backgroundBlendMode: "multiply, normal",
-                boxShadow: optimized
-                  ? "inset 0 0 8px rgba(0,0,0,0.22)"
-                  : "inset 0 0 14px rgba(0,0,0,0.28)",
+                boxShadow: "inset 0 0 14px rgba(0,0,0,0.28)",
                 opacity: layer.opacity,
-                filter: optimized ? "saturate(0.78)" : "saturate(0.74) blur(0.2px)",
+                filter: "saturate(0.74) blur(0.2px)",
               }}
             />
           );
