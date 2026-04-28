@@ -16,7 +16,7 @@ export default function EmbedBadgePage({ params }: PageProps) {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-dvh min-h-[100dvh] items-center justify-center bg-[#0c0a10] p-4">
+        <div className="flex min-h-dvh min-h-[100dvh] items-center justify-center bg-transparent p-4">
           <div className="h-[min(88vmin,20rem)] w-[min(88vmin,20rem)] max-h-[90dvh] max-w-[90dvw] animate-pulse rounded-3xl bg-white/[0.06]" />
         </div>
       }

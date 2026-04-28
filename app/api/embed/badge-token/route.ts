@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 
 import { mintEmbedBadgeToken } from "@/lib/embed-badge-token";
 import { allowRateLimit } from "@/lib/embed-rate-limit";
-import { withVercelDeploymentProtectionBypassForEmbed } from "@/lib/embed-vercel-bypass-url";
 import {
   isLocalhostOrLoopbackOrigin,
   resolvePublicSiteOrigin,
@@ -100,7 +99,6 @@ export async function POST(req: Request) {
   }
 
   const token = mintEmbedBadgeToken(secret, row.id);
-  const baseEmbedUrl = `${origin}/embed/badge/${encodeURIComponent(token)}`;
-  const embedUrl = withVercelDeploymentProtectionBypassForEmbed(baseEmbedUrl);
+  const embedUrl = `${origin}/e/${encodeURIComponent(token)}`;
   return NextResponse.json({ embedUrl });
 }

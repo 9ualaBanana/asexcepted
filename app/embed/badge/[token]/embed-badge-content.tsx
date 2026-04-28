@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { AchievementBadge3DViewer } from "@/components/achievements/achievement-badge-3d-viewer";
 import { verifyEmbedBadgeToken } from "@/lib/embed-badge-token";
 import { createAnonServerClient } from "@/lib/supabase/server-anon";
+import { EmbedTransparentSurface } from "./embed-transparent-surface";
 
 type Props = {
   params: Promise<{ token: string }>;
@@ -37,7 +38,8 @@ export async function EmbedBadgeContent({ params }: Props) {
   const src = data.icon_url.trim();
 
   return (
-    <div className="flex min-h-dvh min-h-[100dvh] items-center justify-center bg-[#0c0a10] p-4">
+    <div className="flex min-h-dvh min-h-[100dvh] items-center justify-center bg-transparent p-4">
+      <EmbedTransparentSurface />
       <div className="h-[min(88vmin,20rem)] w-[min(88vmin,20rem)] max-h-[90dvh] max-w-[90dvw]">
         <AchievementBadge3DViewer
           src={src}
