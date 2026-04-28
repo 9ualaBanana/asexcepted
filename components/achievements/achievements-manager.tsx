@@ -255,6 +255,7 @@ export function AchievementsManager({
     if (!detailAchievement?.id) return;
     setEmbedCopyBusy(true);
     setEmbedCopyHint(null);
+    let embedUrlForFallback = "";
     try {
       const res = await fetch("/api/embed/badge-token", {
         method: "POST",
@@ -264,19 +265,26 @@ export function AchievementsManager({
       const data = (await res.json()) as { embedUrl?: string; error?: string };
       if (!res.ok) throw new Error(data.error ?? "Could not create embed link.");
       if (!data.embedUrl) throw new Error("Missing embed URL.");
+      embedUrlForFallback = data.embedUrl;
       const copied = await copyTextToClipboard(data.embedUrl);
       if (!copied) {
-        throw new Error(
-          "Could not copy automatically on this device. Please long-press and copy the link manually.",
-        );
+        if (typeof window !== "undefined") {
+          window.prompt("Copy embed link", data.embedUrl);
+        }
+        setEmbedCopyHint("Copy was blocked; a manual copy prompt has been opened.");
+        window.setTimeout(() => setEmbedCopyHint(null), 3000);
+        return;
       }
       setEmbedCopyHint("Embed link copied.");
       window.setTimeout(() => setEmbedCopyHint(null), 2500);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Could not copy link.";
       if (/not allowed|denied permission|permission/i.test(msg)) {
+        if (embedUrlForFallback && typeof window !== "undefined") {
+          window.prompt("Copy embed link", embedUrlForFallback);
+        }
         setEmbedCopyHint(
-          "Clipboard permission was blocked. Please allow paste/clipboard access and try again.",
+          "Clipboard permission was blocked; use the opened prompt to copy the link.",
         );
       } else {
         setEmbedCopyHint(msg);
