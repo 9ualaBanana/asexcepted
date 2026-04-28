@@ -72,13 +72,19 @@ export function getCachedAlphaMaskData(src: string): Promise<AlphaMaskData | nul
 
 export function prewarmBadgeRenderCache(
   src: string,
-  options?: { motionSeed?: string; startCentered?: boolean },
+  options?: {
+    motionSeed?: string;
+    startCentered?: boolean;
+    includeAlphaMaskData?: boolean;
+  },
 ): void {
   const key = normalizeSrc(src);
   if (!key) return;
   void imagePreload(key);
-  void getCachedAlphaMaskData(key);
   void getCachedBadgeMaskStyle(key);
+  if (options?.includeAlphaMaskData) {
+    void getCachedAlphaMaskData(key);
+  }
   if (options?.motionSeed) {
     void getCachedBadgeMotionStyle(options.motionSeed, options.startCentered ?? false);
   }

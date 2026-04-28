@@ -25,6 +25,8 @@ type AchievementBadge3DViewerProps = {
   motionStartCentered?: boolean;
   /** Uses cached mask/motion style path (toggleable for profiling). */
   optimized?: boolean;
+  /** Debug hook: fired once when source image decode/load is ready. */
+  onImageDecoded?: () => void;
   /** Debug hook: fired once when source image is decoded and first paint should be ready. */
   onVisualReady?: () => void;
 };
@@ -45,6 +47,7 @@ export function AchievementBadge3DViewer({
   motionSeed,
   motionStartCentered = false,
   optimized = false,
+  onImageDecoded,
   onVisualReady,
 }: AchievementBadge3DViewerProps) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -97,17 +100,25 @@ export function AchievementBadge3DViewer({
   }, []);
 
   useEffect(() => {
-    if (!onVisualReady) return;
+    if (!onVisualReady && !onImageDecoded) return;
     if (!src.trim()) return;
     let cancelled = false;
     let fired = false;
+    let decodedFired = false;
+
+    const emitDecoded = () => {
+      if (cancelled || decodedFired) return;
+      decodedFired = true;
+      onImageDecoded?.();
+    };
 
     const emitReady = () => {
       if (cancelled || fired) return;
       fired = true;
+      emitDecoded();
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          if (!cancelled) onVisualReady();
+          if (!cancelled) onVisualReady?.();
         });
       });
     };
@@ -117,12 +128,15 @@ export function AchievementBadge3DViewer({
     img.onload = () => emitReady();
     img.onerror = () => emitReady();
     img.src = src;
-    if (img.complete) emitReady();
+    if (img.complete) {
+      emitDecoded();
+      emitReady();
+    }
 
     return () => {
       cancelled = true;
     };
-  }, [onVisualReady, src]);
+  }, [onImageDecoded, onVisualReady, src]);
 
   function flushTransform() {
     if (rafRef.current !== null) return;

@@ -245,7 +245,11 @@ export function AchievementsManager({
   const unlockAlphaMaskRef = useRef<AlphaMaskData | null>(null);
   const detailOpenStartedAtRef = useRef<number | null>(null);
   const detailPerfMeasuredForIdRef = useRef<string | null>(null);
+  const detailImageDecodedMsRef = useRef<number | null>(null);
   const [detailOpenToVisualReadyMs, setDetailOpenToVisualReadyMs] = useState<number | null>(
+    null,
+  );
+  const [detailOpenToImageDecodedMs, setDetailOpenToImageDecodedMs] = useState<number | null>(
     null,
   );
 
@@ -276,8 +280,23 @@ export function AchievementsManager({
       detailOpenStartedAtRef.current = Date.now();
     }
     detailPerfMeasuredForIdRef.current = achievementId;
+    detailImageDecodedMsRef.current = null;
+    setDetailOpenToImageDecodedMs(null);
     setDetailOpenToVisualReadyMs(null);
   }, []);
+
+  const handleDetailBadgeImageDecoded = useCallback(() => {
+    if (!detailAchievement?.id) return;
+    if (detailPerfMeasuredForIdRef.current !== detailAchievement.id) return;
+    if (detailOpenStartedAtRef.current == null) return;
+    const now =
+      typeof performance !== "undefined" && Number.isFinite(performance.now())
+        ? performance.now()
+        : Date.now();
+    const elapsed = Math.max(0, Math.round(now - detailOpenStartedAtRef.current));
+    detailImageDecodedMsRef.current = elapsed;
+    setDetailOpenToImageDecodedMs(elapsed);
+  }, [detailAchievement?.id]);
 
   const handleDetailBadgeVisualReady = useCallback(() => {
     if (!detailAchievement?.id) return;
@@ -304,6 +323,10 @@ export function AchievementsManager({
           ? performance.now()
           : Date.now();
       const elapsed = Math.max(0, Math.round(now - detailOpenStartedAtRef.current));
+      if (detailImageDecodedMsRef.current == null) {
+        detailImageDecodedMsRef.current = elapsed;
+        setDetailOpenToImageDecodedMs(elapsed);
+      }
       setDetailOpenToVisualReadyMs(elapsed);
       detailPerfMeasuredForIdRef.current = null;
     }, 2200);
@@ -373,12 +396,15 @@ export function AchievementsManager({
     prewarmBadgeRenderCache(src, {
       motionSeed: detailAchievement?.id ?? "detail-default",
       startCentered: optimisticUnlockedAchievementId === detailAchievement?.id,
+      includeAlphaMaskData: !readOnly && detailIsLockedUi,
     });
   }, [
     badgeRenderOptimized,
     detailAchievement?.icon_url,
     detailAchievement?.id,
+    detailIsLockedUi,
     optimisticUnlockedAchievementId,
+    readOnly,
   ]);
   const unlockRevealClipPathLut = useMemo(
     () => (detailAchievement ? buildUnlockRevealClipPathLut() : null),
@@ -409,6 +435,7 @@ export function AchievementsManager({
     const src = detailAchievement?.icon_url?.trim() ?? "";
     unlockAlphaMaskRef.current = null;
     unlockRevealCompleteProgressRef.current = 1;
+    if (readOnly || !detailIsLockedUi) return;
     if (!src) return;
 
     let cancelled = false;
@@ -426,7 +453,7 @@ export function AchievementsManager({
     return () => {
       cancelled = true;
     };
-  }, [badgeRenderOptimized, detailAchievement?.icon_url]);
+  }, [badgeRenderOptimized, detailAchievement?.icon_url, detailIsLockedUi, readOnly]);
 
   useEffect(() => {
     void loadAchievements();
@@ -743,7 +770,10 @@ export function AchievementsManager({
     const normalized = normalizeAchievement(data as unknown as Record<string, unknown>);
     const createdSrc = normalized.icon_url?.trim() ?? "";
     if (badgeRenderOptimized && createdSrc) {
-      prewarmBadgeRenderCache(createdSrc, { motionSeed: normalized.id });
+      prewarmBadgeRenderCache(createdSrc, {
+        motionSeed: normalized.id,
+        includeAlphaMaskData: Boolean(normalized.is_locked) && !readOnly,
+      });
     }
     playSavePop();
     setAchievements((prev) => sortAchievements([normalized, ...prev]));
@@ -795,7 +825,10 @@ export function AchievementsManager({
         clearBadgeRenderCacheForSrc(previousSrc);
       }
       if (nextSrc) {
-        prewarmBadgeRenderCache(nextSrc, { motionSeed: normalized.id });
+        prewarmBadgeRenderCache(nextSrc, {
+          motionSeed: normalized.id,
+          includeAlphaMaskData: Boolean(normalized.is_locked) && !readOnly,
+        });
       }
     }
     playSavePop();
@@ -1196,6 +1229,7 @@ export function AchievementsManager({
                                 optimisticUnlockedAchievementId === detailAchievement.id
                               }
                               optimized={badgeRenderOptimized}
+                              onImageDecoded={handleDetailBadgeImageDecoded}
                               onVisualReady={handleDetailBadgeVisualReady}
                             />
                           </div>
@@ -1467,7 +1501,18 @@ export function AchievementsManager({
             mode:{badgeRenderOptimized ? "optimized" : "baseline"}
           </span>
           <span className="ml-2 text-white/65">
-            detail open→visual ready:
+            open→decoded:
+            {detailOpenToImageDecodedMs == null ? " -" : ` ${detailOpenToImageDecodedMs}ms`}
+          </span>
+          <span className="ml-2 text-white/65">
+            decoded→visual:
+            {detailOpenToVisualReadyMs == null ||
+            detailOpenToImageDecodedMs == null
+              ? " -"
+              : ` ${Math.max(0, detailOpenToVisualReadyMs - detailOpenToImageDecodedMs)}ms`}
+          </span>
+          <span className="ml-2 text-white/65">
+            open→visual:
             {detailOpenToVisualReadyMs == null ? " -" : ` ${detailOpenToVisualReadyMs}ms`}
           </span>
         </div>
