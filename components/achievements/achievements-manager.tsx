@@ -21,6 +21,11 @@ import { AchievementFallbackBadge } from "@/components/achievements/achievement-
 import { AchievementGridItem } from "@/components/achievements/achievement-grid-item";
 import { AchievementGridLoadingSkeleton } from "@/components/achievements/achievement-grid-skeleton";
 import { AchievementBadge3DViewer } from "@/components/achievements/achievement-badge-3d-viewer";
+import {
+  clearBadgeRenderCacheForSrc,
+  getCachedAlphaMaskData,
+  prewarmBadgeRenderCache,
+} from "@/components/achievements/badge-render-cache";
 import { RemoteBadgeImage } from "@/components/achievements/achievement-remote-badge-image";
 import {
   buildUnlockRevealClipPath,
@@ -50,6 +55,10 @@ import {
 } from "@/components/achievements/achievement-editor-shared";
 import { EditableAchievementCard } from "@/components/achievements/editable-achievement-card";
 import { Button } from "@/components/ui/button";
+import {
+  useBadgeDebugOverlayPreference,
+  useBadgeRenderOptimizedPreference,
+} from "@/lib/badge-render-optimization";
 import { createClient } from "@/lib/supabase/client";
 import { deleteImageKitFile } from "@/lib/imagekit-client";
 import { cn } from "@/lib/utils";
@@ -197,6 +206,8 @@ export function AchievementsManager({
   readOnly = false,
 }: AchievementsManagerProps) {
   const supabase = useMemo(() => createClient(), []);
+  const [badgeRenderOptimized] = useBadgeRenderOptimizedPreference();
+  const [badgeDebugOverlay] = useBadgeDebugOverlayPreference();
   const [achievements, setAchievements] = useState<AchievementRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -232,6 +243,11 @@ export function AchievementsManager({
   const unlockEaseOutSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const savePopPreparedRef = useRef<HTMLAudioElement | null>(null);
   const unlockAlphaMaskRef = useRef<AlphaMaskData | null>(null);
+  const detailOpenStartedAtRef = useRef<number | null>(null);
+  const detailPerfMeasuredForIdRef = useRef<string | null>(null);
+  const [detailOpenToVisualReadyMs, setDetailOpenToVisualReadyMs] = useState<number | null>(
+    null,
+  );
 
   function rollbackBadgeSession(ref: RefObject<BadgeIkSession>) {
     const r = ref.current;
@@ -252,6 +268,47 @@ export function AchievementsManager({
     setEmbedCopyHint(null);
     setManualEmbedUrl(null);
   }, [detailAchievementId]);
+
+  const markDetailOpenStart = useCallback((achievementId: string) => {
+    if (typeof performance !== "undefined" && Number.isFinite(performance.now())) {
+      detailOpenStartedAtRef.current = performance.now();
+    } else {
+      detailOpenStartedAtRef.current = Date.now();
+    }
+    detailPerfMeasuredForIdRef.current = achievementId;
+    setDetailOpenToVisualReadyMs(null);
+  }, []);
+
+  const handleDetailBadgeVisualReady = useCallback(() => {
+    if (!detailAchievement?.id) return;
+    if (detailPerfMeasuredForIdRef.current !== detailAchievement.id) return;
+    if (detailOpenStartedAtRef.current == null) return;
+    const now =
+      typeof performance !== "undefined" && Number.isFinite(performance.now())
+        ? performance.now()
+        : Date.now();
+    const elapsed = Math.max(0, Math.round(now - detailOpenStartedAtRef.current));
+    setDetailOpenToVisualReadyMs(elapsed);
+    detailPerfMeasuredForIdRef.current = null;
+  }, [detailAchievement?.id]);
+
+  useEffect(() => {
+    if (!detailAchievement?.id) return;
+    if (!detailAchievement.icon_url?.trim()) return;
+    if (detailPerfMeasuredForIdRef.current !== detailAchievement.id) return;
+    const timeout = window.setTimeout(() => {
+      if (detailPerfMeasuredForIdRef.current !== detailAchievement.id) return;
+      if (detailOpenStartedAtRef.current == null) return;
+      const now =
+        typeof performance !== "undefined" && Number.isFinite(performance.now())
+          ? performance.now()
+          : Date.now();
+      const elapsed = Math.max(0, Math.round(now - detailOpenStartedAtRef.current));
+      setDetailOpenToVisualReadyMs(elapsed);
+      detailPerfMeasuredForIdRef.current = null;
+    }, 2200);
+    return () => window.clearTimeout(timeout);
+  }, [detailAchievement?.icon_url, detailAchievement?.id]);
 
   const copyEmbedLink = useCallback(async () => {
     if (!detailAchievement?.id) return;
@@ -309,6 +366,20 @@ export function AchievementsManager({
     const src = detailAchievement?.icon_url?.trim() ?? "";
     return src ? getAlphaMaskStyle(src) : null;
   }, [detailAchievement?.icon_url]);
+  useEffect(() => {
+    if (!badgeRenderOptimized) return;
+    const src = detailAchievement?.icon_url?.trim() ?? "";
+    if (!src) return;
+    prewarmBadgeRenderCache(src, {
+      motionSeed: detailAchievement?.id ?? "detail-default",
+      startCentered: optimisticUnlockedAchievementId === detailAchievement?.id,
+    });
+  }, [
+    badgeRenderOptimized,
+    detailAchievement?.icon_url,
+    detailAchievement?.id,
+    optimisticUnlockedAchievementId,
+  ]);
   const unlockRevealClipPathLut = useMemo(
     () => (detailAchievement ? buildUnlockRevealClipPathLut() : null),
     [detailAchievement?.id, detailIsLockedUi],
@@ -341,7 +412,10 @@ export function AchievementsManager({
     if (!src) return;
 
     let cancelled = false;
-    void loadAlphaMaskDataFromImage(src).then((maskData) => {
+    const loader = badgeRenderOptimized
+      ? getCachedAlphaMaskData(src)
+      : loadAlphaMaskDataFromImage(src);
+    void loader.then((maskData) => {
       if (cancelled) return;
       unlockAlphaMaskRef.current = maskData;
       unlockRevealCompleteProgressRef.current = maskData
@@ -352,11 +426,41 @@ export function AchievementsManager({
     return () => {
       cancelled = true;
     };
-  }, [detailAchievement?.icon_url]);
+  }, [badgeRenderOptimized, detailAchievement?.icon_url]);
 
   useEffect(() => {
     void loadAchievements();
   }, [ownerUserId]);
+
+  useEffect(() => {
+    if (!badgeRenderOptimized || achievements.length === 0) return;
+    const run = () => {
+      // Prewarm all custom badges after initial grid render; keep UI responsive.
+      for (const achievement of achievements) {
+        const src = achievement.icon_url?.trim() ?? "";
+        if (!src) continue;
+        prewarmBadgeRenderCache(src, { motionSeed: achievement.id });
+      }
+    };
+    if (typeof window === "undefined") return;
+    const ric = (
+      window as Window & {
+        requestIdleCallback?: (cb: () => void) => number;
+        cancelIdleCallback?: (id: number) => void;
+      }
+    ).requestIdleCallback;
+    if (ric) {
+      const id = ric(run);
+      return () => {
+        const cancel = (
+          window as Window & { cancelIdleCallback?: (id: number) => void }
+        ).cancelIdleCallback;
+        cancel?.(id);
+      };
+    }
+    const timeout = window.setTimeout(run, 80);
+    return () => window.clearTimeout(timeout);
+  }, [achievements, badgeRenderOptimized]);
 
   useEffect(() => {
     if (
@@ -637,6 +741,10 @@ export function AchievementsManager({
     }
 
     const normalized = normalizeAchievement(data as unknown as Record<string, unknown>);
+    const createdSrc = normalized.icon_url?.trim() ?? "";
+    if (badgeRenderOptimized && createdSrc) {
+      prewarmBadgeRenderCache(createdSrc, { motionSeed: normalized.id });
+    }
     playSavePop();
     setAchievements((prev) => sortAchievements([normalized, ...prev]));
     setCreateForm({ ...INITIAL_FORM, achievedAt: todayDateString() });
@@ -680,6 +788,16 @@ export function AchievementsManager({
     }
 
     const normalized = normalizeAchievement(data as unknown as Record<string, unknown>);
+    const previousSrc = detailAchievement?.icon_url?.trim() ?? "";
+    const nextSrc = normalized.icon_url?.trim() ?? "";
+    if (badgeRenderOptimized) {
+      if (previousSrc && previousSrc !== nextSrc) {
+        clearBadgeRenderCacheForSrc(previousSrc);
+      }
+      if (nextSrc) {
+        prewarmBadgeRenderCache(nextSrc, { motionSeed: normalized.id });
+      }
+    }
     playSavePop();
 
     const baselineId = panelBadgeIkSessionRef.current.baselineFileId.trim();
@@ -711,6 +829,7 @@ export function AchievementsManager({
 
     const target = achievements.find((a) => a.id === id);
     const ikId = target?.icon_file_id?.trim();
+    const targetSrc = target?.icon_url?.trim() ?? "";
     if (ikId) {
       try {
         await deleteImageKitFile(ikId);
@@ -728,6 +847,9 @@ export function AchievementsManager({
     }
 
     setAchievements((prev) => prev.filter((achievement) => achievement.id !== id));
+    if (badgeRenderOptimized && targetSrc) {
+      clearBadgeRenderCacheForSrc(targetSrc);
+    }
     if (detailAchievementId === id) {
       setDetailAchievementId(null);
       setDetailMode("view");
@@ -940,6 +1062,7 @@ export function AchievementsManager({
                     tone={resolveTone(achievement)}
                     isLocked={Boolean(achievement.is_locked)}
                     onClick={() => {
+                      markDetailOpenStart(achievement.id);
                       setDetailAchievementId(achievement.id);
                       setDetailMode("view");
                       setIsCreating(false);
@@ -1072,6 +1195,8 @@ export function AchievementsManager({
                               motionStartCentered={
                                 optimisticUnlockedAchievementId === detailAchievement.id
                               }
+                              optimized={badgeRenderOptimized}
+                              onVisualReady={handleDetailBadgeVisualReady}
                             />
                           </div>
                           {detailIsLockedUi ? (
@@ -1332,6 +1457,19 @@ export function AchievementsManager({
               </Button>
             </div>
           </div>
+        </div>
+      ) : null}
+
+      {badgeDebugOverlay ? (
+        <div className="pointer-events-none fixed bottom-2 left-2 z-[9999] rounded-md border border-white/15 bg-black/70 px-2 py-1 text-[10px] text-white/80 backdrop-blur">
+          <span className="font-semibold">Badge debug</span>
+          <span className="ml-2 text-white/65">
+            mode:{badgeRenderOptimized ? "optimized" : "baseline"}
+          </span>
+          <span className="ml-2 text-white/65">
+            detail open→visual ready:
+            {detailOpenToVisualReadyMs == null ? " -" : ` ${detailOpenToVisualReadyMs}ms`}
+          </span>
         </div>
       ) : null}
     </div>

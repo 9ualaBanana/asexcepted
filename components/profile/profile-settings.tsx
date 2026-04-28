@@ -6,6 +6,10 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  useBadgeDebugOverlayPreference,
+  useBadgeRenderOptimizedPreference,
+} from "@/lib/badge-render-optimization";
 
 function displayNameFromMetadata(meta: Record<string, unknown> | null | undefined) {
   if (!meta) return "";
@@ -22,6 +26,9 @@ function displayNameFromMetadata(meta: Record<string, unknown> | null | undefine
 export function ProfileSettings() {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
+  const [badgeRenderOptimized, setBadgeRenderOptimized] =
+    useBadgeRenderOptimizedPreference();
+  const [badgeDebugOverlay, setBadgeDebugOverlay] = useBadgeDebugOverlayPreference();
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(true);
@@ -124,6 +131,45 @@ export function ProfileSettings() {
           Stored in Auth <span className="font-mono">user_metadata</span>{" "}
           (display name / full name).
         </p>
+      </div>
+
+      <div className="space-y-2 rounded-lg border border-border/60 bg-muted/20 p-3">
+        <Label htmlFor="profile-badge-optimized">Badge render optimization</Label>
+        <label
+          htmlFor="profile-badge-optimized"
+          className="flex cursor-pointer items-center justify-between gap-3"
+        >
+          <p className="text-xs text-muted-foreground">
+            Preload and cache custom badge image/depth/style data for faster detail view.
+            Turn off to compare against current baseline behavior.
+          </p>
+          <input
+            id="profile-badge-optimized"
+            type="checkbox"
+            checked={badgeRenderOptimized}
+            onChange={(e) => setBadgeRenderOptimized(e.target.checked)}
+            className="h-4 w-4 shrink-0 accent-foreground"
+          />
+        </label>
+      </div>
+
+      <div className="space-y-2 rounded-lg border border-border/60 bg-muted/20 p-3">
+        <Label htmlFor="profile-badge-debug-overlay">Badge debug overlay</Label>
+        <label
+          htmlFor="profile-badge-debug-overlay"
+          className="flex cursor-pointer items-center justify-between gap-3"
+        >
+          <p className="text-xs text-muted-foreground">
+            Show performance telemetry overlay on achievements pages.
+          </p>
+          <input
+            id="profile-badge-debug-overlay"
+            type="checkbox"
+            checked={badgeDebugOverlay}
+            onChange={(e) => setBadgeDebugOverlay(e.target.checked)}
+            className="h-4 w-4 shrink-0 accent-foreground"
+          />
+        </label>
       </div>
 
       <div className="flex justify-center">

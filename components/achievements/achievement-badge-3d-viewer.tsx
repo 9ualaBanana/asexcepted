@@ -2,6 +2,10 @@
 
 import { useEffect, useMemo, useRef } from "react";
 
+import {
+  getCachedBadgeMaskStyle,
+  getCachedBadgeMotionStyle,
+} from "@/components/achievements/badge-render-cache";
 import { makeBadgeMotionStyle } from "@/components/achievements/badge-float-motion";
 import { getAlphaMaskStyle } from "@/components/achievements/badge-shape-utils";
 import { cn } from "@/lib/utils";
@@ -19,6 +23,10 @@ type AchievementBadge3DViewerProps = {
   motionSeed?: string;
   /** Passed through to `makeBadgeMotionStyle` (e.g. true right after unlock). */
   motionStartCentered?: boolean;
+  /** Uses cached mask/motion style path (toggleable for profiling). */
+  optimized?: boolean;
+  /** Debug hook: fired once when source image is decoded and first paint should be ready. */
+  onVisualReady?: () => void;
 };
 
 const MODEL_DEPTH_LAYERS = 7;
@@ -36,6 +44,8 @@ export function AchievementBadge3DViewer({
   float = false,
   motionSeed,
   motionStartCentered = false,
+  optimized = false,
+  onVisualReady,
 }: AchievementBadge3DViewerProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const modelRef = useRef<HTMLDivElement>(null);
@@ -51,13 +61,21 @@ export function AchievementBadge3DViewer({
   const velocityRef = useRef({ pitch: 0, yaw: 0 });
 
   const safeSrc = useMemo(() => src.replace(/"/g, '\\"'), [src]);
-  const maskStyle = useMemo(() => getAlphaMaskStyle(src), [src]);
+  const maskStyle = useMemo(
+    () => (optimized ? getCachedBadgeMaskStyle(src) : getAlphaMaskStyle(src)),
+    [optimized, src],
+  );
   const floatMotionStyle = useMemo(
     () =>
       float
-        ? makeBadgeMotionStyle((motionSeed ?? src).trim() || "badge", motionStartCentered)
+        ? optimized
+          ? getCachedBadgeMotionStyle(
+              (motionSeed ?? src).trim() || "badge",
+              motionStartCentered,
+            )
+          : makeBadgeMotionStyle((motionSeed ?? src).trim() || "badge", motionStartCentered)
         : undefined,
-    [float, motionSeed, motionStartCentered, src],
+    [float, motionSeed, motionStartCentered, optimized, src],
   );
   const sideLayerStyle = useMemo(
     () =>
@@ -77,6 +95,34 @@ export function AchievementBadge3DViewer({
       if (inertiaRafRef.current !== null) cancelAnimationFrame(inertiaRafRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (!onVisualReady) return;
+    if (!src.trim()) return;
+    let cancelled = false;
+    let fired = false;
+
+    const emitReady = () => {
+      if (cancelled || fired) return;
+      fired = true;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (!cancelled) onVisualReady();
+        });
+      });
+    };
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => emitReady();
+    img.onerror = () => emitReady();
+    img.src = src;
+    if (img.complete) emitReady();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [onVisualReady, src]);
 
   function flushTransform() {
     if (rafRef.current !== null) return;
