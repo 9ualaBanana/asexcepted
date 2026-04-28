@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PwaInit } from "@/components/pwa/pwa-init";
 import "./globals.css";
 
@@ -48,6 +49,7 @@ export default function RootLayout({
           <PwaInit />
           {children}
         </ThemeProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
