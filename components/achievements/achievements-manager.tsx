@@ -7,11 +7,10 @@ import {
   useMemo,
   useRef,
   useState,
-  type CSSProperties,
   type FormEvent,
   type RefObject,
 } from "react";
-import { PenLine, Sparkles, Trash2, X } from "lucide-react";
+import { Link2, PenLine, Sparkles, Trash2, X } from "lucide-react";
 
 import {
   getSafeTone,
@@ -95,40 +94,6 @@ const AUDIO_ASSET_VERSION = process.env.NEXT_PUBLIC_BUILD_ID?.trim() || "dev";
 const UNLOCK_PEEL_AUDIO_SRC = `/audio/unlock-peel.wav?v=${AUDIO_ASSET_VERSION}`;
 const UNLOCK_EASE_OUT_AUDIO_SRC = `/audio/unlock-ease-out.wav?v=${AUDIO_ASSET_VERSION}`;
 const SAVE_POP_AUDIO_SRC = `/audio/pop.mp3?v=${AUDIO_ASSET_VERSION}`;
-
-function hashSeed(seed: string) {
-  let h = 2166136261;
-  for (let i = 0; i < seed.length; i += 1) {
-    h ^= seed.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-
-function makeBadgeMotionStyle(seed: string, startCentered = false): CSSProperties {
-  const h = hashSeed(seed);
-  const pick = (offset: number) => ((h >>> offset) & 255) / 255;
-  const floatDuration = 5.2 + pick(0) * 1.9;
-  const shadowDuration = floatDuration * (0.97 + pick(8) * 0.06);
-  const delay = startCentered ? 0 : -(pick(16) * floatDuration);
-  const dx = 0.38 + pick(12) * 0.65;
-  const dx2 = 0.14 + pick(6) * 0.25;
-  const up = 1.55 + pick(20) * 1.35;
-  const up2 = 0.26 + pick(10) * 0.44;
-  const rot = 0.16 + pick(24) * 0.22;
-
-  return {
-    ["--badge-float-duration" as string]: `${floatDuration.toFixed(2)}s`,
-    ["--badge-shadow-duration" as string]: `${shadowDuration.toFixed(2)}s`,
-    ["--badge-float-delay" as string]: `${delay.toFixed(2)}s`,
-    ["--badge-shadow-delay" as string]: `${(delay * 0.82).toFixed(2)}s`,
-    ["--badge-float-dx" as string]: `${dx.toFixed(2)}px`,
-    ["--badge-float-up" as string]: `${up.toFixed(2)}px`,
-    ["--badge-float-dx2" as string]: `${dx2.toFixed(2)}px`,
-    ["--badge-float-up2" as string]: `${up2.toFixed(2)}px`,
-    ["--badge-float-rot" as string]: `${rot.toFixed(2)}deg`,
-  };
-}
 
 function normalizeAchievement(row: Record<string, unknown>): AchievementRecord {
   return {
@@ -217,6 +182,8 @@ export function AchievementsManager({
   const [detailMode, setDetailMode] = useState<"view" | "edit">("view");
   const [panelForm, setPanelForm] = useState<FormState>(INITIAL_FORM);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [embedCopyBusy, setEmbedCopyBusy] = useState(false);
+  const [embedCopyHint, setEmbedCopyHint] = useState<string | null>(null);
   const [isUnlockHolding, setIsUnlockHolding] = useState(false);
   const [unlockingAchievementId, setUnlockingAchievementId] = useState<string | null>(null);
   const [optimisticUnlockedAchievementId, setOptimisticUnlockedAchievementId] = useState<string | null>(null);
@@ -255,6 +222,33 @@ export function AchievementsManager({
     return achievements.find((a) => a.id === detailAchievementId) ?? null;
   }, [achievements, detailAchievementId]);
 
+  useEffect(() => {
+    setEmbedCopyHint(null);
+  }, [detailAchievementId]);
+
+  const copyEmbedLink = useCallback(async () => {
+    if (!detailAchievement?.id) return;
+    setEmbedCopyBusy(true);
+    setEmbedCopyHint(null);
+    try {
+      const res = await fetch("/api/embed/badge-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ achievementId: detailAchievement.id }),
+      });
+      const data = (await res.json()) as { embedUrl?: string; error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Could not create embed link.");
+      if (!data.embedUrl) throw new Error("Missing embed URL.");
+      await navigator.clipboard.writeText(data.embedUrl);
+      setEmbedCopyHint("Embed link copied.");
+      window.setTimeout(() => setEmbedCopyHint(null), 2500);
+    } catch (e) {
+      setEmbedCopyHint(e instanceof Error ? e.message : "Could not copy link.");
+    } finally {
+      setEmbedCopyBusy(false);
+    }
+  }, [detailAchievement?.id]);
+
   const DetailFallbackIcon = getSafeIcon(detailAchievement?.icon);
   const detailTone: AchievementTone = useMemo(
     () => resolveTone(detailAchievement),
@@ -270,14 +264,6 @@ export function AchievementsManager({
     const src = detailAchievement?.icon_url?.trim() ?? "";
     return src ? getAlphaMaskStyle(src) : null;
   }, [detailAchievement?.icon_url]);
-  const detailMotionStyle = useMemo(
-    () =>
-      makeBadgeMotionStyle(
-        detailAchievement?.id ?? "detail-default",
-        optimisticUnlockedAchievementId === detailAchievement?.id,
-      ),
-    [detailAchievement?.id, optimisticUnlockedAchievementId],
-  );
   const unlockRevealClipPathLut = useMemo(
     () => (detailAchievement ? buildUnlockRevealClipPathLut() : null),
     [detailAchievement?.id, detailIsLockedUi],
@@ -370,6 +356,8 @@ export function AchievementsManager({
     setOptimisticUnlockedAchievementId(null);
     setUnlockRevealProgress(0);
     setIsSaving(false);
+    setEmbedCopyHint(null);
+    setEmbedCopyBusy(false);
   }
 
   const cancelUnlockHold = useCallback(() => {
@@ -1029,24 +1017,17 @@ export function AchievementsManager({
                       ) : null}
                       {detailAchievement.icon_url?.trim() ? (
                         <>
-                          <div
-                            className={cn(
-                              "relative h-full w-full",
-                            )}
-                          >
-                            <div
-                              className={cn(
-                                "relative h-full w-full",
-                                detailFloating && "achievement-badge-object-float",
-                              )}
-                              style={detailFloating ? detailMotionStyle : undefined}
-                            >
-                              <AchievementBadge3DViewer
-                                src={detailAchievement.icon_url.trim()}
-                                className="p-1"
-                                interactive
-                              />
-                            </div>
+                          <div className="relative h-full w-full">
+                            <AchievementBadge3DViewer
+                              src={detailAchievement.icon_url.trim()}
+                              className="p-1"
+                              interactive
+                              float={detailFloating}
+                              motionSeed={detailAchievement.id}
+                              motionStartCentered={
+                                optimisticUnlockedAchievementId === detailAchievement.id
+                              }
+                            />
                           </div>
                           {detailIsLockedUi ? (
                             <div className="absolute inset-0">
@@ -1136,36 +1117,56 @@ export function AchievementsManager({
                     className={cn(
                       achievementBadgeChromeWidth,
                       achievementDialogChromeInset,
-                      "mt-3 flex min-h-10 items-center justify-between",
+                      "mt-3 flex min-h-10 flex-col items-stretch gap-2",
                       !formatAchievedAt(detailAchievement.achieved_at) && "mt-6",
                     )}
                   >
-                    <button
-                      type="button"
-                      aria-label="Edit"
-                      className={achievementDialogIconBtn}
-                      disabled={isSaving}
-                      onClick={() => {
-                        panelBadgeIkSessionRef.current = {
-                          baselineUrl: detailAchievement.icon_url ?? "",
-                          baselineFileId: detailAchievement.icon_file_id ?? "",
-                          lastSessionFileId: null,
-                        };
-                        setPanelForm(achievementToForm(detailAchievement));
-                        setDetailMode("edit");
-                      }}
-                    >
-                      <PenLine className="h-4 w-4" aria-hidden />
-                    </button>
-                    <button
-                      type="button"
-                      aria-label="Delete"
-                      className={achievementDialogIconBtn}
-                      disabled={isSaving}
-                      onClick={() => setDeleteConfirmId(detailAchievement.id)}
-                    >
-                      <Trash2 className="h-4 w-4" aria-hidden />
-                    </button>
+                    <div className="flex min-h-10 items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          aria-label="Edit"
+                          className={achievementDialogIconBtn}
+                          disabled={isSaving}
+                          onClick={() => {
+                            panelBadgeIkSessionRef.current = {
+                              baselineUrl: detailAchievement.icon_url ?? "",
+                              baselineFileId: detailAchievement.icon_file_id ?? "",
+                              lastSessionFileId: null,
+                            };
+                            setPanelForm(achievementToForm(detailAchievement));
+                            setDetailMode("edit");
+                          }}
+                        >
+                          <PenLine className="h-4 w-4" aria-hidden />
+                        </button>
+                        {detailAchievement.icon_url?.trim() ? (
+                          <button
+                            type="button"
+                            aria-label="Copy embed link"
+                            className={achievementDialogIconBtn}
+                            disabled={isSaving || embedCopyBusy}
+                            onClick={() => void copyEmbedLink()}
+                          >
+                            <Link2 className="h-4 w-4" aria-hidden />
+                          </button>
+                        ) : null}
+                      </div>
+                      <button
+                        type="button"
+                        aria-label="Delete"
+                        className={achievementDialogIconBtn}
+                        disabled={isSaving}
+                        onClick={() => setDeleteConfirmId(detailAchievement.id)}
+                      >
+                        <Trash2 className="h-4 w-4" aria-hidden />
+                      </button>
+                    </div>
+                    {embedCopyHint ? (
+                      <p className="text-center text-xs text-white/50" role="status">
+                        {embedCopyHint}
+                      </p>
+                    ) : null}
                   </div>
                 ) : formatAchievedAt(detailAchievement.achieved_at) ? null : (
                   <div className="mt-6" aria-hidden />

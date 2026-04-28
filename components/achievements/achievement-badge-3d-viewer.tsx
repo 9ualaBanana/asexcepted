@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 
+import { makeBadgeMotionStyle } from "@/components/achievements/badge-float-motion";
 import { getAlphaMaskStyle } from "@/components/achievements/badge-shape-utils";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +10,15 @@ type AchievementBadge3DViewerProps = {
   src: string;
   className?: string;
   interactive?: boolean;
+  /**
+   * When true, applies the same `.achievement-badge-object-float` motion as the
+   * achievements detail panel (CSS in globals.css + `makeBadgeMotionStyle`).
+   */
+  float?: boolean;
+  /** Seed for motion params; use achievement id to match detail + embed. */
+  motionSeed?: string;
+  /** Passed through to `makeBadgeMotionStyle` (e.g. true right after unlock). */
+  motionStartCentered?: boolean;
 };
 
 const MODEL_DEPTH_LAYERS = 7;
@@ -23,6 +33,9 @@ export function AchievementBadge3DViewer({
   src,
   className,
   interactive = true,
+  float = false,
+  motionSeed,
+  motionStartCentered = false,
 }: AchievementBadge3DViewerProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const modelRef = useRef<HTMLDivElement>(null);
@@ -39,6 +52,13 @@ export function AchievementBadge3DViewer({
 
   const safeSrc = useMemo(() => src.replace(/"/g, '\\"'), [src]);
   const maskStyle = useMemo(() => getAlphaMaskStyle(src), [src]);
+  const floatMotionStyle = useMemo(
+    () =>
+      float
+        ? makeBadgeMotionStyle((motionSeed ?? src).trim() || "badge", motionStartCentered)
+        : undefined,
+    [float, motionSeed, motionStartCentered, src],
+  );
   const sideLayerStyle = useMemo(
     () =>
       Array.from({ length: MODEL_DEPTH_LAYERS }).map((_, i) => {
@@ -138,7 +158,7 @@ export function AchievementBadge3DViewer({
   }
 
 
-  return (
+  const viewer = (
     <div
       ref={rootRef}
       className={cn(
@@ -218,6 +238,19 @@ export function AchievementBadge3DViewer({
             backgroundImage: `url("${safeSrc}")`,
           }}
         />
+      </div>
+    </div>
+  );
+
+  if (!float) return viewer;
+
+  return (
+    <div className="relative h-full w-full">
+      <div
+        className="relative h-full w-full achievement-badge-object-float"
+        style={floatMotionStyle}
+      >
+        {viewer}
       </div>
     </div>
   );
