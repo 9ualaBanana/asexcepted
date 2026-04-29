@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import type { Database } from "@/lib/supabase/database.types";
 
 /**
  * Supabase session refresh + lightweight auth gating for the root `proxy.ts`.
@@ -12,7 +13,7 @@ export async function updateSession(request: NextRequest) {
   });
   const pathname = request.nextUrl.pathname;
 
-  const supabase = createServerClient(
+  const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {

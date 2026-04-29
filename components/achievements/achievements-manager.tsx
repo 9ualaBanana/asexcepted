@@ -52,11 +52,8 @@ import {
   createEmptyBadgeIkSession,
   type FormState,
   formatAchievedAt,
-  formatGridDate,
   getSafeIcon,
-  getSafeIconKey,
   hasMeaningfulContent,
-  toNullable,
   todayDateString,
 } from "@/components/achievements/achievement-editor-shared";
 import { EditableAchievementCard } from "@/components/achievements/editable-achievement-card";
@@ -69,25 +66,20 @@ import { toOptimizedBadgeRenderSrc } from "@/lib/badge-render-src";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { useAchievementSounds } from "@/components/achievements/use-achievement-sounds";
-
-type AchievementRecord = {
-  id: string;
-  title: string | null;
-  description: string | null;
-  category: string | null;
-  icon: AchievementIconKey;
-  icon_url: string | null;
-  icon_file_id: string | null;
-  tone: AchievementTone;
-  is_locked: boolean;
-  achieved_at: string | null;
-  created_at: string;
-};
-
-type AchievementPayloadBase = Omit<AchievementRecord, "id" | "created_at">;
-
-type AchievementInsertPayload = AchievementPayloadBase;
-type AchievementUpdatePayload = AchievementPayloadBase;
+import {
+  createAchievement,
+  deleteAchievement as deleteAchievementRow,
+  listAchievementsByUser,
+  unlockAchievement,
+  updateAchievement,
+} from "@/components/achievements/achievement-db";
+import {
+  achievementToGridItem,
+  achievementToForm,
+  formToPayload,
+  normalizeAchievement,
+  type AchievementRecord,
+} from "@/components/achievements/achievement-transformers";
 
 function createInitialForm(): FormState {
   return {
@@ -103,8 +95,6 @@ function createInitialForm(): FormState {
   };
 }
 
-const SELECT_COLUMNS =
-  "id,title,description,category,icon,icon_url,icon_file_id,tone,is_locked,achieved_at,created_at";
 const UNLOCK_HOLD_DURATION_MS = 500;
 const UNLOCK_REVEAL_DURATION_MS = 5000;
 const UNLOCK_REVEAL_LUT_STEPS = unlockRevealLutSteps();
@@ -134,54 +124,6 @@ async function copyTextToClipboard(text: string): Promise<boolean> {
   return copied;
 }
 
-function normalizeAchievement(row: Record<string, unknown>): AchievementRecord {
-  return {
-    id: String(row.id),
-    title: (row.title as string | null) ?? null,
-    description: (row.description as string | null) ?? null,
-    category: (row.category as string | null) ?? null,
-    icon: getSafeIconKey(row.icon as string | null | undefined),
-    icon_url: (row.icon_url as string | null) ?? null,
-    icon_file_id: normalizeImageKitFileId(row.icon_file_id as string | null) || null,
-    tone: getSafeTone(row.tone as string | null | undefined),
-    is_locked: Boolean(row.is_locked),
-    achieved_at: (row.achieved_at as string | null) ?? null,
-    created_at: String(row.created_at),
-  };
-}
-
-function resolveTone(achievement: AchievementRecord | null) {
-  return getSafeTone(achievement?.tone);
-}
-
-function achievementToForm(a: AchievementRecord): FormState {
-  return {
-    title: a.title ?? "",
-    description: a.description ?? "",
-    category: a.category ?? "",
-    icon: getSafeIconKey(a.icon),
-    iconUrl: a.icon_url ?? "",
-    iconFileId: a.icon_file_id ?? "",
-    tone: resolveTone(a),
-    isLocked: Boolean(a.is_locked),
-    achievedAt: a.achieved_at ?? "",
-  };
-}
-
-function formToPayload(form: FormState): AchievementPayloadBase {
-  return {
-    title: toNullable(form.title),
-    description: toNullable(form.description),
-    category: toNullable(form.category),
-    icon: form.icon,
-    icon_url: toNullable(form.iconUrl),
-    icon_file_id: normalizeImageKitFileId(form.iconFileId) || null,
-    tone: form.tone,
-    is_locked: form.isLocked,
-    achieved_at: toNullable(form.achievedAt),
-  };
-}
-
 function sortAchievements(rows: AchievementRecord[]) {
   return [...rows].sort((a, b) => {
     const aPrimary = a.achieved_at
@@ -197,6 +139,10 @@ function sortAchievements(rows: AchievementRecord[]) {
 
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
+}
+
+function resolveTone(achievement: AchievementRecord | null) {
+  return getSafeTone(achievement?.tone);
 }
 
 export type AchievementsManagerProps = {
@@ -595,12 +541,7 @@ export function AchievementsManager({
     setIsLoading(true);
     setError(null);
 
-    const { data, error } = await supabase
-      .from("achievements")
-      .select(SELECT_COLUMNS)
-      .eq("user_id", ownerUserId)
-      .order("achieved_at", { ascending: false })
-      .order("created_at", { ascending: false });
+    const { data, error } = await listAchievementsByUser(supabase, ownerUserId);
 
     if (error) {
       setError(error.message);
@@ -612,7 +553,7 @@ export function AchievementsManager({
     const rawRows = Array.isArray(data) ? data : [];
     setAchievements(
       sortAchievements(
-        rawRows.map((row) => normalizeAchievement(row as unknown as Record<string, unknown>)),
+        rawRows.map(normalizeAchievement)
       ),
     );
     setIsLoading(false);
@@ -633,13 +574,8 @@ export function AchievementsManager({
     setIsSaving(true);
     setError(null);
 
-    const insertPayload: AchievementInsertPayload = formToPayload(createForm);
-
-    const { data, error } = await supabase
-      .from("achievements")
-      .insert(insertPayload)
-      .select(SELECT_COLUMNS)
-      .single();
+    const insertPayload = formToPayload(createForm);
+    const { data, error } = await createAchievement(supabase, insertPayload);
 
     if (error) {
       setError(error.message);
@@ -652,7 +588,7 @@ export function AchievementsManager({
       return;
     }
 
-    const normalized = normalizeAchievement(data as unknown as Record<string, unknown>);
+    const normalized = normalizeAchievement(data);
     const createdSrc = normalized.icon_url?.trim() ?? "";
     if (badgeRenderOptimized && createdSrc) {
       const renderSrc = toOptimizedBadgeRenderSrc(createdSrc);
@@ -684,14 +620,12 @@ export function AchievementsManager({
     setIsSaving(true);
     setError(null);
 
-    const updatePayload: AchievementUpdatePayload = formToPayload(panelForm);
-
-    const { data, error } = await supabase
-      .from("achievements")
-      .update(updatePayload)
-      .eq("id", detailAchievementId)
-      .select(SELECT_COLUMNS)
-      .single();
+    const updatePayload = formToPayload(panelForm);
+    const { data, error } = await updateAchievement(
+      supabase,
+      detailAchievementId,
+      updatePayload,
+    );
 
     if (error) {
       setError(error.message);
@@ -704,7 +638,7 @@ export function AchievementsManager({
       return;
     }
 
-    const normalized = normalizeAchievement(data as unknown as Record<string, unknown>);
+    const normalized = normalizeAchievement(data);
     const previousSrc = detailAchievement?.icon_url?.trim() ?? "";
     const nextSrc = normalized.icon_url?.trim() ?? "";
     if (badgeRenderOptimized) {
@@ -759,7 +693,7 @@ export function AchievementsManager({
       console.warn("ImageKit delete on achievement remove", e),
     );
 
-    const { error } = await supabase.from("achievements").delete().eq("id", id);
+    const { error } = await deleteAchievementRow(supabase, id);
 
     if (error) {
       setError(error.message);
@@ -870,12 +804,7 @@ export function AchievementsManager({
     // UI should be instantly interactive once reveal is complete.
     setIsSaving(false);
 
-    const { data, error } = await supabase
-      .from("achievements")
-      .update({ is_locked: false })
-      .eq("id", targetId)
-      .select(SELECT_COLUMNS)
-      .single();
+    const { data, error } = await unlockAchievement(supabase, targetId);
 
     if (error || !data || typeof data === "string") {
       setError(error?.message ?? "Unexpected response while unlocking achievement.");
@@ -894,7 +823,7 @@ export function AchievementsManager({
       return;
     }
 
-    const normalized = normalizeAchievement(data as unknown as Record<string, unknown>);
+    const normalized = normalizeAchievement(data);
     setAchievements((prev) =>
       sortAchievements(
         prev.map((achievement) =>
@@ -920,16 +849,7 @@ export function AchievementsManager({
   }
 
   const gridItems = useMemo(
-    () =>
-      achievements.map((achievement) => ({
-        id: achievement.id,
-        title: achievement.title,
-        dateLabel: formatGridDate(achievement.achieved_at),
-        iconUrl: achievement.icon_url,
-        FallbackIcon: getSafeIcon(achievement.icon),
-        tone: resolveTone(achievement),
-        isLocked: Boolean(achievement.is_locked),
-      })),
+    () => achievements.map(achievementToGridItem),
     [achievements],
   );
 

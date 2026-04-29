@@ -49,10 +49,6 @@ const toneDiscStyles: Record<AchievementTone, string> = {
     "from-fuchsia-300/35 via-pink-200/18 to-background/30 border-fuchsia-300/45",
 };
 
-/**
- * Phosphor / lock badge disc: same tone gradient, glow, and frosted inner pill
- * as legacy achievement cards (grid + detail).
- */
 export function AchievementFallbackBadge({
   tone,
   isLocked,

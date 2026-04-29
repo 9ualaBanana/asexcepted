@@ -26,8 +26,7 @@ type AchievementGridItemProps = {
   dateLabel: string | null;
   iconUrl: string | null;
   FallbackIcon: LucideIcon;
-  /** Matches legacy achievement cards; drives gradient + border on the icon disc. */
-  tone?: AchievementTone;
+  tone: AchievementTone;
   isLocked: boolean;
   onClick: () => void;
 };
@@ -59,13 +58,12 @@ export function AchievementGridItem({
   dateLabel,
   iconUrl,
   FallbackIcon,
-  tone = "teal",
+  tone,
   isLocked,
   onClick,
 }: AchievementGridItemProps) {
   const displayTitle = title?.trim() || (isLocked ? "Locked" : "Untitled");
-  const cleanIconUrl = iconUrl?.trim() ?? "";
-  const silhouetteMaskStyle = cleanIconUrl ? getAlphaMaskStyle(cleanIconUrl) : null;
+  const silhouetteMaskStyle = iconUrl ? getAlphaMaskStyle(iconUrl) : null;
 
   return (
     <button
@@ -83,7 +81,7 @@ export function AchievementGridItem({
             "relative h-full w-full",
           )}
         >
-          {cleanIconUrl ? (
+          {iconUrl ? (
             <>
               {!isLocked && silhouetteMaskStyle ? (
                 <div
@@ -97,7 +95,7 @@ export function AchievementGridItem({
                   "relative h-full w-full",
                 )}
               >
-                <RemoteBadgeImage src={cleanIconUrl} />
+                <RemoteBadgeImage src={iconUrl} />
               </div>
             </>
           ) : (
