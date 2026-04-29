@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 
 import {
+  ensureBadgeImageDecoded,
   getCachedBadgeMaskStyle,
   getCachedBadgeMotionStyle,
 } from "@/components/achievements/badge-render-cache";
@@ -123,15 +124,10 @@ export function AchievementBadge3DViewer({
       });
     };
 
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => emitReady();
-    img.onerror = () => emitReady();
-    img.src = src;
-    if (img.complete) {
-      emitDecoded();
+    void ensureBadgeImageDecoded(src).then(() => {
+      if (cancelled) return;
       emitReady();
-    }
+    });
 
     return () => {
       cancelled = true;

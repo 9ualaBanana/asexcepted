@@ -466,37 +466,6 @@ export function AchievementsManager({
   }, [ownerUserId]);
 
   useEffect(() => {
-    if (!badgeRenderOptimized || achievements.length === 0) return;
-    const run = () => {
-      // Prewarm all custom badges after initial grid render; keep UI responsive.
-      for (const achievement of achievements) {
-        const rawSrc = achievement.icon_url?.trim() ?? "";
-        if (!rawSrc) continue;
-        const src = badgeRenderOptimized ? toOptimizedBadgeRenderSrc(rawSrc) : rawSrc;
-        prewarmBadgeRenderCache(src, { motionSeed: achievement.id });
-      }
-    };
-    if (typeof window === "undefined") return;
-    const ric = (
-      window as Window & {
-        requestIdleCallback?: (cb: () => void) => number;
-        cancelIdleCallback?: (id: number) => void;
-      }
-    ).requestIdleCallback;
-    if (ric) {
-      const id = ric(run);
-      return () => {
-        const cancel = (
-          window as Window & { cancelIdleCallback?: (id: number) => void }
-        ).cancelIdleCallback;
-        cancel?.(id);
-      };
-    }
-    const timeout = window.setTimeout(run, 80);
-    return () => window.clearTimeout(timeout);
-  }, [achievements, badgeRenderOptimized]);
-
-  useEffect(() => {
     if (
       detailAchievementId &&
       !achievements.some((a) => a.id === detailAchievementId)
@@ -507,6 +476,46 @@ export function AchievementsManager({
   }, [achievements, detailAchievementId]);
 
   const achievementOverlayOpen = Boolean(detailAchievement) || isCreating;
+
+  /** Chunked prewarm: avoids one idle callback decoding every badge while detail is open. */
+  useEffect(() => {
+    if (!badgeRenderOptimized || achievements.length === 0) return;
+    if (achievementOverlayOpen) return;
+
+    const jobs: { src: string; id: string }[] = [];
+    for (const achievement of achievements) {
+      const rawSrc = achievement.icon_url?.trim() ?? "";
+      if (!rawSrc) continue;
+      jobs.push({ src: toOptimizedBadgeRenderSrc(rawSrc), id: achievement.id });
+    }
+    if (jobs.length === 0) return;
+
+    let cancelled = false;
+    let index = 0;
+    let rafId = 0;
+    const CHUNK = 2;
+
+    const pump = () => {
+      if (cancelled) return;
+      const end = Math.min(index + CHUNK, jobs.length);
+      for (; index < end; index += 1) {
+        const j = jobs[index];
+        prewarmBadgeRenderCache(j.src, { motionSeed: j.id });
+      }
+      if (index < jobs.length) {
+        rafId = requestAnimationFrame(pump);
+      }
+    };
+
+    rafId = requestAnimationFrame(() => {
+      rafId = requestAnimationFrame(pump);
+    });
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(rafId);
+    };
+  }, [achievements, badgeRenderOptimized, achievementOverlayOpen]);
 
   useEffect(() => {
     if (!achievementOverlayOpen) return;

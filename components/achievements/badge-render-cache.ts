@@ -9,7 +9,7 @@ import {
   type AlphaMaskData,
 } from "@/components/achievements/badge-shape-utils";
 
-const imageReady = new Map<string, Promise<void>>();
+const decodeReady = new Map<string, Promise<void>>();
 const alphaMaskReady = new Map<string, Promise<AlphaMaskData | null>>();
 const maskStyleCache = new Map<string, CSSProperties>();
 const motionStyleCache = new Map<string, CSSProperties>();
@@ -18,23 +18,34 @@ function normalizeSrc(src: string): string {
   return src.trim();
 }
 
-function imagePreload(src: string): Promise<void> {
+/**
+ * Ensures the image bytes are loaded and `decode()` has settled for this URL.
+ * Reuses one promise per URL so repeat opens do not spawn redundant decode work.
+ */
+export function ensureBadgeImageDecoded(src: string): Promise<void> {
   const key = normalizeSrc(src);
   if (!key) return Promise.resolve();
-  const cached = imageReady.get(key);
+  const cached = decodeReady.get(key);
   if (cached) return cached;
 
   const p = new Promise<void>((resolve) => {
+    const finish = () => resolve();
     const img = new Image();
     img.crossOrigin = "anonymous";
-    img.onload = () => resolve();
-    img.onerror = () => resolve();
+    img.onload = () => {
+      void (img.decode?.() ?? Promise.resolve())
+        .then(finish)
+        .catch(finish);
+    };
+    img.onerror = finish;
     img.src = key;
     if (img.complete) {
-      void img.decode?.().catch(() => undefined).finally(resolve);
+      void (img.decode?.() ?? Promise.resolve())
+        .then(finish)
+        .catch(finish);
     }
   });
-  imageReady.set(key, p);
+  decodeReady.set(key, p);
   return p;
 }
 
@@ -80,7 +91,7 @@ export function prewarmBadgeRenderCache(
 ): void {
   const key = normalizeSrc(src);
   if (!key) return;
-  void imagePreload(key);
+  void ensureBadgeImageDecoded(key);
   void getCachedBadgeMaskStyle(key);
   if (options?.includeAlphaMaskData) {
     void getCachedAlphaMaskData(key);
@@ -93,8 +104,7 @@ export function prewarmBadgeRenderCache(
 export function clearBadgeRenderCacheForSrc(src: string): void {
   const key = normalizeSrc(src);
   if (!key) return;
-  imageReady.delete(key);
+  decodeReady.delete(key);
   alphaMaskReady.delete(key);
   maskStyleCache.delete(key);
 }
-
