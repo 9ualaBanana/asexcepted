@@ -1,14 +1,11 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
+import type { MintEmbedBadgeTokenRequestBody } from "@/lib/embed-api-types";
 import { mintEmbedBadgeToken } from "@/lib/embed-badge-token";
 import { allowRateLimit } from "@/lib/embed-rate-limit";
 import { resolvePublicSiteOrigin } from "@/lib/public-site-origin";
 import { createClient } from "@/lib/supabase/server";
-
-type Body = {
-  achievementId?: string;
-};
 
 function clientIp(h: Headers): string {
   return (
@@ -45,9 +42,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
-  let body: Body;
+  let body: MintEmbedBadgeTokenRequestBody;
   try {
-    body = (await req.json()) as Body;
+    body = (await req.json()) as MintEmbedBadgeTokenRequestBody;
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }

@@ -63,6 +63,7 @@ import {
   useBadgeRenderOptimizedPreference,
 } from "@/lib/badge-render-optimization";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge-render-src";
+import { requestEmbedBadgeToken } from "@/lib/embed-api-client";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { useAchievementSounds } from "@/components/achievements/use-achievement-sounds";
@@ -286,18 +287,16 @@ export function AchievementsManager({
     setEmbedCopyHint(null);
     let embedUrlForFallback = "";
     try {
-      const res = await fetch("/api/embed/badge-token", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ achievementId: detailAchievement.id }),
-      });
-      const data = (await res.json()) as { embedUrl?: string; error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Could not create embed link.");
-      if (!data.embedUrl) throw new Error("Missing embed URL.");
-      embedUrlForFallback = data.embedUrl;
-      const copied = await copyTextToClipboard(data.embedUrl);
+      const tokenResult = await requestEmbedBadgeToken(detailAchievement.id);
+      if (tokenResult.isErr()) {
+        setEmbedCopyHint(tokenResult.error);
+        return;
+      }
+      const { embedUrl } = tokenResult.value;
+      embedUrlForFallback = embedUrl;
+      const copied = await copyTextToClipboard(embedUrl);
       if (!copied) {
-        setManualEmbedUrl(data.embedUrl);
+        setManualEmbedUrl(embedUrl);
         setEmbedCopyHint("Copy was blocked. Use the manual copy sheet below.");
         window.setTimeout(() => setEmbedCopyHint(null), 3000);
         return;
@@ -623,7 +622,6 @@ export function AchievementsManager({
       return;
     }
 
-    const normalized = result.value;
     const updatedAchievement = result.value;
     const previousSrc = detailAchievement?.icon_url?.trim() ?? "";
     const nextSrc = updatedAchievement.icon_url?.trim() ?? "";
