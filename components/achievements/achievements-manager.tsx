@@ -10,16 +10,15 @@ import {
   type FormEvent,
   type RefObject,
 } from "react";
-import { Copy, Link2, PenLine, Sparkles, Trash2, X } from "lucide-react";
+import { Copy, Link2, PenLine, Trash2, X } from "lucide-react";
 
 import {
   getSafeTone,
   type AchievementTone,
 } from "@/components/achievements/achievement-card";
+import { AchievementGrid } from "@/components/achievements/achievement-grid";
 import { AchievementBadgeSlot } from "@/components/achievements/badge/achievement-badge-slot";
 import { AchievementFallbackBadge } from "@/components/achievements/badge/achievement-fallback-badge";
-import { AchievementGridItem } from "@/components/achievements/achievement-grid-item";
-import { AchievementGridLoadingSkeleton } from "@/components/achievements/achievement-grid-skeleton";
 import { AchievementBadge3DViewer } from "@/components/achievements/badge/achievement-badge-3d-viewer";
 import {
   clearSessionStagedUpload,
@@ -1050,91 +1049,45 @@ export function AchievementsManager({
     }, UNLOCK_HOLD_DURATION_MS);
   }
 
+  const gridItems = useMemo(
+    () =>
+      achievements.map((achievement) => ({
+        id: achievement.id,
+        title: achievement.title,
+        dateLabel: formatGridDate(achievement.achieved_at),
+        iconUrl: achievement.icon_url,
+        FallbackIcon: getSafeIcon(achievement.icon),
+        tone: resolveTone(achievement),
+        isLocked: Boolean(achievement.is_locked),
+      })),
+    [achievements],
+  );
+
   return (
     <div className="space-y-6">
       {error ? <p className="text-sm text-red-500">{error}</p> : null}
 
-      {isLoading ? (
-        <div className="space-y-4">
-          <AchievementGridLoadingSkeleton />
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <div
-            className={cn(
-              "-mx-2 min-h-[200px] rounded-none bg-background px-2 py-6",
-              "sm:mx-0 sm:rounded-2xl sm:px-4",
-            )}
-          >
-            <div className="grid grid-cols-3 gap-x-2 gap-y-8">
-              {!readOnly ? (
-                <button
-                  type="button"
-                  className={cn(
-                    "no-tap-highlight group flex w-full flex-col items-center gap-1.5 px-0.5 py-1 text-center outline-none transition-opacity",
-                    "text-white/45 hover:text-white/80",
-                    "focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                  )}
-                  onClick={() => {
-                    createBadgeIkSessionRef.current = createEmptyBadgeIkSession();
-                    setIsCreating(true);
-                    setDetailAchievementId(null);
-                    setDetailMode("edit");
-                    setCreateForm({
-                      ...INITIAL_FORM,
-                      achievedAt: todayDateString(),
-                    });
-                  }}
-                >
-                  <div
-                    className={cn(
-                      "relative flex aspect-square w-full max-w-[104px] items-center justify-center rounded-3xl",
-                      "border border-dashed border-white/25 bg-transparent transition-colors",
-                      "group-hover:border-white/45 group-hover:bg-white/[0.04]",
-                    )}
-                  >
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full border border-current/40">
-                      <Sparkles className="h-6 w-6" />
-                    </div>
-                  </div>
-                  <p className="line-clamp-2 h-[2.7em] max-h-[2.7em] w-full shrink-0 overflow-hidden text-[11px] font-medium leading-[1.35] text-white/55 group-hover:text-white/80 sm:text-xs">
-                    Add achievement
-                  </p>
-                  <p className="text-[10px] text-white/35 sm:text-[11px]">—</p>
-                </button>
-              ) : null}
-
-              {achievements.map((achievement) => {
-                return (
-                  <AchievementGridItem
-                    key={achievement.id}
-                    title={achievement.title}
-                    dateLabel={formatGridDate(achievement.achieved_at)}
-                    iconUrl={achievement.icon_url}
-                    FallbackIcon={getSafeIcon(achievement.icon)}
-                    tone={resolveTone(achievement)}
-                    isLocked={Boolean(achievement.is_locked)}
-                    onClick={() => {
-                      markDetailOpenStart(achievement.id);
-                      setDetailAchievementId(achievement.id);
-                      setDetailMode("view");
-                      setIsCreating(false);
-                    }}
-                  />
-                );
-              })}
-            </div>
-
-            {achievements.length === 0 ? (
-              <p className="mt-6 text-center text-sm text-white/45">
-                {readOnly
-                  ? "No achievements to show yet."
-                  : "No achievements yet. Tap Add achievement to create one."}
-              </p>
-            ) : null}
-          </div>
-        </div>
-      )}
+      <AchievementGrid
+        isLoading={isLoading}
+        readOnly={readOnly}
+        items={gridItems}
+        onAddAchievement={() => {
+          createBadgeIkSessionRef.current = createEmptyBadgeIkSession();
+          setIsCreating(true);
+          setDetailAchievementId(null);
+          setDetailMode("edit");
+          setCreateForm({
+            ...INITIAL_FORM,
+            achievedAt: todayDateString(),
+          });
+        }}
+        onSelectAchievement={(achievementId) => {
+          markDetailOpenStart(achievementId);
+          setDetailAchievementId(achievementId);
+          setDetailMode("view");
+          setIsCreating(false);
+        }}
+      />
 
       {detailAchievement || isCreating
         ? typeof document !== "undefined"

@@ -32,6 +32,28 @@ type AchievementGridItemProps = {
   onClick: () => void;
 };
 
+export function AchievementGridItemFallback() {
+  return (
+    <div
+      aria-hidden
+      className="flex w-full flex-col items-center gap-1.5 px-0.5 py-1"
+    >
+      <div
+        className={cn(
+          "aspect-square w-full max-w-[104px] animate-pulse rounded-3xl",
+          "bg-gradient-to-br from-white/[0.1] to-white/[0.03]",
+          "ring-1 ring-inset ring-white/10",
+        )}
+      />
+      <div className="flex h-[2.7em] w-full max-w-[104px] flex-col justify-center gap-1.5 px-1">
+        <div className="mx-auto h-2 w-[88%] max-w-[5.5rem] animate-pulse rounded-full bg-white/[0.08]" />
+        <div className="mx-auto h-2 w-[62%] max-w-[4rem] animate-pulse rounded-full bg-white/[0.06]" />
+      </div>
+      <div className="h-2.5 w-11 animate-pulse rounded-full bg-white/[0.06]" />
+    </div>
+  );
+}
+
 export function AchievementGridItem({
   title,
   dateLabel,
