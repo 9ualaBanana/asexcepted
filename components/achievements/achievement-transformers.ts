@@ -17,7 +17,7 @@ import { normalizeImageKitFileId } from "@/components/achievements/badge/badge-i
 import type {
   AchievementDbRow,
   AchievementDbWritePayload,
-} from "@/components/achievements/achievement-db";
+} from "@/components/achievements/achievement-db-schema";
 
 export type AchievementRecord = {
   id: string;

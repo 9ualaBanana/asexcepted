@@ -86,7 +86,7 @@ async function UserAchievementsContent({ params }: PageProps) {
               />
             </div>
           ) : null}
-          <AchievementsManager ownerUserId={userId} readOnly={readOnly} />
+          <AchievementsManager userId={userId} readOnly={readOnly} />
         </section>
       </div>
     </main>

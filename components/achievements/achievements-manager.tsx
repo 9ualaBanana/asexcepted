@@ -68,8 +68,8 @@ import { cn } from "@/lib/utils";
 import { useAchievementSounds } from "@/components/achievements/use-achievement-sounds";
 import {
   createAchievement,
-  deleteAchievement as deleteAchievementRow,
-  listAchievementsByUser,
+  deleteAchievement,
+  listAchievements,
   unlockAchievement,
   updateAchievement,
 } from "@/components/achievements/achievement-db";
@@ -77,7 +77,6 @@ import {
   achievementToGridItem,
   achievementToForm,
   formToPayload,
-  normalizeAchievement,
   type AchievementRecord,
 } from "@/components/achievements/achievement-transformers";
 
@@ -147,14 +146,14 @@ function resolveTone(achievement: AchievementRecord | null) {
 
 export type AchievementsManagerProps = {
   /** Supabase Auth user id (`auth.users.id`); scopes achievements rows. */
-  ownerUserId: string;
+  userId: string;
   /** When true, list and detail are view-only (no create / edit / delete / unlock). */
-  readOnly?: boolean;
+  readOnly: boolean;
 };
 
 export function AchievementsManager({
-  ownerUserId,
-  readOnly = false,
+  userId,
+  readOnly,
 }: AchievementsManagerProps) {
   const supabase = useMemo(() => createClient(), []);
   const [badgeRenderOptimized] = useBadgeRenderOptimizedPreference();
@@ -541,23 +540,19 @@ export function AchievementsManager({
     setIsLoading(true);
     setError(null);
 
-    const { data, error } = await listAchievementsByUser(supabase, ownerUserId);
+    const result = await listAchievements(supabase, userId);
 
-    if (error) {
-      setError(error.message);
+    if (result.isErr()) {
+      setError(result.error);
       setAchievements([]);
       setIsLoading(false);
       return;
     }
 
-    const rawRows = Array.isArray(data) ? data : [];
-    setAchievements(
-      sortAchievements(
-        rawRows.map(normalizeAchievement)
-      ),
-    );
+    const loadedAchievements = result.value;
+    setAchievements(sortAchievements(loadedAchievements));
     setIsLoading(false);
-  }, [supabase, ownerUserId]);
+  }, [supabase, userId]);
 
   useEffect(() => {
     void loadAchievements();
@@ -575,31 +570,26 @@ export function AchievementsManager({
     setError(null);
 
     const insertPayload = formToPayload(createForm);
-    const { data, error } = await createAchievement(supabase, insertPayload);
+    const result = await createAchievement(supabase, insertPayload);
 
-    if (error) {
-      setError(error.message);
-      setIsSaving(false);
-      return;
-    }
-    if (!data || typeof data === "string") {
-      setError("Unexpected response while creating achievement.");
+    if (result.isErr()) {
+      setError(result.error);
       setIsSaving(false);
       return;
     }
 
-    const normalized = normalizeAchievement(data);
-    const createdSrc = normalized.icon_url?.trim() ?? "";
+    const createdAchievement = result.value;
+    const createdSrc = createdAchievement.icon_url?.trim() ?? "";
     if (badgeRenderOptimized && createdSrc) {
       const renderSrc = toOptimizedBadgeRenderSrc(createdSrc);
       prewarmBadgeRenderCache(createdSrc, {
-        motionSeed: normalized.id,
-        includeAlphaMaskData: Boolean(normalized.is_locked) && !readOnly,
+        motionSeed: createdAchievement.id,
+        includeAlphaMaskData: Boolean(createdAchievement.is_locked) && !readOnly,
       });
-      prewarmBadgeRenderCache(renderSrc, { motionSeed: normalized.id });
+      prewarmBadgeRenderCache(renderSrc, { motionSeed: createdAchievement.id });
     }
     playSavePop();
-    setAchievements((prev) => sortAchievements([normalized, ...prev]));
+    setAchievements((prev) => sortAchievements([createdAchievement, ...prev]));
     setCreateForm(createInitialForm());
     createBadgeIkSessionRef.current = createEmptyBadgeIkSession();
     setIsSaving(false);
@@ -621,26 +611,22 @@ export function AchievementsManager({
     setError(null);
 
     const updatePayload = formToPayload(panelForm);
-    const { data, error } = await updateAchievement(
+    const result = await updateAchievement(
       supabase,
       detailAchievementId,
       updatePayload,
     );
 
-    if (error) {
-      setError(error.message);
-      setIsSaving(false);
-      return;
-    }
-    if (!data || typeof data === "string") {
-      setError("Unexpected response while updating achievement.");
+    if (result.isErr()) {
+      setError(result.error);
       setIsSaving(false);
       return;
     }
 
-    const normalized = normalizeAchievement(data);
+    const normalized = result.value;
+    const updatedAchievement = result.value;
     const previousSrc = detailAchievement?.icon_url?.trim() ?? "";
-    const nextSrc = normalized.icon_url?.trim() ?? "";
+    const nextSrc = updatedAchievement.icon_url?.trim() ?? "";
     if (badgeRenderOptimized) {
       if (previousSrc && previousSrc !== nextSrc) {
         clearBadgeRenderCacheForSrc(previousSrc);
@@ -649,22 +635,22 @@ export function AchievementsManager({
       if (nextSrc) {
         const renderSrc = toOptimizedBadgeRenderSrc(nextSrc);
         prewarmBadgeRenderCache(nextSrc, {
-          motionSeed: normalized.id,
-          includeAlphaMaskData: Boolean(normalized.is_locked) && !readOnly,
+          motionSeed: updatedAchievement.id,
+          includeAlphaMaskData: Boolean(updatedAchievement.is_locked) && !readOnly,
         });
-        prewarmBadgeRenderCache(renderSrc, { motionSeed: normalized.id });
+        prewarmBadgeRenderCache(renderSrc, { motionSeed: updatedAchievement.id });
       }
     }
     playSavePop();
 
     const baselineId = normalizeImageKitFileId(panelBadgeIkSessionRef.current.baselineFileId);
-    const savedFileId = normalizeImageKitFileId(normalized.icon_file_id);
+    const savedFileId = normalizeImageKitFileId(updatedAchievement.icon_file_id);
     const replacedBaselineId = getReplacedImageKitFileId(baselineId, savedFileId);
     if (replacedBaselineId) {
       void deleteImageKitFileQuietly(replacedBaselineId);
     }
     panelBadgeIkSessionRef.current = {
-      baselineUrl: (normalized.icon_url ?? "").trim(),
+      baselineUrl: (updatedAchievement.icon_url ?? "").trim(),
       baselineFileId: savedFileId,
       lastSessionFileId: panelBadgeIkSessionRef.current.lastSessionFileId,
     };
@@ -673,7 +659,7 @@ export function AchievementsManager({
     setAchievements((prev) =>
       sortAchievements(
         prev.map((achievement) =>
-          achievement.id === normalized.id ? normalized : achievement,
+          achievement.id === updatedAchievement.id ? updatedAchievement : achievement,
         ),
       ),
     );
@@ -693,10 +679,10 @@ export function AchievementsManager({
       console.warn("ImageKit delete on achievement remove", e),
     );
 
-    const { error } = await deleteAchievementRow(supabase, id);
+    const deleteResult = await deleteAchievement(supabase, id);
 
-    if (error) {
-      setError(error.message);
+    if (deleteResult.isErr()) {
+      setError(deleteResult.error);
       setIsSaving(false);
       return;
     }
@@ -804,10 +790,10 @@ export function AchievementsManager({
     // UI should be instantly interactive once reveal is complete.
     setIsSaving(false);
 
-    const { data, error } = await unlockAchievement(supabase, targetId);
+    const unlockResult = await unlockAchievement(supabase, targetId);
 
-    if (error || !data || typeof data === "string") {
-      setError(error?.message ?? "Unexpected response while unlocking achievement.");
+    if (unlockResult.isErr()) {
+      setError(unlockResult.error);
       // Roll back optimistic unlock if persistence fails.
       setAchievements((prev) =>
         sortAchievements(
@@ -823,11 +809,11 @@ export function AchievementsManager({
       return;
     }
 
-    const normalized = normalizeAchievement(data);
+    const unlockedAchievement = unlockResult.value;
     setAchievements((prev) =>
       sortAchievements(
         prev.map((achievement) =>
-          achievement.id === normalized.id ? normalized : achievement,
+          achievement.id === unlockedAchievement.id ? unlockedAchievement : achievement,
         ),
       ),
     );
