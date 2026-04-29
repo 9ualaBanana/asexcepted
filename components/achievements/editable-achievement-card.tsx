@@ -10,7 +10,7 @@ import {
 } from "react";
 import { ArrowLeft, Loader2, Save, X } from "lucide-react";
 
-import { AchievementRoundBadgeEditor } from "@/components/achievements/achievement-round-badge-editor";
+import { AchievementRoundBadgeEditor } from "@/components/achievements/badge/achievement-round-badge-editor";
 import {
   achievementBadgeChromeWidth,
   achievementDialogChromeInset,

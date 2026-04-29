@@ -2,12 +2,12 @@
 
 import type { CSSProperties } from "react";
 
-import { makeBadgeMotionStyle } from "@/components/achievements/badge-float-motion";
+import { makeBadgeMotionStyle } from "@/components/achievements/badge/badge-float-motion";
 import {
   getAlphaMaskStyle,
   loadAlphaMaskDataFromImage,
   type AlphaMaskData,
-} from "@/components/achievements/badge-shape-utils";
+} from "@/components/achievements/badge/badge-shape-utils";
 
 const decodeReady = new Map<string, Promise<void>>();
 const alphaMaskReady = new Map<string, Promise<AlphaMaskData | null>>();

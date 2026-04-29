@@ -6,9 +6,9 @@ import {
   ensureBadgeImageDecoded,
   getCachedBadgeMaskStyle,
   getCachedBadgeMotionStyle,
-} from "@/components/achievements/badge-render-cache";
-import { makeBadgeMotionStyle } from "@/components/achievements/badge-float-motion";
-import { getAlphaMaskStyle } from "@/components/achievements/badge-shape-utils";
+} from "@/components/achievements/badge/badge-render-cache";
+import { makeBadgeMotionStyle } from "@/components/achievements/badge/badge-float-motion";
+import { getAlphaMaskStyle } from "@/components/achievements/badge/badge-shape-utils";
 import { cn } from "@/lib/utils";
 
 type AchievementBadge3DViewerProps = {

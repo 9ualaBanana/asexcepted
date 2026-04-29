@@ -16,17 +16,17 @@ import {
   getSafeTone,
   type AchievementTone,
 } from "@/components/achievements/achievement-card";
-import { AchievementBadgeSlot } from "@/components/achievements/achievement-badge-slot";
-import { AchievementFallbackBadge } from "@/components/achievements/achievement-fallback-badge";
+import { AchievementBadgeSlot } from "@/components/achievements/badge/achievement-badge-slot";
+import { AchievementFallbackBadge } from "@/components/achievements/badge/achievement-fallback-badge";
 import { AchievementGridItem } from "@/components/achievements/achievement-grid-item";
 import { AchievementGridLoadingSkeleton } from "@/components/achievements/achievement-grid-skeleton";
-import { AchievementBadge3DViewer } from "@/components/achievements/achievement-badge-3d-viewer";
+import { AchievementBadge3DViewer } from "@/components/achievements/badge/achievement-badge-3d-viewer";
 import {
   clearBadgeRenderCacheForSrc,
   getCachedAlphaMaskData,
   prewarmBadgeRenderCache,
-} from "@/components/achievements/badge-render-cache";
-import { RemoteBadgeImage } from "@/components/achievements/achievement-remote-badge-image";
+} from "@/components/achievements/badge/badge-render-cache";
+import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
 import {
   buildUnlockRevealClipPath,
   buildUnlockRevealClipPathLut,
@@ -36,7 +36,7 @@ import {
   loadAlphaMaskDataFromImage,
   type AlphaMaskData,
   unlockRevealLutSteps,
-} from "@/components/achievements/badge-shape-utils";
+} from "@/components/achievements/badge/badge-shape-utils";
 import {
   type AchievementIconKey,
   achievementBadgeChromeWidth,

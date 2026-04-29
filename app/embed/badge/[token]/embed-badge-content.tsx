@@ -1,7 +1,7 @@
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
 
-import { AchievementBadge3DViewer } from "@/components/achievements/achievement-badge-3d-viewer";
+import { AchievementBadge3DViewer } from "@/components/achievements/badge/achievement-badge-3d-viewer";
 import { verifyEmbedBadgeToken } from "@/lib/embed-badge-token";
 import { createAnonServerClient } from "@/lib/supabase/server-anon";
 import { EmbedTransparentSurface } from "./embed-transparent-surface";

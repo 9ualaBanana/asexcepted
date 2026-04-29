@@ -15,9 +15,9 @@ import {
   achievementToneSwatches,
   type AchievementTone,
 } from "@/components/achievements/achievement-card";
-import { AchievementBadgeSlot } from "@/components/achievements/achievement-badge-slot";
-import { AchievementFallbackBadge } from "@/components/achievements/achievement-fallback-badge";
-import { RemoteBadgeImage } from "@/components/achievements/achievement-remote-badge-image";
+import { AchievementBadgeSlot } from "@/components/achievements/badge/achievement-badge-slot";
+import { AchievementFallbackBadge } from "@/components/achievements/badge/achievement-fallback-badge";
+import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
 import {
   type AchievementIconKey,
   iconMap,
