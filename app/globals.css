@@ -185,3 +185,8 @@
   animation: loading-icon-pulse 3200ms ease-in-out infinite;
 }
 
+.startup-splash {
+  /* Keep compositor stable while opacity transitions. */
+  will-change: opacity;
+}
+

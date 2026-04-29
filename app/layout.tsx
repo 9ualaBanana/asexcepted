@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PwaInit } from "@/components/pwa/pwa-init";
+import { StartupSplash } from "@/components/pwa/startup-splash";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -66,6 +67,7 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
+          <StartupSplash />
           <PwaInit />
           {children}
         </ThemeProvider>
