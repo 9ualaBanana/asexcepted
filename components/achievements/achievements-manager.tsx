@@ -68,6 +68,7 @@ import {
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge-render-src";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { useAchievementSounds } from "@/components/achievements/use-achievement-sounds";
 
 type AchievementRecord = {
   id: string;
@@ -88,27 +89,25 @@ type AchievementPayloadBase = Omit<AchievementRecord, "id" | "created_at">;
 type AchievementInsertPayload = AchievementPayloadBase;
 type AchievementUpdatePayload = AchievementPayloadBase;
 
-const INITIAL_FORM: FormState = {
-  title: "",
-  description: "",
-  category: "",
-  icon: "trophy",
-  iconUrl: "",
-  iconFileId: "",
-  tone: "teal",
-  isLocked: false,
-  achievedAt: todayDateString(),
-};
+function createInitialForm(): FormState {
+  return {
+    title: "",
+    description: "",
+    category: "",
+    icon: "trophy",
+    iconUrl: "",
+    iconFileId: "",
+    tone: "teal",
+    isLocked: true,
+    achievedAt: todayDateString(),
+  };
+}
 
 const SELECT_COLUMNS =
   "id,title,description,category,icon,icon_url,icon_file_id,tone,is_locked,achieved_at,created_at";
 const UNLOCK_HOLD_DURATION_MS = 500;
 const UNLOCK_REVEAL_DURATION_MS = 5000;
 const UNLOCK_REVEAL_LUT_STEPS = unlockRevealLutSteps();
-const AUDIO_ASSET_VERSION = process.env.NEXT_PUBLIC_BUILD_ID?.trim() || "dev";
-const UNLOCK_PEEL_AUDIO_SRC = `/audio/unlock-peel.wav?v=${AUDIO_ASSET_VERSION}`;
-const UNLOCK_EASE_OUT_AUDIO_SRC = `/audio/unlock-ease-out.wav?v=${AUDIO_ASSET_VERSION}`;
-const SAVE_POP_AUDIO_SRC = `/audio/pop.mp3?v=${AUDIO_ASSET_VERSION}`;
 
 async function copyTextToClipboard(text: string): Promise<boolean> {
   try {
@@ -218,11 +217,11 @@ export function AchievementsManager({
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [createForm, setCreateForm] = useState<FormState>(INITIAL_FORM);
+  const [createForm, setCreateForm] = useState<FormState>(createInitialForm);
   const [isCreating, setIsCreating] = useState(false);
   const [detailAchievementId, setDetailAchievementId] = useState<string | null>(null);
   const [detailMode, setDetailMode] = useState<"view" | "edit">("view");
-  const [panelForm, setPanelForm] = useState<FormState>(INITIAL_FORM);
+  const [panelForm, setPanelForm] = useState<FormState>(createInitialForm);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [embedCopyBusy, setEmbedCopyBusy] = useState(false);
   const [embedCopyHint, setEmbedCopyHint] = useState<string | null>(null);
@@ -244,12 +243,6 @@ export function AchievementsManager({
   const unlockRevealResolverRef = useRef<((result: "completed" | "cancelled") => void) | null>(
     null,
   );
-  const unlockAudioRef = useRef<HTMLAudioElement | null>(null);
-  const unlockAudioPreparedRef = useRef<HTMLAudioElement | null>(null);
-  const unlockSfxContextRef = useRef<AudioContext | null>(null);
-  const unlockEaseOutBufferRef = useRef<AudioBuffer | null>(null);
-  const unlockEaseOutSourceRef = useRef<AudioBufferSourceNode | null>(null);
-  const savePopPreparedRef = useRef<HTMLAudioElement | null>(null);
   const unlockAlphaMaskRef = useRef<AlphaMaskData | null>(null);
   const detailOpenStartedAtRef = useRef<number | null>(null);
   const detailPerfMeasuredForIdRef = useRef<string | null>(null);
@@ -260,6 +253,13 @@ export function AchievementsManager({
   const [detailOpenToImageDecodedMs, setDetailOpenToImageDecodedMs] = useState<number | null>(
     null,
   );
+  const {
+    stopUnlockSound,
+    playUnlockTimelineSound,
+    playUnlockEaseOutSound,
+    primeUnlockAudioGestureContext,
+    playSavePop,
+  } = useAchievementSounds();
 
   function rollbackBadgeSession(ref: RefObject<BadgeIkSession>) {
     discardSessionStagedUpload(ref.current);
@@ -529,10 +529,7 @@ export function AchievementsManager({
     if (editorUploadInProgress) return;
     if (isCreating) {
       rollbackBadgeSession(createBadgeIkSessionRef);
-      setCreateForm({
-        ...INITIAL_FORM,
-        achievedAt: todayDateString(),
-      });
+      setCreateForm(createInitialForm());
       setIsCreating(false);
       setCreateUploadInProgress(false);
     }
@@ -563,36 +560,6 @@ export function AchievementsManager({
     setIsUnlockHolding(false);
   }, []);
 
-  const clearMediaSessionNowPlaying = useCallback(() => {
-    if (typeof navigator === "undefined") return;
-    const mediaSession = (
-      navigator as Navigator & {
-        mediaSession?: {
-          metadata: MediaMetadata | null;
-          playbackState?: "none" | "paused" | "playing";
-        };
-      }
-    ).mediaSession;
-    if (!mediaSession) return;
-    try {
-      mediaSession.metadata = null;
-      if (typeof mediaSession.playbackState === "string") {
-        mediaSession.playbackState = "none";
-      }
-    } catch {
-      // ignore media session write failures
-    }
-  }, []);
-
-  const stopUnlockSound = useCallback(() => {
-    const audio = unlockAudioRef.current;
-    unlockAudioRef.current = null;
-    if (!audio) return;
-    audio.pause();
-    audio.currentTime = 0;
-    clearMediaSessionNowPlaying();
-  }, [clearMediaSessionNowPlaying]);
-
   const interruptUnlockReveal = useCallback(() => {
     if (unlockRevealRafRef.current !== null) {
       cancelAnimationFrame(unlockRevealRafRef.current);
@@ -603,148 +570,15 @@ export function AchievementsManager({
     resolver?.("cancelled");
   }, []);
 
-  function playUnlockTimelineSound() {
-    if (typeof window === "undefined") return;
-    try {
-      stopUnlockSound();
-      const audio =
-        unlockAudioPreparedRef.current ?? new Audio(UNLOCK_PEEL_AUDIO_SRC);
-      audio.preload = "auto";
-      audio.currentTime = 0;
-      audio.volume = 1;
-      audio.onended = () => {
-        if (unlockAudioRef.current === audio) {
-          unlockAudioRef.current = null;
-        }
-        clearMediaSessionNowPlaying();
-      };
-      unlockAudioRef.current = audio;
-      void audio.play().catch(() => {
-        // ignore blocked autoplay / unavailable media
-      });
-    } catch {
-      // ignore unsupported / blocked audio
-    }
-  }
-
-  function playUnlockEaseOutSound() {
-    if (typeof window === "undefined") return;
-    const Ctor =
-      window.AudioContext ||
-      (
-        window as unknown as {
-          webkitAudioContext?: typeof AudioContext;
-        }
-      ).webkitAudioContext;
-    if (!Ctor) return;
-
-    const ctx =
-      unlockSfxContextRef.current ?? new Ctor();
-    unlockSfxContextRef.current = ctx;
-
-    const playWithBuffer = (buffer: AudioBuffer) => {
-      try {
-        unlockEaseOutSourceRef.current?.stop();
-      } catch {
-        // ignore
-      }
-      const source = ctx.createBufferSource();
-      const gain = ctx.createGain();
-      gain.gain.value = 1;
-      source.buffer = buffer;
-      source.connect(gain);
-      gain.connect(ctx.destination);
-      source.onended = () => {
-        if (unlockEaseOutSourceRef.current === source) {
-          unlockEaseOutSourceRef.current = null;
-        }
-      };
-      unlockEaseOutSourceRef.current = source;
-      source.start(0);
-    };
-
-    const run = async () => {
-      if (ctx.state !== "running") {
-        await ctx.resume();
-      }
-      if (!unlockEaseOutBufferRef.current) {
-        const response = await fetch(UNLOCK_EASE_OUT_AUDIO_SRC, { cache: "force-cache" });
-        const arr = await response.arrayBuffer();
-        unlockEaseOutBufferRef.current = await ctx.decodeAudioData(arr);
-      }
-      if (unlockEaseOutBufferRef.current) {
-        playWithBuffer(unlockEaseOutBufferRef.current);
-      }
-    };
-
-    void run().catch(() => {
-      // Intentionally no fallback: this cue must come from its own audio asset.
-    });
-  }
-
-  function primeUnlockAudioGestureContext() {
-    if (typeof window === "undefined") return;
-    try {
-      const Ctor =
-        window.AudioContext ||
-        (
-          window as unknown as {
-            webkitAudioContext?: typeof AudioContext;
-          }
-        ).webkitAudioContext;
-      if (!Ctor) return;
-      const ctx = unlockSfxContextRef.current ?? new Ctor();
-      unlockSfxContextRef.current = ctx;
-      void ctx.resume();
-      if (!unlockEaseOutBufferRef.current) {
-        void fetch(UNLOCK_EASE_OUT_AUDIO_SRC, { cache: "force-cache" })
-          .then((res) => res.arrayBuffer())
-          .then((arr) => ctx.decodeAudioData(arr))
-          .then((buffer) => {
-            unlockEaseOutBufferRef.current = buffer;
-          })
-          .catch(() => {
-            // keep silent, retry on play
-          });
-      }
-    } catch {
-      // no-op
-    }
-  }
-
   useEffect(() => {
-    // Preload once to avoid first-play lag on deployed environments.
-    const peel = new Audio(UNLOCK_PEEL_AUDIO_SRC);
-    peel.preload = "auto";
-    peel.load();
-    unlockAudioPreparedRef.current = peel;
-
-    const savePop = new Audio(SAVE_POP_AUDIO_SRC);
-    savePop.preload = "auto";
-    savePop.load();
-    savePopPreparedRef.current = savePop;
-
     return () => {
       if (unlockHoldTimeoutRef.current !== null) {
         window.clearTimeout(unlockHoldTimeoutRef.current);
       }
       interruptUnlockReveal();
       stopUnlockSound();
-      unlockAudioPreparedRef.current = null;
-      savePopPreparedRef.current?.pause();
-      savePopPreparedRef.current = null;
-      unlockEaseOutBufferRef.current = null;
-      try {
-        unlockEaseOutSourceRef.current?.stop();
-      } catch {
-        // ignore
-      }
-      unlockEaseOutSourceRef.current = null;
-      unlockSfxContextRef.current?.close().catch(() => undefined);
-      unlockSfxContextRef.current = null;
-      clearMediaSessionNowPlaying();
     };
-  }, [clearMediaSessionNowPlaying, interruptUnlockReveal, stopUnlockSound]);
+  }, [interruptUnlockReveal, stopUnlockSound]);
 
   useEffect(() => {
     if (!isUnlockHolding && !detailIsUnlocking) return;
@@ -830,7 +664,7 @@ export function AchievementsManager({
     }
     playSavePop();
     setAchievements((prev) => sortAchievements([normalized, ...prev]));
-    setCreateForm({ ...INITIAL_FORM, achievedAt: todayDateString() });
+    setCreateForm(createInitialForm());
     createBadgeIkSessionRef.current = createEmptyBadgeIkSession();
     setIsSaving(false);
     setIsCreating(false);
@@ -1112,10 +946,7 @@ export function AchievementsManager({
           setIsCreating(true);
           setDetailAchievementId(null);
           setDetailMode("edit");
-          setCreateForm({
-            ...INITIAL_FORM,
-            achievedAt: todayDateString(),
-          });
+          setCreateForm(createInitialForm());
         }}
         onSelectAchievement={(achievementId) => {
           markDetailOpenStart(achievementId);
@@ -1170,10 +1001,7 @@ export function AchievementsManager({
                 onCancel={() => {
                   if (createUploadInProgress) return;
                   rollbackBadgeSession(createBadgeIkSessionRef);
-                  setCreateForm({
-                    ...INITIAL_FORM,
-                    achievedAt: todayDateString(),
-                  });
+                  setCreateForm(createInitialForm());
                   setIsCreating(false);
                   setCreateUploadInProgress(false);
                   setDetailMode("view");
@@ -1541,23 +1369,4 @@ export function AchievementsManager({
       ) : null}
     </div>
   );
-  
-  function playSavePop() {
-    if (typeof window === "undefined") return;
-    try {
-      const audio = savePopPreparedRef.current ?? new Audio(SAVE_POP_AUDIO_SRC);
-      audio.preload = "auto";
-      audio.currentTime = 0;
-      audio.volume = 1;
-      audio.onended = () => {
-        clearMediaSessionNowPlaying();
-      };
-      savePopPreparedRef.current = audio;
-      void audio.play().catch(() => {
-        // ignore blocked autoplay / unavailable media
-      });
-    } catch {
-      // ignore unsupported / blocked audio
-    }
-  }
 }
