@@ -190,3 +190,107 @@
   will-change: opacity;
 }
 
+@keyframes badge-upload-bloom {
+  0%,
+  100% {
+    transform: scale(0.985);
+    opacity: 0.55;
+    filter: blur(9px) saturate(1);
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 0.9;
+    filter: blur(11px) saturate(1.18);
+  }
+}
+
+@keyframes badge-upload-blob-orbit-a {
+  0% {
+    transform: translate(-22%, -8%) scale(0.98);
+    opacity: 0.2;
+  }
+  50% {
+    transform: translate(18%, 10%) scale(1.08);
+    opacity: 0.44;
+  }
+  100% {
+    transform: translate(-22%, -8%) scale(0.98);
+    opacity: 0.2;
+  }
+}
+
+@keyframes badge-upload-blob-orbit-b {
+  0% {
+    transform: translate(20%, -18%) scale(0.96);
+    opacity: 0.16;
+  }
+  50% {
+    transform: translate(-20%, 16%) scale(1.12);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translate(20%, -18%) scale(0.96);
+    opacity: 0.16;
+  }
+}
+
+@keyframes badge-upload-blob-orbit-c {
+  0% {
+    transform: translate(-6%, 18%) scale(0.92);
+    opacity: 0.14;
+  }
+  50% {
+    transform: translate(8%, -16%) scale(1.14);
+    opacity: 0.32;
+  }
+  100% {
+    transform: translate(-6%, 18%) scale(0.92);
+    opacity: 0.14;
+  }
+}
+
+.badge-upload-bloom {
+  background:
+    radial-gradient(100% 100% at 20% 24%, rgba(129, 140, 248, 0.38), transparent 58%),
+    radial-gradient(100% 100% at 80% 76%, rgba(244, 114, 182, 0.3), transparent 60%),
+    radial-gradient(100% 100% at 50% 48%, rgba(45, 212, 191, 0.28), transparent 64%);
+  mix-blend-mode: screen;
+  filter: blur(14px);
+  animation: badge-upload-bloom 3300ms ease-in-out infinite;
+}
+
+.badge-upload-ribbon {
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 0.34) 0%,
+    rgba(186, 230, 253, 0.26) 24%,
+    rgba(244, 114, 182, 0.22) 48%,
+    rgba(255, 255, 255, 0) 76%
+  );
+  mix-blend-mode: screen;
+  filter: blur(10px);
+}
+
+.badge-upload-blob {
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.badge-upload-blob-a {
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.48) 0%, rgba(167, 139, 250, 0) 72%);
+  filter: blur(7px);
+  animation: badge-upload-blob-orbit-a 2400ms ease-in-out infinite;
+}
+
+.badge-upload-blob-b {
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.42) 0%, rgba(34, 211, 238, 0) 74%);
+  filter: blur(8px);
+  animation: badge-upload-blob-orbit-b 2800ms ease-in-out infinite;
+}
+
+.badge-upload-blob-c {
+  background: radial-gradient(circle, rgba(251, 113, 133, 0.4) 0%, rgba(251, 113, 133, 0) 76%);
+  filter: blur(9px);
+  animation: badge-upload-blob-orbit-c 2200ms ease-in-out infinite;
+}
+

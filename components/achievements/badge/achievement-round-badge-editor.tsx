@@ -183,7 +183,6 @@ export function AchievementRoundBadgeEditor({
 
   const ringHalo = cn(
     dragActive && "ring-2 ring-inset ring-white/55",
-    !dragActive && !disabled && !busy && "hover:ring-2 hover:ring-inset hover:ring-white/40",
   );
 
   const size = "detail";
@@ -233,8 +232,7 @@ export function AchievementRoundBadgeEditor({
           className={cn(
             "relative flex h-full w-full min-h-0 min-w-0 cursor-pointer items-center justify-center rounded-none bg-transparent outline-none transition-shadow",
             hasRemote ? "overflow-hidden" : "overflow-visible",
-            "focus-visible:ring-2 focus-visible:ring-offset-2",
-            "focus-visible:ring-white/50 focus-visible:ring-inset focus-visible:ring-offset-0",
+            "focus-visible:outline-none",
             ringHalo,
             isLocked && "opacity-75 grayscale",
           )}
@@ -244,25 +242,14 @@ export function AchievementRoundBadgeEditor({
           <div
             aria-hidden
             className={cn(
-              "pointer-events-none absolute isolate flex items-center justify-center rounded-none",
+              "pointer-events-none absolute isolate flex items-center justify-center",
               "inset-[-10px]"
             )}
           >
-            <div
-              className={cn(
-                "absolute inset-0 rounded-none opacity-[0.88] blur-[2.5px] will-change-transform animate-badge-upload-tide",
-                "[background:conic-gradient(from_0deg_at_50%_50%,transparent_0deg,rgba(248,250,252,0.06)_55deg,rgba(255,255,255,0.42)_118deg,rgba(226,232,240,0.28)_168deg,rgba(248,250,252,0.08)_228deg,transparent_280deg,transparent_360deg)]",
-                "opacity-[0.92]",
-              )}
-            />
-            <div
-              className={cn(
-                "absolute rounded-none opacity-[0.92] will-change-transform animate-badge-upload-tide-slow",
-                "inset-[5px]",
-                "[mask-image:linear-gradient(to_bottom,transparent,#000_12%,#000_88%,transparent)]",
-                "[background:conic-gradient(from_90deg_at_50%_50%,transparent_0deg,rgba(241,245,249,0.1)_52deg,rgba(252,252,253,0.88)_112deg,rgba(229,231,235,0.38)_162deg,rgba(248,250,252,0.12)_210deg,transparent_258deg,transparent_360deg)]",
-              )}
-            />
+            <div className="badge-upload-bloom absolute inset-0 rounded-full" />
+            <div className="badge-upload-blob badge-upload-blob-a absolute h-[78%] w-[78%] rounded-full" />
+            <div className="badge-upload-blob badge-upload-blob-b absolute h-[64%] w-[64%] rounded-full" />
+            <div className="badge-upload-blob badge-upload-blob-c absolute h-[56%] w-[56%] rounded-full" />
           </div>
         ) : null}
         {hasRemote ? (
