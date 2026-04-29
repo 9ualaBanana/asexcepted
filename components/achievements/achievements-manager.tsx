@@ -1166,7 +1166,6 @@ export function AchievementsManager({
                           className={cn(
                             "no-tap-highlight absolute inset-0 z-20",
                             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40",
-                            isUnlockHolding && "ring-2 ring-white/40",
                           )}
                           onPointerDown={(e) => {
                             if (
