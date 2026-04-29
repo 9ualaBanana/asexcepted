@@ -1,8 +1,6 @@
 import { redirect } from "next/navigation";
 import { AuthButton } from "@/components/auth-button";
 import { FriendsPanel } from "@/components/social/friends-panel";
-import { EnvVarWarning } from "@/components/env-var-warning";
-import { hasEnvVars } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
 import { Suspense } from "react";
 
@@ -18,13 +16,9 @@ async function FriendsPageInner() {
       <div className="flex w-full flex-1 flex-col gap-10 items-center">
         <nav className="w-full flex shrink-0 justify-center border-b border-b-foreground/10 h-14">
           <div className="w-full max-w-5xl flex justify-center items-center p-3 px-5 text-sm">
-            {!hasEnvVars ? (
-              <EnvVarWarning />
-            ) : (
-              <Suspense>
-                <AuthButton />
-              </Suspense>
-            )}
+            <Suspense>
+              <AuthButton />
+            </Suspense>
           </div>
         </nav>
 
@@ -35,7 +29,7 @@ async function FriendsPageInner() {
               Search by display name or part of a user id, open achievements, and follow people you care about.
             </p>
           </header>
-          {hasEnvVars ? <FriendsPanel viewerId={userData.user.id} /> : null}
+          <FriendsPanel viewerId={userData.user.id} />
         </section>
       </div>
     </main>

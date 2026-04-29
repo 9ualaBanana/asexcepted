@@ -1,8 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { hasEnvVars } from "@/lib/utils";
-
 /**
  * Supabase session refresh + lightweight auth gating for the root `proxy.ts`.
  * Kept out of a file named `proxy.ts` so Turbopack does not confuse this module
@@ -13,10 +11,6 @@ export async function updateSession(request: NextRequest) {
     request,
   });
   const pathname = request.nextUrl.pathname;
-
-  if (!hasEnvVars) {
-    return supabaseResponse;
-  }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -46,8 +40,7 @@ export async function updateSession(request: NextRequest) {
 
   if (
     !user &&
-    (pathname.startsWith("/protected") ||
-      pathname.startsWith("/achievements") ||
+    (pathname.startsWith("/achievements") ||
       pathname.startsWith("/profile") ||
       pathname.startsWith("/friends"))
   ) {

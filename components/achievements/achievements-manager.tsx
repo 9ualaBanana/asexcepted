@@ -414,7 +414,7 @@ export function AchievementsManager({
   ]);
   const unlockRevealClipPathLut = useMemo(
     () => (detailAchievement ? buildUnlockRevealClipPathLut() : null),
-    [detailAchievement?.id, detailIsLockedUi],
+    [detailAchievement],
   );
   const unlockRevealClipPath = useMemo(() => {
     if (!unlockRevealClipPathLut || unlockRevealClipPathLut.length === 0) {
@@ -460,10 +460,6 @@ export function AchievementsManager({
       cancelled = true;
     };
   }, [badgeRenderOptimized, detailAchievement?.icon_url, detailIsLockedUi, readOnly]);
-
-  useEffect(() => {
-    void loadAchievements();
-  }, [ownerUserId]);
 
   useEffect(() => {
     if (
@@ -579,7 +575,7 @@ export function AchievementsManager({
     resolver?.("cancelled");
   }, []);
 
-  function playUnlockTimelineSound(_durationMs: number) {
+  function playUnlockTimelineSound() {
     if (typeof window === "undefined") return;
     try {
       stopUnlockSound();
@@ -726,7 +722,7 @@ export function AchievementsManager({
     };
   }, [isUnlockHolding, detailIsUnlocking, cancelUnlockHold]);
 
-  async function loadAchievements() {
+  const loadAchievements = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -751,7 +747,11 @@ export function AchievementsManager({
       ),
     );
     setIsLoading(false);
-  }
+  }, [supabase, ownerUserId]);
+
+  useEffect(() => {
+    void loadAchievements();
+  }, [loadAchievements]);
 
   async function handleCreate(e: FormEvent) {
     e.preventDefault();
@@ -1044,7 +1044,7 @@ export function AchievementsManager({
     unlockHoldPressedRef.current = true;
     setIsUnlockHolding(true);
     primeUnlockAudioGestureContext();
-    playUnlockTimelineSound(UNLOCK_REVEAL_DURATION_MS + UNLOCK_HOLD_DURATION_MS);
+    playUnlockTimelineSound();
     unlockHoldTimeoutRef.current = window.setTimeout(() => {
       unlockHoldTimeoutRef.current = null;
       setIsUnlockHolding(false);

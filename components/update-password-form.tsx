@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { userAchievementsPath } from "@/lib/user-achievements-path";
 
 export function UpdatePasswordForm({
   className,
@@ -33,8 +34,13 @@ export function UpdatePasswordForm({
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
-      // Update this route to redirect to an authenticated route. The user already has an active session.
-      router.push("/protected");
+      const { data: sessionUser } = await supabase.auth.getUser();
+      const u = sessionUser.user;
+      if (u) {
+        router.push(userAchievementsPath(u.id));
+      } else {
+        router.push("/");
+      }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {

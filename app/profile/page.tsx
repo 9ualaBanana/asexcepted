@@ -2,8 +2,6 @@ import { redirect } from "next/navigation";
 import { AuthButton } from "@/components/auth-button";
 import { LogoutButton } from "@/components/logout-button";
 import { ProfileSettings } from "@/components/profile/profile-settings";
-import { EnvVarWarning } from "@/components/env-var-warning";
-import { hasEnvVars } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
 import { Suspense } from "react";
 
@@ -19,13 +17,9 @@ async function ProfilePageInner() {
       <div className="flex w-full flex-1 flex-col gap-10 items-center">
         <nav className="w-full flex shrink-0 justify-center border-b border-b-foreground/10 h-14">
           <div className="w-full max-w-5xl flex justify-center items-center p-3 px-5 text-sm">
-            {!hasEnvVars ? (
-              <EnvVarWarning />
-            ) : (
-              <Suspense>
-                <AuthButton />
-              </Suspense>
-            )}
+            <Suspense>
+              <AuthButton />
+            </Suspense>
           </div>
         </nav>
 

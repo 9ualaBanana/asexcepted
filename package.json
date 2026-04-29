@@ -4,7 +4,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 0",
     "supabase": "supabase",
     "db:link": "supabase link",
     "db:push": "supabase db push",

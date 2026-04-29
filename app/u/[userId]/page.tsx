@@ -2,8 +2,6 @@ import { notFound } from "next/navigation";
 import { AuthButton } from "@/components/auth-button";
 import { AchievementsManager } from "@/components/achievements/achievements-manager";
 import { FollowButton } from "@/components/social/follow-button";
-import { EnvVarWarning } from "@/components/env-var-warning";
-import { hasEnvVars } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
 import { isAuthUserIdSegment } from "@/lib/user-achievements-path";
 import { Suspense } from "react";
@@ -26,7 +24,7 @@ async function UserAchievementsContent({ params }: PageProps) {
   const readOnly = !isOwner;
 
   let initialIsFollowing = false;
-  if (user && !isOwner && hasEnvVars) {
+  if (user && !isOwner) {
     const { data: followRow } = await supabase
       .from("profile_follow")
       .select("follower_id")
@@ -37,7 +35,7 @@ async function UserAchievementsContent({ params }: PageProps) {
   }
 
   let ownerPublicLabel: string | null = null;
-  if (!isOwner && hasEnvVars) {
+  if (!isOwner) {
     const { data: label, error: labelError } = await supabase.rpc(
       "public_user_display_name",
       { target_user_id: userId },
@@ -52,13 +50,9 @@ async function UserAchievementsContent({ params }: PageProps) {
       <div className="flex-1 w-full flex flex-col gap-10 items-center">
         <nav className="w-full flex justify-center border-b border-b-foreground/10 h-14">
           <div className="w-full max-w-5xl flex justify-center items-center p-3 px-5 text-sm">
-            {!hasEnvVars ? (
-              <EnvVarWarning />
-            ) : (
-              <Suspense>
-                <AuthButton />
-              </Suspense>
-            )}
+            <Suspense>
+              <AuthButton />
+            </Suspense>
           </div>
         </nav>
 
@@ -84,7 +78,7 @@ async function UserAchievementsContent({ params }: PageProps) {
               )}
             </p>
           </header>
-          {user && !isOwner && hasEnvVars ? (
+          {user && !isOwner ? (
             <div className="flex justify-center pb-2">
               <FollowButton
                 targetUserId={userId}

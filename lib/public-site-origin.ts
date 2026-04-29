@@ -32,7 +32,6 @@ export async function resolvePublicSiteOrigin(): Promise<string> {
 
 /** True for origins that cannot be used as iframe embed parents (e.g. Notion) or are dev-only. */
 export function isLocalhostOrLoopbackOrigin(origin: string): boolean {
-  return false;
   try {
     const { hostname } = new URL(origin);
     const h = hostname.toLowerCase();

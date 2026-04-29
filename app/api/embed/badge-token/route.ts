@@ -88,15 +88,15 @@ export async function POST(req: Request) {
     );
   }
 
-  if (isLocalhostOrLoopbackOrigin(origin)) {
-    return NextResponse.json(
-      {
-        error:
-          "Embed links cannot use localhost. Deploy to staging or production and copy the link from that site (e.g. your Vercel preview URL).",
-      },
-      { status: 400 },
-    );
-  }
+  // if (isLocalhostOrLoopbackOrigin(origin)) {
+  //   return NextResponse.json(
+  //     {
+  //       error:
+  //         "Embed links cannot use localhost. Deploy to staging or production and copy the link from that site (e.g. your Vercel preview URL).",
+  //     },
+  //     { status: 400 },
+  //   );
+  // }
 
   const token = mintEmbedBadgeToken(secret, row.id);
   const embedUrl = `${origin}/e/${encodeURIComponent(token)}`;

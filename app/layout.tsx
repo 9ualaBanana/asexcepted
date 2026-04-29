@@ -14,15 +14,15 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: "#14121c",
 };
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
   title: "AsExcepted",
-  description: "The fastest way to build apps with Next.js and Supabase",
+  description: "Collect and share your achievements.",
   applicationName: "AsExcepted",
   manifest: "/manifest.webmanifest",
-  themeColor: "#14121c",
   icons: {
     icon: [
       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
