@@ -1,7 +1,5 @@
 "use client";
 
-import Uppy from "@uppy/core";
-import XHRUpload from "@uppy/xhr-upload";
 import { ImagePlus, Lock, Trash2, Unlock } from "lucide-react";
 import {
   useCallback,
@@ -23,24 +21,11 @@ import {
   iconMap,
 } from "@/components/achievements/achievement-editor-shared";
 import { Button } from "@/components/ui/button";
-import { deleteImageKitFile, getImageKitUploadAuth } from "@/lib/imagekit-client";
+import { deleteImageKitFile } from "@/lib/imagekit-client";
 import { cn } from "@/lib/utils";
+import { useBadgeImageUploader } from "@/components/achievements/badge/use-badge-image-uploader";
 
 import "@uppy/core/css/style.min.css";
-
-const IMAGEKIT_UPLOAD_ENDPOINT =
-  "https://upload.imagekit.io/api/v1/files/upload";
-
-const META_FIELDS = [
-  "publicKey",
-  "signature",
-  "expire",
-  "token",
-  "fileName",
-  "folder",
-  "useUniqueFileName",
-  "responseFields",
-] as const;
 
 const EDITOR_TONE_OPTIONS: AchievementTone[] = [
   "teal",
@@ -94,7 +79,6 @@ export function AchievementRoundBadgeEditor({
   disabled = false,
 }: AchievementRoundBadgeEditorProps) {
   const uppyInstanceId = useId();
-  const uppyRef = useRef<Uppy | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const tonePickerRef = useRef<HTMLDivElement>(null);
@@ -105,18 +89,13 @@ export function AchievementRoundBadgeEditor({
   const [iconMenuOpen, setIconMenuOpen] = useState(false);
   const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [uploadInProgress, setUploadInProgress] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const removeTitleId = useId();
   const FallbackIcon = iconMap[icon];
 
   onRemoteCommitRef.current = onRemoteUploadCommit;
-
-  useEffect(() => {
-    onUploadInProgressChange?.(uploadInProgress);
-  }, [onUploadInProgressChange, uploadInProgress]);
 
   useEffect(() => {
     if (!menuOpen) {
@@ -148,100 +127,20 @@ export function AchievementRoundBadgeEditor({
   const baselineIdTrim = baselineIconFileId.trim();
   const hasCustomBadge = hasRemote || !!fileIdTrim;
 
-  useEffect(() => {
-    const uppy = new Uppy({
-      id: `round-badge-${uppyInstanceId}`,
-      autoProceed: true,
-      restrictions: {
-        maxNumberOfFiles: 1,
-        maxFileSize: 15 * 1024 * 1024,
-        allowedFileTypes: ["image/*"],
-      },
-    });
-
-    uppy.use(XHRUpload, {
-      endpoint: IMAGEKIT_UPLOAD_ENDPOINT,
-      method: "post",
-      formData: true,
-      fieldName: "file",
-      allowedMetaFields: [...META_FIELDS],
-    });
-
-    uppy.addPreProcessor(async (fileIDs) => {
-      const data = await getImageKitUploadAuth();
-
-      for (const id of fileIDs) {
-        const file = uppy.getFile(id);
-        const safeName =
-          file?.name?.replace(/[^\w.\-]+/g, "_").slice(0, 120) || "badge";
-        uppy.setFileMeta(id, {
-          publicKey: data.publicKey,
-          signature: data.signature,
-          expire: String(data.expire),
-          token: data.token,
-          fileName: safeName,
-          folder: data.folder ?? "achievements",
-          useUniqueFileName: "true",
-          responseFields: "url,fileId",
-        });
-      }
-    });
-
-    uppy.on("upload-success", async (_file, response) => {
-      const body = response.body as { url?: string; fileId?: string } | undefined;
-      const url =
-        typeof response.uploadURL === "string"
-          ? response.uploadURL
-          : typeof body?.url === "string"
-            ? body.url
-            : null;
-      const newFileId = typeof body?.fileId === "string" ? body.fileId : "";
-      if (!url) {
-        setError("Upload finished without a URL.");
-        setUploadInProgress(false);
-        setBusy(false);
-        return;
-      }
-
-      // Keep visual upload state until the fresh remote image is actually fetchable.
-      try {
-        await new Promise<void>((resolve) => {
-          const img = new Image();
-          let settled = false;
-          const done = () => {
-            if (settled) return;
-            settled = true;
-            resolve();
-          };
-          img.onload = done;
-          img.onerror = done;
-          img.src = `${url}${url.includes("?") ? "&" : "?"}ready=${Date.now()}`;
-          setTimeout(done, 4000);
-        });
-      } catch {
-        // no-op: commit anyway
-      }
-
+  const { queueUpload, uploadInProgress } = useBadgeImageUploader({
+    instanceId: uppyInstanceId,
+    disabled,
+    onUploadSuccess: (url, fileId) => {
       setError(null);
-      onRemoteCommitRef.current(url, newFileId);
-      uppy.cancelAll();
+      onRemoteCommitRef.current(url, fileId);
       setMenuOpen(false);
-      setUploadInProgress(false);
-      setBusy(false);
-    });
+    },
+    onUploadError: (message) => setError(message),
+    onUploadStart: () => setError(null),
+    onUploadInProgressChange,
+  });
 
-    uppy.on("upload-error", (_file, err) => {
-      setUploadInProgress(false);
-      setBusy(false);
-      setError(err?.message ?? "Upload failed.");
-    });
-
-    uppyRef.current = uppy;
-    return () => {
-      uppy.destroy();
-      uppyRef.current = null;
-    };
-  }, [uppyInstanceId]);
+  const busy = uploadInProgress || isRemoving;
 
   useEffect(() => {
     if (!menuOpen && !removeConfirmOpen) return;
@@ -255,29 +154,6 @@ export function AchievementRoundBadgeEditor({
     document.addEventListener("pointerdown", onDocPointerDown);
     return () => document.removeEventListener("pointerdown", onDocPointerDown);
   }, [menuOpen, removeConfirmOpen]);
-
-  const queueUpload = useCallback(
-    (file: File) => {
-      const uppy = uppyRef.current;
-      if (!uppy || disabled) return;
-      setUploadInProgress(true);
-      setBusy(true);
-      setError(null);
-      try {
-        uppy.cancelAll();
-        void uppy.addFile({
-          name: file.name,
-          type: file.type,
-          data: file,
-        });
-      } catch (e) {
-        setUploadInProgress(false);
-        setBusy(false);
-        setError(e instanceof Error ? e.message : "Could not add file.");
-      }
-    },
-    [disabled],
-  );
 
   const onDrop = useCallback(
     (e: React.DragEvent) => {
@@ -309,7 +185,7 @@ export function AchievementRoundBadgeEditor({
   const size = "detail";
 
   async function confirmRemoveImage() {
-    setBusy(true);
+    setIsRemoving(true);
     setError(null);
     try {
       const curId = fileIdTrim;
@@ -326,7 +202,7 @@ export function AchievementRoundBadgeEditor({
       setRemoveConfirmOpen(false);
       setMenuOpen(false);
     } finally {
-      setBusy(false);
+      setIsRemoving(false);
     }
   }
 
