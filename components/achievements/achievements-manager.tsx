@@ -22,6 +22,13 @@ import { AchievementGridItem } from "@/components/achievements/achievement-grid-
 import { AchievementGridLoadingSkeleton } from "@/components/achievements/achievement-grid-skeleton";
 import { AchievementBadge3DViewer } from "@/components/achievements/badge/achievement-badge-3d-viewer";
 import {
+  clearSessionStagedUpload,
+  deleteImageKitFileQuietly,
+  discardSessionStagedUpload,
+  getReplacedImageKitFileId,
+  normalizeImageKitFileId,
+} from "@/components/achievements/badge/badge-imagekit-session";
+import {
   clearBadgeRenderCacheForSrc,
   getCachedAlphaMaskData,
   prewarmBadgeRenderCache,
@@ -61,7 +68,6 @@ import {
 } from "@/lib/badge-render-optimization";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge-render-src";
 import { createClient } from "@/lib/supabase/client";
-import { deleteImageKitFile } from "@/lib/imagekit-client";
 import { cn } from "@/lib/utils";
 
 type AchievementRecord = {
@@ -138,7 +144,7 @@ function normalizeAchievement(row: Record<string, unknown>): AchievementRecord {
     category: (row.category as string | null) ?? null,
     icon: getSafeIconKey(row.icon as string | null | undefined),
     icon_url: (row.icon_url as string | null) ?? null,
-    icon_file_id: (row.icon_file_id as string | null) ?? null,
+    icon_file_id: normalizeImageKitFileId(row.icon_file_id as string | null) || null,
     tone: getSafeTone(row.tone as string | null | undefined),
     is_locked: Boolean(row.is_locked),
     achieved_at: (row.achieved_at as string | null) ?? null,
@@ -171,7 +177,7 @@ function formToPayload(form: FormState): AchievementPayloadBase {
     category: toNullable(form.category),
     icon: form.icon,
     icon_url: toNullable(form.iconUrl),
-    icon_file_id: form.iconFileId.trim() ? form.iconFileId.trim() : null,
+    icon_file_id: normalizeImageKitFileId(form.iconFileId) || null,
     tone: form.tone,
     is_locked: form.isLocked,
     achieved_at: toNullable(form.achievedAt),
@@ -255,13 +261,7 @@ export function AchievementsManager({
   );
 
   function rollbackBadgeSession(ref: RefObject<BadgeIkSession>) {
-    const r = ref.current;
-    const last = r.lastSessionFileId?.trim() ?? "";
-    const baseline = r.baselineFileId.trim();
-    if (last && last !== baseline) {
-      void deleteImageKitFile(last).catch(() => undefined);
-    }
-    r.lastSessionFileId = null;
+    discardSessionStagedUpload(ref.current);
   }
 
   const detailAchievement = useMemo(() => {
@@ -854,16 +854,18 @@ export function AchievementsManager({
     }
     playSavePop();
 
-    const baselineId = panelBadgeIkSessionRef.current.baselineFileId.trim();
-    const savedFileId = (normalized.icon_file_id ?? "").trim();
-    if (baselineId && baselineId !== savedFileId) {
-      void deleteImageKitFile(baselineId).catch(() => undefined);
+    const baselineId = normalizeImageKitFileId(panelBadgeIkSessionRef.current.baselineFileId);
+    const savedFileId = normalizeImageKitFileId(normalized.icon_file_id);
+    const replacedBaselineId = getReplacedImageKitFileId(baselineId, savedFileId);
+    if (replacedBaselineId) {
+      void deleteImageKitFileQuietly(replacedBaselineId);
     }
     panelBadgeIkSessionRef.current = {
       baselineUrl: (normalized.icon_url ?? "").trim(),
       baselineFileId: savedFileId,
-      lastSessionFileId: null,
+      lastSessionFileId: panelBadgeIkSessionRef.current.lastSessionFileId,
     };
+    clearSessionStagedUpload(panelBadgeIkSessionRef.current);
 
     setAchievements((prev) =>
       sortAchievements(
@@ -882,15 +884,11 @@ export function AchievementsManager({
     setError(null);
 
     const target = achievements.find((a) => a.id === id);
-    const ikId = target?.icon_file_id?.trim();
+    const ikId = normalizeImageKitFileId(target?.icon_file_id);
     const targetSrc = target?.icon_url?.trim() ?? "";
-    if (ikId) {
-      try {
-        await deleteImageKitFile(ikId);
-      } catch (e) {
-        console.warn("ImageKit delete on achievement remove", e);
-      }
-    }
+    await deleteImageKitFileQuietly(ikId, (e) =>
+      console.warn("ImageKit delete on achievement remove", e),
+    );
 
     const { error } = await supabase.from("achievements").delete().eq("id", id);
 

@@ -17,11 +17,15 @@ import { AchievementBadgeSlot } from "@/components/achievements/badge/achievemen
 import { AchievementFallbackBadge } from "@/components/achievements/badge/achievement-fallback-badge";
 import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
 import {
+  deleteImageKitFileQuietly,
+  getReplacedImageKitFileId,
+  normalizeImageKitFileId,
+} from "@/components/achievements/badge/badge-imagekit-session";
+import {
   type AchievementIconKey,
   iconMap,
 } from "@/components/achievements/achievement-editor-shared";
 import { Button } from "@/components/ui/button";
-import { deleteImageKitFile } from "@/lib/imagekit-client";
 import { cn } from "@/lib/utils";
 import { useBadgeImageUploader } from "@/components/achievements/badge/use-badge-image-uploader";
 
@@ -123,8 +127,8 @@ export function AchievementRoundBadgeEditor({
 
   const trimmed = imageUrl.trim();
   const hasRemote = trimmed.length > 0;
-  const fileIdTrim = iconFileId.trim();
-  const baselineIdTrim = baselineIconFileId.trim();
+  const fileIdTrim = normalizeImageKitFileId(iconFileId);
+  const baselineIdTrim = normalizeImageKitFileId(baselineIconFileId);
   const hasCustomBadge = hasRemote || !!fileIdTrim;
 
   const { queueUpload, uploadInProgress } = useBadgeImageUploader({
@@ -188,14 +192,8 @@ export function AchievementRoundBadgeEditor({
     setIsRemoving(true);
     setError(null);
     try {
-      const curId = fileIdTrim;
-      if (curId && curId !== baselineIdTrim) {
-        try {
-          await deleteImageKitFile(curId);
-        } catch (e) {
-          console.warn(e);
-        }
-      }
+      const fileIdToDelete = getReplacedImageKitFileId(fileIdTrim, baselineIdTrim);
+      await deleteImageKitFileQuietly(fileIdToDelete, (e) => console.warn(e));
       onImageUrlChange("");
       onIconFileIdChange("");
       onStagedUploadCleared?.();

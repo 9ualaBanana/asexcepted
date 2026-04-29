@@ -12,6 +12,11 @@ import { ArrowLeft, Loader2, Save, X } from "lucide-react";
 
 import { AchievementRoundBadgeEditor } from "@/components/achievements/badge/achievement-round-badge-editor";
 import {
+  clearSessionStagedUpload,
+  discardSessionStagedUpload,
+  setSessionStagedUpload,
+} from "@/components/achievements/badge/badge-imagekit-session";
+import {
   achievementBadgeChromeWidth,
   achievementDialogChromeInset,
   achievementDialogIconBtn,
@@ -22,17 +27,7 @@ import {
 } from "@/components/achievements/achievement-editor-shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { deleteImageKitFile } from "@/lib/imagekit-client";
 import { cn } from "@/lib/utils";
-
-function deletePreviousSessionUpload(ref: RefObject<BadgeIkSession>) {
-  const s = ref.current;
-  const prev = s.lastSessionFileId?.trim() ?? "";
-  const baseline = s.baselineFileId.trim();
-  if (prev && prev !== baseline) {
-    void deleteImageKitFile(prev).catch(() => undefined);
-  }
-}
 
 export type EditorCardProps = {
   form: FormState;
@@ -136,11 +131,8 @@ export function EditableAchievementCard({
             }
             onIconChange={(icon) => setForm((prev) => ({ ...prev, icon }))}
             onRemoteUploadCommit={(url, fileId) => {
-              deletePreviousSessionUpload(badgeIkSessionRef);
-              badgeIkSessionRef.current = {
-                ...badgeIkSessionRef.current,
-                lastSessionFileId: fileId.trim() || null,
-              };
+              discardSessionStagedUpload(badgeIkSessionRef.current);
+              setSessionStagedUpload(badgeIkSessionRef.current, fileId);
               setForm((prev) => ({
                 ...prev,
                 iconUrl: url,
@@ -154,7 +146,7 @@ export function EditableAchievementCard({
               setForm((prev) => ({ ...prev, iconFileId: fid }))
             }
             onStagedUploadCleared={() => {
-              badgeIkSessionRef.current.lastSessionFileId = null;
+              clearSessionStagedUpload(badgeIkSessionRef.current);
             }}
             onUploadInProgressChange={setIsBadgeUploadInProgress}
             disabled={isSaving}
