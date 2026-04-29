@@ -4,30 +4,31 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
+    /* Dark defaults to prevent any light flash before class/theme settle. */
+    --background: 262 14% 8%;
+    --foreground: 260 18% 97%;
+    --card: 262 12% 10%;
+    --card-foreground: 260 18% 97%;
+    --popover: 262 12% 10%;
+    --popover-foreground: 260 18% 97%;
+    --primary: 260 22% 96%;
+    --primary-foreground: 262 18% 10%;
+    --secondary: 262 10% 15%;
+    --secondary-foreground: 260 18% 97%;
+    --muted: 262 9% 16%;
+    --muted-foreground: 260 12% 64%;
+    --accent: 262 10% 17%;
+    --accent-foreground: 260 18% 97%;
+    --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --border: 262 10% 19%;
+    --input: 262 10% 19%;
+    --ring: 262 18% 72%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
     --radius: 0.5rem;
   }
   .dark {
@@ -166,5 +167,21 @@
   mix-blend-mode: multiply;
   animation: badge-shadow-breathe var(--badge-shadow-duration, 4.6s) ease-in-out
     var(--badge-shadow-delay, 0s) infinite;
+}
+
+@keyframes loading-icon-pulse {
+  0%,
+  100% {
+    transform: scale(0.95);
+    opacity: 0.88;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.loading-icon-pulse {
+  animation: loading-icon-pulse 3200ms ease-in-out infinite;
 }
 

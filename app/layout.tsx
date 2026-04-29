@@ -22,6 +22,11 @@ export const metadata: Metadata = {
   title: "AsExcepted",
   description: "Collect and share your achievements.",
   applicationName: "AsExcepted",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "AsExcepted",
+  },
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
@@ -44,8 +49,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className="dark">
-      <body className={`${geistSans.className} antialiased`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className="dark"
+      style={{ backgroundColor: "#14121c" }}
+    >
+      <body
+        className={`${geistSans.className} antialiased`}
+        style={{ backgroundColor: "#14121c", color: "#f5f3ff" }}
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
