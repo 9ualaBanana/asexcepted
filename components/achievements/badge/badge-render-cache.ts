@@ -1,5 +1,6 @@
 "use client";
 
+import { LRUCache } from "lru-cache";
 import type { CSSProperties } from "react";
 
 import { makeBadgeMotionStyle } from "@/components/achievements/badge/badge-float-motion";
@@ -9,10 +10,10 @@ import {
   type AlphaMaskData,
 } from "@/components/achievements/badge/badge-shape-utils";
 
-const decodeReady = new Map<string, Promise<void>>();
-const alphaMaskReady = new Map<string, Promise<AlphaMaskData | null>>();
-const maskStyleCache = new Map<string, CSSProperties>();
-const motionStyleCache = new Map<string, CSSProperties>();
+const decodeReady = new LRUCache<string, Promise<void>>({ max: 300 });
+const alphaMaskReady = new LRUCache<string, Promise<AlphaMaskData | null>>({ max: 300 });
+const maskStyleCache = new LRUCache<string, CSSProperties>({ max: 300 });
+const motionStyleCache = new LRUCache<string, CSSProperties>({ max: 500 });
 
 function normalizeSrc(src: string): string {
   return src.trim();

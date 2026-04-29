@@ -1,5 +1,6 @@
 "use client";
 
+import { LRUCache } from "lru-cache";
 import { Suspense, use } from "react";
 
 import { cn } from "@/lib/utils";
@@ -50,7 +51,7 @@ function RemoteBadgeImageFallback({ className }: { className?: string }) {
   );
 }
 
-const remoteImageReady = new Map<string, Promise<void>>();
+const remoteImageReady = new LRUCache<string, Promise<void>>({ max: 300 });
 
 function preloadRemoteImage(src: string): Promise<void> {
   let p = remoteImageReady.get(src);
