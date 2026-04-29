@@ -231,6 +231,8 @@ export function AchievementsManager({
   const [unlockingAchievementId, setUnlockingAchievementId] = useState<string | null>(null);
   const [optimisticUnlockedAchievementId, setOptimisticUnlockedAchievementId] = useState<string | null>(null);
   const [unlockRevealProgress, setUnlockRevealProgress] = useState(0);
+  const [createUploadInProgress, setCreateUploadInProgress] = useState(false);
+  const [panelUploadInProgress, setPanelUploadInProgress] = useState(false);
 
   const createBadgeIkSessionRef = useRef<BadgeIkSession>(createEmptyBadgeIkSession());
   const panelBadgeIkSessionRef = useRef<BadgeIkSession>(createEmptyBadgeIkSession());
@@ -470,6 +472,9 @@ export function AchievementsManager({
   }, [achievements, detailAchievementId]);
 
   const achievementOverlayOpen = Boolean(detailAchievement) || isCreating;
+  const editorUploadInProgress =
+    (isCreating && createUploadInProgress) ||
+    (detailMode === "edit" && panelUploadInProgress);
 
   /** Chunked prewarm: avoids one idle callback decoding every badge while detail is open. */
   useEffect(() => {
@@ -521,6 +526,7 @@ export function AchievementsManager({
   }, [achievementOverlayOpen]);
 
   function closeDetailPanel() {
+    if (editorUploadInProgress) return;
     if (isCreating) {
       rollbackBadgeSession(createBadgeIkSessionRef);
       setCreateForm({
@@ -528,10 +534,12 @@ export function AchievementsManager({
         achievedAt: todayDateString(),
       });
       setIsCreating(false);
+      setCreateUploadInProgress(false);
     }
     if (detailMode === "edit" && detailAchievement) {
       rollbackBadgeSession(panelBadgeIkSessionRef);
       setPanelForm(achievementToForm(detailAchievement));
+      setPanelUploadInProgress(false);
     }
     setDetailAchievementId(null);
     setDetailMode("view");
@@ -1101,12 +1109,18 @@ export function AchievementsManager({
                 <div
                   aria-hidden
                   className="absolute inset-0 z-0 bg-black/[65.5%] backdrop-blur-sm"
-                  onClick={() => closeDetailPanel()}
+                  onClick={() => {
+                    if (editorUploadInProgress) return;
+                    closeDetailPanel();
+                  }}
                 />
                 {/* Scroll + center sheet; safe-area padding only here */}
                 <div
                   className="relative z-10 flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden px-4 pt-[max(0.5rem,env(safe-area-inset-top))] pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-6"
-                  onClick={() => closeDetailPanel()}
+                  onClick={() => {
+                    if (editorUploadInProgress) return;
+                    closeDetailPanel();
+                  }}
                 >
                   <div
                     className={cn(
@@ -1125,14 +1139,17 @@ export function AchievementsManager({
                 isSaving={isSaving}
                 onSubmit={handleCreate}
                 onCancel={() => {
+                  if (createUploadInProgress) return;
                   rollbackBadgeSession(createBadgeIkSessionRef);
                   setCreateForm({
                     ...INITIAL_FORM,
                     achievedAt: todayDateString(),
                   });
                   setIsCreating(false);
+                  setCreateUploadInProgress(false);
                   setDetailMode("view");
                 }}
+                onUploadInProgressChange={setCreateUploadInProgress}
                 badgeIkSessionRef={createBadgeIkSessionRef}
                 baselineIconFileId={createBadgeIkSessionRef.current.baselineFileId}
                 onClosePanel={() => closeDetailPanel()}
@@ -1150,7 +1167,10 @@ export function AchievementsManager({
                       type="button"
                       aria-label="Close"
                       className={achievementDialogIconBtn}
-                      onClick={() => closeDetailPanel()}
+                      onClick={() => {
+                        if (editorUploadInProgress) return;
+                        closeDetailPanel();
+                      }}
                     >
                       <X className="h-4 w-4" aria-hidden />
                     </button>
@@ -1353,12 +1373,15 @@ export function AchievementsManager({
                 isSaving={isSaving}
                 onSubmit={handlePanelSave}
                 onCancel={() => {
+                  if (panelUploadInProgress) return;
                   rollbackBadgeSession(panelBadgeIkSessionRef);
                   if (detailAchievement) {
                     setPanelForm(achievementToForm(detailAchievement));
                   }
+                  setPanelUploadInProgress(false);
                   setDetailMode("view");
                 }}
+                onUploadInProgressChange={setPanelUploadInProgress}
                 badgeIkSessionRef={panelBadgeIkSessionRef}
                 baselineIconFileId={
                   panelBadgeIkSessionRef.current.baselineFileId

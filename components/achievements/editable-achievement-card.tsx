@@ -2,6 +2,7 @@
 
 import {
   useId,
+  useEffect,
   useState,
   type Dispatch,
   type FormEvent,
@@ -43,6 +44,8 @@ export type EditorCardProps = {
   onClosePanel?: () => void;
   /** Back arrow under the date (edit existing only; hidden while creating). */
   showBackArrow?: boolean;
+  /** Bubble upload-in-progress state to parent panel controls. */
+  onUploadInProgressChange?: (inProgress: boolean) => void;
 };
 
 export function EditableAchievementCard({
@@ -55,12 +58,18 @@ export function EditableAchievementCard({
   baselineIconFileId,
   onClosePanel,
   showBackArrow = false,
+  onUploadInProgressChange,
 }: EditorCardProps) {
   const formId = useId();
   const showDialogChrome = Boolean(onClosePanel);
   const [isBadgeUploadInProgress, setIsBadgeUploadInProgress] = useState(false);
   const isSaveDisabled =
     isSaving || isBadgeUploadInProgress || !hasMeaningfulContent(form);
+  const closeDisabled = isSaving || isBadgeUploadInProgress;
+
+  useEffect(() => {
+    onUploadInProgressChange?.(isBadgeUploadInProgress);
+  }, [isBadgeUploadInProgress, onUploadInProgressChange]);
 
   function resizeTextarea(target: HTMLTextAreaElement) {
     target.style.height = "0px";
@@ -110,7 +119,7 @@ export function EditableAchievementCard({
               type="button"
               aria-label="Close"
               className={achievementDialogIconBtn}
-              disabled={isSaving}
+              disabled={closeDisabled}
               onClick={() => onClosePanel?.()}
             >
               <X className="h-4 w-4" aria-hidden />
@@ -238,7 +247,7 @@ export function EditableAchievementCard({
                 type="button"
                 aria-label="Back"
                 className={achievementDialogIconBtn}
-                disabled={isSaving}
+                disabled={closeDisabled}
                 onClick={() => onCancel()}
               >
                 <ArrowLeft className="h-4 w-4" aria-hidden />
