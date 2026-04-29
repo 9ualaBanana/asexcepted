@@ -1207,7 +1207,7 @@ export function AchievementsManager({
                   </div>
                   <div className="flex justify-center">
                     <AchievementBadgeSlot
-                      size="overlay-xl"
+                      size="detail"
                     >
                       {detailIsLockedUi && !readOnly ? (
                         <button
@@ -1289,7 +1289,7 @@ export function AchievementsManager({
                             tone={detailTone}
                             isLocked={detailIsLockedUi}
                             FallbackIcon={DetailFallbackIcon}
-                            size="overlay-xl"
+                            size="detail"
                           />
                           {detailIsUnlocking ? (
                             <>
@@ -1304,7 +1304,7 @@ export function AchievementsManager({
                                   tone={detailTone}
                                   isLocked={false}
                                   FallbackIcon={DetailFallbackIcon}
-                                  size="overlay-xl"
+                                  size="detail"
                                 />
                               </div>
                             </>

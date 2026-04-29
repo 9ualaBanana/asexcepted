@@ -9,10 +9,7 @@ type AchievementFallbackBadgeProps = {
   tone: AchievementTone;
   isLocked: boolean;
   FallbackIcon: LucideIcon;
-  /** Compact grid cell vs. larger detail overlay; overlay-xl is ~2× overlay for prominent sheet badge */
-  size?: "grid" | "overlay" | "overlay-xl";
-  /** Square fills the badge slot like grid/close-up images; disc keeps the circular badge look (grid default). */
-  frame?: "disc" | "square";
+  size?: "grid" | "detail";
   className?: string;
 };
 
@@ -23,13 +20,7 @@ const sizeStyles = {
     iconUnlocked: "h-8 w-8",
     iconLocked: "h-7 w-7",
   },
-  overlay: {
-    orb: "-right-8 -top-8 h-28 w-28",
-    inner: "p-4",
-    iconUnlocked: "h-14 w-14",
-    iconLocked: "h-12 w-12",
-  },
-  "overlay-xl": {
+  detail: {
     orb: "-right-16 -top-16 h-56 w-56",
     inner: "p-8",
     iconUnlocked: "h-28 w-28",
@@ -60,62 +51,16 @@ const toneDiscStyles: Record<AchievementTone, string> = {
 
 /**
  * Phosphor / lock badge disc: same tone gradient, glow, and frosted inner pill
- * as legacy achievement cards (grid + detail overlay).
+ * as legacy achievement cards (grid + detail).
  */
 export function AchievementFallbackBadge({
   tone,
   isLocked,
   FallbackIcon,
   size = "grid",
-  frame = "disc",
   className,
 }: AchievementFallbackBadgeProps) {
   const s = sizeStyles[size];
-  const isSquare = frame === "square";
-
-  if (isSquare) {
-    return (
-      <div
-        className={cn(
-          "relative flex h-full w-full items-center justify-center overflow-hidden rounded-none border",
-          isLocked
-            ? "border-dashed border-muted-foreground/40 bg-transparent shadow-none"
-            : cn(
-                "border-solid bg-background/90 bg-gradient-to-br shadow-sm",
-                toneDiscStyles[tone],
-              ),
-          className,
-        )}
-      >
-        <div
-          aria-hidden
-          className={cn(
-            "pointer-events-none absolute inset-0 opacity-40 blur-2xl",
-            isLocked ? "bg-white/10" : toneGlowStyles[tone],
-          )}
-        />
-        <div className={cn("relative z-10 flex h-full w-full items-center justify-center", s.inner)}>
-          {isLocked ? (
-            <Lock
-              className={cn(
-                "text-foreground/70 dark:text-white/65",
-                s.iconLocked,
-              )}
-              aria-hidden
-            />
-          ) : (
-            <FallbackIcon
-              className={cn(
-                "text-foreground/90 dark:text-white/90",
-                s.iconUnlocked,
-              )}
-              aria-hidden
-            />
-          )}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div

@@ -306,8 +306,7 @@ export function AchievementRoundBadgeEditor({
     !dragActive && !disabled && !busy && "hover:ring-2 hover:ring-inset hover:ring-white/40",
   );
 
-  const fallbackSize = "overlay-xl";
-  const slotSize = "overlay-xl";
+  const size = "detail";
 
   async function confirmRemoveImage() {
     setBusy(true);
@@ -346,7 +345,7 @@ export function AchievementRoundBadgeEditor({
         }}
       />
 
-      <AchievementBadgeSlot size={slotSize}>
+      <AchievementBadgeSlot size={size}>
         <button
           type="button"
           disabled={disabled || busy}
@@ -412,8 +411,7 @@ export function AchievementRoundBadgeEditor({
               tone={tone}
               isLocked={isLocked}
               FallbackIcon={FallbackIcon}
-              size={fallbackSize}
-              frame="disc"
+              size={size}
             />
           </div>
         )}
