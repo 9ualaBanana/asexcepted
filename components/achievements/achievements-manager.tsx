@@ -385,15 +385,14 @@ export function AchievementsManager({
     Boolean(detailAchievement?.is_locked) &&
     optimisticUnlockedAchievementId !== detailAchievement?.id;
   const detailFloating = !detailIsLockedUi && !detailIsUnlocking;
-  const detailMaskStyle = useMemo(() => {
-    const src = detailAchievement?.icon_url?.trim() ?? "";
-    return src ? getAlphaMaskStyle(src) : null;
-  }, [detailAchievement?.icon_url]);
   const detailRenderSrc = useMemo(() => {
     const src = detailAchievement?.icon_url?.trim() ?? "";
     if (!src) return "";
     return badgeRenderOptimized ? toOptimizedBadgeRenderSrc(src) : src;
   }, [badgeRenderOptimized, detailAchievement?.icon_url]);
+  const detailMaskStyle = useMemo(() => {
+    return detailRenderSrc ? getAlphaMaskStyle(detailRenderSrc) : null;
+  }, [detailRenderSrc]);
   useEffect(() => {
     if (!badgeRenderOptimized) return;
     const src = detailRenderSrc;
@@ -437,7 +436,7 @@ export function AchievementsManager({
   }, [unlockRevealProgress]);
 
   useEffect(() => {
-    const src = detailAchievement?.icon_url?.trim() ?? "";
+    const src = detailRenderSrc;
     unlockAlphaMaskRef.current = null;
     unlockRevealCompleteProgressRef.current = 1;
     if (readOnly || !detailIsLockedUi) return;
@@ -458,7 +457,7 @@ export function AchievementsManager({
     return () => {
       cancelled = true;
     };
-  }, [badgeRenderOptimized, detailAchievement?.icon_url, detailIsLockedUi, readOnly]);
+  }, [badgeRenderOptimized, detailRenderSrc, detailIsLockedUi, readOnly]);
 
   useEffect(() => {
     if (
@@ -1169,7 +1168,6 @@ export function AchievementsManager({
                             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40",
                             isUnlockHolding && "ring-2 ring-white/40",
                           )}
-                          style={detailMaskStyle ?? undefined}
                           onPointerDown={(e) => {
                             if (
                               !isOpaqueBadgeHit(
@@ -1209,7 +1207,7 @@ export function AchievementsManager({
                           {detailIsLockedUi ? (
                             <div className="absolute inset-0">
                               <RemoteBadgeImage
-                                src={detailAchievement.icon_url.trim()}
+                                src={detailRenderSrc}
                                 className={cn(
                                   "p-1 h-full w-full object-contain opacity-80 grayscale",
                                   detailIsUnlocking && "opacity-90",
@@ -1227,7 +1225,7 @@ export function AchievementsManager({
                                 }}
                               >
                                 <RemoteBadgeImage
-                                  src={detailAchievement.icon_url.trim()}
+                                  src={detailRenderSrc}
                                   className="p-1 h-full w-full object-contain"
                                 />
                               </div>
