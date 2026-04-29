@@ -3,10 +3,7 @@ import { NextResponse } from "next/server";
 
 import { mintEmbedBadgeToken } from "@/lib/embed-badge-token";
 import { allowRateLimit } from "@/lib/embed-rate-limit";
-import {
-  isLocalhostOrLoopbackOrigin,
-  resolvePublicSiteOrigin,
-} from "@/lib/public-site-origin";
+import { resolvePublicSiteOrigin } from "@/lib/public-site-origin";
 import { createClient } from "@/lib/supabase/server";
 
 type Body = {
