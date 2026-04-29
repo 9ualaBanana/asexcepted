@@ -563,13 +563,35 @@ export function AchievementsManager({
     setIsUnlockHolding(false);
   }, []);
 
+  const clearMediaSessionNowPlaying = useCallback(() => {
+    if (typeof navigator === "undefined") return;
+    const mediaSession = (
+      navigator as Navigator & {
+        mediaSession?: {
+          metadata: MediaMetadata | null;
+          playbackState?: "none" | "paused" | "playing";
+        };
+      }
+    ).mediaSession;
+    if (!mediaSession) return;
+    try {
+      mediaSession.metadata = null;
+      if (typeof mediaSession.playbackState === "string") {
+        mediaSession.playbackState = "none";
+      }
+    } catch {
+      // ignore media session write failures
+    }
+  }, []);
+
   const stopUnlockSound = useCallback(() => {
     const audio = unlockAudioRef.current;
     unlockAudioRef.current = null;
     if (!audio) return;
     audio.pause();
     audio.currentTime = 0;
-  }, []);
+    clearMediaSessionNowPlaying();
+  }, [clearMediaSessionNowPlaying]);
 
   const interruptUnlockReveal = useCallback(() => {
     if (unlockRevealRafRef.current !== null) {
@@ -590,6 +612,12 @@ export function AchievementsManager({
       audio.preload = "auto";
       audio.currentTime = 0;
       audio.volume = 1;
+      audio.onended = () => {
+        if (unlockAudioRef.current === audio) {
+          unlockAudioRef.current = null;
+        }
+        clearMediaSessionNowPlaying();
+      };
       unlockAudioRef.current = audio;
       void audio.play().catch(() => {
         // ignore blocked autoplay / unavailable media
@@ -714,8 +742,9 @@ export function AchievementsManager({
       unlockEaseOutSourceRef.current = null;
       unlockSfxContextRef.current?.close().catch(() => undefined);
       unlockSfxContextRef.current = null;
+      clearMediaSessionNowPlaying();
     };
-  }, [interruptUnlockReveal, stopUnlockSound]);
+  }, [clearMediaSessionNowPlaying, interruptUnlockReveal, stopUnlockSound]);
 
   useEffect(() => {
     if (!isUnlockHolding && !detailIsUnlocking) return;
@@ -1520,6 +1549,9 @@ export function AchievementsManager({
       audio.preload = "auto";
       audio.currentTime = 0;
       audio.volume = 1;
+      audio.onended = () => {
+        clearMediaSessionNowPlaying();
+      };
       savePopPreparedRef.current = audio;
       void audio.play().catch(() => {
         // ignore blocked autoplay / unavailable media
