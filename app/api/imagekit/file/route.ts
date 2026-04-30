@@ -7,6 +7,10 @@
 import ImageKit from "imagekit";
 import { NextResponse } from "next/server";
 
+import {
+  isImageKitReachabilityError,
+  logImageKitRouteError,
+} from "@/lib/imagekit-route-errors";
 import { createClient } from "@/lib/supabase/server";
 
 export async function DELETE(req: Request) {
@@ -58,7 +62,16 @@ export async function DELETE(req: Request) {
     await imagekit.deleteFile(fileId);
     return NextResponse.json({ ok: true });
   } catch (e) {
-    console.error("ImageKit deleteFile", e);
+    logImageKitRouteError("ImageKit deleteFile", e, { fileId });
+    if (isImageKitReachabilityError(e)) {
+      return NextResponse.json(
+        {
+          error:
+            "Could not reach ImageKit (network or DNS). Check internet access and that api.imagekit.io resolves, then try again.",
+        },
+        { status: 503 },
+      );
+    }
     return NextResponse.json(
       { error: "Failed to delete file from ImageKit." },
       { status: 500 },

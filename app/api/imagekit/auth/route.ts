@@ -15,6 +15,10 @@
 import ImageKit from "imagekit";
 import { NextResponse } from "next/server";
 
+import {
+  isImageKitReachabilityError,
+  logImageKitRouteError,
+} from "@/lib/imagekit-route-errors";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST() {
@@ -67,7 +71,16 @@ export async function POST() {
       folder,
     });
   } catch (e) {
-    console.error("ImageKit auth error", e);
+    logImageKitRouteError("ImageKit auth error", e);
+    if (isImageKitReachabilityError(e)) {
+      return NextResponse.json(
+        {
+          error:
+            "Could not reach ImageKit (network or DNS). Check connectivity and DNS for api.imagekit.io.",
+        },
+        { status: 503 },
+      );
+    }
     return NextResponse.json(
       { error: "Failed to create upload signature." },
       { status: 500 },
