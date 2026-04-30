@@ -3,6 +3,10 @@ import { AuthButton } from "@/components/auth-button";
 import { AchievementsManager } from "@/components/achievements/achievements-manager";
 import { FollowButton } from "@/components/social/follow-button";
 import { createClient } from "@/lib/supabase/server";
+import {
+  fetchPublicUserDisplayName,
+  isUserFollowingProfile,
+} from "@/lib/user-profile-db";
 import { isAuthUserIdSegment } from "@/lib/user-achievements-path";
 import { Suspense } from "react";
 
@@ -25,24 +29,14 @@ async function UserAchievementsContent({ params }: PageProps) {
 
   let initialIsFollowing = false;
   if (user && !isOwner) {
-    const { data: followRow } = await supabase
-      .from("profile_follow")
-      .select("follower_id")
-      .eq("follower_id", user.id)
-      .eq("following_id", userId)
-      .maybeSingle();
-    initialIsFollowing = Boolean(followRow);
+    const followResult = await isUserFollowingProfile(supabase, user.id, userId);
+    initialIsFollowing = followResult.isOk() ? followResult.value : false;
   }
 
   let ownerPublicLabel: string | null = null;
   if (!isOwner) {
-    const { data: label, error: labelError } = await supabase.rpc(
-      "public_user_display_name",
-      { target_user_id: userId },
-    );
-    if (!labelError && typeof label === "string" && label.trim()) {
-      ownerPublicLabel = label.trim();
-    }
+    const labelResult = await fetchPublicUserDisplayName(supabase, userId);
+    ownerPublicLabel = labelResult.isOk() ? labelResult.value : null;
   }
 
   return (

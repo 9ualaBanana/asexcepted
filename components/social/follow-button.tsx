@@ -2,8 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/client";
+import {
+  createProfileFollow,
+  isUserFollowingProfile,
+  removeProfileFollow,
+} from "@/lib/user-profile-db";
 
 type FollowButtonProps = {
   targetUserId: string;
@@ -26,14 +31,9 @@ export function FollowButton({ targetUserId, initialFollowing }: FollowButtonPro
     const { data: userData } = await supabase.auth.getUser();
     const uid = userData.user?.id;
     if (!uid) return;
-    const { data, error: selErr } = await supabase
-      .from("profile_follow")
-      .select("follower_id")
-      .eq("follower_id", uid)
-      .eq("following_id", targetUserId)
-      .maybeSingle();
-    if (selErr) return;
-    setFollowing(Boolean(data));
+    const result = await isUserFollowingProfile(supabase, uid, targetUserId);
+    if (result.isErr()) return;
+    setFollowing(result.value);
   }, [supabase, targetUserId]);
 
   async function toggle() {
@@ -48,23 +48,17 @@ export function FollowButton({ targetUserId, initialFollowing }: FollowButtonPro
     }
 
     if (following) {
-      const { error: delErr } = await supabase
-        .from("profile_follow")
-        .delete()
-        .eq("follower_id", uid)
-        .eq("following_id", targetUserId);
-      if (delErr) {
-        setError(delErr.message);
+      const unfollowResult = await removeProfileFollow(supabase, uid, targetUserId);
+      if (unfollowResult.isErr()) {
+        setError(unfollowResult.error);
         setLoading(false);
         return;
       }
       setFollowing(false);
     } else {
-      const { error: insErr } = await supabase
-        .from("profile_follow")
-        .insert({ follower_id: uid, following_id: targetUserId });
-      if (insErr) {
-        setError(insErr.message);
+      const followResult = await createProfileFollow(supabase, uid, targetUserId);
+      if (followResult.isErr()) {
+        setError(followResult.error);
         setLoading(false);
         return;
       }
