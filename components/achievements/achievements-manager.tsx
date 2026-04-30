@@ -163,8 +163,8 @@ export function AchievementsManager({
     if (!detailAchievement?.id) return;
     if (detailPerfMeasuredForIdRef.current !== detailAchievement.id) return;
     if (detailOpenStartedAtRef.current == null) return;
-    const now = tryGetHighResNow();
-    const elapsed = Math.max(0, Math.round(now - detailOpenStartedAtRef.current));
+
+    const elapsed = Math.max(0, Math.round(tryGetHighResNow() - detailOpenStartedAtRef.current));
     detailImageDecodedMsRef.current = elapsed;
     setDetailOpenToImageDecodedMs(elapsed);
   }, [detailAchievement?.id]);
@@ -173,8 +173,8 @@ export function AchievementsManager({
     if (!detailAchievement?.id) return;
     if (detailPerfMeasuredForIdRef.current !== detailAchievement.id) return;
     if (detailOpenStartedAtRef.current == null) return;
-    const now = tryGetHighResNow();
-    const elapsed = Math.max(0, Math.round(now - detailOpenStartedAtRef.current));
+
+    const elapsed = Math.max(0, Math.round(tryGetHighResNow() - detailOpenStartedAtRef.current));
     setDetailOpenToVisualReadyMs(elapsed);
     detailPerfMeasuredForIdRef.current = null;
   }, [detailAchievement?.id]);
@@ -183,11 +183,12 @@ export function AchievementsManager({
     if (!detailAchievement?.id) return;
     if (!detailAchievement.icon_url?.trim()) return;
     if (detailPerfMeasuredForIdRef.current !== detailAchievement.id) return;
+
     const timeout = window.setTimeout(() => {
       if (detailPerfMeasuredForIdRef.current !== detailAchievement.id) return;
       if (detailOpenStartedAtRef.current == null) return;
-      const now = tryGetHighResNow();
-      const elapsed = Math.max(0, Math.round(now - detailOpenStartedAtRef.current));
+      
+      const elapsed = Math.max(0, Math.round(tryGetHighResNow() - detailOpenStartedAtRef.current));
       if (detailImageDecodedMsRef.current == null) {
         detailImageDecodedMsRef.current = elapsed;
         setDetailOpenToImageDecodedMs(elapsed);
@@ -732,10 +733,10 @@ export function AchievementsManager({
     unlockHoldPressedRef.current = true;
     setIsUnlockHolding(true);
     primeUnlockAudioGestureContext();
-    playUnlockTimelineSound();
     unlockHoldTimeoutRef.current = window.setTimeout(() => {
       unlockHoldTimeoutRef.current = null;
       setIsUnlockHolding(false);
+      playUnlockTimelineSound();
       void handlePressHoldUnlock();
     }, UNLOCK_HOLD_DURATION_MS);
   }

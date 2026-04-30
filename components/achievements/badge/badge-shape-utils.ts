@@ -127,12 +127,20 @@ export function isOpaqueBadgeHit(
   rect: DOMRect,
   mask: AlphaMaskData | null,
 ) {
-  if (!mask) return true;
-
   const localX = clientX - rect.left;
   const localY = clientY - rect.top;
   if (localX < 0 || localY < 0 || localX > rect.width || localY > rect.height) {
     return false;
+  }
+
+  // Default / fallback badge: `rounded-full` disc — hit target is that circle, not the square slot corners.
+  if (!mask) {
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    const r = Math.min(rect.width, rect.height) / 2;
+    const dx = localX - cx;
+    const dy = localY - cy;
+    return dx * dx + dy * dy <= r * r;
   }
 
   const innerW = Math.max(1, rect.width - BADGE_ART_PAD_PX * 2);
