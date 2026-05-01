@@ -24,9 +24,9 @@ async function FriendsPageInner() {
 
         <section className="w-full max-w-5xl flex-1 px-5 pb-12 space-y-6">
           <header className="space-y-2 text-center">
-            <p className="text-md uppercase tracking-[0.22em]">Friends</p>
+            <p className="text-md uppercase tracking-[0.22em]">Inspa</p>
             <p className="text-md tracking-tight text-muted-foreground/80 font-medium text-xs sm:text-sm leading-relaxed max-w-md mx-auto">
-              Search by display name or part of a user id, open achievements, and follow people you care about.
+              Inspire and get inspired by people you care about
             </p>
           </header>
           <FriendsPanel viewerId={userData.user.id} />

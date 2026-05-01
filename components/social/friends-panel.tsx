@@ -156,13 +156,13 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Following
+          inspire u
         </h2>
         {listsLoading ? (
           <p className="text-sm text-muted-foreground">Loading…</p>
         ) : following.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            You are not following anyone yet. Follow people from their achievements page.
+            None yet
           </p>
         ) : (
           <ul className="rounded-xl border border-border/80 divide-y divide-border/60 overflow-hidden">
@@ -182,12 +182,12 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Followers
+          u inspire
         </h2>
         {listsLoading ? (
           <p className="text-sm text-muted-foreground">Loading…</p>
         ) : followers.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No followers yet.</p>
+          <p className="text-sm text-muted-foreground">None yet</p>
         ) : (
           <ul className="rounded-xl border border-border/80 divide-y divide-border/60 overflow-hidden">
             {followers.map((r) => (

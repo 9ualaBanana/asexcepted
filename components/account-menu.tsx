@@ -64,7 +64,7 @@ export function AccountMenu({ label }: AccountMenuProps) {
             onClick={close}
             className={cn(linkClass, "shrink-0 px-0.5 lowercase pointer-events-auto")}
           >
-            friends
+            social
           </Link>
           <span
             className="shrink-0 select-none text-xs text-muted-foreground/80"

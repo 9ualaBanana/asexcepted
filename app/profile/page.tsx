@@ -29,8 +29,7 @@ async function ProfilePageInner() {
               Profile
             </p>
             <p className="text-md tracking-tight text-center text-muted-foreground/80 font-medium text-xs sm:text-sm leading-relaxed">
-              View and update the fields your Supabase Auth user can change from
-              the client (including display name).
+              View and update your profile information
             </p>
           </header>
           <ProfileSettings />

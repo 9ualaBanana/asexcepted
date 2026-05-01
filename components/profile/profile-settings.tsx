@@ -112,10 +112,6 @@ export function ProfileSettings() {
           readOnly
           className="bg-muted/40"
         />
-        <p className="text-xs text-muted-foreground">
-          Email is tied to your Supabase Auth account. Use password recovery or
-          your project&apos;s email change flow to change it elsewhere.
-        </p>
       </div>
 
       <div className="space-y-2">
@@ -127,10 +123,6 @@ export function ProfileSettings() {
           placeholder="Shown in the app header and Supabase Auth"
           autoComplete="name"
         />
-        <p className="text-xs text-muted-foreground">
-          Stored in Auth <span className="font-mono">user_metadata</span>{" "}
-          (display name / full name).
-        </p>
       </div>
 
       <div className="space-y-2 rounded-lg border border-border/60 bg-muted/20 p-3">
