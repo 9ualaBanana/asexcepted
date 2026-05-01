@@ -243,13 +243,14 @@ export function AchievementRoundBadgeEditor({
             aria-hidden
             className={cn(
               "pointer-events-none absolute isolate flex items-center justify-center",
-              "inset-[-10px]"
+              /* Inset keeps bloom/orbit motion off the badge slot edges (was inset-[-10px]). */
+              "inset-[11%]"
             )}
           >
             <div className="badge-upload-bloom absolute inset-0 rounded-full" />
-            <div className="badge-upload-blob badge-upload-blob-a absolute h-[78%] w-[78%] rounded-full" />
-            <div className="badge-upload-blob badge-upload-blob-b absolute h-[64%] w-[64%] rounded-full" />
-            <div className="badge-upload-blob badge-upload-blob-c absolute h-[56%] w-[56%] rounded-full" />
+            <div className="badge-upload-blob badge-upload-blob-a absolute h-[68%] w-[68%] rounded-full" />
+            <div className="badge-upload-blob badge-upload-blob-b absolute h-[56%] w-[56%] rounded-full" />
+            <div className="badge-upload-blob badge-upload-blob-c absolute h-[48%] w-[48%] rounded-full" />
           </div>
         ) : null}
         {hasRemote ? (

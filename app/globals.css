@@ -193,58 +193,58 @@
 @keyframes badge-upload-bloom {
   0%,
   100% {
-    transform: scale(0.985);
+    transform: scale(0.99);
     opacity: 0.55;
-    filter: blur(9px) saturate(1);
+    filter: blur(8px) saturate(1);
   }
   50% {
-    transform: scale(1.02);
+    transform: scale(1.006);
     opacity: 0.9;
-    filter: blur(11px) saturate(1.18);
+    filter: blur(9px) saturate(1.12);
   }
 }
 
 @keyframes badge-upload-blob-orbit-a {
   0% {
-    transform: translate(-22%, -8%) scale(0.98);
+    transform: translate(-14%, -5%) scale(0.98);
     opacity: 0.2;
   }
   50% {
-    transform: translate(18%, 10%) scale(1.08);
+    transform: translate(11%, 6%) scale(1.04);
     opacity: 0.44;
   }
   100% {
-    transform: translate(-22%, -8%) scale(0.98);
+    transform: translate(-14%, -5%) scale(0.98);
     opacity: 0.2;
   }
 }
 
 @keyframes badge-upload-blob-orbit-b {
   0% {
-    transform: translate(20%, -18%) scale(0.96);
+    transform: translate(12%, -11%) scale(0.96);
     opacity: 0.16;
   }
   50% {
-    transform: translate(-20%, 16%) scale(1.12);
+    transform: translate(-12%, 10%) scale(1.05);
     opacity: 0.4;
   }
   100% {
-    transform: translate(20%, -18%) scale(0.96);
+    transform: translate(12%, -11%) scale(0.96);
     opacity: 0.16;
   }
 }
 
 @keyframes badge-upload-blob-orbit-c {
   0% {
-    transform: translate(-6%, 18%) scale(0.92);
+    transform: translate(-4%, 11%) scale(0.94);
     opacity: 0.14;
   }
   50% {
-    transform: translate(8%, -16%) scale(1.14);
+    transform: translate(5%, -10%) scale(1.05);
     opacity: 0.32;
   }
   100% {
-    transform: translate(-6%, 18%) scale(0.92);
+    transform: translate(-4%, 11%) scale(0.94);
     opacity: 0.14;
   }
 }
