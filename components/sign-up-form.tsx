@@ -1,6 +1,5 @@
 "use client";
 
-import { getAuthClientRedirectOrigin } from "@/lib/auth-client-redirect-origin";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -28,6 +27,17 @@ export function SignUpForm({
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
+  function getAuthRedirectBaseUrl() {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    const vercelUrl = process.env.NEXT_PUBLIC_VERCEL_URL;
+    const fallback =
+      vercelUrl && process.env.NODE_ENV === "production"
+        ? `https://${vercelUrl}`
+        : window.location.origin;
+    const baseUrl = siteUrl || fallback;
+    return baseUrl.replace(/\/$/, "");
+  }
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     const supabase = createClient();
@@ -45,7 +55,7 @@ export function SignUpForm({
         email,
         password,
         options: {
-          emailRedirectTo: `${getAuthClientRedirectOrigin()}/auth/confirm?next=/achievements`,
+          emailRedirectTo: `${getAuthRedirectBaseUrl()}/auth/confirm?next=/achievements`,
         },
       });
       if (error) throw error;
