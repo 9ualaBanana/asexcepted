@@ -1,11 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-
-type DetailAchievementLike = {
-  id: string;
-  icon_url?: string | null;
-};
+import { useBadgeDebugOverlayPreference } from "@/lib/badge/debug-overlay-preference";
+import { AchievementRecord } from "./achievement-transformers";
 
 function tryGetHighResNow() {
   return typeof performance !== "undefined" && Number.isFinite(performance.now())
@@ -14,9 +11,13 @@ function tryGetHighResNow() {
 }
 
 /**
- * Tracks detail-badge open -> decode/visual timing for debug overlay.
+ * Feature-level controller for badge detail metrics:
+ * - timing handlers/state for decode/visual readiness
+ * - debug-overlay preference state
  */
-export function useBadgeDetailMetrics(detailAchievement: DetailAchievementLike | null) {
+export function useAchievementBadgeMetricsController(
+  detailAchievement: AchievementRecord | null,
+) {
   const detailOpenStartedAtRef = useRef<number | null>(null);
   const detailPerfMeasuredForIdRef = useRef<string | null>(null);
   const detailImageDecodedMsRef = useRef<number | null>(null);
@@ -71,7 +72,10 @@ export function useBadgeDetailMetrics(detailAchievement: DetailAchievementLike |
     return () => window.clearTimeout(timeout);
   }, [detailAchievement?.icon_url, detailAchievement?.id]);
 
+  const [badgeDebugOverlay] = useBadgeDebugOverlayPreference();
+
   return {
+    badgeDebugOverlay,
     markDetailOpenStart,
     handleDetailBadgeImageDecoded,
     handleDetailBadgeVisualReady,

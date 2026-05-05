@@ -42,14 +42,11 @@ import {
   getSafeIcon,
   hasMeaningfulContent,
 } from "@/components/achievements/achievement-editor-shared";
-import {
-  useBadgeDebugOverlayPreference,
-} from "@/lib/badge/debug-overlay-preference";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import { copyTextToClipboard } from "@/lib/copy-text-to-clipboard";
 import { requestEmbedBadgeToken } from "@/lib/embed-api-client";
 import { createClient } from "@/lib/supabase/client";
-import { useBadgeDetailMetrics } from "@/components/achievements/use-badge-detail-metrics";
+import { useAchievementBadgeMetricsController } from "@/components/achievements/use-achievement-badge-metrics-controller";
 import { useAchievementUnlockReveal } from "@/components/achievements/use-achievement-unlock-reveal";
 import { useBadgeChunkedPrewarm } from "@/components/achievements/use-badge-chunked-prewarm";
 import {
@@ -77,7 +74,6 @@ export function AchievementsManager({
   readOnly,
 }: AchievementsManagerProps) {
   const supabase = useMemo(() => createClient(), []);
-  const [badgeDebugOverlay] = useBadgeDebugOverlayPreference();
   const [achievements, setAchievements] = useState<AchievementRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -101,13 +97,7 @@ export function AchievementsManager({
     if (!detailAchievementId) return null;
     return achievements.find((a) => a.id === detailAchievementId) ?? null;
   }, [achievements, detailAchievementId]);
-  const {
-    markDetailOpenStart,
-    handleDetailBadgeImageDecoded,
-    handleDetailBadgeVisualReady,
-    detailOpenToVisualReadyMs,
-    detailOpenToImageDecodedMs,
-  } = useBadgeDetailMetrics(detailAchievement);
+  const badgeMetricsController = useAchievementBadgeMetricsController(detailAchievement);
 
   useEffect(() => {
     setEmbedCopyHint(null);
@@ -459,7 +449,7 @@ export function AchievementsManager({
           setCreateForm(createInitialForm());
         }}
         onSelectAchievement={(achievementId) => {
-          markDetailOpenStart(achievementId);
+          badgeMetricsController.markDetailOpenStart(achievementId);
           setDetailAchievementId(achievementId);
           setDetailMode("view");
           setIsCreating(false);
@@ -498,8 +488,8 @@ export function AchievementsManager({
           unlockAlphaMaskRef={unlockAlphaMaskRef}
           startUnlockHold={startUnlockHold}
           cancelUnlockHold={cancelUnlockHold}
-          onDetailBadgeImageDecoded={handleDetailBadgeImageDecoded}
-          onDetailBadgeVisualReady={handleDetailBadgeVisualReady}
+          onDetailBadgeImageDecoded={badgeMetricsController.handleDetailBadgeImageDecoded}
+          onDetailBadgeVisualReady={badgeMetricsController.handleDetailBadgeVisualReady}
           optimisticUnlockedAchievementId={optimisticUnlockedAchievementId}
           isSaving={isSaving}
           embedCopyBusy={embedCopyBusy}
@@ -525,10 +515,10 @@ export function AchievementsManager({
         />
       ) : null}
 
-      {badgeDebugOverlay ? (
+      {badgeMetricsController.badgeDebugOverlay ? (
         <AchievementBadgeDebugOverlay
-          detailOpenToImageDecodedMs={detailOpenToImageDecodedMs}
-          detailOpenToVisualReadyMs={detailOpenToVisualReadyMs}
+          detailOpenToImageDecodedMs={badgeMetricsController.detailOpenToImageDecodedMs}
+          detailOpenToVisualReadyMs={badgeMetricsController.detailOpenToVisualReadyMs}
         />
       ) : null}
     </div>
