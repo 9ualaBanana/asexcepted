@@ -130,7 +130,7 @@ export function AchievementsManager({
     stopUnlockSound,
     playUnlockTimelineSound,
     playUnlockEaseOutSound,
-    prepareUnlockAudioForGesture,
+    primeUnlockAudioGestureContext,
     prefetchAchievementSounds,
     playSavePop,
   } = useAchievementSounds();
@@ -729,14 +729,11 @@ export function AchievementsManager({
     if (!detailIsLockedUi || isSaving || unlockHoldTimeoutRef.current !== null) return;
     unlockHoldPressedRef.current = true;
     setIsUnlockHolding(true);
-    const audioReady = prepareUnlockAudioForGesture();
+    primeUnlockAudioGestureContext();
     unlockHoldTimeoutRef.current = window.setTimeout(() => {
       unlockHoldTimeoutRef.current = null;
       setIsUnlockHolding(false);
-      void (async () => {
-        await audioReady;
-        void handlePressHoldUnlock();
-      })();
+      void handlePressHoldUnlock();
     }, UNLOCK_HOLD_DURATION_MS);
   }
 
