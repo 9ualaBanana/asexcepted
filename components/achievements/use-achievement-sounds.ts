@@ -106,6 +106,52 @@ async function resumeContextIfSuspended(): Promise<void> {
   }
 }
 
+/**
+ * Runs only when the context is `running`; inaudible so it does not register as audible media routing.
+ * iOS Safari often requires a routing “poke” tied to gesture + resumed context before deferred `start()` calls work.
+ */
+function openSilentRoutingBurst(ctx: AudioContext): void {
+  if (ctx.state !== "running") return;
+  try {
+    const sampleRate = ctx.sampleRate;
+    const frames = Math.min(2048, Math.max(128, Math.floor(sampleRate * 0.02)));
+    const buffer = ctx.createBuffer(1, frames, sampleRate);
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    src.connect(gain);
+    gain.connect(ctx.destination);
+    const t0 = ctx.currentTime;
+    const dur = frames / sampleRate;
+    src.start(t0);
+    src.stop(t0 + dur);
+    src.onended = () => {
+      try {
+        src.disconnect();
+        gain.disconnect();
+      } catch {
+        /* ignore */
+      }
+    };
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
+ * Call from a **pointer/touch down** (user gesture). Awaits resume + decode so timer-based unlock audio can play on iOS.
+ */
+async function prepareUnlockAudioForGesture(): Promise<void> {
+  void decodeAllBurstSamples();
+  await resumeContextIfSuspended();
+  const ctx = acquireSharedContext();
+  if (ctx?.state === "running") {
+    openSilentRoutingBurst(ctx);
+  }
+  await decodeAllBurstSamples();
+}
+
 function playDecodedBuffer(params: {
   buffer: AudioBuffer;
   prevSourceRef: { current: AudioBufferSourceNode | null };
@@ -137,7 +183,7 @@ function playDecodedBuffer(params: {
   queueMicrotask(clearMediaSessionNowPlaying);
 
   try {
-    src.start(0);
+    src.start(ctx.currentTime);
     return true;
   } catch {
     prevSourceRef.current = null;
@@ -166,7 +212,7 @@ function playDecodedPopFireAndForget(buffer: AudioBuffer): boolean {
   };
   queueMicrotask(clearMediaSessionNowPlaying);
   try {
-    src.start(0);
+    src.start(ctx.currentTime);
     return true;
   } catch {
     return false;
@@ -193,7 +239,7 @@ function playBurstSyncOrDefer(params: {
 }
 
 /**
- * Short UI bursts through Web Audio (decoded buffers + immediate `start(0)`).
+ * Short UI bursts through Web Audio (decoded buffers + `start(audioContext.currentTime)`).
  * Avoids `<audio>` tags that iOS exposes on the lock screen / Now Playing.
  */
 export function useAchievementSounds() {
@@ -225,8 +271,7 @@ export function useAchievementSounds() {
   }, []);
 
   const primeUnlockAudioGestureContext = useCallback(() => {
-    void decodeAllBurstSamples();
-    void resumeContextIfSuspended();
+    void prepareUnlockAudioForGesture();
   }, []);
 
   const playSavePop = useCallback(() => {
@@ -240,6 +285,10 @@ export function useAchievementSounds() {
 
     void (async () => {
       await resumeContextIfSuspended();
+      const ctxWarm = acquireSharedContext();
+      if (ctxWarm?.state === "running") {
+        openSilentRoutingBurst(ctxWarm);
+      }
       const pack = decoded ?? (await decodeAllBurstSamples());
       if (!pack) return;
       if (!playDecodedPopFireAndForget(pack.pop)) return;
@@ -260,6 +309,7 @@ export function useAchievementSounds() {
     playUnlockTimelineSound,
     playUnlockEaseOutSound,
     primeUnlockAudioGestureContext,
+    prepareUnlockAudioForGesture,
     prefetchAchievementSounds,
     playSavePop,
   };
