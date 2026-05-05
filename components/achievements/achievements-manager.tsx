@@ -653,20 +653,28 @@ export function AchievementsManager({
       });
 
     setUnlockingAchievementId(detailAchievement.id);
-    setUnlockRevealProgress(0);
     setIsSaving(true);
     setError(null);
-    const forwardResult = await animateReveal(1, UNLOCK_REVEAL_DURATION_MS, true);
+    const forwardDuration = Math.max(
+      120,
+      Math.round(
+        Math.max(0, 1 - unlockRevealProgressRef.current) * UNLOCK_REVEAL_DURATION_MS,
+      ),
+    );
+    const forwardResult = await animateReveal(1, forwardDuration, true);
     if (forwardResult === "cancelled") {
       stopUnlockSound();
       const closeDuration = Math.max(
         120,
         Math.round(unlockRevealProgressRef.current * UNLOCK_REVEAL_DURATION_MS),
       );
-      await animateReveal(0, closeDuration, false);
+      // Keep UI interactive while rolling back so users can catch the wave and continue.
       setIsSaving(false);
-      setUnlockingAchievementId(null);
-      setUnlockRevealProgress(0);
+      void animateReveal(0, closeDuration, false).then((rollbackResult) => {
+        if (rollbackResult !== "completed") return;
+        setUnlockingAchievementId(null);
+        setUnlockRevealProgress(0);
+      });
       return;
     }
 
