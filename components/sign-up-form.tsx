@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { userAchievementsPath } from "@/lib/user-achievements-path";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -15,12 +16,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
+
+type SignUpFormProps = {
+  className?: string;
+};
 
 export function SignUpForm({
   className,
-  ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: SignUpFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
@@ -28,13 +32,14 @@ export function SignUpForm({
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: FormEvent) => {
     e.preventDefault();
     const supabase = createClient();
     setIsLoading(true);
     setError(null);
 
     if (password !== repeatPassword) {
+      Sentry.captureMessage("auth.signup.password_mismatch", "warning");
       setError("Passwords do not match");
       setIsLoading(false);
       return;
@@ -47,18 +52,50 @@ export function SignUpForm({
       });
       if (error) throw error;
       if (data.session && data.user) {
+        Sentry.captureEvent({
+          level: "info",
+          message: "auth.signup.succeeded",
+          tags: {
+            area: "auth",
+            flow: "signup",
+          },
+          user: {
+            id: data.user.id,
+          },
+          extra: {
+            hasEmail: Boolean(data.user.email),
+          },
+        });
         router.push(userAchievementsPath(data.user.id));
         router.refresh();
         return;
       }
       if (data.user && !data.session) {
+        Sentry.captureEvent({
+          level: "warning",
+          message: "auth.signup.no_session_returned",
+          tags: {
+            area: "auth",
+            flow: "signup",
+          },
+          user: {
+            id: data.user.id,
+          },
+        });
         setError(
           "Email confirmation is still enabled in your Supabase project. Disable it under Authentication → Providers → Email (Confirm email), then try again.",
         );
         return;
       }
+      Sentry.captureMessage("auth.signup.no_user_or_session", "warning");
       setError("Sign up did not return a session. Try again or contact support.");
     } catch (error: unknown) {
+      Sentry.captureException(error, {
+        tags: {
+          area: "auth",
+          flow: "signup",
+        },
+      });
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setIsLoading(false);
@@ -66,7 +103,7 @@ export function SignUpForm({
   };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn("flex flex-col gap-6", className)}>
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">Sign up</CardTitle>
