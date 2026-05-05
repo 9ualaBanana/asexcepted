@@ -15,7 +15,7 @@ import type { AchievementTone } from "@/components/achievements/achievement-card
 import { AchievementBadgeSlot } from "@/components/achievements/badge/achievement-badge-slot";
 import { AchievementFallbackBadge } from "@/components/achievements/badge/achievement-fallback-badge";
 import { AchievementBadge3DViewer } from "@/components/achievements/badge/achievement-badge-3d-viewer";
-import { isOpaqueBadgeHit, type AlphaMaskData } from "@/components/achievements/badge/badge-shape-utils";
+import { isOpaqueBadgeHit, type AlphaMaskData } from "@/lib/badge/shape-utils";
 import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
 import {
   achievementBadgeChromeWidth,

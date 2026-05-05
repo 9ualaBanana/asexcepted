@@ -3,13 +3,13 @@
 import { LRUCache } from "lru-cache";
 import type { CSSProperties } from "react";
 
-import { makeBadgeMotionStyle } from "@/components/achievements/badge/badge-float-motion";
-import { decodeImageReadyPromise } from "@/components/achievements/badge/badge-image-decode";
+import { makeBadgeMotionStyle } from "@/lib/badge/motion";
+import { decodeImageReadyPromise } from "@/lib/badge/image-decode";
 import {
   getAlphaMaskStyle,
   loadAlphaMaskDataFromImage,
   type AlphaMaskData,
-} from "@/components/achievements/badge/badge-shape-utils";
+} from "@/lib/badge/shape-utils";
 
 const decodeReady = new LRUCache<string, Promise<void>>({
   max: 300,

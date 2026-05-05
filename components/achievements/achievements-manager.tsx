@@ -36,14 +36,14 @@ import {
   clearBadgeRenderCacheForSrc,
   getCachedAlphaMaskData,
   prewarmBadgeRenderCache,
-} from "@/components/achievements/badge/badge-render-cache";
+} from "@/lib/badge/render-cache";
 import {
   buildUnlockRevealClipPath,
   buildUnlockRevealClipPathLut,
   estimateUnlockRevealCompletionProgress,
   getAlphaMaskStyle,
   type AlphaMaskData,
-} from "@/components/achievements/badge/badge-shape-utils";
+} from "@/lib/badge/shape-utils";
 import {
   type BadgeIkSession,
   createEmptyBadgeIkSession,
@@ -53,8 +53,8 @@ import {
 } from "@/components/achievements/achievement-editor-shared";
 import {
   useBadgeDebugOverlayPreference,
-} from "@/lib/badge-render-optimization";
-import { toOptimizedBadgeRenderSrc } from "@/lib/badge-render-src";
+} from "@/lib/badge/debug-overlay-preference";
+import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import { copyTextToClipboard } from "@/lib/copy-text-to-clipboard";
 import { requestEmbedBadgeToken } from "@/lib/embed-api-client";
 import { createClient } from "@/lib/supabase/client";

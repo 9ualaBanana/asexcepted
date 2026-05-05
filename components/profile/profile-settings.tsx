@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   useBadgeDebugOverlayPreference,
-} from "@/lib/badge-render-optimization";
+} from "@/lib/badge/debug-overlay-preference";
 
 function displayNameFromMetadata(meta: Record<string, unknown> | null | undefined) {
   if (!meta) return "";

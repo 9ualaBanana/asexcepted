@@ -1,5 +1,5 @@
 import { getSafeTone } from "@/components/achievements/achievement-card";
-import { unlockRevealLutSteps } from "@/components/achievements/badge/badge-shape-utils";
+import { unlockRevealLutSteps } from "@/lib/badge/shape-utils";
 import {
   type FormState,
   todayDateString,

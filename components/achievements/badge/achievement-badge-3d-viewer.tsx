@@ -6,7 +6,7 @@ import {
   ensureBadgeImageDecoded,
   getCachedBadgeMaskStyle,
   getCachedBadgeMotionStyle,
-} from "@/components/achievements/badge/badge-render-cache";
+} from "@/lib/badge/render-cache";
 import { cn } from "@/lib/utils";
 
 type AchievementBadge3DViewerProps = {
