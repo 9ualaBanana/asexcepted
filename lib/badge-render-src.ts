@@ -4,18 +4,16 @@
  * reducing bytes/decode cost on mobile devices.
  */
 export function toOptimizedBadgeRenderSrc(src: string): string {
-  const raw = src.trim();
-  if (!raw) return raw;
   let u: URL;
   try {
-    u = new URL(raw);
+    u = new URL(src);
   } catch {
-    return raw;
+    return src;
   }
 
   const isImageKit = u.hostname.endsWith("imagekit.io");
-  if (!isImageKit) return raw;
-  if (u.searchParams.has("tr")) return raw;
+  if (!isImageKit) return src;
+  if (u.searchParams.has("tr")) return src;
 
   // ~2x device-pixel cap for a ~320px render target.
   u.searchParams.set("tr", "w-640,h-640,c-at_max,q-85,f-auto");

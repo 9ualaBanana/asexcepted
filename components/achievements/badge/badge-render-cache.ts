@@ -4,60 +4,43 @@ import { LRUCache } from "lru-cache";
 import type { CSSProperties } from "react";
 
 import { makeBadgeMotionStyle } from "@/components/achievements/badge/badge-float-motion";
+import { decodeImageReadyPromise } from "@/components/achievements/badge/badge-image-decode";
 import {
   getAlphaMaskStyle,
   loadAlphaMaskDataFromImage,
   type AlphaMaskData,
 } from "@/components/achievements/badge/badge-shape-utils";
 
-const decodeReady = new LRUCache<string, Promise<void>>({ max: 300 });
-const alphaMaskReady = new LRUCache<string, Promise<AlphaMaskData | null>>({ max: 300 });
-const maskStyleCache = new LRUCache<string, CSSProperties>({ max: 300 });
-const motionStyleCache = new LRUCache<string, CSSProperties>({ max: 500 });
-
-function normalizeSrc(src: string): string {
-  return src.trim();
-}
+const decodeReady = new LRUCache<string, Promise<void>>({
+  max: 300,
+  memoMethod: decodeImageReadyPromise,
+ });
+const alphaMaskReady = new LRUCache<string, Promise<AlphaMaskData | null>>({
+  max: 300,
+  memoMethod: loadAlphaMaskDataFromImage
+});
+const maskStyleCache = new LRUCache<string, CSSProperties>({
+  max: 300,
+  memoMethod: getAlphaMaskStyle
+});
+const motionStyleCache = new LRUCache<string, CSSProperties>({
+  max: 500,
+  memoMethod: (_key, _value, { context }) =>{
+    const { seed, startCentered } = context as { seed: string; startCentered: boolean };
+    return makeBadgeMotionStyle(seed, startCentered);
+  }
+});
 
 /**
  * Ensures the image bytes are loaded and `decode()` has settled for this URL.
  * Reuses one promise per URL so repeat opens do not spawn redundant decode work.
  */
 export function ensureBadgeImageDecoded(src: string): Promise<void> {
-  const key = normalizeSrc(src);
-  if (!key) return Promise.resolve();
-  const cached = decodeReady.get(key);
-  if (cached) return cached;
-
-  const p = new Promise<void>((resolve) => {
-    const finish = () => resolve();
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      void (img.decode?.() ?? Promise.resolve())
-        .then(finish)
-        .catch(finish);
-    };
-    img.onerror = finish;
-    img.src = key;
-    if (img.complete) {
-      void (img.decode?.() ?? Promise.resolve())
-        .then(finish)
-        .catch(finish);
-    }
-  });
-  decodeReady.set(key, p);
-  return p;
+  return decodeReady.memo(src);
 }
 
 export function getCachedBadgeMaskStyle(src: string): CSSProperties {
-  const key = normalizeSrc(src);
-  if (!key) return {};
-  const cached = maskStyleCache.get(key);
-  if (cached) return cached;
-  const style = getAlphaMaskStyle(key);
-  maskStyleCache.set(key, style);
-  return style;
+  return maskStyleCache.memo(src);
 }
 
 export function getCachedBadgeMotionStyle(
@@ -65,21 +48,11 @@ export function getCachedBadgeMotionStyle(
   startCentered = false,
 ): CSSProperties {
   const key = `${startCentered ? "1" : "0"}:${seed}`;
-  const cached = motionStyleCache.get(key);
-  if (cached) return cached;
-  const style = makeBadgeMotionStyle(seed, startCentered);
-  motionStyleCache.set(key, style);
-  return style;
+  return motionStyleCache.memo(key, { context: { seed, startCentered } });
 }
 
 export function getCachedAlphaMaskData(src: string): Promise<AlphaMaskData | null> {
-  const key = normalizeSrc(src);
-  if (!key) return Promise.resolve(null);
-  const cached = alphaMaskReady.get(key);
-  if (cached) return cached;
-  const p = loadAlphaMaskDataFromImage(key);
-  alphaMaskReady.set(key, p);
-  return p;
+  return alphaMaskReady.memo(src);
 }
 
 export function prewarmBadgeRenderCache(
@@ -90,22 +63,18 @@ export function prewarmBadgeRenderCache(
     includeAlphaMaskData?: boolean;
   },
 ): void {
-  const key = normalizeSrc(src);
-  if (!key) return;
-  void ensureBadgeImageDecoded(key);
-  void getCachedBadgeMaskStyle(key);
+  void ensureBadgeImageDecoded(src);
+  void getCachedBadgeMaskStyle(src);
   if (options?.includeAlphaMaskData) {
-    void getCachedAlphaMaskData(key);
+    void getCachedAlphaMaskData(src);
   }
   if (options?.motionSeed) {
-    void getCachedBadgeMotionStyle(options.motionSeed, options.startCentered ?? false);
+    void getCachedBadgeMotionStyle(options.motionSeed, options.startCentered);
   }
 }
 
 export function clearBadgeRenderCacheForSrc(src: string): void {
-  const key = normalizeSrc(src);
-  if (!key) return;
-  decodeReady.delete(key);
-  alphaMaskReady.delete(key);
-  maskStyleCache.delete(key);
+  decodeReady.delete(src);
+  alphaMaskReady.delete(src);
+  maskStyleCache.delete(src);
 }
