@@ -142,9 +142,6 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
                   <span className="font-medium truncate">
                     {profileListLabel(r)}
                   </span>
-                  <span className="shrink-0 text-xs text-muted-foreground font-mono">
-                    Achievements
-                  </span>
                 </Link>
               </li>
             ))}
