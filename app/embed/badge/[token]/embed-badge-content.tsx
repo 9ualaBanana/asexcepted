@@ -44,7 +44,6 @@ export async function EmbedBadgeContent({ params }: Props) {
         <AchievementBadge3DViewer
           src={src}
           className="p-1"
-          interactive
           float
           motionSeed={payload.achievementId}
         />

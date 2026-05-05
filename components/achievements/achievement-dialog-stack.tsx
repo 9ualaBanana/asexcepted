@@ -230,7 +230,6 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                           <AchievementBadge3DViewer
                             src={detailRenderSrc}
                             className="p-1"
-                            interactive
                             float={detailFloating}
                             motionSeed={detailAchievement.id}
                             motionStartCentered={

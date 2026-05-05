@@ -7,19 +7,16 @@ import {
   getCachedBadgeMaskStyle,
   getCachedBadgeMotionStyle,
 } from "@/components/achievements/badge/badge-render-cache";
-import { makeBadgeMotionStyle } from "@/components/achievements/badge/badge-float-motion";
-import { getAlphaMaskStyle } from "@/components/achievements/badge/badge-shape-utils";
 import { cn } from "@/lib/utils";
 
 type AchievementBadge3DViewerProps = {
   src: string;
   className?: string;
-  interactive?: boolean;
   /**
    * When true, applies the same `.achievement-badge-object-float` motion as the
    * achievements detail panel (CSS in globals.css + `makeBadgeMotionStyle`).
    */
-  float?: boolean;
+  float: boolean;
   /** Seed for motion params; use achievement id to match detail + embed. */
   motionSeed?: string;
   /** Passed through to `makeBadgeMotionStyle` (e.g. true right after unlock). */
@@ -42,8 +39,7 @@ const INERTIA_MIN_SPEED = 0.015;
 export function AchievementBadge3DViewer({
   src,
   className,
-  interactive = true,
-  float = false,
+  float,
   motionSeed,
   motionStartCentered = false,
   onImageDecoded,
@@ -215,40 +211,32 @@ export function AchievementBadge3DViewer({
       ref={rootRef}
       className={cn(
         "relative h-full w-full [perspective:880px]",
-        interactive && "touch-none",
+        "touch-none",
         className,
       )}
       onPointerMove={
-        interactive
-          ? (e) => {
-              if (dragRef.current.pointerId !== e.pointerId) return;
-              updateDrag(e.clientX, e.clientY);
-            }
-          : undefined
+        (e) => {
+          if (dragRef.current.pointerId !== e.pointerId) return;
+          updateDrag(e.clientX, e.clientY);
+        }
       }
       onPointerDown={
-        interactive
-          ? (e) => {
-              e.currentTarget.setPointerCapture(e.pointerId);
-              beginDrag(e.pointerId, e.clientX, e.clientY);
-            }
-          : undefined
+        (e) => {
+          e.currentTarget.setPointerCapture(e.pointerId);
+          beginDrag(e.pointerId, e.clientX, e.clientY);
+        }
       }
       onPointerUp={
-        interactive
-          ? (e) => {
-              if (dragRef.current.pointerId !== e.pointerId) return;
-              endDrag();
-            }
-          : undefined
+        (e) => {
+          if (dragRef.current.pointerId !== e.pointerId) return;
+          endDrag();
+        }
       }
       onPointerCancel={
-        interactive
-          ? (e) => {
-              if (dragRef.current.pointerId !== e.pointerId) return;
-              endDrag();
-            }
-          : undefined
+        (e) => {
+          if (dragRef.current.pointerId !== e.pointerId) return;
+          endDrag();
+        }
       }
     >
       <div
