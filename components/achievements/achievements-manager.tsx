@@ -131,6 +131,7 @@ export function AchievementsManager({
     playUnlockTimelineSound,
     playUnlockEaseOutSound,
     primeUnlockAudioGestureContext,
+    prefetchAchievementSounds,
     playSavePop,
   } = useAchievementSounds();
 
@@ -315,6 +316,10 @@ export function AchievementsManager({
       cancelled = true;
     };
   }, [detailRenderSrc, detailIsLockedUi, readOnly]);
+
+  useEffect(() => {
+    if (detailIsLockedUi && !readOnly) prefetchAchievementSounds();
+  }, [detailIsLockedUi, prefetchAchievementSounds, readOnly]);
 
   useEffect(() => {
     if (
@@ -601,6 +606,7 @@ export function AchievementsManager({
   async function handlePressHoldUnlock() {
     if (readOnly) return;
     if (!detailAchievement || !detailAchievement.is_locked || isSaving) return;
+    playUnlockTimelineSound();
     const targetId = detailAchievement.id;
 
     const animateReveal = (
@@ -727,7 +733,6 @@ export function AchievementsManager({
     unlockHoldTimeoutRef.current = window.setTimeout(() => {
       unlockHoldTimeoutRef.current = null;
       setIsUnlockHolding(false);
-      playUnlockTimelineSound();
       void handlePressHoldUnlock();
     }, UNLOCK_HOLD_DURATION_MS);
   }
