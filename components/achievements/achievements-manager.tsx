@@ -31,6 +31,7 @@ import { useAchievementEmbedLinkController } from "@/components/achievements/use
 import { useAchievementDetailViewModel } from "@/components/achievements/use-achievement-detail-view-model";
 import { useAchievementBadgeSessionController } from "@/components/achievements/use-achievement-badge-session-controller";
 import { useAchievementEditorPipelineController } from "@/components/achievements/use-achievement-editor-pipeline-controller";
+import { useAchievementUiStateMachine } from "@/components/achievements/use-achievement-ui-state-machine";
 import {
   deleteAchievement,
   listAchievements,
@@ -58,20 +59,17 @@ export function AchievementsManager({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createForm, setCreateForm] = useState<FormState>(createInitialForm);
-  const [isCreating, setIsCreating] = useState(false);
-  const [detailAchievementId, setDetailAchievementId] = useState<string | null>(null);
-  const [detailMode, setDetailMode] = useState<"view" | "edit">("view");
   const [panelForm, setPanelForm] = useState<FormState>(createInitialForm);
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const uiState = useAchievementUiStateMachine();
   const badgeSessionController = useAchievementBadgeSessionController({
-    isCreating,
-    detailMode,
+    isCreating: uiState.isCreating,
+    detailMode: uiState.detailMode,
   });
 
   const detailAchievement = useMemo(() => {
-    if (!detailAchievementId) return null;
-    return achievements.find((a) => a.id === detailAchievementId) ?? null;
-  }, [achievements, detailAchievementId]);
+    if (!uiState.detailAchievementId) return null;
+    return achievements.find((a) => a.id === uiState.detailAchievementId) ?? null;
+  }, [achievements, uiState.detailAchievementId]);
   const badgeMetricsController = useAchievementBadgeMetricsController(detailAchievement);
   const embedLinkController = useAchievementEmbedLinkController({
     detailAchievementId: detailAchievement?.id ?? null,
@@ -114,7 +112,7 @@ export function AchievementsManager({
     readOnly,
     createForm,
     panelForm,
-    detailAchievementId,
+    detailAchievementId: uiState.detailAchievementId,
     detailAchievement,
     badgeSessionController,
     supabase,
@@ -122,42 +120,37 @@ export function AchievementsManager({
     setIsSaving,
     setAchievements,
     setCreateForm,
-    setIsCreating,
-    setDetailAchievementId,
-    setDetailMode,
     setPanelForm,
     playSavePop,
+    uiState,
   });
   useEffect(() => {
     if (
-      detailAchievementId &&
-      !achievements.some((a) => a.id === detailAchievementId)
+      uiState.detailAchievementId &&
+      !achievements.some((a) => a.id === uiState.detailAchievementId)
     ) {
-      setDetailAchievementId(null);
-      setDetailMode("view");
+      uiState.closeOverlay();
     }
-  }, [achievements, detailAchievementId]);
+  }, [achievements, uiState]);
 
-  const achievementOverlayOpen = Boolean(detailAchievement) || isCreating;
+  const achievementOverlayOpen = uiState.achievementOverlayOpen;
   const editorUploadInProgress = badgeSessionController.editorUploadInProgress;
 
   useBadgeChunkedPrewarm({ achievements, pause: achievementOverlayOpen });
 
   function closeDetailPanel() {
     if (editorUploadInProgress) return;
-    if (isCreating) {
+    if (uiState.isCreating) {
       badgeSessionController.rollbackCreateBadgeSession();
       setCreateForm(createInitialForm());
-      setIsCreating(false);
       badgeSessionController.setCreateUploadInProgress(false);
     }
-    if (detailMode === "edit" && detailAchievement) {
+    if (uiState.detailMode === "edit" && detailAchievement) {
       badgeSessionController.rollbackPanelBadgeSession();
       setPanelForm(achievementToForm(detailAchievement));
       badgeSessionController.setPanelUploadInProgress(false);
     }
-    setDetailAchievementId(null);
-    setDetailMode("view");
+    uiState.closeOverlay();
     resetUnlockWave();
     setIsSaving(false);
     embedLinkController.setManualEmbedUrl(null);
@@ -195,7 +188,7 @@ export function AchievementsManager({
     await badgeSessionController.deleteRemoteFilesForAchievement(
       target,
       id,
-      detailAchievementId,
+      uiState.detailAchievementId,
     );
 
     const deleteResult = await deleteAchievement(supabase, id);
@@ -211,11 +204,10 @@ export function AchievementsManager({
       clearBadgeRenderCacheForSrc(targetSrc);
       clearBadgeRenderCacheForSrc(toOptimizedBadgeRenderSrc(targetSrc));
     }
-    if (detailAchievementId === id) {
-      setDetailAchievementId(null);
-      setDetailMode("view");
+    if (uiState.detailAchievementId === id) {
+      uiState.closeOverlay();
     }
-    setDeleteConfirmId(null);
+    uiState.clearDelete();
     setIsSaving(false);
   }
 
@@ -235,9 +227,7 @@ export function AchievementsManager({
         onAddAchievement={editorPipelineController.startCreateFlow}
         onSelectAchievement={(achievementId) => {
           badgeMetricsController.markDetailOpenStart(achievementId);
-          setDetailAchievementId(achievementId);
-          setDetailMode("view");
-          setIsCreating(false);
+          uiState.openDetailView(achievementId);
         }}
       />
 
@@ -246,14 +236,14 @@ export function AchievementsManager({
           readOnly={readOnly}
           editorUploadInProgress={editorUploadInProgress}
           closeDetailPanel={closeDetailPanel}
-          isCreating={isCreating}
+          isCreating={uiState.isCreating}
           createForm={createForm}
           setCreateForm={setCreateForm}
           setCreateUploadInProgress={badgeSessionController.setCreateUploadInProgress}
           createBadgeIkSessionRef={badgeSessionController.createBadgeIkSessionRef}
           onSubmitCreate={editorPipelineController.submitCreate}
           onCancelCreate={editorPipelineController.cancelCreateFlow}
-          detailMode={detailMode}
+          detailMode={uiState.detailMode}
           detailAchievement={detailAchievement}
           panelForm={panelForm}
           setPanelForm={setPanelForm}
@@ -280,15 +270,15 @@ export function AchievementsManager({
           embedCopyBusy={embedLinkController.embedCopyBusy}
           embedCopyHint={embedLinkController.embedCopyHint}
           onCopyEmbedLink={embedLinkController.copyEmbedLink}
-          onRequestDelete={(id) => setDeleteConfirmId(id)}
+          onRequestDelete={uiState.requestDelete}
         />
       ) : null}
 
-      {deleteConfirmId ? (
+      {uiState.deleteConfirmId ? (
         <AchievementDeleteConfirmDialog
           isSaving={isSaving}
-          onDismiss={() => setDeleteConfirmId(null)}
-          onConfirm={() => void handleDelete(deleteConfirmId)}
+          onDismiss={uiState.clearDelete}
+          onConfirm={() => void handleDelete(uiState.deleteConfirmId!)}
         />
       ) : null}
 

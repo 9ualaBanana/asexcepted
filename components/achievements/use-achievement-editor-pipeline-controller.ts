@@ -9,6 +9,7 @@ import { type FormState, hasMeaningfulContent } from "@/components/achievements/
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
 import { achievementToForm, formToPayload } from "@/components/achievements/achievement-transformers";
 import type { AchievementBadgeSessionController } from "@/components/achievements/use-achievement-badge-session-controller";
+import type { AchievementUiStateMachine } from "@/components/achievements/use-achievement-ui-state-machine";
 import { clearBadgeRenderCacheForSrc, prewarmBadgeRenderCache } from "@/lib/badge/render-cache";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -25,11 +26,9 @@ type UseAchievementEditorPipelineControllerArgs = {
   setIsSaving: (value: boolean) => void;
   setAchievements: (value: AchievementRecord[] | ((prev: AchievementRecord[]) => AchievementRecord[])) => void;
   setCreateForm: (value: FormState | ((prev: FormState) => FormState)) => void;
-  setIsCreating: (value: boolean) => void;
-  setDetailAchievementId: (value: string | null) => void;
-  setDetailMode: (value: "view" | "edit") => void;
   setPanelForm: (value: FormState | ((prev: FormState) => FormState)) => void;
   playSavePop: () => void;
+  uiState: AchievementUiStateMachine;
 };
 
 export function useAchievementEditorPipelineController({
@@ -44,35 +43,30 @@ export function useAchievementEditorPipelineController({
   setIsSaving,
   setAchievements,
   setCreateForm,
-  setIsCreating,
-  setDetailAchievementId,
-  setDetailMode,
   setPanelForm,
   playSavePop,
+  uiState,
 }: UseAchievementEditorPipelineControllerArgs) {
   const startCreateFlow = useCallback(() => {
     badgeSessionController.beginCreateBadgeSession();
-    setIsCreating(true);
-    setDetailAchievementId(null);
-    setDetailMode("edit");
+    uiState.openCreate();
     setCreateForm(createInitialForm());
-  }, [badgeSessionController, setCreateForm, setDetailAchievementId, setDetailMode, setIsCreating]);
+  }, [badgeSessionController, setCreateForm, uiState]);
 
   const cancelCreateFlow = useCallback(() => {
     if (badgeSessionController.createUploadInProgress) return;
     badgeSessionController.rollbackCreateBadgeSession();
     setCreateForm(createInitialForm());
-    setIsCreating(false);
     badgeSessionController.setCreateUploadInProgress(false);
-    setDetailMode("view");
-  }, [badgeSessionController, setCreateForm, setDetailMode, setIsCreating]);
+    uiState.closeOverlay();
+  }, [badgeSessionController, setCreateForm, uiState]);
 
   const startPanelEditFlow = useCallback(() => {
     if (!detailAchievement) return;
     badgeSessionController.beginPanelBadgeSession(detailAchievement);
     setPanelForm(achievementToForm(detailAchievement));
-    setDetailMode("edit");
-  }, [badgeSessionController, detailAchievement, setDetailMode, setPanelForm]);
+    uiState.enterDetailEdit();
+  }, [badgeSessionController, detailAchievement, setPanelForm, uiState]);
 
   const cancelPanelEditFlow = useCallback(() => {
     if (badgeSessionController.panelUploadInProgress) return;
@@ -81,8 +75,8 @@ export function useAchievementEditorPipelineController({
       setPanelForm(achievementToForm(detailAchievement));
     }
     badgeSessionController.setPanelUploadInProgress(false);
-    setDetailMode("view");
-  }, [badgeSessionController, detailAchievement, setDetailMode, setPanelForm]);
+    uiState.exitDetailEdit();
+  }, [badgeSessionController, detailAchievement, setPanelForm, uiState]);
 
   const submitCreate = useCallback(
     async (e: FormEvent) => {
@@ -120,9 +114,7 @@ export function useAchievementEditorPipelineController({
       setCreateForm(createInitialForm());
       badgeSessionController.beginCreateBadgeSession();
       setIsSaving(false);
-      setIsCreating(false);
-      setDetailAchievementId(null);
-      setDetailMode("view");
+      uiState.closeOverlay();
     },
     [
       badgeSessionController,
@@ -131,12 +123,10 @@ export function useAchievementEditorPipelineController({
       readOnly,
       setAchievements,
       setCreateForm,
-      setDetailAchievementId,
-      setDetailMode,
       setError,
-      setIsCreating,
       setIsSaving,
       supabase,
+      uiState,
     ],
   );
 
@@ -194,7 +184,7 @@ export function useAchievementEditorPipelineController({
           ),
         ),
       );
-      setDetailMode("view");
+      uiState.exitDetailEdit();
       setIsSaving(false);
     },
     [
@@ -205,10 +195,10 @@ export function useAchievementEditorPipelineController({
       playSavePop,
       readOnly,
       setAchievements,
-      setDetailMode,
       setError,
       setIsSaving,
       supabase,
+      uiState,
     ],
   );
 
