@@ -109,6 +109,8 @@ export function AchievementsManager({
   const createBadgeIkSessionRef = useRef<BadgeIkSession>(createEmptyBadgeIkSession());
   const panelBadgeIkSessionRef = useRef<BadgeIkSession>(createEmptyBadgeIkSession());
   const unlockHoldTimeoutRef = useRef<number | null>(null);
+  /** Non-null while a hold is arming / running; blocks overlapping holds until timer completes or cancel. */
+  const unlockHoldSessionRef = useRef<object | null>(null);
   const unlockRevealRafRef = useRef<number | null>(null);
   const unlockHoldPressedRef = useRef(false);
   const unlockRevealProgressRef = useRef(0);
@@ -128,7 +130,7 @@ export function AchievementsManager({
   );
   const {
     stopUnlockSound,
-    playUnlockTimelineSound,
+    scheduleUnlockHoldPeel,
     playUnlockEaseOutSound,
     prepareUnlockAudioForGesture,
     prefetchAchievementSounds,
@@ -403,13 +405,15 @@ export function AchievementsManager({
   }
 
   const cancelUnlockHold = useCallback(() => {
+    unlockHoldSessionRef.current = null;
     unlockHoldPressedRef.current = false;
     if (unlockHoldTimeoutRef.current !== null) {
       window.clearTimeout(unlockHoldTimeoutRef.current);
       unlockHoldTimeoutRef.current = null;
     }
     setIsUnlockHolding(false);
-  }, []);
+    stopUnlockSound();
+  }, [stopUnlockSound]);
 
   const interruptUnlockReveal = useCallback(() => {
     if (unlockRevealRafRef.current !== null) {
@@ -427,6 +431,7 @@ export function AchievementsManager({
         window.clearTimeout(unlockHoldTimeoutRef.current);
       }
       interruptUnlockReveal();
+      unlockHoldSessionRef.current = null;
       stopUnlockSound();
     };
   }, [interruptUnlockReveal, stopUnlockSound]);
@@ -606,7 +611,6 @@ export function AchievementsManager({
   async function handlePressHoldUnlock() {
     if (readOnly) return;
     if (!detailAchievement || !detailAchievement.is_locked || isSaving) return;
-    playUnlockTimelineSound();
     const targetId = detailAchievement.id;
 
     const animateReveal = (
@@ -726,18 +730,51 @@ export function AchievementsManager({
 
   function startUnlockHold() {
     if (readOnly) return;
-    if (!detailIsLockedUi || isSaving || unlockHoldTimeoutRef.current !== null) return;
+    if (!detailIsLockedUi || isSaving) return;
+    if (unlockHoldSessionRef.current !== null) return;
+
     unlockHoldPressedRef.current = true;
     setIsUnlockHolding(true);
-    const audioReady = prepareUnlockAudioForGesture();
-    unlockHoldTimeoutRef.current = window.setTimeout(() => {
-      unlockHoldTimeoutRef.current = null;
-      setIsUnlockHolding(false);
-      void (async () => {
-        await audioReady;
-        void handlePressHoldUnlock();
-      })();
-    }, UNLOCK_HOLD_DURATION_MS);
+    const session = {};
+    unlockHoldSessionRef.current = session;
+    const holdStartedAt = performance.now();
+
+    void (async () => {
+      try {
+        await prepareUnlockAudioForGesture();
+
+        if (unlockHoldSessionRef.current !== session) return;
+        if (!unlockHoldPressedRef.current) {
+          unlockHoldSessionRef.current = null;
+          setIsUnlockHolding(false);
+          return;
+        }
+
+        const elapsed = performance.now() - holdStartedAt;
+        const remaining = Math.max(0, UNLOCK_HOLD_DURATION_MS - elapsed);
+
+        scheduleUnlockHoldPeel(remaining / 1000);
+
+        if (unlockHoldTimeoutRef.current !== null) {
+          window.clearTimeout(unlockHoldTimeoutRef.current);
+          unlockHoldTimeoutRef.current = null;
+        }
+
+        unlockHoldTimeoutRef.current = window.setTimeout(() => {
+          unlockHoldTimeoutRef.current = null;
+          setIsUnlockHolding(false);
+          void handlePressHoldUnlock().finally(() => {
+            if (unlockHoldSessionRef.current === session) {
+              unlockHoldSessionRef.current = null;
+            }
+          });
+        }, remaining);
+      } catch {
+        if (unlockHoldSessionRef.current === session) {
+          unlockHoldSessionRef.current = null;
+        }
+      }
+    })();
   }
 
   const onCancelCreate = useCallback(() => {

@@ -7,6 +7,9 @@ const UNLOCK_PEEL_AUDIO_SRC = `/audio/unlock-peel.wav?v=${AUDIO_ASSET_VERSION}`;
 const UNLOCK_EASE_OUT_AUDIO_SRC = `/audio/unlock-ease-out.wav?v=${AUDIO_ASSET_VERSION}`;
 const SAVE_POP_AUDIO_SRC = `/audio/pop.mp3?v=${AUDIO_ASSET_VERSION}`;
 
+/** Smallest sane offset on typical sample rates (~20µs); avoids scheduling at past `currentTime`. */
+const MIN_SCHEDULE_SECONDS = 1 / 48000;
+
 type DecodedBurst = {
   peel: AudioBuffer;
   easeOut: AudioBuffer;
@@ -107,8 +110,7 @@ async function resumeContextIfSuspended(): Promise<void> {
 }
 
 /**
- * Runs only when the context is `running`; inaudible so it does not register as audible media routing.
- * iOS Safari often requires a routing “poke” tied to gesture + resumed context before deferred `start()` calls work.
+ * Inaudible buffer burst after resume — helps Safari route the resumed graph from a gesture unlock.
  */
 function openSilentRoutingBurst(ctx: AudioContext): void {
   if (ctx.state !== "running") return;
@@ -139,9 +141,7 @@ function openSilentRoutingBurst(ctx: AudioContext): void {
   }
 }
 
-/**
- * Call from a **pointer/touch down** (user gesture). Awaits resume + decode so timer-based unlock audio can play on iOS.
- */
+/** Call during user gesture (`pointerdown`): resume graph + prefetch buffers before scheduling peel by wall-clock alignment. */
 async function prepareUnlockAudioForGesture(): Promise<void> {
   void decodeAllBurstSamples();
   await resumeContextIfSuspended();
@@ -239,8 +239,10 @@ function playBurstSyncOrDefer(params: {
 }
 
 /**
- * Short UI bursts through Web Audio (decoded buffers + `start(audioContext.currentTime)`).
- * Avoids `<audio>` tags that iOS exposes on the lock screen / Now Playing.
+ * Web Audio cue path: avoids `<audio>` (lock-screen / Now Playing on iPhone).
+ *
+ * Peel uses **scheduled** `AudioBufferSource.start(context.currentTime + delay)` fired from gesture prep,
+ * not `setTimeout` + immediate `start` — aligns with strict iOS Web Audio unlocking.
  */
 export function useAchievementSounds() {
   const peelSourceRef = useRef<AudioBufferSourceNode | null>(null);
@@ -262,8 +264,72 @@ export function useAchievementSounds() {
     clearMediaSessionNowPlaying();
   }, []);
 
-  const playUnlockTimelineSound = useCallback(() => {
-    playBurstSyncOrDefer({ bufferKey: "peel", prevSourceRef: peelSourceRef });
+  /**
+   * Arm peel playback on the **audio clock** (`delaySeconds` from prep completion’s `audioContext.currentTime`).
+   */
+  const scheduleUnlockHoldPeel = useCallback((delaySeconds: number) => {
+    if (typeof window === "undefined") return;
+
+    const ctx = acquireSharedContext();
+    const pack = decoded;
+    safeStopSrc(peelSourceRef.current);
+    peelSourceRef.current = null;
+
+    const when = Math.max(MIN_SCHEDULE_SECONDS, delaySeconds);
+
+    if (!ctx || ctx.state !== "running" || !pack) {
+      void (async () => {
+        await resumeContextIfSuspended();
+        await decodeAllBurstSamples();
+        const c2 = acquireSharedContext();
+        const p2 = decoded;
+        if (!c2 || c2.state !== "running" || !p2) return;
+        const src = c2.createBufferSource();
+        src.buffer = p2.peel;
+        src.connect(c2.destination);
+        peelSourceRef.current = src;
+        src.onended = () => {
+          queueMicrotask(clearMediaSessionNowPlaying);
+          if (peelSourceRef.current === src) peelSourceRef.current = null;
+          try {
+            src.disconnect();
+          } catch {
+            /* ignore */
+          }
+        };
+        queueMicrotask(clearMediaSessionNowPlaying);
+        try {
+          src.start(c2.currentTime + when);
+        } catch {
+          peelSourceRef.current = null;
+        }
+      })();
+      return;
+    }
+
+    try {
+      const src = ctx.createBufferSource();
+      src.buffer = pack.peel;
+      src.connect(ctx.destination);
+      peelSourceRef.current = src;
+
+      src.onended = () => {
+        queueMicrotask(clearMediaSessionNowPlaying);
+        if (peelSourceRef.current === src) {
+          peelSourceRef.current = null;
+        }
+        try {
+          src.disconnect();
+        } catch {
+          /* ignore */
+        }
+      };
+
+      queueMicrotask(clearMediaSessionNowPlaying);
+      src.start(ctx.currentTime + when);
+    } catch {
+      peelSourceRef.current = null;
+    }
   }, []);
 
   const playUnlockEaseOutSound = useCallback(() => {
@@ -306,7 +372,7 @@ export function useAchievementSounds() {
 
   return {
     stopUnlockSound,
-    playUnlockTimelineSound,
+    scheduleUnlockHoldPeel,
     playUnlockEaseOutSound,
     primeUnlockAudioGestureContext,
     prepareUnlockAudioForGesture,
