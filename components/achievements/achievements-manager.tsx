@@ -42,6 +42,7 @@ import { useAchievementUnlockReveal } from "@/components/achievements/use-achiev
 import { useBadgeChunkedPrewarm } from "@/components/achievements/use-badge-chunked-prewarm";
 import { useAchievementEmbedLinkController } from "@/components/achievements/use-achievement-embed-link-controller";
 import { useAchievementDetailViewModel } from "@/components/achievements/use-achievement-detail-view-model";
+import { ACHIEVEMENT_UI_COPY } from "@/components/achievements/achievement-ui-copy";
 import {
   createAchievement,
   deleteAchievement,
@@ -188,7 +189,7 @@ export function AchievementsManager({
     e.preventDefault();
     if (readOnly) return;
     if (!hasMeaningfulContent(createForm)) {
-      setError("Add at least a title, category, or description.");
+      setError(ACHIEVEMENT_UI_COPY.validationMeaningfulContent);
       return;
     }
 
@@ -229,7 +230,7 @@ export function AchievementsManager({
     if (readOnly) return;
     if (!detailAchievementId) return;
     if (!hasMeaningfulContent(panelForm)) {
-      setError("Add at least a title, category, or description.");
+      setError(ACHIEVEMENT_UI_COPY.validationMeaningfulContent);
       return;
     }
 

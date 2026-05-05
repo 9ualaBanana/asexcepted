@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import {
+  ACHIEVEMENT_UI_COPY,
+  ACHIEVEMENT_UI_HINT_MS,
+} from "@/components/achievements/achievement-ui-copy";
 import { copyTextToClipboard } from "@/lib/copy-text-to-clipboard";
 import { requestEmbedBadgeToken } from "@/lib/embed-api-client";
 
@@ -42,22 +46,20 @@ export function useAchievementEmbedLinkController({
       const copied = await copyTextToClipboard(embedUrl);
       if (!copied) {
         setManualEmbedUrl(embedUrl);
-        setEmbedCopyHint("Copy was blocked. Use the manual copy sheet below.");
-        window.setTimeout(() => setEmbedCopyHint(null), 3000);
+        setEmbedCopyHint(ACHIEVEMENT_UI_COPY.embedCopyBlockedManual);
+        window.setTimeout(() => setEmbedCopyHint(null), ACHIEVEMENT_UI_HINT_MS.embedCopyBlocked);
         return;
       }
 
-      setEmbedCopyHint("Embed link copied.");
-      window.setTimeout(() => setEmbedCopyHint(null), 2500);
+      setEmbedCopyHint(ACHIEVEMENT_UI_COPY.embedCopied);
+      window.setTimeout(() => setEmbedCopyHint(null), ACHIEVEMENT_UI_HINT_MS.embedCopied);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Could not copy link.";
+      const msg = e instanceof Error ? e.message : ACHIEVEMENT_UI_COPY.embedCopyUnknownError;
       if (/not allowed|denied permission|permission/i.test(msg)) {
         if (embedUrlForFallback) {
           setManualEmbedUrl(embedUrlForFallback);
         }
-        setEmbedCopyHint(
-          "Clipboard permission was blocked. Use the manual copy sheet below.",
-        );
+        setEmbedCopyHint(ACHIEVEMENT_UI_COPY.embedClipboardPermissionBlocked);
       } else {
         setEmbedCopyHint(msg);
       }
@@ -67,9 +69,9 @@ export function useAchievementEmbedLinkController({
   }, [detailAchievementId]);
 
   const onManualEmbedCopied = useCallback(() => {
-    setEmbedCopyHint("Embed link copied.");
+    setEmbedCopyHint(ACHIEVEMENT_UI_COPY.embedCopied);
     setManualEmbedUrl(null);
-    window.setTimeout(() => setEmbedCopyHint(null), 2500);
+    window.setTimeout(() => setEmbedCopyHint(null), ACHIEVEMENT_UI_HINT_MS.embedCopied);
   }, []);
 
   return {
