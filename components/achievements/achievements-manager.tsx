@@ -7,7 +7,6 @@ import {
   useRef,
   useState,
   type FormEvent,
-  type RefObject,
 } from "react";
 
 import { type AchievementTone } from "@/components/achievements/achievement-card";
@@ -43,12 +42,11 @@ import {
   hasMeaningfulContent,
 } from "@/components/achievements/achievement-editor-shared";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
-import { copyTextToClipboard } from "@/lib/copy-text-to-clipboard";
-import { requestEmbedBadgeToken } from "@/lib/embed-api-client";
 import { createClient } from "@/lib/supabase/client";
 import { useAchievementBadgeMetricsController } from "@/components/achievements/use-achievement-badge-metrics-controller";
 import { useAchievementUnlockReveal } from "@/components/achievements/use-achievement-unlock-reveal";
 import { useBadgeChunkedPrewarm } from "@/components/achievements/use-badge-chunked-prewarm";
+import { useAchievementEmbedLinkController } from "@/components/achievements/use-achievement-embed-link-controller";
 import {
   createAchievement,
   deleteAchievement,
@@ -84,9 +82,6 @@ export function AchievementsManager({
   const [detailMode, setDetailMode] = useState<"view" | "edit">("view");
   const [panelForm, setPanelForm] = useState<FormState>(createInitialForm);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-  const [embedCopyBusy, setEmbedCopyBusy] = useState(false);
-  const [embedCopyHint, setEmbedCopyHint] = useState<string | null>(null);
-  const [manualEmbedUrl, setManualEmbedUrl] = useState<string | null>(null);
   const [createUploadInProgress, setCreateUploadInProgress] = useState(false);
   const [panelUploadInProgress, setPanelUploadInProgress] = useState(false);
 
@@ -98,50 +93,9 @@ export function AchievementsManager({
     return achievements.find((a) => a.id === detailAchievementId) ?? null;
   }, [achievements, detailAchievementId]);
   const badgeMetricsController = useAchievementBadgeMetricsController(detailAchievement);
-
-  useEffect(() => {
-    setEmbedCopyHint(null);
-    setManualEmbedUrl(null);
-  }, [detailAchievementId]);
-
-  const copyEmbedLink = useCallback(async () => {
-    if (!detailAchievement?.id) return;
-    setEmbedCopyBusy(true);
-    setEmbedCopyHint(null);
-    let embedUrlForFallback = "";
-    try {
-      const tokenResult = await requestEmbedBadgeToken(detailAchievement.id);
-      if (tokenResult.isErr()) {
-        setEmbedCopyHint(tokenResult.error);
-        return;
-      }
-      const { embedUrl } = tokenResult.value;
-      embedUrlForFallback = embedUrl;
-      const copied = await copyTextToClipboard(embedUrl);
-      if (!copied) {
-        setManualEmbedUrl(embedUrl);
-        setEmbedCopyHint("Copy was blocked. Use the manual copy sheet below.");
-        window.setTimeout(() => setEmbedCopyHint(null), 3000);
-        return;
-      }
-      setEmbedCopyHint("Embed link copied.");
-      window.setTimeout(() => setEmbedCopyHint(null), 2500);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Could not copy link.";
-      if (/not allowed|denied permission|permission/i.test(msg)) {
-        if (embedUrlForFallback) {
-          setManualEmbedUrl(embedUrlForFallback);
-        }
-        setEmbedCopyHint(
-          "Clipboard permission was blocked. Use the manual copy sheet below.",
-        );
-      } else {
-        setEmbedCopyHint(msg);
-      }
-    } finally {
-      setEmbedCopyBusy(false);
-    }
-  }, [detailAchievement?.id]);
+  const embedLinkController = useAchievementEmbedLinkController({
+    detailAchievementId: detailAchievement?.id ?? null,
+  });
 
   const DetailFallbackIcon = getSafeIcon(detailAchievement?.icon);
   const detailTone: AchievementTone = useMemo(
@@ -155,7 +109,6 @@ export function AchievementsManager({
   }, [detailAchievement?.icon_url]);
   const {
     playSavePop,
-    isUnlockHolding,
     detailIsUnlocking,
     detailIsLockedUi,
     detailFloating,
@@ -227,8 +180,7 @@ export function AchievementsManager({
     setDetailMode("view");
     resetUnlockWave();
     setIsSaving(false);
-    setEmbedCopyHint(null);
-    setEmbedCopyBusy(false);
+    embedLinkController.setManualEmbedUrl(null);
   }
 
   const loadAchievements = useCallback(async () => {
@@ -422,12 +374,6 @@ export function AchievementsManager({
     setDetailMode("view");
   }, [panelUploadInProgress, detailAchievement]);
 
-  const onManualEmbedCopied = useCallback(() => {
-    setEmbedCopyHint("Embed link copied.");
-    setManualEmbedUrl(null);
-    window.setTimeout(() => setEmbedCopyHint(null), 2500);
-  }, []);
-
   const gridItems = useMemo(
     () => achievements.map(achievementToGridItem),
     [achievements],
@@ -492,9 +438,9 @@ export function AchievementsManager({
           onDetailBadgeVisualReady={badgeMetricsController.handleDetailBadgeVisualReady}
           optimisticUnlockedAchievementId={optimisticUnlockedAchievementId}
           isSaving={isSaving}
-          embedCopyBusy={embedCopyBusy}
-          embedCopyHint={embedCopyHint}
-          onCopyEmbedLink={copyEmbedLink}
+          embedCopyBusy={embedLinkController.embedCopyBusy}
+          embedCopyHint={embedLinkController.embedCopyHint}
+          onCopyEmbedLink={embedLinkController.copyEmbedLink}
           onRequestDelete={(id) => setDeleteConfirmId(id)}
         />
       ) : null}
@@ -507,11 +453,11 @@ export function AchievementsManager({
         />
       ) : null}
 
-      {manualEmbedUrl ? (
+      {embedLinkController.manualEmbedUrl ? (
         <AchievementManualEmbedDialog
-          manualEmbedUrl={manualEmbedUrl}
-          onDismiss={() => setManualEmbedUrl(null)}
-          onCopied={onManualEmbedCopied}
+          manualEmbedUrl={embedLinkController.manualEmbedUrl}
+          onDismiss={() => embedLinkController.setManualEmbedUrl(null)}
+          onCopied={embedLinkController.onManualEmbedCopied}
         />
       ) : null}
 
