@@ -51,6 +51,7 @@ import { requestEmbedBadgeToken } from "@/lib/embed-api-client";
 import { createClient } from "@/lib/supabase/client";
 import { useBadgeDetailMetrics } from "@/components/achievements/use-badge-detail-metrics";
 import { useAchievementUnlockReveal } from "@/components/achievements/use-achievement-unlock-reveal";
+import { useBadgeChunkedPrewarm } from "@/components/achievements/use-badge-chunked-prewarm";
 import {
   createAchievement,
   deleteAchievement,
@@ -217,45 +218,7 @@ export function AchievementsManager({
     (isCreating && createUploadInProgress) ||
     (detailMode === "edit" && panelUploadInProgress);
 
-  /** Chunked prewarm: avoids one idle callback decoding every badge while detail is open. */
-  useEffect(() => {
-    if (achievements.length === 0) return;
-    if (achievementOverlayOpen) return;
-
-    const jobs: { src: string; id: string }[] = [];
-    for (const achievement of achievements) {
-      const rawSrc = achievement.icon_url?.trim() ?? "";
-      if (!rawSrc) continue;
-      jobs.push({ src: toOptimizedBadgeRenderSrc(rawSrc), id: achievement.id });
-    }
-    if (jobs.length === 0) return;
-
-    let cancelled = false;
-    let index = 0;
-    let rafId = 0;
-    const CHUNK = 2;
-
-    const pump = () => {
-      if (cancelled) return;
-      const end = Math.min(index + CHUNK, jobs.length);
-      for (; index < end; index += 1) {
-        const j = jobs[index];
-        prewarmBadgeRenderCache(j.src, { motionSeed: j.id });
-      }
-      if (index < jobs.length) {
-        rafId = requestAnimationFrame(pump);
-      }
-    };
-
-    rafId = requestAnimationFrame(() => {
-      rafId = requestAnimationFrame(pump);
-    });
-
-    return () => {
-      cancelled = true;
-      cancelAnimationFrame(rafId);
-    };
-  }, [achievements, achievementOverlayOpen]);
+  useBadgeChunkedPrewarm({ achievements, pause: achievementOverlayOpen });
 
   function closeDetailPanel() {
     if (editorUploadInProgress) return;
