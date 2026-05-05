@@ -4,9 +4,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
-  type FormEvent,
 } from "react";
 
 import { AchievementBadgeDebugOverlay } from "@/components/achievements/achievement-badge-debug-overlay";
@@ -19,21 +17,10 @@ import {
 } from "@/components/achievements/achievement-manager-utils";
 import { AchievementManualEmbedDialog } from "@/components/achievements/achievement-manual-embed-dialog";
 import {
-  clearSessionStagedUpload,
-  deleteImageKitFileQuietly,
-  rollbackBadgeUploadSession,
-  getReplacedImageKitFileId,
-  normalizeImageKitFileId,
-} from "@/components/achievements/badge/badge-imagekit-session";
-import {
   clearBadgeRenderCacheForSrc,
-  prewarmBadgeRenderCache,
 } from "@/lib/badge/render-cache";
 import {
-  type BadgeIkSession,
-  createEmptyBadgeIkSession,
   type FormState,
-  hasMeaningfulContent,
 } from "@/components/achievements/achievement-editor-shared";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import { createClient } from "@/lib/supabase/client";
@@ -42,17 +29,15 @@ import { useAchievementUnlockReveal } from "@/components/achievements/use-achiev
 import { useBadgeChunkedPrewarm } from "@/components/achievements/use-badge-chunked-prewarm";
 import { useAchievementEmbedLinkController } from "@/components/achievements/use-achievement-embed-link-controller";
 import { useAchievementDetailViewModel } from "@/components/achievements/use-achievement-detail-view-model";
-import { ACHIEVEMENT_UI_COPY } from "@/components/achievements/achievement-ui-copy";
+import { useAchievementBadgeSessionController } from "@/components/achievements/use-achievement-badge-session-controller";
+import { useAchievementEditorPipelineController } from "@/components/achievements/use-achievement-editor-pipeline-controller";
 import {
-  createAchievement,
   deleteAchievement,
   listAchievements,
-  updateAchievement,
 } from "@/components/achievements/achievement-db";
 import {
   achievementToGridItem,
   achievementToForm,
-  formToPayload,
   type AchievementRecord,
 } from "@/components/achievements/achievement-transformers";
 
@@ -78,11 +63,10 @@ export function AchievementsManager({
   const [detailMode, setDetailMode] = useState<"view" | "edit">("view");
   const [panelForm, setPanelForm] = useState<FormState>(createInitialForm);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-  const [createUploadInProgress, setCreateUploadInProgress] = useState(false);
-  const [panelUploadInProgress, setPanelUploadInProgress] = useState(false);
-
-  const createBadgeIkSessionRef = useRef<BadgeIkSession>(createEmptyBadgeIkSession());
-  const panelBadgeIkSessionRef = useRef<BadgeIkSession>(createEmptyBadgeIkSession());
+  const badgeSessionController = useAchievementBadgeSessionController({
+    isCreating,
+    detailMode,
+  });
 
   const detailAchievement = useMemo(() => {
     if (!detailAchievementId) return null;
@@ -126,6 +110,24 @@ export function AchievementsManager({
     detailIsLockedUi,
     readOnly,
   });
+  const editorPipelineController = useAchievementEditorPipelineController({
+    readOnly,
+    createForm,
+    panelForm,
+    detailAchievementId,
+    detailAchievement,
+    badgeSessionController,
+    supabase,
+    setError,
+    setIsSaving,
+    setAchievements,
+    setCreateForm,
+    setIsCreating,
+    setDetailAchievementId,
+    setDetailMode,
+    setPanelForm,
+    playSavePop,
+  });
   useEffect(() => {
     if (
       detailAchievementId &&
@@ -137,24 +139,22 @@ export function AchievementsManager({
   }, [achievements, detailAchievementId]);
 
   const achievementOverlayOpen = Boolean(detailAchievement) || isCreating;
-  const editorUploadInProgress =
-    (isCreating && createUploadInProgress) ||
-    (detailMode === "edit" && panelUploadInProgress);
+  const editorUploadInProgress = badgeSessionController.editorUploadInProgress;
 
   useBadgeChunkedPrewarm({ achievements, pause: achievementOverlayOpen });
 
   function closeDetailPanel() {
     if (editorUploadInProgress) return;
     if (isCreating) {
-      rollbackBadgeUploadSession(createBadgeIkSessionRef.current);
+      badgeSessionController.rollbackCreateBadgeSession();
       setCreateForm(createInitialForm());
       setIsCreating(false);
-      setCreateUploadInProgress(false);
+      badgeSessionController.setCreateUploadInProgress(false);
     }
     if (detailMode === "edit" && detailAchievement) {
-      rollbackBadgeUploadSession(panelBadgeIkSessionRef.current);
+      badgeSessionController.rollbackPanelBadgeSession();
       setPanelForm(achievementToForm(detailAchievement));
-      setPanelUploadInProgress(false);
+      badgeSessionController.setPanelUploadInProgress(false);
     }
     setDetailAchievementId(null);
     setDetailMode("view");
@@ -185,122 +185,17 @@ export function AchievementsManager({
     void loadAchievements();
   }, [loadAchievements]);
 
-  async function handleCreate(e: FormEvent) {
-    e.preventDefault();
-    if (readOnly) return;
-    if (!hasMeaningfulContent(createForm)) {
-      setError(ACHIEVEMENT_UI_COPY.validationMeaningfulContent);
-      return;
-    }
-
-    setIsSaving(true);
-    setError(null);
-
-    const insertPayload = formToPayload(createForm);
-    const result = await createAchievement(supabase, insertPayload);
-
-    if (result.isErr()) {
-      setError(result.error);
-      setIsSaving(false);
-      return;
-    }
-
-    const createdAchievement = result.value;
-    const createdSrc = createdAchievement.icon_url?.trim() ?? "";
-    if (createdSrc) {
-      const renderSrc = toOptimizedBadgeRenderSrc(createdSrc);
-      prewarmBadgeRenderCache(createdSrc, {
-        motionSeed: createdAchievement.id,
-        includeAlphaMaskData: Boolean(createdAchievement.is_locked) && !readOnly,
-      });
-      prewarmBadgeRenderCache(renderSrc, { motionSeed: createdAchievement.id });
-    }
-    playSavePop();
-    setAchievements((prev) => sortAchievements([createdAchievement, ...prev]));
-    setCreateForm(createInitialForm());
-    createBadgeIkSessionRef.current = createEmptyBadgeIkSession();
-    setIsSaving(false);
-    setIsCreating(false);
-    setDetailAchievementId(null);
-    setDetailMode("view");
-  }
-
-  async function handlePanelSave(e: FormEvent) {
-    e.preventDefault();
-    if (readOnly) return;
-    if (!detailAchievementId) return;
-    if (!hasMeaningfulContent(panelForm)) {
-      setError(ACHIEVEMENT_UI_COPY.validationMeaningfulContent);
-      return;
-    }
-
-    setIsSaving(true);
-    setError(null);
-
-    const updatePayload = formToPayload(panelForm);
-    const result = await updateAchievement(
-      supabase,
-      detailAchievementId,
-      updatePayload,
-    );
-
-    if (result.isErr()) {
-      setError(result.error);
-      setIsSaving(false);
-      return;
-    }
-
-    const updatedAchievement = result.value;
-    const previousSrc = detailAchievement?.icon_url?.trim() ?? "";
-    const nextSrc = updatedAchievement.icon_url?.trim() ?? "";
-    if (previousSrc && previousSrc !== nextSrc) {
-      clearBadgeRenderCacheForSrc(previousSrc);
-      clearBadgeRenderCacheForSrc(toOptimizedBadgeRenderSrc(previousSrc));
-    }
-    if (nextSrc) {
-      const renderSrc = toOptimizedBadgeRenderSrc(nextSrc);
-      prewarmBadgeRenderCache(nextSrc, {
-        motionSeed: updatedAchievement.id,
-        includeAlphaMaskData: Boolean(updatedAchievement.is_locked) && !readOnly,
-      });
-      prewarmBadgeRenderCache(renderSrc, { motionSeed: updatedAchievement.id });
-    }
-    playSavePop();
-
-    const baselineId = normalizeImageKitFileId(panelBadgeIkSessionRef.current.baselineFileId);
-    const savedFileId = normalizeImageKitFileId(updatedAchievement.icon_file_id);
-    const replacedBaselineId = getReplacedImageKitFileId(baselineId, savedFileId);
-    if (replacedBaselineId) {
-      void deleteImageKitFileQuietly(replacedBaselineId);
-    }
-    panelBadgeIkSessionRef.current = {
-      baselineUrl: (updatedAchievement.icon_url ?? "").trim(),
-      baselineFileId: savedFileId,
-      lastSessionFileId: panelBadgeIkSessionRef.current.lastSessionFileId,
-    };
-    clearSessionStagedUpload(panelBadgeIkSessionRef.current);
-
-    setAchievements((prev) =>
-      sortAchievements(
-        prev.map((achievement) =>
-          achievement.id === updatedAchievement.id ? updatedAchievement : achievement,
-        ),
-      ),
-    );
-    setDetailMode("view");
-    setIsSaving(false);
-  }
-
   async function handleDelete(id: string) {
     if (readOnly) return;
     setIsSaving(true);
     setError(null);
 
     const target = achievements.find((a) => a.id === id);
-    const ikId = normalizeImageKitFileId(target?.icon_file_id);
     const targetSrc = target?.icon_url?.trim() ?? "";
-    await deleteImageKitFileQuietly(ikId, (e) =>
-      console.warn("ImageKit delete on achievement remove", e),
+    await badgeSessionController.deleteRemoteFilesForAchievement(
+      target,
+      id,
+      detailAchievementId,
     );
 
     const deleteResult = await deleteAchievement(supabase, id);
@@ -324,36 +219,6 @@ export function AchievementsManager({
     setIsSaving(false);
   }
 
-  const onCancelCreate = useCallback(() => {
-    if (createUploadInProgress) return;
-    rollbackBadgeUploadSession(createBadgeIkSessionRef.current);
-    setCreateForm(createInitialForm());
-    setIsCreating(false);
-    setCreateUploadInProgress(false);
-    setDetailMode("view");
-  }, [createUploadInProgress]);
-
-  const onRequestPanelEdit = useCallback(() => {
-    if (!detailAchievement) return;
-    panelBadgeIkSessionRef.current = {
-      baselineUrl: detailAchievement.icon_url ?? "",
-      baselineFileId: detailAchievement.icon_file_id ?? "",
-      lastSessionFileId: null,
-    };
-    setPanelForm(achievementToForm(detailAchievement));
-    setDetailMode("edit");
-  }, [detailAchievement]);
-
-  const onCancelPanelEdit = useCallback(() => {
-    if (panelUploadInProgress) return;
-    rollbackBadgeUploadSession(panelBadgeIkSessionRef.current);
-    if (detailAchievement) {
-      setPanelForm(achievementToForm(detailAchievement));
-    }
-    setPanelUploadInProgress(false);
-    setDetailMode("view");
-  }, [panelUploadInProgress, detailAchievement]);
-
   const gridItems = useMemo(
     () => achievements.map(achievementToGridItem),
     [achievements],
@@ -367,13 +232,7 @@ export function AchievementsManager({
         isLoading={isLoading}
         readOnly={readOnly}
         items={gridItems}
-        onAddAchievement={() => {
-          createBadgeIkSessionRef.current = createEmptyBadgeIkSession();
-          setIsCreating(true);
-          setDetailAchievementId(null);
-          setDetailMode("edit");
-          setCreateForm(createInitialForm());
-        }}
+        onAddAchievement={editorPipelineController.startCreateFlow}
         onSelectAchievement={(achievementId) => {
           badgeMetricsController.markDetailOpenStart(achievementId);
           setDetailAchievementId(achievementId);
@@ -390,19 +249,19 @@ export function AchievementsManager({
           isCreating={isCreating}
           createForm={createForm}
           setCreateForm={setCreateForm}
-          setCreateUploadInProgress={setCreateUploadInProgress}
-          createBadgeIkSessionRef={createBadgeIkSessionRef}
-          onSubmitCreate={handleCreate}
-          onCancelCreate={onCancelCreate}
+          setCreateUploadInProgress={badgeSessionController.setCreateUploadInProgress}
+          createBadgeIkSessionRef={badgeSessionController.createBadgeIkSessionRef}
+          onSubmitCreate={editorPipelineController.submitCreate}
+          onCancelCreate={editorPipelineController.cancelCreateFlow}
           detailMode={detailMode}
           detailAchievement={detailAchievement}
           panelForm={panelForm}
           setPanelForm={setPanelForm}
-          setPanelUploadInProgress={setPanelUploadInProgress}
-          panelBadgeIkSessionRef={panelBadgeIkSessionRef}
-          onSubmitPanelSave={handlePanelSave}
-          onCancelPanelEdit={onCancelPanelEdit}
-          onRequestPanelEdit={onRequestPanelEdit}
+          setPanelUploadInProgress={badgeSessionController.setPanelUploadInProgress}
+          panelBadgeIkSessionRef={badgeSessionController.panelBadgeIkSessionRef}
+          onSubmitPanelSave={editorPipelineController.submitPanelSave}
+          onCancelPanelEdit={editorPipelineController.cancelPanelEditFlow}
+          onRequestPanelEdit={editorPipelineController.startPanelEditFlow}
           detailIsUnlocking={detailIsUnlocking}
           detailIsLockedUi={detailIsLockedUi}
           detailFloating={detailFloating}
