@@ -29,12 +29,15 @@ const sizeStyles = {
 } as const;
 
 const toneGlowStyles: Record<AchievementTone, string> = {
-  rose: "bg-rose-300/35",
-  indigo: "bg-indigo-300/35",
-  teal: "bg-teal-300/35",
-  orange: "bg-orange-300/35",
-  lime: "bg-lime-300/35",
-  fuchsia: "bg-fuchsia-300/35",
+  rose: "bg-[radial-gradient(ellipse_at_72%_26%,rgba(253,164,175,0.24)_0%,rgba(253,164,175,0.15)_24%,rgba(253,164,175,0.09)_46%,rgba(253,164,175,0.04)_68%,rgba(253,164,175,0.015)_84%,rgba(253,164,175,0)_100%)]",
+  indigo:
+    "bg-[radial-gradient(ellipse_at_72%_26%,rgba(165,180,252,0.24)_0%,rgba(165,180,252,0.15)_24%,rgba(165,180,252,0.09)_46%,rgba(165,180,252,0.04)_68%,rgba(165,180,252,0.015)_84%,rgba(165,180,252,0)_100%)]",
+  teal: "bg-[radial-gradient(ellipse_at_72%_26%,rgba(94,234,212,0.24)_0%,rgba(94,234,212,0.15)_24%,rgba(94,234,212,0.09)_46%,rgba(94,234,212,0.04)_68%,rgba(94,234,212,0.015)_84%,rgba(94,234,212,0)_100%)]",
+  orange:
+    "bg-[radial-gradient(ellipse_at_72%_26%,rgba(253,186,116,0.24)_0%,rgba(253,186,116,0.15)_24%,rgba(253,186,116,0.09)_46%,rgba(253,186,116,0.04)_68%,rgba(253,186,116,0.015)_84%,rgba(253,186,116,0)_100%)]",
+  lime: "bg-[radial-gradient(ellipse_at_72%_26%,rgba(190,242,100,0.24)_0%,rgba(190,242,100,0.15)_24%,rgba(190,242,100,0.09)_46%,rgba(190,242,100,0.04)_68%,rgba(190,242,100,0.015)_84%,rgba(190,242,100,0)_100%)]",
+  fuchsia:
+    "bg-[radial-gradient(ellipse_at_72%_26%,rgba(240,171,252,0.24)_0%,rgba(240,171,252,0.15)_24%,rgba(240,171,252,0.09)_46%,rgba(240,171,252,0.04)_68%,rgba(240,171,252,0.015)_84%,rgba(240,171,252,0)_100%)]",
 };
 
 const toneDiscStyles: Record<AchievementTone, string> = {
@@ -74,9 +77,18 @@ export function AchievementFallbackBadge({
       <div
         aria-hidden
         className={cn(
-          "pointer-events-none absolute rounded-full blur-2xl",
+          "pointer-events-none absolute rounded-full scale-110 blur-md mix-blend-screen",
           s.orb,
-          isLocked ? "bg-white/10" : toneGlowStyles[tone],
+          isLocked
+            ? "bg-[radial-gradient(ellipse_at_72%_26%,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.1)_24%,rgba(255,255,255,0.05)_46%,rgba(255,255,255,0.02)_68%,rgba(255,255,255,0.008)_84%,rgba(255,255,255,0)_100%)]"
+            : toneGlowStyles[tone],
+        )}
+      />
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-0 rounded-full",
+          "bg-[radial-gradient(ellipse_at_30%_72%,rgba(255,255,255,0.12)_0%,rgba(255,255,255,0)_58%)]",
         )}
       />
       <div
