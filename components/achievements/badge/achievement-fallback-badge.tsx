@@ -15,13 +15,11 @@ type AchievementFallbackBadgeProps = {
 
 const sizeStyles = {
   grid: {
-    orb: "-right-5 -top-5 h-[4.5rem] w-[4.5rem]",
     inner: "p-2.5",
     iconUnlocked: "h-8 w-8",
     iconLocked: "h-7 w-7",
   },
   detail: {
-    orb: "-right-16 -top-16 h-56 w-56",
     inner: "p-8",
     iconUnlocked: "h-28 w-28",
     iconLocked: "h-24 w-24",
@@ -77,10 +75,9 @@ export function AchievementFallbackBadge({
       <div
         aria-hidden
         className={cn(
-          "pointer-events-none absolute rounded-full scale-110 blur-md mix-blend-screen",
-          s.orb,
+          "pointer-events-none absolute inset-0 rounded-full",
           isLocked
-            ? "bg-[radial-gradient(ellipse_at_72%_26%,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.1)_24%,rgba(255,255,255,0.05)_46%,rgba(255,255,255,0.02)_68%,rgba(255,255,255,0.008)_84%,rgba(255,255,255,0)_100%)]"
+            ? "bg-[radial-gradient(ellipse_at_74%_24%,rgba(255,255,255,0.17)_0%,rgba(255,255,255,0.1)_22%,rgba(255,255,255,0.055)_44%,rgba(255,255,255,0.026)_64%,rgba(255,255,255,0.01)_82%,rgba(255,255,255,0)_100%)]"
             : toneGlowStyles[tone],
         )}
       />
