@@ -9,13 +9,15 @@ import { type FormState, hasMeaningfulContent } from "@/components/achievements/
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
 import { achievementToForm, formToPayload } from "@/components/achievements/achievement-transformers";
 import type { AchievementBadgeSessionController } from "@/components/achievements/use-achievement-badge-session-controller";
-import type { AchievementUiStateMachine } from "@/components/achievements/use-achievement-ui-state-machine";
+import type { AchievementUiStateActions } from "@/components/achievements/use-achievement-ui-state-machine";
 import { clearBadgeRenderCacheForSrc, prewarmBadgeRenderCache } from "@/lib/badge/render-cache";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 type UseAchievementEditorPipelineControllerArgs = {
   readOnly: boolean;
+  isCreating: boolean;
+  detailMode: "view" | "edit";
   createForm: FormState;
   panelForm: FormState;
   detailAchievementId: string | null;
@@ -28,11 +30,24 @@ type UseAchievementEditorPipelineControllerArgs = {
   setCreateForm: (value: FormState | ((prev: FormState) => FormState)) => void;
   setPanelForm: (value: FormState | ((prev: FormState) => FormState)) => void;
   playSavePop: () => void;
-  uiState: AchievementUiStateMachine;
+  uiActions: AchievementUiStateActions;
+  resetUnlockWave: () => void;
+  clearManualEmbedUrl: () => void;
+};
+
+export type AchievementEditorPipelineActions = {
+  startCreateFlow: () => void;
+  startPanelEditFlow: () => void;
+  submitCreate: (e: FormEvent) => Promise<void>;
+  submitPanelSave: (e: FormEvent) => Promise<void>;
+  closeOverlayFlow: () => boolean;
+  closeDetailPanel: () => void;
 };
 
 export function useAchievementEditorPipelineController({
   readOnly,
+  isCreating,
+  detailMode,
   createForm,
   panelForm,
   detailAchievementId,
@@ -45,38 +60,55 @@ export function useAchievementEditorPipelineController({
   setCreateForm,
   setPanelForm,
   playSavePop,
-  uiState,
+  uiActions,
+  resetUnlockWave,
+  clearManualEmbedUrl,
 }: UseAchievementEditorPipelineControllerArgs) {
+  const closeOverlayFlow = useCallback(() => {
+    if (badgeSessionController.editorUploadInProgress) return false;
+
+    if (isCreating) {
+      badgeSessionController.rollbackCreateBadgeSession();
+      setCreateForm(createInitialForm());
+      badgeSessionController.setCreateUploadInProgress(false);
+    }
+    if (detailMode === "edit" && detailAchievement) {
+      badgeSessionController.rollbackPanelBadgeSession();
+      setPanelForm(achievementToForm(detailAchievement));
+      badgeSessionController.setPanelUploadInProgress(false);
+    }
+    uiActions.closeOverlay();
+    return true;
+  }, [
+    badgeSessionController,
+    detailAchievement,
+    detailMode,
+    isCreating,
+    setCreateForm,
+    setPanelForm,
+    uiActions,
+  ]);
+
   const startCreateFlow = useCallback(() => {
     badgeSessionController.beginCreateBadgeSession();
-    uiState.openCreate();
+    uiActions.openCreate();
     setCreateForm(createInitialForm());
-  }, [badgeSessionController, setCreateForm, uiState]);
-
-  const cancelCreateFlow = useCallback(() => {
-    if (badgeSessionController.createUploadInProgress) return;
-    badgeSessionController.rollbackCreateBadgeSession();
-    setCreateForm(createInitialForm());
-    badgeSessionController.setCreateUploadInProgress(false);
-    uiState.closeOverlay();
-  }, [badgeSessionController, setCreateForm, uiState]);
+  }, [badgeSessionController, setCreateForm, uiActions]);
 
   const startPanelEditFlow = useCallback(() => {
     if (!detailAchievement) return;
     badgeSessionController.beginPanelBadgeSession(detailAchievement);
     setPanelForm(achievementToForm(detailAchievement));
-    uiState.enterDetailEdit();
-  }, [badgeSessionController, detailAchievement, setPanelForm, uiState]);
+    uiActions.enterDetailEdit();
+  }, [badgeSessionController, detailAchievement, setPanelForm, uiActions]);
 
-  const cancelPanelEditFlow = useCallback(() => {
-    if (badgeSessionController.panelUploadInProgress) return;
-    badgeSessionController.rollbackPanelBadgeSession();
-    if (detailAchievement) {
-      setPanelForm(achievementToForm(detailAchievement));
-    }
-    badgeSessionController.setPanelUploadInProgress(false);
-    uiState.exitDetailEdit();
-  }, [badgeSessionController, detailAchievement, setPanelForm, uiState]);
+  const closeDetailPanel = useCallback(() => {
+    const closed = closeOverlayFlow();
+    if (!closed) return;
+    resetUnlockWave();
+    setIsSaving(false);
+    clearManualEmbedUrl();
+  }, [clearManualEmbedUrl, closeOverlayFlow, resetUnlockWave, setIsSaving]);
 
   const submitCreate = useCallback(
     async (e: FormEvent) => {
@@ -114,7 +146,7 @@ export function useAchievementEditorPipelineController({
       setCreateForm(createInitialForm());
       badgeSessionController.beginCreateBadgeSession();
       setIsSaving(false);
-      uiState.closeOverlay();
+      uiActions.closeOverlay();
     },
     [
       badgeSessionController,
@@ -126,7 +158,7 @@ export function useAchievementEditorPipelineController({
       setError,
       setIsSaving,
       supabase,
-      uiState,
+      uiActions,
     ],
   );
 
@@ -184,7 +216,7 @@ export function useAchievementEditorPipelineController({
           ),
         ),
       );
-      uiState.exitDetailEdit();
+      uiActions.exitDetailEdit();
       setIsSaving(false);
     },
     [
@@ -198,16 +230,18 @@ export function useAchievementEditorPipelineController({
       setError,
       setIsSaving,
       supabase,
-      uiState,
+      uiActions,
     ],
   );
 
-  return {
+  const actions: AchievementEditorPipelineActions = {
     startCreateFlow,
-    cancelCreateFlow,
     startPanelEditFlow,
-    cancelPanelEditFlow,
     submitCreate,
     submitPanelSave,
+    closeOverlayFlow,
+    closeDetailPanel,
   };
+
+  return { actions };
 }

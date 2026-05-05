@@ -95,13 +95,8 @@ export function useAchievementUiStateMachine() {
     dispatch({ type: "clear-delete" });
   }, []);
 
-  return useMemo(
+  const actions: AchievementUiStateActions = useMemo(
     () => ({
-      isCreating,
-      detailMode,
-      detailAchievementId: state.detailAchievementId,
-      deleteConfirmId: state.deleteConfirmId,
-      achievementOverlayOpen,
       openCreate,
       openDetailView,
       enterDetailEdit,
@@ -111,16 +106,30 @@ export function useAchievementUiStateMachine() {
       clearDelete,
     }),
     [
-      achievementOverlayOpen,
       clearDelete,
       closeOverlay,
-      detailMode,
       enterDetailEdit,
       exitDetailEdit,
-      isCreating,
       openCreate,
       openDetailView,
       requestDelete,
+    ],
+  );
+
+  return useMemo(
+    () => ({
+      isCreating,
+      detailMode,
+      detailAchievementId: state.detailAchievementId,
+      deleteConfirmId: state.deleteConfirmId,
+      achievementOverlayOpen,
+      actions,
+    }),
+    [
+      actions,
+      achievementOverlayOpen,
+      detailMode,
+      isCreating,
       state.deleteConfirmId,
       state.detailAchievementId,
     ],
@@ -128,3 +137,12 @@ export function useAchievementUiStateMachine() {
 }
 
 export type AchievementUiStateMachine = ReturnType<typeof useAchievementUiStateMachine>;
+export type AchievementUiStateActions = {
+  openCreate: () => void;
+  openDetailView: (achievementId: string) => void;
+  enterDetailEdit: () => void;
+  exitDetailEdit: () => void;
+  closeOverlay: () => void;
+  requestDelete: (achievementId: string) => void;
+  clearDelete: () => void;
+};

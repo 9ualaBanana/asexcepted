@@ -1,0 +1,124 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+
+import { deleteAchievement, listAchievements } from "@/components/achievements/achievement-db";
+import { sortAchievements } from "@/components/achievements/achievement-manager-utils";
+import type { AchievementBadgeSessionController } from "@/components/achievements/use-achievement-badge-session-controller";
+import type { AchievementUiStateActions } from "@/components/achievements/use-achievement-ui-state-machine";
+import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
+import { clearBadgeRenderCacheForSrc } from "@/lib/badge/render-cache";
+import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+type UseAchievementDataControllerArgs = {
+  supabase: SupabaseClient;
+  userId: string;
+  readOnly: boolean;
+  achievements: AchievementRecord[];
+  detailAchievementId: string | null;
+  setAchievements: (
+    value: AchievementRecord[] | ((prev: AchievementRecord[]) => AchievementRecord[])
+  ) => void;
+  setError: (value: string | null) => void;
+  setIsSaving: (value: boolean) => void;
+  badgeSessionController: AchievementBadgeSessionController;
+  uiActions: AchievementUiStateActions;
+};
+
+export type AchievementDataControllerActions = {
+  loadAchievements: () => Promise<void>;
+  deleteAchievementById: (id: string) => Promise<void>;
+};
+
+export function useAchievementDataController({
+  supabase,
+  userId,
+  readOnly,
+  achievements,
+  detailAchievementId,
+  setAchievements,
+  setError,
+  setIsSaving,
+  badgeSessionController,
+  uiActions,
+}: UseAchievementDataControllerArgs) {
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadAchievements = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    const result = await listAchievements(supabase, userId);
+    if (result.isErr()) {
+      setError(result.error);
+      setAchievements([]);
+      setIsLoading(false);
+      return;
+    }
+
+    setAchievements(sortAchievements(result.value));
+    setIsLoading(false);
+  }, [setAchievements, setError, supabase, userId]);
+
+  useEffect(() => {
+    void loadAchievements();
+  }, [loadAchievements]);
+
+  const deleteAchievementById = useCallback(
+    async (id: string) => {
+      if (readOnly) return;
+
+      setIsSaving(true);
+      setError(null);
+
+      const target = achievements.find((a) => a.id === id);
+      const targetSrc = target?.icon_url?.trim() ?? "";
+
+      const deleteResult = await deleteAchievement(supabase, id);
+      if (deleteResult.isErr()) {
+        setError(deleteResult.error);
+        setIsSaving(false);
+        return;
+      }
+
+      await badgeSessionController.deleteRemoteFilesForAchievement(
+        target,
+        id,
+        detailAchievementId,
+      );
+
+      setAchievements((prev) => prev.filter((achievement) => achievement.id !== id));
+      if (targetSrc) {
+        clearBadgeRenderCacheForSrc(targetSrc);
+        clearBadgeRenderCacheForSrc(toOptimizedBadgeRenderSrc(targetSrc));
+      }
+      if (detailAchievementId === id) {
+        uiActions.closeOverlay();
+      }
+      uiActions.clearDelete();
+      setIsSaving(false);
+    },
+    [
+      achievements,
+      badgeSessionController,
+      detailAchievementId,
+      readOnly,
+      setAchievements,
+      setError,
+      setIsSaving,
+      supabase,
+      uiActions,
+    ],
+  );
+
+  const actions: AchievementDataControllerActions = {
+    loadAchievements,
+    deleteAchievementById,
+  };
+
+  return {
+    isLoading,
+    actions,
+  };
+}
