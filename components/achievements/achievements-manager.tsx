@@ -19,30 +19,21 @@ import {
   createInitialForm,
   resolveTone,
   sortAchievements,
-  tryGetHighResNow,
-  UNLOCK_HOLD_DURATION_MS,
-  UNLOCK_REVEAL_DURATION_MS,
-  UNLOCK_REVEAL_LUT_STEPS,
 } from "@/components/achievements/achievement-manager-utils";
 import { AchievementManualEmbedDialog } from "@/components/achievements/achievement-manual-embed-dialog";
 import {
   clearSessionStagedUpload,
   deleteImageKitFileQuietly,
-  discardSessionStagedUpload,
+  rollbackBadgeUploadSession,
   getReplacedImageKitFileId,
   normalizeImageKitFileId,
 } from "@/components/achievements/badge/badge-imagekit-session";
 import {
   clearBadgeRenderCacheForSrc,
-  getCachedAlphaMaskData,
   prewarmBadgeRenderCache,
 } from "@/lib/badge/render-cache";
 import {
-  buildUnlockRevealClipPath,
-  buildUnlockRevealClipPathLut,
-  estimateUnlockRevealCompletionProgress,
   getAlphaMaskStyle,
-  type AlphaMaskData,
 } from "@/lib/badge/shape-utils";
 import {
   type BadgeIkSession,
@@ -58,12 +49,12 @@ import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import { copyTextToClipboard } from "@/lib/copy-text-to-clipboard";
 import { requestEmbedBadgeToken } from "@/lib/embed-api-client";
 import { createClient } from "@/lib/supabase/client";
-import { useAchievementSounds } from "@/components/achievements/use-achievement-sounds";
+import { useBadgeDetailMetrics } from "@/components/achievements/use-badge-detail-metrics";
+import { useAchievementUnlockReveal } from "@/components/achievements/use-achievement-unlock-reveal";
 import {
   createAchievement,
   deleteAchievement,
   listAchievements,
-  unlockAchievement,
   updateAchievement,
 } from "@/components/achievements/achievement-db";
 import {
@@ -99,102 +90,28 @@ export function AchievementsManager({
   const [embedCopyBusy, setEmbedCopyBusy] = useState(false);
   const [embedCopyHint, setEmbedCopyHint] = useState<string | null>(null);
   const [manualEmbedUrl, setManualEmbedUrl] = useState<string | null>(null);
-  const [isUnlockHolding, setIsUnlockHolding] = useState(false);
-  const [unlockingAchievementId, setUnlockingAchievementId] = useState<string | null>(null);
-  const [optimisticUnlockedAchievementId, setOptimisticUnlockedAchievementId] = useState<string | null>(null);
-  const [unlockRevealProgress, setUnlockRevealProgress] = useState(0);
   const [createUploadInProgress, setCreateUploadInProgress] = useState(false);
   const [panelUploadInProgress, setPanelUploadInProgress] = useState(false);
 
   const createBadgeIkSessionRef = useRef<BadgeIkSession>(createEmptyBadgeIkSession());
   const panelBadgeIkSessionRef = useRef<BadgeIkSession>(createEmptyBadgeIkSession());
-  const unlockHoldTimeoutRef = useRef<number | null>(null);
-  const unlockRevealRafRef = useRef<number | null>(null);
-  const unlockHoldPressedRef = useRef(false);
-  const unlockRevealProgressRef = useRef(0);
-  const unlockRevealCompleteProgressRef = useRef(1);
-  const unlockRevealResolverRef = useRef<((result: "completed" | "cancelled") => void) | null>(
-    null,
-  );
-  const unlockAlphaMaskRef = useRef<AlphaMaskData | null>(null);
-  const detailOpenStartedAtRef = useRef<number | null>(null);
-  const detailPerfMeasuredForIdRef = useRef<string | null>(null);
-  const detailImageDecodedMsRef = useRef<number | null>(null);
-  const [detailOpenToVisualReadyMs, setDetailOpenToVisualReadyMs] = useState<number | null>(
-    null,
-  );
-  const [detailOpenToImageDecodedMs, setDetailOpenToImageDecodedMs] = useState<number | null>(
-    null,
-  );
-  const {
-    stopUnlockSound,
-    playUnlockTimelineSound,
-    playUnlockEaseOutSound,
-    primeUnlockAudioGestureContext,
-    playSavePop,
-  } = useAchievementSounds();
-
-  function rollbackBadgeSession(ref: RefObject<BadgeIkSession>) {
-    discardSessionStagedUpload(ref.current);
-  }
 
   const detailAchievement = useMemo(() => {
     if (!detailAchievementId) return null;
     return achievements.find((a) => a.id === detailAchievementId) ?? null;
   }, [achievements, detailAchievementId]);
+  const {
+    markDetailOpenStart,
+    handleDetailBadgeImageDecoded,
+    handleDetailBadgeVisualReady,
+    detailOpenToVisualReadyMs,
+    detailOpenToImageDecodedMs,
+  } = useBadgeDetailMetrics(detailAchievement);
 
   useEffect(() => {
     setEmbedCopyHint(null);
     setManualEmbedUrl(null);
   }, [detailAchievementId]);
-
-  const markDetailOpenStart = useCallback((achievementId: string) => {
-    detailOpenStartedAtRef.current = tryGetHighResNow();
-    detailPerfMeasuredForIdRef.current = achievementId;
-    detailImageDecodedMsRef.current = null;
-    setDetailOpenToImageDecodedMs(null);
-    setDetailOpenToVisualReadyMs(null);
-  }, []);
-
-  const handleDetailBadgeImageDecoded = useCallback(() => {
-    if (!detailAchievement?.id) return;
-    if (detailPerfMeasuredForIdRef.current !== detailAchievement.id) return;
-    if (detailOpenStartedAtRef.current == null) return;
-
-    const elapsed = Math.max(0, Math.round(tryGetHighResNow() - detailOpenStartedAtRef.current));
-    detailImageDecodedMsRef.current = elapsed;
-    setDetailOpenToImageDecodedMs(elapsed);
-  }, [detailAchievement?.id]);
-
-  const handleDetailBadgeVisualReady = useCallback(() => {
-    if (!detailAchievement?.id) return;
-    if (detailPerfMeasuredForIdRef.current !== detailAchievement.id) return;
-    if (detailOpenStartedAtRef.current == null) return;
-
-    const elapsed = Math.max(0, Math.round(tryGetHighResNow() - detailOpenStartedAtRef.current));
-    setDetailOpenToVisualReadyMs(elapsed);
-    detailPerfMeasuredForIdRef.current = null;
-  }, [detailAchievement?.id]);
-
-  useEffect(() => {
-    if (!detailAchievement?.id) return;
-    if (!detailAchievement.icon_url?.trim()) return;
-    if (detailPerfMeasuredForIdRef.current !== detailAchievement.id) return;
-
-    const timeout = window.setTimeout(() => {
-      if (detailPerfMeasuredForIdRef.current !== detailAchievement.id) return;
-      if (detailOpenStartedAtRef.current == null) return;
-      
-      const elapsed = Math.max(0, Math.round(tryGetHighResNow() - detailOpenStartedAtRef.current));
-      if (detailImageDecodedMsRef.current == null) {
-        detailImageDecodedMsRef.current = elapsed;
-        setDetailOpenToImageDecodedMs(elapsed);
-      }
-      setDetailOpenToVisualReadyMs(elapsed);
-      detailPerfMeasuredForIdRef.current = null;
-    }, 2200);
-    return () => window.clearTimeout(timeout);
-  }, [detailAchievement?.icon_url, detailAchievement?.id]);
 
   const copyEmbedLink = useCallback(async () => {
     if (!detailAchievement?.id) return;
@@ -240,17 +157,33 @@ export function AchievementsManager({
     () => resolveTone(detailAchievement),
     [detailAchievement]
   );
-  const detailIsUnlocking =
-    Boolean(detailAchievement?.id) && unlockingAchievementId === detailAchievement?.id;
-  const detailIsLockedUi =
-    Boolean(detailAchievement?.is_locked) &&
-    optimisticUnlockedAchievementId !== detailAchievement?.id;
-  const detailFloating = !detailIsLockedUi && !detailIsUnlocking;
   const detailRenderSrc = useMemo(() => {
     const src = detailAchievement?.icon_url?.trim() ?? "";
     if (!src) return "";
     return toOptimizedBadgeRenderSrc(src);
   }, [detailAchievement?.icon_url]);
+  const {
+    playSavePop,
+    isUnlockHolding,
+    detailIsUnlocking,
+    detailIsLockedUi,
+    detailFloating,
+    optimisticUnlockedAchievementId,
+    unlockRevealClipPath,
+    unlockAlphaMaskRef,
+    cancelUnlockHold,
+    startUnlockHold,
+    resetUnlockWave,
+  } = useAchievementUnlockReveal({
+    readOnly,
+    detailAchievement,
+    detailRenderSrc,
+    isSaving,
+    setIsSaving,
+    setError,
+    setAchievements,
+    supabase,
+  });
   const detailMaskStyle = useMemo(() => {
     return detailRenderSrc ? getAlphaMaskStyle(detailRenderSrc) : null;
   }, [detailRenderSrc]);
@@ -269,53 +202,6 @@ export function AchievementsManager({
     optimisticUnlockedAchievementId,
     readOnly,
   ]);
-  const unlockRevealClipPathLut = useMemo(
-    () => (detailAchievement ? buildUnlockRevealClipPathLut() : null),
-    [detailAchievement],
-  );
-  const unlockRevealClipPath = useMemo(() => {
-    if (!unlockRevealClipPathLut || unlockRevealClipPathLut.length === 0) {
-      return buildUnlockRevealClipPath(
-        unlockRevealProgress,
-        unlockRevealProgress * Math.PI * 3.6,
-      );
-    }
-    const idx = Math.max(
-      0,
-      Math.min(
-        UNLOCK_REVEAL_LUT_STEPS,
-        Math.round(unlockRevealProgress * UNLOCK_REVEAL_LUT_STEPS),
-      ),
-    );
-    return unlockRevealClipPathLut[idx];
-  }, [unlockRevealProgress, unlockRevealClipPathLut]);
-
-  useEffect(() => {
-    unlockRevealProgressRef.current = unlockRevealProgress;
-  }, [unlockRevealProgress]);
-
-  useEffect(() => {
-    const src = detailRenderSrc;
-    unlockAlphaMaskRef.current = null;
-    unlockRevealCompleteProgressRef.current = 1;
-    if (readOnly || !detailIsLockedUi) return;
-    if (!src) return;
-
-    let cancelled = false;
-    const loader = getCachedAlphaMaskData(src);
-    void loader.then((maskData) => {
-      if (cancelled) return;
-      unlockAlphaMaskRef.current = maskData;
-      unlockRevealCompleteProgressRef.current = maskData
-        ? estimateUnlockRevealCompletionProgress(maskData)
-        : 1;
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [detailRenderSrc, detailIsLockedUi, readOnly]);
-
   useEffect(() => {
     if (
       detailAchievementId &&
@@ -374,68 +260,23 @@ export function AchievementsManager({
   function closeDetailPanel() {
     if (editorUploadInProgress) return;
     if (isCreating) {
-      rollbackBadgeSession(createBadgeIkSessionRef);
+      rollbackBadgeUploadSession(createBadgeIkSessionRef.current);
       setCreateForm(createInitialForm());
       setIsCreating(false);
       setCreateUploadInProgress(false);
     }
     if (detailMode === "edit" && detailAchievement) {
-      rollbackBadgeSession(panelBadgeIkSessionRef);
+      rollbackBadgeUploadSession(panelBadgeIkSessionRef.current);
       setPanelForm(achievementToForm(detailAchievement));
       setPanelUploadInProgress(false);
     }
     setDetailAchievementId(null);
     setDetailMode("view");
-    interruptUnlockReveal();
-    stopUnlockSound();
-    cancelUnlockHold();
-    setUnlockingAchievementId(null);
-    setOptimisticUnlockedAchievementId(null);
-    setUnlockRevealProgress(0);
+    resetUnlockWave();
     setIsSaving(false);
     setEmbedCopyHint(null);
     setEmbedCopyBusy(false);
   }
-
-  const cancelUnlockHold = useCallback(() => {
-    unlockHoldPressedRef.current = false;
-    if (unlockHoldTimeoutRef.current !== null) {
-      window.clearTimeout(unlockHoldTimeoutRef.current);
-      unlockHoldTimeoutRef.current = null;
-    }
-    setIsUnlockHolding(false);
-  }, []);
-
-  const interruptUnlockReveal = useCallback(() => {
-    if (unlockRevealRafRef.current !== null) {
-      cancelAnimationFrame(unlockRevealRafRef.current);
-      unlockRevealRafRef.current = null;
-    }
-    const resolver = unlockRevealResolverRef.current;
-    unlockRevealResolverRef.current = null;
-    resolver?.("cancelled");
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (unlockHoldTimeoutRef.current !== null) {
-        window.clearTimeout(unlockHoldTimeoutRef.current);
-      }
-      interruptUnlockReveal();
-      stopUnlockSound();
-    };
-  }, [interruptUnlockReveal, stopUnlockSound]);
-
-  useEffect(() => {
-    if (!isUnlockHolding && !detailIsUnlocking) return;
-    const onPointerEnd = () => cancelUnlockHold();
-    window.addEventListener("pointerup", onPointerEnd);
-    window.addEventListener("pointercancel", onPointerEnd);
-    return () => {
-      window.removeEventListener("pointerup", onPointerEnd);
-      window.removeEventListener("pointercancel", onPointerEnd);
-    };
-  }, [isUnlockHolding, detailIsUnlocking, cancelUnlockHold]);
 
   const loadAchievements = useCallback(async () => {
     setIsLoading(true);
@@ -598,151 +439,9 @@ export function AchievementsManager({
     setIsSaving(false);
   }
 
-  async function handlePressHoldUnlock() {
-    if (readOnly) return;
-    if (!detailAchievement || !detailAchievement.is_locked || isSaving) return;
-    const targetId = detailAchievement.id;
-
-    const animateReveal = (
-      targetProgress: number,
-      durationMs: number,
-      requireHold: boolean,
-    ) =>
-      new Promise<"completed" | "cancelled">((resolve) => {
-        interruptUnlockReveal();
-        const finish = (result: "completed" | "cancelled") => {
-          if (unlockRevealResolverRef.current === finish) {
-            unlockRevealResolverRef.current = null;
-          }
-          resolve(result);
-        };
-        unlockRevealResolverRef.current = finish;
-        const fromProgress = unlockRevealProgressRef.current;
-        if (durationMs <= 0 || Math.abs(targetProgress - fromProgress) < 0.0001) {
-          setUnlockRevealProgress(targetProgress);
-          finish(requireHold && !unlockHoldPressedRef.current ? "cancelled" : "completed");
-          return;
-        }
-        let startTs: number | null = null;
-        const tick = (ts: number) => {
-          if (startTs === null) startTs = ts;
-          const elapsed = ts - startTs;
-          const t = Math.min(elapsed / durationMs, 1);
-          const linearProgress = fromProgress + (targetProgress - fromProgress) * t;
-          const completionScale = unlockRevealCompleteProgressRef.current || 1;
-          const nextProgress =
-            targetProgress >= fromProgress
-              ? Math.min(1, linearProgress / completionScale)
-              : linearProgress;
-          setUnlockRevealProgress(nextProgress);
-
-          if (requireHold && !unlockHoldPressedRef.current) {
-            unlockRevealRafRef.current = null;
-            finish("cancelled");
-            return;
-          }
-
-          if (nextProgress >= 1 || t >= 1) {
-            unlockRevealRafRef.current = null;
-            finish("completed");
-            return;
-          }
-          unlockRevealRafRef.current = requestAnimationFrame(tick);
-        };
-        unlockRevealRafRef.current = requestAnimationFrame(tick);
-      });
-
-    setUnlockingAchievementId(detailAchievement.id);
-    setIsSaving(true);
-    setError(null);
-    const forwardDuration = Math.max(
-      120,
-      Math.round(
-        Math.max(0, 1 - unlockRevealProgressRef.current) * UNLOCK_REVEAL_DURATION_MS,
-      ),
-    );
-    const forwardResult = await animateReveal(1, forwardDuration, true);
-    if (forwardResult === "cancelled") {
-      stopUnlockSound();
-      const closeDuration = Math.max(
-        120,
-        Math.round(unlockRevealProgressRef.current * UNLOCK_REVEAL_DURATION_MS),
-      );
-      // Keep UI interactive while rolling back so users can catch the wave and continue.
-      setIsSaving(false);
-      void animateReveal(0, closeDuration, false).then((rollbackResult) => {
-        if (rollbackResult !== "completed") return;
-        setUnlockingAchievementId(null);
-        setUnlockRevealProgress(0);
-      });
-      return;
-    }
-
-    // End the visual sequence immediately when reveal reaches 100%.
-    setAchievements((prev) =>
-      sortAchievements(
-        prev.map((achievement) =>
-          achievement.id === targetId
-            ? { ...achievement, is_locked: false }
-            : achievement,
-        ),
-      ),
-    );
-    setOptimisticUnlockedAchievementId(targetId);
-    setUnlockingAchievementId(null);
-    setUnlockRevealProgress(0);
-    stopUnlockSound();
-    playUnlockEaseOutSound();
-    // UI should be instantly interactive once reveal is complete.
-    setIsSaving(false);
-
-    const unlockResult = await unlockAchievement(supabase, targetId);
-
-    if (unlockResult.isErr()) {
-      setError(unlockResult.error);
-      // Roll back optimistic unlock if persistence fails.
-      setAchievements((prev) =>
-        sortAchievements(
-          prev.map((achievement) =>
-            achievement.id === targetId
-              ? { ...achievement, is_locked: true }
-              : achievement,
-          ),
-        ),
-      );
-      setOptimisticUnlockedAchievementId(null);
-      stopUnlockSound();
-      return;
-    }
-
-    const unlockedAchievement = unlockResult.value;
-    setAchievements((prev) =>
-      sortAchievements(
-        prev.map((achievement) =>
-          achievement.id === unlockedAchievement.id ? unlockedAchievement : achievement,
-        ),
-      ),
-    );
-    setOptimisticUnlockedAchievementId(null);
-  }
-
-  function startUnlockHold() {
-    if (readOnly) return;
-    if (!detailIsLockedUi || isSaving || unlockHoldTimeoutRef.current !== null) return;
-    unlockHoldPressedRef.current = true;
-    setIsUnlockHolding(true);
-    primeUnlockAudioGestureContext();
-    unlockHoldTimeoutRef.current = window.setTimeout(() => {
-      unlockHoldTimeoutRef.current = null;
-      setIsUnlockHolding(false);
-      playUnlockTimelineSound();
-      void handlePressHoldUnlock();
-    }, UNLOCK_HOLD_DURATION_MS);
-  }
-
   const onCancelCreate = useCallback(() => {
     if (createUploadInProgress) return;
-    discardSessionStagedUpload(createBadgeIkSessionRef.current);
+    rollbackBadgeUploadSession(createBadgeIkSessionRef.current);
     setCreateForm(createInitialForm());
     setIsCreating(false);
     setCreateUploadInProgress(false);
@@ -762,7 +461,7 @@ export function AchievementsManager({
 
   const onCancelPanelEdit = useCallback(() => {
     if (panelUploadInProgress) return;
-    discardSessionStagedUpload(panelBadgeIkSessionRef.current);
+    rollbackBadgeUploadSession(panelBadgeIkSessionRef.current);
     if (detailAchievement) {
       setPanelForm(achievementToForm(detailAchievement));
     }
@@ -804,47 +503,48 @@ export function AchievementsManager({
         }}
       />
 
-      <AchievementDialogStack
-        overlayOpen={achievementOverlayOpen}
-        readOnly={readOnly}
-        editorUploadInProgress={editorUploadInProgress}
-        closeDetailPanel={closeDetailPanel}
-        isCreating={isCreating}
-        createForm={createForm}
-        setCreateForm={setCreateForm}
-        setCreateUploadInProgress={setCreateUploadInProgress}
-        createBadgeIkSessionRef={createBadgeIkSessionRef}
-        onSubmitCreate={handleCreate}
-        onCancelCreate={onCancelCreate}
-        detailMode={detailMode}
-        detailAchievement={detailAchievement}
-        panelForm={panelForm}
-        setPanelForm={setPanelForm}
-        setPanelUploadInProgress={setPanelUploadInProgress}
-        panelBadgeIkSessionRef={panelBadgeIkSessionRef}
-        onSubmitPanelSave={handlePanelSave}
-        onCancelPanelEdit={onCancelPanelEdit}
-        onRequestPanelEdit={onRequestPanelEdit}
-        detailIsUnlocking={detailIsUnlocking}
-        detailIsLockedUi={detailIsLockedUi}
-        detailFloating={detailFloating}
-        detailRenderSrc={detailRenderSrc}
-        detailTone={detailTone}
-        DetailFallbackIcon={DetailFallbackIcon}
-        unlockRevealClipPath={unlockRevealClipPath}
-        detailMaskStyle={detailMaskStyle}
-        unlockAlphaMaskRef={unlockAlphaMaskRef}
-        startUnlockHold={startUnlockHold}
-        cancelUnlockHold={cancelUnlockHold}
-        onDetailBadgeImageDecoded={handleDetailBadgeImageDecoded}
-        onDetailBadgeVisualReady={handleDetailBadgeVisualReady}
-        optimisticUnlockedAchievementId={optimisticUnlockedAchievementId}
-        isSaving={isSaving}
-        embedCopyBusy={embedCopyBusy}
-        embedCopyHint={embedCopyHint}
-        onCopyEmbedLink={copyEmbedLink}
-        onRequestDelete={(id) => setDeleteConfirmId(id)}
-      />
+      {achievementOverlayOpen ? (
+        <AchievementDialogStack
+          readOnly={readOnly}
+          editorUploadInProgress={editorUploadInProgress}
+          closeDetailPanel={closeDetailPanel}
+          isCreating={isCreating}
+          createForm={createForm}
+          setCreateForm={setCreateForm}
+          setCreateUploadInProgress={setCreateUploadInProgress}
+          createBadgeIkSessionRef={createBadgeIkSessionRef}
+          onSubmitCreate={handleCreate}
+          onCancelCreate={onCancelCreate}
+          detailMode={detailMode}
+          detailAchievement={detailAchievement}
+          panelForm={panelForm}
+          setPanelForm={setPanelForm}
+          setPanelUploadInProgress={setPanelUploadInProgress}
+          panelBadgeIkSessionRef={panelBadgeIkSessionRef}
+          onSubmitPanelSave={handlePanelSave}
+          onCancelPanelEdit={onCancelPanelEdit}
+          onRequestPanelEdit={onRequestPanelEdit}
+          detailIsUnlocking={detailIsUnlocking}
+          detailIsLockedUi={detailIsLockedUi}
+          detailFloating={detailFloating}
+          detailRenderSrc={detailRenderSrc}
+          detailTone={detailTone}
+          DetailFallbackIcon={DetailFallbackIcon}
+          unlockRevealClipPath={unlockRevealClipPath}
+          detailMaskStyle={detailMaskStyle}
+          unlockAlphaMaskRef={unlockAlphaMaskRef}
+          startUnlockHold={startUnlockHold}
+          cancelUnlockHold={cancelUnlockHold}
+          onDetailBadgeImageDecoded={handleDetailBadgeImageDecoded}
+          onDetailBadgeVisualReady={handleDetailBadgeVisualReady}
+          optimisticUnlockedAchievementId={optimisticUnlockedAchievementId}
+          isSaving={isSaving}
+          embedCopyBusy={embedCopyBusy}
+          embedCopyHint={embedCopyHint}
+          onCopyEmbedLink={copyEmbedLink}
+          onRequestDelete={(id) => setDeleteConfirmId(id)}
+        />
+      ) : null}
 
       {deleteConfirmId ? (
         <AchievementDeleteConfirmDialog

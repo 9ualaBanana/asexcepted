@@ -28,7 +28,7 @@ export function getReplacedImageKitFileId(
   return previous;
 }
 
-export function discardSessionStagedUpload(session: BadgeIkSession): void {
+export function rollbackBadgeUploadSession(session: BadgeIkSession): void {
   const stagedToDelete = getReplacedImageKitFileId(
     session.lastSessionFileId,
     session.baselineFileId,

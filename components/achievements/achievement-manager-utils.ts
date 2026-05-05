@@ -44,9 +44,3 @@ export function sortAchievements(rows: AchievementRecord[]) {
 export function resolveTone(achievement: AchievementRecord | null) {
   return getSafeTone(achievement?.tone);
 }
-
-export function tryGetHighResNow() {
-  return typeof performance !== "undefined" && Number.isFinite(performance.now())
-    ? performance.now()
-    : Date.now();
-}

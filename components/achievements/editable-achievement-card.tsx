@@ -14,7 +14,7 @@ import { ArrowLeft, Loader2, Save, X } from "lucide-react";
 import { AchievementRoundBadgeEditor } from "@/components/achievements/badge/achievement-round-badge-editor";
 import {
   clearSessionStagedUpload,
-  discardSessionStagedUpload,
+  rollbackBadgeUploadSession,
   setSessionStagedUpload,
 } from "@/components/achievements/badge/badge-imagekit-session";
 import {
@@ -140,7 +140,7 @@ export function EditableAchievementCard({
             }
             onIconChange={(icon) => setForm((prev) => ({ ...prev, icon }))}
             onRemoteUploadCommit={(url, fileId) => {
-              discardSessionStagedUpload(badgeIkSessionRef.current);
+              rollbackBadgeUploadSession(badgeIkSessionRef.current);
               setSessionStagedUpload(badgeIkSessionRef.current, fileId);
               setForm((prev) => ({
                 ...prev,

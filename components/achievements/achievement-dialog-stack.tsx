@@ -15,6 +15,7 @@ import type { AchievementTone } from "@/components/achievements/achievement-card
 import { AchievementBadgeSlot } from "@/components/achievements/badge/achievement-badge-slot";
 import { AchievementFallbackBadge } from "@/components/achievements/badge/achievement-fallback-badge";
 import { AchievementBadge3DViewer } from "@/components/achievements/badge/achievement-badge-3d-viewer";
+import { UnlockRevealWave } from "@/components/achievements/badge/unlock-reveal-wave";
 import { isOpaqueBadgeHit, type AlphaMaskData } from "@/lib/badge/shape-utils";
 import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
 import {
@@ -30,7 +31,6 @@ import type { AchievementRecord } from "@/components/achievements/achievement-tr
 import { cn } from "@/lib/utils";
 
 export type AchievementDialogStackProps = {
-  overlayOpen: boolean;
   readOnly: boolean;
   editorUploadInProgress: boolean;
   closeDetailPanel: () => void;
@@ -77,7 +77,6 @@ export type AchievementDialogStackProps = {
 
 export function AchievementDialogStack(props: AchievementDialogStackProps) {
   const {
-    overlayOpen,
     readOnly,
     editorUploadInProgress,
     closeDetailPanel,
@@ -119,15 +118,14 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
   } = props;
 
   useEffect(() => {
-    if (!overlayOpen) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [overlayOpen]);
+  }, []);
 
-  if (!overlayOpen || typeof document === "undefined") {
+  if (typeof document === "undefined") {
     return null;
   }
 
@@ -250,22 +248,16 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                             />
                           </div>
                         ) : null}
-                        {detailIsUnlocking ? (
-                          <>
-                            <div
-                              className="absolute inset-0"
-                              style={{
-                                ...(detailMaskStyle ?? {}),
-                                clipPath: unlockRevealClipPath,
-                              }}
-                            >
-                              <RemoteBadgeImage
-                                src={detailRenderSrc}
-                                className="p-1 h-full w-full object-contain"
-                              />
-                            </div>
-                          </>
-                        ) : null}
+                        <UnlockRevealWave
+                          isUnlocking={detailIsUnlocking}
+                          detailMaskStyle={detailMaskStyle}
+                          unlockRevealClipPath={unlockRevealClipPath}
+                        >
+                          <RemoteBadgeImage
+                            src={detailRenderSrc}
+                            className="p-1 h-full w-full object-contain"
+                          />
+                        </UnlockRevealWave>
                       </>
                     ) : (
                       <>
@@ -275,24 +267,18 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                           FallbackIcon={DetailFallbackIcon}
                           size="detail"
                         />
-                        {detailIsUnlocking ? (
-                          <>
-                            <div
-                              className="absolute inset-0"
-                              style={{
-                                ...(detailMaskStyle ?? {}),
-                                clipPath: unlockRevealClipPath,
-                              }}
-                            >
-                              <AchievementFallbackBadge
-                                tone={detailTone}
-                                isLocked={false}
-                                FallbackIcon={DetailFallbackIcon}
-                                size="detail"
-                              />
-                            </div>
-                          </>
-                        ) : null}
+                        <UnlockRevealWave
+                          isUnlocking={detailIsUnlocking}
+                          detailMaskStyle={detailMaskStyle}
+                          unlockRevealClipPath={unlockRevealClipPath}
+                        >
+                          <AchievementFallbackBadge
+                            tone={detailTone}
+                            isLocked={false}
+                            FallbackIcon={DetailFallbackIcon}
+                            size="detail"
+                          />
+                        </UnlockRevealWave>
                       </>
                     )}
                   </AchievementBadgeSlot>
