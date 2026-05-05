@@ -25,7 +25,6 @@ type AchievementBadge3DViewerProps = {
   /** Passed through to `makeBadgeMotionStyle` (e.g. true right after unlock). */
   motionStartCentered?: boolean;
   /** Uses cached mask/motion style path (toggleable for profiling). */
-  optimized?: boolean;
   /** Debug hook: fired once when source image decode/load is ready. */
   onImageDecoded?: () => void;
   /** Debug hook: fired once when source image is decoded and first paint should be ready. */
@@ -47,7 +46,6 @@ export function AchievementBadge3DViewer({
   float = false,
   motionSeed,
   motionStartCentered = false,
-  optimized = false,
   onImageDecoded,
   onVisualReady,
 }: AchievementBadge3DViewerProps) {
@@ -66,20 +64,18 @@ export function AchievementBadge3DViewer({
 
   const safeSrc = useMemo(() => src.replace(/"/g, '\\"'), [src]);
   const maskStyle = useMemo(
-    () => (optimized ? getCachedBadgeMaskStyle(src) : getAlphaMaskStyle(src)),
-    [optimized, src],
+    () => getCachedBadgeMaskStyle(src),
+    [src],
   );
   const floatMotionStyle = useMemo(
     () =>
-      float
-        ? optimized
-          ? getCachedBadgeMotionStyle(
-              (motionSeed ?? src).trim() || "badge",
-              motionStartCentered,
-            )
-          : makeBadgeMotionStyle((motionSeed ?? src).trim() || "badge", motionStartCentered)
+      float ?
+          getCachedBadgeMotionStyle(
+            (motionSeed ?? src).trim() || "badge",
+            motionStartCentered,
+          )
         : undefined,
-    [float, motionSeed, motionStartCentered, optimized, src],
+    [float, motionSeed, motionStartCentered, src],
   );
   const sideLayerStyle = useMemo(
     () =>

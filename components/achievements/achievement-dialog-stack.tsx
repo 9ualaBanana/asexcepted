@@ -32,7 +32,6 @@ import { cn } from "@/lib/utils";
 export type AchievementDialogStackProps = {
   overlayOpen: boolean;
   readOnly: boolean;
-  badgeRenderOptimized: boolean;
   editorUploadInProgress: boolean;
   closeDetailPanel: () => void;
 
@@ -80,7 +79,6 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
   const {
     overlayOpen,
     readOnly,
-    badgeRenderOptimized,
     editorUploadInProgress,
     closeDetailPanel,
     isCreating,
@@ -238,7 +236,6 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                             motionStartCentered={
                               optimisticUnlockedAchievementId === detailAchievement.id
                             }
-                            optimized={badgeRenderOptimized}
                             onImageDecoded={onDetailBadgeImageDecoded}
                             onVisualReady={onDetailBadgeVisualReady}
                           />

@@ -42,7 +42,6 @@ import {
   buildUnlockRevealClipPathLut,
   estimateUnlockRevealCompletionProgress,
   getAlphaMaskStyle,
-  loadAlphaMaskDataFromImage,
   type AlphaMaskData,
 } from "@/components/achievements/badge/badge-shape-utils";
 import {
@@ -54,7 +53,6 @@ import {
 } from "@/components/achievements/achievement-editor-shared";
 import {
   useBadgeDebugOverlayPreference,
-  useBadgeRenderOptimizedPreference,
 } from "@/lib/badge-render-optimization";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge-render-src";
 import { copyTextToClipboard } from "@/lib/copy-text-to-clipboard";
@@ -87,7 +85,6 @@ export function AchievementsManager({
   readOnly,
 }: AchievementsManagerProps) {
   const supabase = useMemo(() => createClient(), []);
-  const [badgeRenderOptimized] = useBadgeRenderOptimizedPreference();
   const [badgeDebugOverlay] = useBadgeDebugOverlayPreference();
   const [achievements, setAchievements] = useState<AchievementRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -252,13 +249,12 @@ export function AchievementsManager({
   const detailRenderSrc = useMemo(() => {
     const src = detailAchievement?.icon_url?.trim() ?? "";
     if (!src) return "";
-    return badgeRenderOptimized ? toOptimizedBadgeRenderSrc(src) : src;
-  }, [badgeRenderOptimized, detailAchievement?.icon_url]);
+    return toOptimizedBadgeRenderSrc(src);
+  }, [detailAchievement?.icon_url]);
   const detailMaskStyle = useMemo(() => {
     return detailRenderSrc ? getAlphaMaskStyle(detailRenderSrc) : null;
   }, [detailRenderSrc]);
   useEffect(() => {
-    if (!badgeRenderOptimized) return;
     const src = detailRenderSrc;
     if (!src) return;
     prewarmBadgeRenderCache(src, {
@@ -267,7 +263,6 @@ export function AchievementsManager({
       includeAlphaMaskData: !readOnly && detailIsLockedUi,
     });
   }, [
-    badgeRenderOptimized,
     detailRenderSrc,
     detailAchievement?.id,
     detailIsLockedUi,
@@ -307,9 +302,7 @@ export function AchievementsManager({
     if (!src) return;
 
     let cancelled = false;
-    const loader = badgeRenderOptimized
-      ? getCachedAlphaMaskData(src)
-      : loadAlphaMaskDataFromImage(src);
+    const loader = getCachedAlphaMaskData(src);
     void loader.then((maskData) => {
       if (cancelled) return;
       unlockAlphaMaskRef.current = maskData;
@@ -321,7 +314,7 @@ export function AchievementsManager({
     return () => {
       cancelled = true;
     };
-  }, [badgeRenderOptimized, detailRenderSrc, detailIsLockedUi, readOnly]);
+  }, [detailRenderSrc, detailIsLockedUi, readOnly]);
 
   useEffect(() => {
     if (
@@ -340,7 +333,7 @@ export function AchievementsManager({
 
   /** Chunked prewarm: avoids one idle callback decoding every badge while detail is open. */
   useEffect(() => {
-    if (!badgeRenderOptimized || achievements.length === 0) return;
+    if (achievements.length === 0) return;
     if (achievementOverlayOpen) return;
 
     const jobs: { src: string; id: string }[] = [];
@@ -376,7 +369,7 @@ export function AchievementsManager({
       cancelled = true;
       cancelAnimationFrame(rafId);
     };
-  }, [achievements, badgeRenderOptimized, achievementOverlayOpen]);
+  }, [achievements, achievementOverlayOpen]);
 
   function closeDetailPanel() {
     if (editorUploadInProgress) return;
@@ -488,7 +481,7 @@ export function AchievementsManager({
 
     const createdAchievement = result.value;
     const createdSrc = createdAchievement.icon_url?.trim() ?? "";
-    if (badgeRenderOptimized && createdSrc) {
+    if (createdSrc) {
       const renderSrc = toOptimizedBadgeRenderSrc(createdSrc);
       prewarmBadgeRenderCache(createdSrc, {
         motionSeed: createdAchievement.id,
@@ -534,19 +527,17 @@ export function AchievementsManager({
     const updatedAchievement = result.value;
     const previousSrc = detailAchievement?.icon_url?.trim() ?? "";
     const nextSrc = updatedAchievement.icon_url?.trim() ?? "";
-    if (badgeRenderOptimized) {
-      if (previousSrc && previousSrc !== nextSrc) {
-        clearBadgeRenderCacheForSrc(previousSrc);
-        clearBadgeRenderCacheForSrc(toOptimizedBadgeRenderSrc(previousSrc));
-      }
-      if (nextSrc) {
-        const renderSrc = toOptimizedBadgeRenderSrc(nextSrc);
-        prewarmBadgeRenderCache(nextSrc, {
-          motionSeed: updatedAchievement.id,
-          includeAlphaMaskData: Boolean(updatedAchievement.is_locked) && !readOnly,
-        });
-        prewarmBadgeRenderCache(renderSrc, { motionSeed: updatedAchievement.id });
-      }
+    if (previousSrc && previousSrc !== nextSrc) {
+      clearBadgeRenderCacheForSrc(previousSrc);
+      clearBadgeRenderCacheForSrc(toOptimizedBadgeRenderSrc(previousSrc));
+    }
+    if (nextSrc) {
+      const renderSrc = toOptimizedBadgeRenderSrc(nextSrc);
+      prewarmBadgeRenderCache(nextSrc, {
+        motionSeed: updatedAchievement.id,
+        includeAlphaMaskData: Boolean(updatedAchievement.is_locked) && !readOnly,
+      });
+      prewarmBadgeRenderCache(renderSrc, { motionSeed: updatedAchievement.id });
     }
     playSavePop();
 
@@ -595,7 +586,7 @@ export function AchievementsManager({
     }
 
     setAchievements((prev) => prev.filter((achievement) => achievement.id !== id));
-    if (badgeRenderOptimized && targetSrc) {
+    if (targetSrc) {
       clearBadgeRenderCacheForSrc(targetSrc);
       clearBadgeRenderCacheForSrc(toOptimizedBadgeRenderSrc(targetSrc));
     }
@@ -808,7 +799,6 @@ export function AchievementsManager({
       <AchievementDialogStack
         overlayOpen={achievementOverlayOpen}
         readOnly={readOnly}
-        badgeRenderOptimized={badgeRenderOptimized}
         editorUploadInProgress={editorUploadInProgress}
         closeDetailPanel={closeDetailPanel}
         isCreating={isCreating}
@@ -866,7 +856,6 @@ export function AchievementsManager({
 
       {badgeDebugOverlay ? (
         <AchievementBadgeDebugOverlay
-          badgeRenderOptimized={badgeRenderOptimized}
           detailOpenToImageDecodedMs={detailOpenToImageDecodedMs}
           detailOpenToVisualReadyMs={detailOpenToVisualReadyMs}
         />
