@@ -9,14 +9,12 @@ import {
   type FormEvent,
 } from "react";
 
-import { type AchievementTone } from "@/components/achievements/achievement-card";
 import { AchievementBadgeDebugOverlay } from "@/components/achievements/achievement-badge-debug-overlay";
 import { AchievementDeleteConfirmDialog } from "@/components/achievements/achievement-delete-confirm-dialog";
 import { AchievementDialogStack } from "@/components/achievements/achievement-dialog-stack";
 import { AchievementGrid } from "@/components/achievements/achievement-grid";
 import {
   createInitialForm,
-  resolveTone,
   sortAchievements,
 } from "@/components/achievements/achievement-manager-utils";
 import { AchievementManualEmbedDialog } from "@/components/achievements/achievement-manual-embed-dialog";
@@ -32,13 +30,9 @@ import {
   prewarmBadgeRenderCache,
 } from "@/lib/badge/render-cache";
 import {
-  getAlphaMaskStyle,
-} from "@/lib/badge/shape-utils";
-import {
   type BadgeIkSession,
   createEmptyBadgeIkSession,
   type FormState,
-  getSafeIcon,
   hasMeaningfulContent,
 } from "@/components/achievements/achievement-editor-shared";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
@@ -47,6 +41,7 @@ import { useAchievementBadgeMetricsController } from "@/components/achievements/
 import { useAchievementUnlockReveal } from "@/components/achievements/use-achievement-unlock-reveal";
 import { useBadgeChunkedPrewarm } from "@/components/achievements/use-badge-chunked-prewarm";
 import { useAchievementEmbedLinkController } from "@/components/achievements/use-achievement-embed-link-controller";
+import { useAchievementDetailViewModel } from "@/components/achievements/use-achievement-detail-view-model";
 import {
   createAchievement,
   deleteAchievement,
@@ -96,17 +91,12 @@ export function AchievementsManager({
   const embedLinkController = useAchievementEmbedLinkController({
     detailAchievementId: detailAchievement?.id ?? null,
   });
-
-  const DetailFallbackIcon = getSafeIcon(detailAchievement?.icon);
-  const detailTone: AchievementTone = useMemo(
-    () => resolveTone(detailAchievement),
-    [detailAchievement]
-  );
   const detailRenderSrc = useMemo(() => {
     const src = detailAchievement?.icon_url?.trim() ?? "";
     if (!src) return "";
     return toOptimizedBadgeRenderSrc(src);
   }, [detailAchievement?.icon_url]);
+
   const {
     playSavePop,
     detailIsUnlocking,
@@ -128,24 +118,13 @@ export function AchievementsManager({
     setAchievements,
     supabase,
   });
-  const detailMaskStyle = useMemo(() => {
-    return detailRenderSrc ? getAlphaMaskStyle(detailRenderSrc) : null;
-  }, [detailRenderSrc]);
-  useEffect(() => {
-    const src = detailRenderSrc;
-    if (!src) return;
-    prewarmBadgeRenderCache(src, {
-      motionSeed: detailAchievement?.id ?? "detail-default",
-      startCentered: optimisticUnlockedAchievementId === detailAchievement?.id,
-      includeAlphaMaskData: !readOnly && detailIsLockedUi,
-    });
-  }, [
+  const { DetailFallbackIcon, detailTone, detailMaskStyle } = useAchievementDetailViewModel({
+    detailAchievement,
     detailRenderSrc,
-    detailAchievement?.id,
-    detailIsLockedUi,
     optimisticUnlockedAchievementId,
+    detailIsLockedUi,
     readOnly,
-  ]);
+  });
   useEffect(() => {
     if (
       detailAchievementId &&
