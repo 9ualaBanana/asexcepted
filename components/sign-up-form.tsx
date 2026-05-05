@@ -1,5 +1,6 @@
 "use client";
 
+import { userAchievementsPath } from "@/lib/user-achievements-path";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -27,17 +28,6 @@ export function SignUpForm({
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  function getAuthRedirectBaseUrl() {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-    const vercelUrl = process.env.NEXT_PUBLIC_VERCEL_URL;
-    const fallback =
-      vercelUrl && process.env.NODE_ENV === "production"
-        ? `https://${vercelUrl}`
-        : window.location.origin;
-    const baseUrl = siteUrl || fallback;
-    return baseUrl.replace(/\/$/, "");
-  }
-
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     const supabase = createClient();
@@ -51,15 +41,23 @@ export function SignUpForm({
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          emailRedirectTo: `${getAuthRedirectBaseUrl()}/auth/confirm?next=/achievements`,
-        },
       });
       if (error) throw error;
-      router.push("/auth/sign-up-success");
+      if (data.session && data.user) {
+        router.push(userAchievementsPath(data.user.id));
+        router.refresh();
+        return;
+      }
+      if (data.user && !data.session) {
+        setError(
+          "Email confirmation is still enabled in your Supabase project. Disable it under Authentication → Providers → Email (Confirm email), then try again.",
+        );
+        return;
+      }
+      setError("Sign up did not return a session. Try again or contact support.");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
