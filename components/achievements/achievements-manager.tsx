@@ -17,19 +17,20 @@ export function AchievementsManager({
   readOnly,
 }: AchievementsManagerProps) {
   const model = useAchievementsManagerModel({ userId, readOnly });
+  const { data, editorPipeline, ui, badgeMetrics, embedLink } = model;
 
   return (
     <div className="space-y-6">
       {model.error ? <p className="text-sm text-red-500">{model.error}</p> : null}
 
       <AchievementGrid
-        isLoading={model.data.isLoading}
+        isLoading={data.isLoading}
         readOnly={model.readOnly}
         items={model.gridItems}
-        onAddAchievement={model.editorPipeline.actions.startCreateFlow}
+        onAddAchievement={editorPipeline.actions.startCreateFlow}
         onSelectAchievement={(achievementId) => {
-          model.badgeMetrics.markDetailOpenStart(achievementId);
-          model.ui.actions.openDetailView(achievementId);
+          badgeMetrics.markDetailOpenStart(achievementId);
+          ui.actions.openDetailView(achievementId);
         }}
       />
 
@@ -37,26 +38,26 @@ export function AchievementsManager({
         <AchievementDialogStack {...model.dialogStackProps} />
       ) : null}
 
-      {model.ui.deleteConfirmId ? (
+      {ui.deleteConfirmId ? (
         <AchievementDeleteConfirmDialog
           isSaving={model.isSaving}
-          onDismiss={model.ui.actions.clearDelete}
-          onConfirm={() => void model.data.actions.deleteAchievementById(model.ui.deleteConfirmId!)}
+          onDismiss={ui.actions.clearDelete}
+          onConfirm={() => void data.actions.deleteAchievementById(ui.deleteConfirmId!)}
         />
       ) : null}
 
-      {model.embedLink.manualEmbedUrl ? (
+      {embedLink.manualEmbedUrl ? (
         <AchievementManualEmbedDialog
-          manualEmbedUrl={model.embedLink.manualEmbedUrl}
-          onDismiss={() => model.embedLink.setManualEmbedUrl(null)}
-          onCopied={model.embedLink.onManualEmbedCopied}
+          manualEmbedUrl={embedLink.manualEmbedUrl}
+          onDismiss={() => embedLink.setManualEmbedUrl(null)}
+          onCopied={embedLink.onManualEmbedCopied}
         />
       ) : null}
 
-      {model.badgeMetrics.badgeDebugOverlay ? (
+      {badgeMetrics.badgeDebugOverlay ? (
         <AchievementBadgeDebugOverlay
-          detailOpenToImageDecodedMs={model.badgeMetrics.detailOpenToImageDecodedMs}
-          detailOpenToVisualReadyMs={model.badgeMetrics.detailOpenToVisualReadyMs}
+          detailOpenToImageDecodedMs={badgeMetrics.detailOpenToImageDecodedMs}
+          detailOpenToVisualReadyMs={badgeMetrics.detailOpenToVisualReadyMs}
         />
       ) : null}
     </div>
