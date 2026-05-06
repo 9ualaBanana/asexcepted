@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { Bell } from "lucide-react";
 import { AuthButton } from "@/components/auth-button";
+import { NotificationBell } from "@/components/push/notification-bell";
 import { FriendsPanel } from "@/components/social/friends-panel";
 import { createClient } from "@/lib/supabase/server";
 import { Suspense } from "react";
@@ -20,13 +20,7 @@ async function FriendsPageInner() {
             <Suspense>
               <AuthButton />
             </Suspense>
-            <button
-              type="button"
-              aria-label="Notifications"
-              className="absolute right-5 inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/20 text-white/70 transition hover:border-white/40 hover:text-white"
-            >
-              <Bell className="h-4 w-4" />
-            </button>
+            <NotificationBell />
           </div>
         </nav>
 

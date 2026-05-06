@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
-import { Bell } from "lucide-react";
 import { AuthButton } from "@/components/auth-button";
 import { AchievementsManager } from "@/components/achievements/achievements-manager";
+import { NotificationBell } from "@/components/push/notification-bell";
 import { FollowButton } from "@/components/social/follow-button";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -48,13 +48,7 @@ async function UserAchievementsContent({ params }: PageProps) {
             <Suspense>
               <AuthButton />
             </Suspense>
-            <button
-              type="button"
-              aria-label="Notifications"
-              className="absolute right-5 inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/20 text-white/70 transition hover:border-white/40 hover:text-white"
-            >
-              <Bell className="h-4 w-4" />
-            </button>
+            <NotificationBell />
           </div>
         </nav>
 
