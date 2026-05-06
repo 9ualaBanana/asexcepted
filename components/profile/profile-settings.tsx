@@ -30,8 +30,10 @@ export function ProfileSettings() {
   const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [sendingPushTest, setSendingPushTest] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedHint, setSavedHint] = useState(false);
+  const [pushHint, setPushHint] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -84,6 +86,32 @@ export function ProfileSettings() {
     await load();
   }
 
+  async function handleSendPushTest() {
+    setSendingPushTest(true);
+    setPushHint(null);
+    setError(null);
+    try {
+      const response = await fetch("/api/push/test", { method: "POST" });
+      const payload = (await response.json().catch(() => ({}))) as {
+        ok?: boolean;
+        error?: string;
+        successCount?: number;
+        requested?: number;
+      };
+      if (!response.ok || !payload.ok) {
+        setError(payload.error ?? "Could not send test push.");
+        return;
+      }
+      setPushHint(
+        `Test push sent (${payload.successCount ?? 0}/${payload.requested ?? 0} delivered).`,
+      );
+    } catch {
+      setError("Could not send test push.");
+    } finally {
+      setSendingPushTest(false);
+    }
+  }
+
   if (loading) {
     return (
       <p className="text-center text-sm text-muted-foreground py-8">Loading…</p>
@@ -98,6 +126,9 @@ export function ProfileSettings() {
       {error ? <p className="text-sm text-red-500">{error}</p> : null}
       {savedHint ? (
         <p className="text-sm text-muted-foreground">Saved.</p>
+      ) : null}
+      {pushHint ? (
+        <p className="text-sm text-muted-foreground">{pushHint}</p>
       ) : null}
 
       <div className="space-y-2">
@@ -144,6 +175,16 @@ export function ProfileSettings() {
       <div className="flex justify-center">
         <Button type="submit" disabled={saving}>
           {saving ? "Saving…" : "Save"}
+        </Button>
+      </div>
+      <div className="flex justify-center">
+        <Button
+          type="button"
+          variant="outline"
+          disabled={sendingPushTest}
+          onClick={() => void handleSendPushTest()}
+        >
+          {sendingPushTest ? "Sending push…" : "Send test push"}
         </Button>
       </div>
     </form>
