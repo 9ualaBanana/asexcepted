@@ -66,6 +66,14 @@ export function SignUpForm({
             hasEmail: Boolean(data.user.email),
           },
         });
+        void fetch("/api/push/events/signup", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            userId: data.user.id,
+            email: data.user.email ?? undefined,
+          }),
+        }).catch(() => undefined);
         router.push(userAchievementsPath(data.user.id));
         router.refresh();
         return;

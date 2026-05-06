@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { Bell } from "lucide-react";
 import { AuthButton } from "@/components/auth-button";
 import { AchievementsManager } from "@/components/achievements/achievements-manager";
 import { FollowButton } from "@/components/social/follow-button";
@@ -43,10 +44,17 @@ async function UserAchievementsContent({ params }: PageProps) {
     <main className="min-h-screen flex flex-col items-center overflow-x-hidden">
       <div className="flex-1 w-full flex flex-col gap-10 items-center">
         <nav className="w-full flex justify-center border-b border-b-foreground/10 h-14">
-          <div className="w-full max-w-5xl flex justify-center items-center p-3 px-5 text-sm">
+          <div className="relative w-full max-w-5xl flex justify-center items-center p-3 px-5 text-sm">
             <Suspense>
               <AuthButton />
             </Suspense>
+            <button
+              type="button"
+              aria-label="Notifications"
+              className="absolute right-5 inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/20 text-white/70 transition hover:border-white/40 hover:text-white"
+            >
+              <Bell className="h-4 w-4" />
+            </button>
           </div>
         </nav>
 
