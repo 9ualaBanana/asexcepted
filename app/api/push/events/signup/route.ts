@@ -41,6 +41,16 @@ export async function POST(request: Request) {
         title: `${projectName}: New signup`,
         body,
       },
+      webpush: {
+        notification: {
+          title: `${projectName}: New signup`,
+          body,
+          icon: "/icons/icon-192.png",
+        },
+        fcmOptions: {
+          link: "/",
+        },
+      },
       data: {
         event: "auth.signup.succeeded",
         userId: parsed.data.userId,
