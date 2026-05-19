@@ -20,7 +20,7 @@ export function createInitialForm(): FormState {
     iconFileId: "",
     tone: "teal",
     isLocked: true,
-    achievedAt: todayDateString(),
+    achievedAt: "",
   };
 }
 
