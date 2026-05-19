@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import {
   useBadgeDebugOverlayPreference,
 } from "@/lib/badge/debug-overlay-preference";
+import { useSoundsEnabledPreference } from "@/lib/sounds-enabled-preference";
 
 function displayNameFromMetadata(meta: Record<string, unknown> | null | undefined) {
   if (!meta) return "";
@@ -26,6 +27,7 @@ export function ProfileSettings() {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const [badgeDebugOverlay, setBadgeDebugOverlay] = useBadgeDebugOverlayPreference();
+  const [soundsEnabled, setSoundsEnabled] = useSoundsEnabledPreference();
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(true);
@@ -151,6 +153,25 @@ export function ProfileSettings() {
           placeholder="Shown in the app header and Supabase Auth"
           autoComplete="name"
         />
+      </div>
+
+      <div className="space-y-2 rounded-lg border border-border/60 bg-muted/20 p-3">
+        <Label htmlFor="profile-sounds-enabled">Sounds</Label>
+        <label
+          htmlFor="profile-sounds-enabled"
+          className="flex cursor-pointer items-center justify-between gap-3"
+        >
+          <p className="text-xs text-muted-foreground">
+            Play unlock and save sounds in the achievements experience.
+          </p>
+          <input
+            id="profile-sounds-enabled"
+            type="checkbox"
+            checked={soundsEnabled}
+            onChange={(e) => setSoundsEnabled(e.target.checked)}
+            className="h-4 w-4 shrink-0 accent-foreground"
+          />
+        </label>
       </div>
 
       <div className="space-y-2 rounded-lg border border-border/60 bg-muted/20 p-3">

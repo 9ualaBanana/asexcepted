@@ -2,12 +2,15 @@
 
 import { useCallback, useEffect, useRef } from "react";
 
+import { useSoundsEnabledPreference } from "@/lib/sounds-enabled-preference";
+
 const AUDIO_ASSET_VERSION = process.env.NEXT_PUBLIC_BUILD_ID?.trim() || "dev";
 const UNLOCK_PEEL_AUDIO_SRC = `/audio/unlock-peel.wav?v=${AUDIO_ASSET_VERSION}`;
 const UNLOCK_EASE_OUT_AUDIO_SRC = `/audio/unlock-ease-out.wav?v=${AUDIO_ASSET_VERSION}`;
 const SAVE_POP_AUDIO_SRC = `/audio/pop.mp3?v=${AUDIO_ASSET_VERSION}`;
 
 export function useAchievementSounds() {
+  const [soundsEnabled] = useSoundsEnabledPreference();
   const unlockAudioRef = useRef<HTMLAudioElement | null>(null);
   const unlockAudioPreparedRef = useRef<HTMLAudioElement | null>(null);
   const unlockEaseOutAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -54,7 +57,7 @@ export function useAchievementSounds() {
   }, [clearMediaSessionNowPlaying]);
 
   const playUnlockTimelineSound = useCallback(() => {
-    if (typeof window === "undefined") return;
+    if (!soundsEnabled || typeof window === "undefined") return;
     try {
       stopUnlockSound();
       const audio = unlockAudioPreparedRef.current ?? new Audio(UNLOCK_PEEL_AUDIO_SRC);
@@ -74,11 +77,11 @@ export function useAchievementSounds() {
     } catch {
       // ignore unsupported / blocked audio
     }
-  }, [clearMediaSessionNowPlaying, stopUnlockSound]);
+  }, [clearMediaSessionNowPlaying, soundsEnabled, stopUnlockSound]);
 
   /** Same transport as peel (HTMLAudio) so playback still works after the reveal delay (Web Audio context suspend). */
   const playUnlockEaseOutSound = useCallback(() => {
-    if (typeof window === "undefined") return;
+    if (!soundsEnabled || typeof window === "undefined") return;
     try {
       stopUnlockEaseOutSound();
       const audio = unlockEaseOutPreparedRef.current ?? new Audio(UNLOCK_EASE_OUT_AUDIO_SRC);
@@ -98,20 +101,20 @@ export function useAchievementSounds() {
     } catch {
       // ignore unsupported / blocked audio
     }
-  }, [clearMediaSessionNowPlaying, stopUnlockEaseOutSound]);
+  }, [clearMediaSessionNowPlaying, soundsEnabled, stopUnlockEaseOutSound]);
 
   const primeUnlockAudioGestureContext = useCallback(() => {
-    if (typeof window === "undefined") return;
+    if (!soundsEnabled || typeof window === "undefined") return;
     try {
       unlockEaseOutPreparedRef.current?.load();
       unlockAudioPreparedRef.current?.load();
     } catch {
       // no-op
     }
-  }, []);
+  }, [soundsEnabled]);
 
   const playSavePop = useCallback(() => {
-    if (typeof window === "undefined") return;
+    if (!soundsEnabled || typeof window === "undefined") return;
     try {
       const audio = savePopPreparedRef.current ?? new Audio(SAVE_POP_AUDIO_SRC);
       audio.preload = "auto";
@@ -127,9 +130,19 @@ export function useAchievementSounds() {
     } catch {
       // ignore unsupported / blocked audio
     }
-  }, [clearMediaSessionNowPlaying]);
+  }, [clearMediaSessionNowPlaying, soundsEnabled]);
 
   useEffect(() => {
+    if (!soundsEnabled) {
+      stopUnlockSound();
+      stopUnlockEaseOutSound();
+      unlockAudioPreparedRef.current = null;
+      unlockEaseOutPreparedRef.current = null;
+      savePopPreparedRef.current?.pause();
+      savePopPreparedRef.current = null;
+      return;
+    }
+
     const peel = new Audio(UNLOCK_PEEL_AUDIO_SRC);
     peel.preload = "auto";
     peel.load();
@@ -154,7 +167,12 @@ export function useAchievementSounds() {
       savePopPreparedRef.current = null;
       clearMediaSessionNowPlaying();
     };
-  }, [clearMediaSessionNowPlaying, stopUnlockEaseOutSound, stopUnlockSound]);
+  }, [
+    clearMediaSessionNowPlaying,
+    soundsEnabled,
+    stopUnlockEaseOutSound,
+    stopUnlockSound,
+  ]);
 
   return {
     stopUnlockSound,
