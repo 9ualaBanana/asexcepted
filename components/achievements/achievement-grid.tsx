@@ -1,7 +1,8 @@
-import { Sparkles, type LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 import {
   AchievementGridItem,
+  AchievementGridItemAdd,
   AchievementGridItemFallback,
 } from "@/components/achievements/achievement-grid-item";
 import type { AchievementTone } from "@/components/achievements/achievement-card";
@@ -62,31 +63,7 @@ function AchievementGridInner({
       >
         <div className="grid grid-cols-3 gap-x-2 gap-y-8">
           {!readOnly ? (
-            <button
-              type="button"
-              className={cn(
-                "no-tap-highlight group flex w-full flex-col items-center gap-1.5 px-0.5 py-1 text-center outline-none transition-opacity",
-                "text-white/45 hover:text-white/80",
-                "focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-              )}
-              onClick={onAddAchievement}
-            >
-              <div
-                className={cn(
-                  "relative flex aspect-square w-full max-w-[104px] items-center justify-center rounded-3xl",
-                  "border border-dashed border-white/25 bg-transparent transition-colors",
-                  "group-hover:border-white/45 group-hover:bg-white/[0.04]",
-                )}
-              >
-                <div className="flex h-16 w-16 items-center justify-center rounded-full border border-current/40">
-                  <Sparkles className="h-6 w-6" />
-                </div>
-              </div>
-              <p className="line-clamp-2 h-[2.7em] max-h-[2.7em] w-full shrink-0 overflow-hidden text-[11px] font-medium leading-[1.35] text-white/55 group-hover:text-white/80 sm:text-xs">
-                Add achievement
-              </p>
-              <p className="text-[10px] text-white/35 sm:text-[11px]">—</p>
-            </button>
+            <AchievementGridItemAdd onClick={onAddAchievement} />
           ) : null}
 
           {items.map((achievement) => (

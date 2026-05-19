@@ -1,6 +1,10 @@
 import { Lock, type LucideIcon } from "lucide-react";
 
 import {
+  AchievementBadgeIconDisc,
+  achievementBadgeIconDiscSizeStyles,
+} from "@/components/achievements/badge/achievement-badge-icon-disc";
+import {
   type AchievementTone,
 } from "@/components/achievements/achievement-card";
 import { cn } from "@/lib/utils";
@@ -12,19 +16,6 @@ type AchievementFallbackBadgeProps = {
   size?: "grid" | "detail";
   className?: string;
 };
-
-const sizeStyles = {
-  grid: {
-    inner: "p-2.5",
-    iconUnlocked: "h-8 w-8",
-    iconLocked: "h-7 w-7",
-  },
-  detail: {
-    inner: "p-8",
-    iconUnlocked: "h-28 w-28",
-    iconLocked: "h-24 w-24",
-  },
-} as const;
 
 const toneGlowStyles: Record<AchievementTone, string> = {
   rose: "bg-[radial-gradient(ellipse_at_72%_26%,rgba(253,164,175,0.24)_0%,rgba(253,164,175,0.15)_24%,rgba(253,164,175,0.09)_46%,rgba(253,164,175,0.04)_68%,rgba(253,164,175,0.015)_84%,rgba(253,164,175,0)_100%)]",
@@ -57,7 +48,7 @@ export function AchievementFallbackBadge({
   size = "grid",
   className,
 }: AchievementFallbackBadgeProps) {
-  const s = sizeStyles[size];
+  const s = achievementBadgeIconDiscSizeStyles[size];
 
   return (
     <div
@@ -88,14 +79,7 @@ export function AchievementFallbackBadge({
           "bg-[radial-gradient(ellipse_at_30%_72%,rgba(255,255,255,0.12)_0%,rgba(255,255,255,0)_58%)]",
         )}
       />
-      <div
-        className={cn(
-          "relative z-10 flex items-center justify-center rounded-full border border-white/60",
-          "bg-gradient-to-br from-white/75 to-white/25 shadow-sm ring-2 ring-white/20 backdrop-blur-sm",
-          "dark:from-white/20 dark:to-white/5",
-          s.inner,
-        )}
-      >
+      <AchievementBadgeIconDisc size={size}>
         {isLocked ? (
           <Lock
             className={cn(
@@ -113,7 +97,7 @@ export function AchievementFallbackBadge({
             aria-hidden
           />
         )}
-      </div>
+      </AchievementBadgeIconDisc>
     </div>
   );
 }
