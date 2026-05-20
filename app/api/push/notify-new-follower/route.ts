@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { sendAdminNewSignupPush } from "@/lib/notifications";
+import { resolveDisplayName, sendPushToUsers } from "@/lib/notifications";
 import { createClient } from "@/lib/supabase/server";
 
 const bodySchema = z.object({
-  userId: z.string().uuid(),
-  email: z.string().email().optional(),
+  followingId: z.string().uuid(),
+  followerId: z.string().uuid(),
 });
 
 export async function POST(request: Request) {
@@ -25,15 +25,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
-  if (parsed.data.userId !== user.id) {
+  if (parsed.data.followerId !== user.id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  await sendAdminNewSignupPush({
+  const followerName = await resolveDisplayName(supabase, parsed.data.followerId);
+
+  const result = await sendPushToUsers({
     supabase,
-    userId: parsed.data.userId,
-    email: parsed.data.email,
+    userIds: [parsed.data.followingId],
+    kind: "new_follower",
+    params: { followerName },
   });
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: true,
+    requested: result.requested,
+    successCount: result.successCount,
+    failureCount: result.failureCount,
+  });
 }

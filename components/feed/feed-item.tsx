@@ -4,10 +4,12 @@ import { AchievementBadgeSlot } from "@/components/achievements/badge/achievemen
 import { AchievementFallbackBadge } from "@/components/achievements/badge/achievement-fallback-badge";
 import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
 import { getSafeTone } from "@/components/achievements/achievement-card";
-import { getSafeIcon } from "@/components/achievements/achievement-editor-shared";
-import { formatGridDate } from "@/components/achievements/achievement-editor-shared";
+import {
+  formatAchievedAt,
+  getSafeIcon,
+} from "@/components/achievements/achievement-editor-shared";
 import type { FeedUnlockRow } from "@/lib/feed-db";
-import { userCollection } from "@/lib/routes";
+import { userAchievementDetail } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 type FeedItemProps = {
@@ -15,8 +17,8 @@ type FeedItemProps = {
 };
 
 export function FeedItem({ row }: FeedItemProps) {
-  const dateLabel = formatGridDate(row.achieved_at);
-  const href = userCollection(row.user_id);
+  const dateLabel = formatAchievedAt(row.achieved_at);
+  const href = userAchievementDetail(row.user_id, row.achievement_id);
   const tone = getSafeTone(row.tone);
   const FallbackIcon = getSafeIcon(row.icon);
   const title = row.title?.trim() || "Achievement";
@@ -50,9 +52,7 @@ export function FeedItem({ row }: FeedItemProps) {
         </p>
         <p className="truncate text-xs text-muted-foreground/80">{title}</p>
         {dateLabel ? (
-          <p className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground/60">
-            {dateLabel}
-          </p>
+          <p className="mt-0.5 text-[10px] text-muted-foreground/60">{dateLabel}</p>
         ) : null}
       </div>
 

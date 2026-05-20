@@ -1,14 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { buildFcmWebPushMessage } from "@/lib/push/build-fcm-message";
-import { getFirebaseAdminMessaging } from "@/lib/push/firebase-admin";
-import { ROUTES } from "@/lib/routes";
+import { sendPushToUsers } from "@/lib/notifications";
 import { createClient } from "@/lib/supabase/server";
-
-const INVALID_TOKEN_CODES = new Set([
-  "messaging/invalid-registration-token",
-  "messaging/registration-token-not-registered",
-]);
 
 export async function POST() {
   const supabase = await createClient();
@@ -29,17 +22,8 @@ export async function POST() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const tokens = [
-    ...new Set(
-      Array.isArray(data)
-        ? (data as Array<{ token?: string | null }>)
-            .map((row) => row.token?.trim() ?? "")
-            .filter((token): token is string => token.length > 0)
-        : [],
-    ),
-  ];
-
-  if (tokens.length === 0) {
+  const hasToken = Array.isArray(data) && data.length > 0;
+  if (!hasToken) {
     return NextResponse.json(
       {
         ok: false,
@@ -50,39 +34,29 @@ export async function POST() {
     );
   }
 
-  const message = buildFcmWebPushMessage({
-    tokens,
-    title: "AsExcepted test notification",
-    body: "Push is wired correctly for this profile.",
-    url: ROUTES.profile,
-    type: "push.test",
+  const result = await sendPushToUsers({
+    supabase,
+    userIds: [user.id],
+    kind: "test",
+    params: {},
   });
 
-  const result = await getFirebaseAdminMessaging().sendEachForMulticast(message);
-
-  const staleTokens: string[] = [];
-  result.responses.forEach((response, index) => {
-    if (response.success) return;
-    const code = response.error?.code;
-    if (code && INVALID_TOKEN_CODES.has(code)) {
-      staleTokens.push(tokens[index]!);
-    }
-  });
-
-  if (staleTokens.length > 0) {
-    await supabase
-      .from("push_notification_tokens" as any)
-      .delete()
-      .in("token", staleTokens);
+  if (result.requested === 0) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "No device token saved. Use the notification bell or Send test push to register first.",
+      },
+      { status: 400 },
+    );
   }
-
-  const firstError = result.responses.find((r) => !r.success)?.error?.code;
 
   return NextResponse.json({
     ok: true,
-    requested: tokens.length,
+    requested: result.requested,
     successCount: result.successCount,
     failureCount: result.failureCount,
-    firstErrorCode: firstError ?? null,
+    firstErrorCode: result.firstErrorCode,
   });
 }

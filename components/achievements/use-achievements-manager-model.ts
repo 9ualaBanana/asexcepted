@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { createInitialForm } from "@/components/achievements/achievement-manager-utils";
 import { type FormState } from "@/components/achievements/achievement-editor-shared";
@@ -22,14 +22,19 @@ import { useBadgeChunkedPrewarm } from "@/components/achievements/use-badge-chun
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import { createClient } from "@/lib/supabase/client";
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 type UseAchievementsManagerModelArgs = {
   userId: string;
   readOnly: boolean;
+  initialDetailAchievementId?: string | null;
 };
 
 export function useAchievementsManagerModel({
   userId,
   readOnly,
+  initialDetailAchievementId,
 }: UseAchievementsManagerModelArgs) {
   const supabase = useMemo(() => createClient(), []);
   const [achievements, setAchievements] = useState<AchievementRecord[]>([]);
@@ -125,6 +130,22 @@ export function useAchievementsManagerModel({
 
   const achievementOverlayOpen = ui.achievementOverlayOpen;
   useBadgeChunkedPrewarm({ achievements, pause: achievementOverlayOpen });
+
+  const deepLinkOpenedRef = useRef(false);
+  useEffect(() => {
+    if (deepLinkOpenedRef.current) return;
+    if (!initialDetailAchievementId || !UUID_RE.test(initialDetailAchievementId)) return;
+    if (data.isLoading) return;
+    const exists = achievements.some((a) => a.id === initialDetailAchievementId);
+    if (!exists) return;
+    deepLinkOpenedRef.current = true;
+    ui.actions.openDetailView(initialDetailAchievementId);
+  }, [
+    achievements,
+    data.isLoading,
+    initialDetailAchievementId,
+    ui.actions,
+  ]);
 
   const gridItems = useMemo(
     () => achievements.map(achievementToGridItem),

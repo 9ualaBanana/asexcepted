@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { getAdminSignupsTopic, getAdminUserId } from "@/lib/notifications";
 import { getFirebaseAdminMessaging } from "@/lib/push/firebase-admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -41,12 +42,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const adminUserId = process.env.PUSH_ADMIN_USER_ID?.trim();
+  const adminUserId = getAdminUserId();
   if (adminUserId && user.id === adminUserId) {
     try {
       await getFirebaseAdminMessaging().subscribeToTopic(
         [parsed.data.token],
-        "admin-signups",
+        getAdminSignupsTopic(),
       );
     } catch {
       // non-blocking

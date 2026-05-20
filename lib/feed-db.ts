@@ -14,18 +14,24 @@ export type FeedUnlockRow = {
   tone: string;
   achieved_at: string | null;
   created_at: string;
+  updated_at: string;
+};
+
+export type FeedCursor = {
+  updated_at: string;
+  id: string;
 };
 
 export type FeedPage = {
   rows: FeedUnlockRow[];
-  nextCursor: { created_at: string; id: string } | null;
+  nextCursor: FeedCursor | null;
 };
 
 export async function fetchFollowingUnlockFeed(
   supabase: SupabaseClient,
   options: {
     limit?: number;
-    cursor?: { created_at: string; id: string } | null;
+    cursor?: FeedCursor | null;
   } = {},
 ): Promise<Result<FeedPage, string>> {
   const limit = options.limit ?? 20;
@@ -38,7 +44,7 @@ export async function fetchFollowingUnlockFeed(
     ) => Promise<{ data: unknown; error: { message: string } | null }>;
   }).rpc("following_unlock_feed", {
     p_limit: limit,
-    p_cursor_created_at: cursor?.created_at ?? null,
+    p_cursor_updated_at: cursor?.updated_at ?? null,
     p_cursor_id: cursor?.id ?? null,
   });
 
@@ -50,7 +56,7 @@ export async function fetchFollowingUnlockFeed(
   const last = rows[rows.length - 1];
   const nextCursor =
     rows.length >= limit && last
-      ? { created_at: last.created_at, id: last.achievement_id }
+      ? { updated_at: last.updated_at, id: last.achievement_id }
       : null;
 
   return ok({ rows, nextCursor });

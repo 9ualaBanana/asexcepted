@@ -2,15 +2,6 @@ import type { MulticastMessage } from "firebase-admin/messaging";
 
 import { ROUTES } from "@/lib/routes";
 
-export function formatUnlockPushCopy(args: {
-  actorName: string;
-  achievementTitle: string;
-}): { title: string; body: string } {
-  const title = `${args.actorName} unlocked an achievement`;
-  const body = args.achievementTitle.trim() || "Open AsExcepted to see what they earned.";
-  return { title, body };
-}
-
 export function buildFcmWebPushMessage(args: {
   tokens: string[];
   title: string;

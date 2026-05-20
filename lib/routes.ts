@@ -48,6 +48,13 @@ export function userCollection(authUserId: string): string {
   return `/u/${authUserId}`;
 }
 
+export function userAchievementDetail(
+  authUserId: string,
+  achievementId: string,
+): string {
+  return `${userCollection(authUserId)}?achievement=${encodeURIComponent(achievementId)}`;
+}
+
 export function loginWithNext(next: string): string {
   const path = safeRedirectPath(next);
   return `${ROUTES.login}?next=${encodeURIComponent(path)}`;

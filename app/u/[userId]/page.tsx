@@ -13,11 +13,13 @@ import { Suspense } from "react";
 
 type PageProps = {
   params: Promise<{ userId: string }>;
+  searchParams: Promise<{ achievement?: string }>;
 };
 
 /** `userId` is Supabase Auth user id (`auth.users.id`). Owners edit; everyone else (including signed out) can view. */
-async function UserAchievementsContent({ params }: PageProps) {
+async function UserAchievementsContent({ params, searchParams }: PageProps) {
   const { userId } = await params;
+  const { achievement: achievementParam } = await searchParams;
   if (!isAuthUserIdSegment(userId)) {
     notFound();
   }
@@ -82,7 +84,11 @@ async function UserAchievementsContent({ params }: PageProps) {
               />
             </div>
           ) : null}
-          <AchievementsManager userId={userId} readOnly={readOnly} />
+          <AchievementsManager
+            userId={userId}
+            readOnly={readOnly}
+            initialDetailAchievementId={achievementParam ?? null}
+          />
         </section>
       </div>
     </main>

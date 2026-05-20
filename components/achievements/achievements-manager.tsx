@@ -10,13 +10,19 @@ import { useAchievementsManagerModel } from "@/components/achievements/use-achie
 export type AchievementsManagerProps = {
   userId: string;
   readOnly: boolean;
+  initialDetailAchievementId?: string | null;
 };
 
 export function AchievementsManager({
   userId,
   readOnly,
+  initialDetailAchievementId,
 }: AchievementsManagerProps) {
-  const model = useAchievementsManagerModel({ userId, readOnly });
+  const model = useAchievementsManagerModel({
+    userId,
+    readOnly,
+    initialDetailAchievementId,
+  });
   const { data, editorPipeline, ui, badgeMetrics, embedLink } = model;
 
   return (

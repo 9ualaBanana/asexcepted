@@ -63,6 +63,14 @@ export function FollowButton({ targetUserId, initialFollowing }: FollowButtonPro
         return;
       }
       setFollowing(true);
+      void fetch("/api/push/notify-new-follower", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          followingId: targetUserId,
+          followerId: uid,
+        }),
+      }).catch(() => undefined);
     }
     setLoading(false);
     router.refresh();

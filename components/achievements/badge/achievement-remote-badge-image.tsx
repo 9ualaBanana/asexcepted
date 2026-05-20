@@ -54,6 +54,9 @@ function RemoteBadgeImageFallback({ className }: { className?: string }) {
 const remoteImageReady = new LRUCache<string, Promise<void>>({ max: 300 });
 
 function preloadRemoteImage(src: string): Promise<void> {
+  if (typeof window === "undefined") {
+    return Promise.resolve();
+  }
   let p = remoteImageReady.get(src);
   if (!p) {
     p = loadImageElement(src);
@@ -63,6 +66,9 @@ function preloadRemoteImage(src: string): Promise<void> {
 }
 
 function loadImageElement(src: string): Promise<void> {
+  if (typeof window === "undefined") {
+    return Promise.resolve();
+  }
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => resolve();
