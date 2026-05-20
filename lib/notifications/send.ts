@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { getAdminSignupsTopic, getAdminUserId } from "@/lib/notifications/constants";
+import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { buildFcmWebPushMessage } from "@/lib/notifications/fcm";
 import type { NotificationKind } from "@/lib/notifications/kinds";
 import {
@@ -22,13 +23,11 @@ export type SendPushResult = {
   firstErrorCode: string | null;
 };
 
-async function loadTokensForUsers(
-  supabase: SupabaseClient,
-  userIds: string[],
-): Promise<string[]> {
+async function loadTokensForUsers(userIds: string[]): Promise<string[]> {
   if (userIds.length === 0) return [];
 
-  const { data, error } = await supabase
+  const admin = createServiceRoleClient() as SupabaseClient;
+  const { data, error } = await admin
     .from("push_notification_tokens" as any)
     .select("token")
     .in("user_id", userIds);
@@ -45,7 +44,6 @@ async function loadTokensForUsers(
 }
 
 async function pruneStaleTokens(
-  supabase: SupabaseClient,
   tokens: string[],
   responses: Array<{ success: boolean; error?: { code?: string } }>,
 ) {
@@ -58,10 +56,8 @@ async function pruneStaleTokens(
     }
   });
   if (stale.length === 0) return;
-  await supabase
-    .from("push_notification_tokens" as any)
-    .delete()
-    .in("token", stale);
+  const admin = createServiceRoleClient() as SupabaseClient;
+  await admin.from("push_notification_tokens" as any).delete().in("token", stale);
 }
 
 export async function sendPushToUsers<K extends NotificationKind>(args: {
@@ -73,7 +69,7 @@ export async function sendPushToUsers<K extends NotificationKind>(args: {
 }): Promise<SendPushResult> {
   const exclude = new Set(args.excludeUserIds ?? []);
   const targetIds = args.userIds.filter((id) => !exclude.has(id));
-  const tokens = await loadTokensForUsers(args.supabase, targetIds);
+  const tokens = await loadTokensForUsers(targetIds);
 
   if (tokens.length === 0) {
     return {
@@ -95,7 +91,7 @@ export async function sendPushToUsers<K extends NotificationKind>(args: {
   });
 
   const result = await getFirebaseAdminMessaging().sendEachForMulticast(message);
-  await pruneStaleTokens(args.supabase, tokens, result.responses);
+  await pruneStaleTokens(tokens, result.responses);
 
   const firstError = result.responses.find((r) => !r.success)?.error?.code;
 

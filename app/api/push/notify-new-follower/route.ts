@@ -29,6 +29,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  if (parsed.data.followerId === parsed.data.followingId) {
+    return NextResponse.json({ error: "Cannot follow yourself" }, { status: 400 });
+  }
+
+  const { data: followRow, error: followError } = await supabase
+    .from("profile_follow")
+    .select("follower_id")
+    .eq("follower_id", parsed.data.followerId)
+    .eq("following_id", parsed.data.followingId)
+    .maybeSingle();
+
+  if (followError) {
+    return NextResponse.json({ error: followError.message }, { status: 500 });
+  }
+
+  if (!followRow) {
+    return NextResponse.json({ error: "Follow relationship not found" }, { status: 400 });
+  }
+
   const followerName = await resolveDisplayName(supabase, parsed.data.followerId);
 
   const result = await sendPushToUsers({
@@ -43,5 +62,6 @@ export async function POST(request: Request) {
     requested: result.requested,
     successCount: result.successCount,
     failureCount: result.failureCount,
+    firstErrorCode: result.firstErrorCode,
   });
 }
