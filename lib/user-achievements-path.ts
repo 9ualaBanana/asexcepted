@@ -1,6 +1,8 @@
+import { userCollection } from "@/lib/routes";
+
 /** Path to the signed-in user's achievements page (`/u/:authUserId`). */
 export function userAchievementsPath(authUserId: string): string {
-  return `/u/${authUserId}`;
+  return userCollection(authUserId);
 }
 
 const UUID_RE =

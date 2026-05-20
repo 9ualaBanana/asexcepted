@@ -1,25 +1,23 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { userAchievementsPath } from "@/lib/user-achievements-path";
 import { Suspense } from "react";
+import { WelcomePage } from "@/components/welcome/welcome-page";
+import { WelcomePageSkeleton } from "@/components/welcome/welcome-page-skeleton";
+import { ROUTES } from "@/lib/routes";
+import { createClient } from "@/lib/supabase/server";
 
-async function HomeRedirect() {
+async function HomePageInner() {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) {
-    return redirect("/auth/login");
+  if (userData.user) {
+    redirect(ROUTES.feed);
   }
-  return redirect(userAchievementsPath(userData.user.id));
+  return <WelcomePage />;
 }
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <Suspense
-      fallback={
-        <p className="p-8 text-center text-sm text-muted-foreground">Loading…</p>
-      }
-    >
-      <HomeRedirect />
+    <Suspense fallback={<WelcomePageSkeleton />}>
+      <HomePageInner />
     </Suspense>
   );
 }

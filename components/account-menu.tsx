@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { ROUTES, userCollection } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 const linkClass =
@@ -10,14 +11,16 @@ const linkClass =
 
 type AccountMenuProps = {
   label: string;
+  userId: string;
 };
 
-export function AccountMenu({ label }: AccountMenuProps) {
+export function AccountMenu({ label, userId }: AccountMenuProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const panelId = useId().replace(/:/g, "");
   const router = useRouter();
   const pathname = usePathname();
+  const collectionPath = userCollection(userId);
 
   const close = useCallback(() => setOpen(false), []);
 
@@ -50,7 +53,7 @@ export function AccountMenu({ label }: AccountMenuProps) {
         className={cn(
           "pointer-events-none absolute right-[calc(100%+0.5rem)] top-1/2 -translate-y-1/2",
           "min-w-0 overflow-hidden transition-[max-width] duration-[420ms] motion-reduce:duration-0 ease-[cubic-bezier(0.22,1,0.36,1)]",
-          open ? "max-w-[10rem]" : "max-w-0",
+          open ? "max-w-[12rem]" : "max-w-0",
         )}
       >
         <div
@@ -60,16 +63,23 @@ export function AccountMenu({ label }: AccountMenuProps) {
           )}
         >
           <Link
-            href="/friends"
+            href={ROUTES.feed}
+            onClick={close}
+            className={cn(linkClass, "shrink-0 px-0.5 lowercase pointer-events-auto")}
+          >
+            feed
+          </Link>
+          <span className="shrink-0 select-none text-xs text-muted-foreground/80" aria-hidden>
+            •
+          </span>
+          <Link
+            href={ROUTES.social}
             onClick={close}
             className={cn(linkClass, "shrink-0 px-0.5 lowercase pointer-events-auto")}
           >
             social
           </Link>
-          <span
-            className="shrink-0 select-none text-xs text-muted-foreground/80"
-            aria-hidden
-          >
+          <span className="shrink-0 select-none text-xs text-muted-foreground/80" aria-hidden>
             •
           </span>
         </div>
@@ -86,13 +96,13 @@ export function AccountMenu({ label }: AccountMenuProps) {
             return;
           }
           setOpen(false);
-          if (pathname === "/achievements") {
+          if (pathname === collectionPath) {
             if (typeof window !== "undefined") {
-              window.location.assign("/achievements");
+              window.location.assign(collectionPath);
             }
             return;
           }
-          router.push("/achievements");
+          router.push(collectionPath);
         }}
         className={cn(
           linkClass,
@@ -115,14 +125,11 @@ export function AccountMenu({ label }: AccountMenuProps) {
             open ? "opacity-100 scale-x-100" : "opacity-0 scale-x-95",
           )}
         >
-          <span
-            className="shrink-0 select-none text-xs text-muted-foreground/80"
-            aria-hidden
-          >
+          <span className="shrink-0 select-none text-xs text-muted-foreground/80" aria-hidden>
             •
           </span>
           <Link
-            href="/profile"
+            href={ROUTES.profile}
             onClick={close}
             className={cn(linkClass, "shrink-0 px-0.5 lowercase pointer-events-auto")}
           >

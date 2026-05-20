@@ -5,6 +5,7 @@ import type {
   AchievementDbRow,
   AchievementDbWritePayload,
 } from "@/components/achievements/achievement-db-schema";
+import { todayDateString } from "@/components/achievements/achievement-editor-shared";
 import {
   normalizeAchievement,
   type AchievementRecord,
@@ -108,9 +109,26 @@ export async function unlockAchievement(
   supabase: SupabaseClient<Database>,
   achievementId: string,
 ): Promise<AchievementSingleResult> {
+  const { data: existing, error: readError } = await supabase
+    .from("achievements")
+    .select("achieved_at")
+    .eq("id", achievementId)
+    .single();
+
+  if (readError) {
+    return err(readError.message);
+  }
+
+  const patch: { is_locked: false; achieved_at?: string } = { is_locked: false };
+  // Preserve user-set earned date; set today when unlocking so feed can surface the row.
+  const row = existing as { achieved_at?: string | null } | null;
+  if (!row?.achieved_at) {
+    patch.achieved_at = todayDateString();
+  }
+
   const { data, error } = await supabase
     .from("achievements")
-    .update({ is_locked: false })
+    .update(patch)
     .eq("id", achievementId)
     .select(SELECT_COLUMNS)
     .single();

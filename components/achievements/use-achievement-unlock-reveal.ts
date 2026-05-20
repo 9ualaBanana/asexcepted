@@ -261,6 +261,12 @@ export function useAchievementUnlockReveal({
       ),
     );
     setOptimisticUnlockedAchievementId(null);
+
+    void fetch("/api/push/fan-out-unlock", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ achievementId: unlockedAchievement.id }),
+    }).catch(() => undefined);
   }, [
     detailAchievement,
     interruptUnlockReveal,

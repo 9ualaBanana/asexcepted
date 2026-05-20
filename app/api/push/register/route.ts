@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 
 const bodySchema = z.object({
   token: z.string().trim().min(20),
+  platform: z.string().trim().max(32).optional(),
 });
 
 export async function POST(request: Request) {
@@ -25,16 +26,17 @@ export async function POST(request: Request) {
   }
 
   const userAgent = request.headers.get("user-agent")?.slice(0, 512) ?? null;
-  const { error } = await supabase.from("push_notification_tokens" as any).upsert(
-    {
-      token: parsed.data.token,
-      user_id: user.id,
-      platform: "web",
-      user_agent: userAgent,
-      last_seen_at: new Date().toISOString(),
-    },
-    { onConflict: "token" },
-  );
+  const { error } = await (supabase as unknown as {
+    rpc: (
+      fn: string,
+      args: Record<string, unknown>,
+    ) => Promise<{ error: { message: string } | null }>;
+  }).rpc("claim_push_notification_token", {
+    p_token: parsed.data.token,
+    p_platform: parsed.data.platform ?? "web",
+    p_user_agent: userAgent,
+  });
+
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

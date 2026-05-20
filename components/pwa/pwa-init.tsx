@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { ROUTES } from "@/lib/routes";
 
 export function PwaInit() {
   useEffect(() => {
@@ -8,7 +9,7 @@ export function PwaInit() {
       return;
     }
 
-    navigator.serviceWorker.register("/sw.js").catch((error) => {
+    navigator.serviceWorker.register(ROUTES.firebaseMessagingSw).catch((error) => {
       console.error("Service worker registration failed:", error);
     });
   }, []);

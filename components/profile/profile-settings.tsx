@@ -10,6 +10,7 @@ import {
   useBadgeDebugOverlayPreference,
 } from "@/lib/badge/debug-overlay-preference";
 import { useSoundsEnabledPreference } from "@/lib/sounds-enabled-preference";
+import { ensurePushRegistered } from "@/lib/push/ensure-push-registered";
 
 function displayNameFromMetadata(meta: Record<string, unknown> | null | undefined) {
   if (!meta) return "";
@@ -93,6 +94,21 @@ export function ProfileSettings() {
     setPushHint(null);
     setError(null);
     try {
+      const registerResult = await ensurePushRegistered({ requestPermission: true });
+      if (registerResult !== "registered") {
+        const messages: Record<string, string> = {
+          "permission-denied":
+            "Enable notifications for this site in your browser (iOS: Settings → Safari → Notifications, or reinstall the PWA).",
+          unsupported: "This browser does not support web push.",
+          misconfigured: "Firebase or VAPID configuration is missing.",
+          "not-authenticated": "Sign in again to enable push.",
+          "register-failed":
+            "Could not save your device token. Apply the latest Supabase migrations (push token account switch), then try again.",
+        };
+        setError(messages[registerResult] ?? "Could not register for push.");
+        return;
+      }
+
       const response = await fetch("/api/push/test", { method: "POST" });
       const payload = (await response.json().catch(() => ({}))) as {
         ok?: boolean;

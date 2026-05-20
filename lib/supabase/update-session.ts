@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/lib/supabase/database.types";
+import { isProtectedPath, loginWithNext, ROUTES } from "@/lib/routes";
 
 /**
  * Supabase session refresh + lightweight auth gating for the root `proxy.ts`.
@@ -36,17 +37,14 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  const { data } = await supabase.auth.getClaims();
-  const user = data?.claims;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (
-    !user &&
-    (pathname.startsWith("/achievements") ||
-      pathname.startsWith("/profile") ||
-      pathname.startsWith("/friends"))
-  ) {
+  if (!user && isProtectedPath(pathname)) {
     const url = request.nextUrl.clone();
-    url.pathname = "/auth/login";
+    url.pathname = ROUTES.login;
+    url.search = `?next=${encodeURIComponent(pathname)}`;
     return NextResponse.redirect(url);
   }
 

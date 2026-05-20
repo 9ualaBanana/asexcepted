@@ -14,7 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { userAchievementsPath } from "@/lib/user-achievements-path";
+import { validatePassword } from "@/lib/auth/password-policy";
+import { ROUTES } from "@/lib/routes";
 
 export function UpdatePasswordForm({
   className,
@@ -31,16 +32,18 @@ export function UpdatePasswordForm({
     setIsLoading(true);
     setError(null);
 
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
-      const { data: sessionUser } = await supabase.auth.getUser();
-      const u = sessionUser.user;
-      if (u) {
-        router.push(userAchievementsPath(u.id));
-      } else {
-        router.push("/");
-      }
+      router.push(ROUTES.feed);
+      router.refresh();
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {

@@ -1,7 +1,6 @@
 "use client";
 
 import * as Sentry from "@sentry/nextjs";
-import { userAchievementsPath } from "@/lib/user-achievements-path";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -17,20 +16,25 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { OAuthProviderButtons } from "@/components/auth/oauth-provider-buttons";
+import { hasEnabledOAuthProviders } from "@/lib/auth/oauth-providers";
+import { validatePassword } from "@/lib/auth/password-policy";
+import { ROUTES, safeRedirectPath } from "@/lib/routes";
 
 type SignUpFormProps = {
   className?: string;
+  next?: string;
 };
 
-export function SignUpForm({
-  className,
-}: SignUpFormProps) {
+export function SignUpForm({ className, next }: SignUpFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const redirectTo = safeRedirectPath(next);
+  const showOAuth = hasEnabledOAuthProviders();
 
   const handleSignUp = async (e: FormEvent) => {
     e.preventDefault();
@@ -45,6 +49,13 @@ export function SignUpForm({
       return;
     }
 
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -55,16 +66,9 @@ export function SignUpForm({
         Sentry.captureEvent({
           level: "info",
           message: "auth.signup.succeeded",
-          tags: {
-            area: "auth",
-            flow: "signup",
-          },
-          user: {
-            id: data.user.id,
-          },
-          extra: {
-            hasEmail: Boolean(data.user.email),
-          },
+          tags: { area: "auth", flow: "signup" },
+          user: { id: data.user.id },
+          extra: { hasEmail: Boolean(data.user.email) },
         });
         void fetch("/api/push/events/signup", {
           method: "POST",
@@ -74,24 +78,13 @@ export function SignUpForm({
             email: data.user.email ?? undefined,
           }),
         }).catch(() => undefined);
-        router.push(userAchievementsPath(data.user.id));
+        router.push(redirectTo);
         router.refresh();
         return;
       }
       if (data.user && !data.session) {
-        Sentry.captureEvent({
-          level: "warning",
-          message: "auth.signup.no_session_returned",
-          tags: {
-            area: "auth",
-            flow: "signup",
-          },
-          user: {
-            id: data.user.id,
-          },
-        });
         setError(
-          "Email confirmation is still enabled in your Supabase project. Disable it under Authentication → Providers → Email (Confirm email), then try again.",
+          "Account created but no session was returned. Sign in with your email and password.",
         );
         return;
       }
@@ -99,10 +92,7 @@ export function SignUpForm({
       setError("Sign up did not return a session. Try again or contact support.");
     } catch (error: unknown) {
       Sentry.captureException(error, {
-        tags: {
-          area: "auth",
-          flow: "signup",
-        },
+        tags: { area: "auth", flow: "signup" },
       });
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
@@ -118,6 +108,17 @@ export function SignUpForm({
           <CardDescription>Create a new account</CardDescription>
         </CardHeader>
         <CardContent>
+          {showOAuth ? <OAuthProviderButtons next={next} /> : null}
+          {showOAuth ? (
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border/60" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">or</span>
+              </div>
+            </div>
+          ) : null}
           <form onSubmit={handleSignUp}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
@@ -132,9 +133,7 @@ export function SignUpForm({
                 />
               </div>
               <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                </div>
+                <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
                   type="password"
@@ -144,9 +143,7 @@ export function SignUpForm({
                 />
               </div>
               <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="repeat-password">Repeat Password</Label>
-                </div>
+                <Label htmlFor="repeat-password">Repeat Password</Label>
                 <Input
                   id="repeat-password"
                   type="password"
@@ -162,7 +159,14 @@ export function SignUpForm({
             </div>
             <div className="mt-4 text-center text-sm">
               Already have an account?{" "}
-              <Link href="/auth/login" className="underline underline-offset-4">
+              <Link
+                href={
+                  next
+                    ? `${ROUTES.login}?next=${encodeURIComponent(next)}`
+                    : ROUTES.login
+                }
+                className="underline underline-offset-4"
+              >
                 Login
               </Link>
             </div>

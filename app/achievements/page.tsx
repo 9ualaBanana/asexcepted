@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { userAchievementsPath } from "@/lib/user-achievements-path";
+import { loginWithNext, ROUTES, userCollection } from "@/lib/routes";
 import { Suspense } from "react";
 
 /** Legacy URL → `/u/:userId` (Supabase Auth user id). */
@@ -8,9 +8,9 @@ async function LegacyAchievementsRedirect() {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) {
-    return redirect("/auth/login");
+    return redirect(loginWithNext(ROUTES.achievementsLegacy));
   }
-  return redirect(userAchievementsPath(userData.user.id));
+  return redirect(userCollection(userData.user.id));
 }
 
 export default function LegacyAchievementsPage() {

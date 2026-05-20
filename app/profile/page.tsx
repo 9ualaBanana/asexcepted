@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { AuthButton } from "@/components/auth-button";
+import { loginWithNext, ROUTES } from "@/lib/routes";
 import { LogoutButton } from "@/components/logout-button";
 import { ProfileSettings } from "@/components/profile/profile-settings";
 import { createClient } from "@/lib/supabase/server";
@@ -9,7 +10,7 @@ async function ProfilePageInner() {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) {
-    return redirect("/auth/login?next=/profile");
+    return redirect(loginWithNext(ROUTES.profile));
   }
 
   return (

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AccountMenu } from "@/components/account-menu";
 import { Button } from "./ui/button";
+import { ROUTES } from "@/lib/routes";
 import { createClient } from "@/lib/supabase/server";
 
 function headerLabelFromUser(user: {
@@ -21,15 +22,15 @@ export async function AuthButton() {
 
   return user ? (
     <div className="flex w-full justify-center pt-2">
-      <AccountMenu label={headerLabelFromUser(user)} />
+      <AccountMenu label={headerLabelFromUser(user)} userId={user.id} />
     </div>
   ) : (
     <div className="flex gap-2">
       <Button asChild size="sm" variant={"outline"}>
-        <Link href="/auth/login">Sign in</Link>
+        <Link href={ROUTES.login}>Sign in</Link>
       </Button>
       <Button asChild size="sm" variant={"default"}>
-        <Link href="/auth/sign-up">Sign up</Link>
+        <Link href={ROUTES.signUp}>Sign up</Link>
       </Button>
     </div>
   );
