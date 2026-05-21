@@ -72,22 +72,40 @@ function resolveNotificationTargetUrl(raw) {
   }
 }
 
+function pathFromResolvedUrl(absoluteUrl) {
+  try {
+    const parsed = new URL(absoluteUrl);
+    return parsed.pathname + parsed.search + parsed.hash;
+  } catch {
+    return "/feed";
+  }
+}
+
+function notifyOpenClients(targetUrl) {
+  const path = pathFromResolvedUrl(targetUrl);
+  const message = {
+    type: "push-notification-click",
+    url: targetUrl,
+    path,
+  };
+  return self.clients
+    .matchAll({ type: "window", includeUncontrolled: true })
+    .then((windowClients) => {
+      for (const client of windowClients) {
+        client.postMessage(message);
+      }
+      const focused = windowClients.find((c) => "focus" in c);
+      if (focused) {
+        return focused.focus();
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(targetUrl);
+      }
+    });
+}
+
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const targetUrl = resolveNotificationTargetUrl(event.notification.data?.url);
-
-  event.waitUntil(
-    self.clients
-      .matchAll({ type: "window", includeUncontrolled: true })
-      .then((windowClients) => {
-        for (const client of windowClients) {
-          if ("focus" in client && "navigate" in client) {
-            return client.navigate(targetUrl).then(() => client.focus());
-          }
-        }
-        if (self.clients.openWindow) {
-          return self.clients.openWindow(targetUrl);
-        }
-      }),
-  );
+  event.waitUntil(notifyOpenClients(targetUrl));
 });
