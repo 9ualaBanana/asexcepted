@@ -6,7 +6,6 @@ export function FeedPageSkeleton() {
     <AppPageShell
       title="Feed"
       subtitle="Unlocks from people you follow"
-      showBell={false}
     >
       <div className="space-y-3" aria-hidden>
         {Array.from({ length: 6 }).map((_, i) => (

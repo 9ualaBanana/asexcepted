@@ -3,7 +3,6 @@
 import { onMessage } from "firebase/messaging";
 import { useEffect } from "react";
 
-import { ensurePushRegistered } from "@/lib/push/ensure-push-registered";
 import { getFirebaseMessagingClient } from "@/lib/push/firebase-client";
 
 function showForegroundNotification(payload: {
@@ -29,12 +28,6 @@ export function PushRegistration() {
     void (async () => {
       if (typeof window === "undefined") return;
       if (!("Notification" in window)) return;
-      if (Notification.permission === "granted") {
-        const result = await ensurePushRegistered({ requestPermission: false });
-        if (result !== "registered") {
-          console.warn("[push] background register:", result);
-        }
-      }
 
       const messaging = await getFirebaseMessagingClient();
       if (!messaging || cancelled) return;

@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { AuthButton } from "@/components/auth-button";
 import { AchievementsManager } from "@/components/achievements/achievements-manager";
-import { NotificationBell } from "@/components/push/notification-bell";
 import { FollowButton } from "@/components/social/follow-button";
+import { isAdminUserId } from "@/lib/admin";
 import { createClient } from "@/lib/supabase/server";
 import {
   fetchPublicUserDisplayName,
@@ -50,12 +50,11 @@ async function UserAchievementsContent({ params, searchParams }: PageProps) {
             <Suspense>
               <AuthButton />
             </Suspense>
-            <NotificationBell />
           </div>
         </nav>
 
-        <section className="w-full max-w-5xl px-5 pb-8 space-y-4">
-          <header className="space-y-2">
+        <section className="w-full max-w-5xl px-5 pb-8 space-y-2">
+          <header className="space-y-1">
             <p className="text-md uppercase tracking-[0.22em] text-center">
               Achievements
             </p>
@@ -77,18 +76,27 @@ async function UserAchievementsContent({ params, searchParams }: PageProps) {
             </p>
           </header>
           {user && !isOwner ? (
-            <div className="flex justify-center pb-2">
+            <div className="flex justify-center pb-1">
               <FollowButton
                 targetUserId={userId}
                 initialFollowing={initialIsFollowing}
               />
             </div>
           ) : null}
-          <AchievementsManager
-            userId={userId}
-            readOnly={readOnly}
-            initialDetailAchievementId={achievementParam ?? null}
-          />
+          <Suspense
+            fallback={
+              <p className="text-center text-sm text-muted-foreground py-8">
+                Loading achievements…
+              </p>
+            }
+          >
+            <AchievementsManager
+              userId={userId}
+              readOnly={readOnly}
+              isAdmin={isOwner && isAdminUserId(user?.id)}
+              initialDetailAchievementId={achievementParam ?? null}
+            />
+          </Suspense>
         </section>
       </div>
     </main>

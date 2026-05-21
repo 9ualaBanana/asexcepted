@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 
 import { createInitialForm } from "@/components/achievements/achievement-manager-utils";
 import { type FormState } from "@/components/achievements/achievement-editor-shared";
@@ -20,6 +21,8 @@ import { useAchievementUiStateMachine } from "@/components/achievements/use-achi
 import { useAchievementUnlockReveal } from "@/components/achievements/use-achievement-unlock-reveal";
 import { useBadgeChunkedPrewarm } from "@/components/achievements/use-badge-chunked-prewarm";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
+import { useHideLockedPreference } from "@/lib/achievements/hide-locked-preference";
+import { userCollection } from "@/lib/routes";
 import { createClient } from "@/lib/supabase/client";
 
 const UUID_RE =
@@ -28,14 +31,18 @@ const UUID_RE =
 type UseAchievementsManagerModelArgs = {
   userId: string;
   readOnly: boolean;
+  isAdmin?: boolean;
   initialDetailAchievementId?: string | null;
 };
 
 export function useAchievementsManagerModel({
   userId,
   readOnly,
+  isAdmin = false,
   initialDetailAchievementId,
 }: UseAchievementsManagerModelArgs) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const supabase = useMemo(() => createClient(), []);
   const [achievements, setAchievements] = useState<AchievementRecord[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -53,7 +60,8 @@ export function useAchievementsManagerModel({
     detailAchievementId: ui.detailAchievementId,
     uiActions: ui.actions,
   });
-  const badgeMetrics = useAchievementBadgeMetricsController(detailAchievement);
+  const badgeMetrics = useAchievementBadgeMetricsController(detailAchievement, isAdmin);
+  const [hideLocked, setHideLocked] = useHideLockedPreference();
   const embedLink = useAchievementEmbedLinkController({
     detailAchievementId: detailAchievement?.id ?? null,
   });
@@ -131,26 +139,63 @@ export function useAchievementsManagerModel({
   const achievementOverlayOpen = ui.achievementOverlayOpen;
   useBadgeChunkedPrewarm({ achievements, pause: achievementOverlayOpen });
 
-  const deepLinkOpenedRef = useRef(false);
+  const deepLinkAchievementId = useMemo(() => {
+    const fromQuery = searchParams.get("achievement")?.trim() ?? "";
+    if (fromQuery && UUID_RE.test(fromQuery)) return fromQuery;
+    const fromInitial = initialDetailAchievementId?.trim() ?? "";
+    if (fromInitial && UUID_RE.test(fromInitial)) return fromInitial;
+    return null;
+  }, [initialDetailAchievementId, searchParams]);
+
+  const lastDeepLinkedIdRef = useRef<string | null>(null);
+  const deepLinkRefetchedForRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (deepLinkOpenedRef.current) return;
-    if (!initialDetailAchievementId || !UUID_RE.test(initialDetailAchievementId)) return;
+    if (!deepLinkAchievementId) {
+      deepLinkRefetchedForRef.current = null;
+      return;
+    }
+    if (pathname !== userCollection(userId)) return;
+    if (deepLinkRefetchedForRef.current === deepLinkAchievementId) return;
+    deepLinkRefetchedForRef.current = deepLinkAchievementId;
+    void data.loadAchievements();
+  }, [deepLinkAchievementId, data.loadAchievements, pathname, userId]);
+
+  useEffect(() => {
+    if (!deepLinkAchievementId) {
+      lastDeepLinkedIdRef.current = null;
+      return;
+    }
+    if (pathname !== userCollection(userId)) return;
     if (data.isLoading) return;
-    const exists = achievements.some((a) => a.id === initialDetailAchievementId);
+    const exists = achievements.some((a) => a.id === deepLinkAchievementId);
     if (!exists) return;
-    deepLinkOpenedRef.current = true;
-    ui.actions.openDetailView(initialDetailAchievementId);
+    if (lastDeepLinkedIdRef.current === deepLinkAchievementId) return;
+    lastDeepLinkedIdRef.current = deepLinkAchievementId;
+    badgeMetrics.markDetailOpenStart(deepLinkAchievementId);
+    ui.actions.openDetailView(deepLinkAchievementId);
   }, [
     achievements,
+    badgeMetrics.markDetailOpenStart,
     data.isLoading,
-    initialDetailAchievementId,
-    ui.actions,
+    deepLinkAchievementId,
+    pathname,
+    ui.actions.openDetailView,
+    userId,
   ]);
 
-  const gridItems = useMemo(
-    () => achievements.map(achievementToGridItem),
+  const gridItems = useMemo(() => {
+    const visible = hideLocked && !readOnly
+      ? achievements.filter((a) => !a.is_locked)
+      : achievements;
+    return visible.map(achievementToGridItem);
+  }, [achievements, hideLocked, readOnly]);
+
+  const unlockedCount = useMemo(
+    () => achievements.filter((a) => !a.is_locked).length,
     [achievements],
   );
+  const totalCount = achievements.length;
 
   const dialogStackProps: AchievementDialogStackProps = {
     readOnly,
@@ -223,5 +268,9 @@ export function useAchievementsManagerModel({
     startUnlockHold,
     cancelUnlockHold,
     achievementOverlayOpen,
+    hideLocked,
+    setHideLocked,
+    unlockedCount,
+    totalCount,
   };
 }

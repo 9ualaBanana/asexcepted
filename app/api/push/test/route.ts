@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { requireAdminUser } from "@/lib/admin";
 import { sendPushToUsers } from "@/lib/notifications";
 import { createClient } from "@/lib/supabase/server";
 
@@ -9,6 +10,8 @@ export async function POST() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const denied = requireAdminUser(user);
+  if (denied) return denied;
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -28,7 +31,7 @@ export async function POST() {
       {
         ok: false,
         error:
-          "No device token saved. Use the notification bell or Send test push to register first.",
+          "No device token saved. Turn on Notifications in Profile (or use Send test push) on this device first.",
       },
       { status: 400 },
     );
@@ -46,7 +49,7 @@ export async function POST() {
       {
         ok: false,
         error:
-          "No device token saved. Use the notification bell or Send test push to register first.",
+          "No device token saved. Turn on Notifications in Profile (or use Send test push) on this device first.",
       },
       { status: 400 },
     );

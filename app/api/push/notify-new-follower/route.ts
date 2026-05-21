@@ -5,8 +5,8 @@ import { resolveDisplayName, sendPushToUsers } from "@/lib/notifications";
 import { createClient } from "@/lib/supabase/server";
 
 const bodySchema = z.object({
-  followingId: z.string().uuid(),
-  followerId: z.string().uuid(),
+  followingId: z.uuid(),
+  followerId: z.uuid(),
 });
 
 export async function POST(request: Request) {

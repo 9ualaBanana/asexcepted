@@ -3,6 +3,7 @@ import { AuthButton } from "@/components/auth-button";
 import { loginWithNext, ROUTES } from "@/lib/routes";
 import { LogoutButton } from "@/components/logout-button";
 import { ProfileSettings } from "@/components/profile/profile-settings";
+import { isAdminUserId } from "@/lib/admin";
 import { createClient } from "@/lib/supabase/server";
 import { Suspense } from "react";
 
@@ -33,7 +34,7 @@ async function ProfilePageInner() {
               View and update your profile information
             </p>
           </header>
-          <ProfileSettings />
+          <ProfileSettings isAdmin={isAdminUserId(userData.user.id)} />
         </section>
       </div>
 

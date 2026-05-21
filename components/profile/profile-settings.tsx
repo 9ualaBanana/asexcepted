@@ -3,40 +3,59 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { AdminProfileTools } from "@/components/admin/admin-profile-tools";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  useBadgeDebugOverlayPreference,
-} from "@/lib/badge/debug-overlay-preference";
 import { useSoundsEnabledPreference } from "@/lib/sounds-enabled-preference";
 import { ensurePushRegistered } from "@/lib/push/ensure-push-registered";
+import {
+  fetchDevicePushRegistered,
+  getDeviceFcmToken,
+  unregisterDevicePushToken,
+} from "@/lib/push/device-push-status";
 
 function displayNameFromMetadata(meta: Record<string, unknown> | null | undefined) {
   if (!meta) return "";
-  const v =
-    meta.display_name ?? meta.full_name ?? meta.name;
+  const v = meta.display_name ?? meta.full_name ?? meta.name;
   if (typeof v === "string" && v.trim()) return v.trim();
   return "";
 }
 
+type ProfileSettingsProps = {
+  isAdmin?: boolean;
+};
+
 /**
  * Profile fields backed by Supabase Auth `user_metadata` only (single source of truth for display name).
- * Search and social UIs read the same fields from the database via `auth.users` (RPCs), not a duplicate column.
  */
-export function ProfileSettings() {
+export function ProfileSettings({ isAdmin = false }: ProfileSettingsProps) {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
-  const [badgeDebugOverlay, setBadgeDebugOverlay] = useBadgeDebugOverlayPreference();
   const [soundsEnabled, setSoundsEnabled] = useSoundsEnabledPreference();
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [sendingPushTest, setSendingPushTest] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushStatusLoading, setPushStatusLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [savedHint, setSavedHint] = useState(false);
   const [pushHint, setPushHint] = useState<string | null>(null);
+
+  const refreshPushToggle = useCallback(async () => {
+    setPushStatusLoading(true);
+    const tokenResult = await getDeviceFcmToken();
+    if (!tokenResult.ok) {
+      setPushEnabled(false);
+      setPushStatusLoading(false);
+      return;
+    }
+    const registered = await fetchDevicePushRegistered(tokenResult.token);
+    setPushEnabled(registered === true);
+    setPushStatusLoading(false);
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -53,7 +72,8 @@ export function ProfileSettings() {
     const name = displayNameFromMetadata(u.user_metadata as Record<string, unknown>);
     setDisplayName(name);
     setLoading(false);
-  }, [supabase]);
+    await refreshPushToggle();
+  }, [refreshPushToggle, supabase]);
 
   useEffect(() => {
     void load();
@@ -89,44 +109,41 @@ export function ProfileSettings() {
     await load();
   }
 
-  async function handleSendPushTest() {
-    setSendingPushTest(true);
-    setPushHint(null);
+  async function handlePushToggle(next: boolean) {
+    setPushBusy(true);
     setError(null);
+    setPushHint(null);
     try {
-      const registerResult = await ensurePushRegistered({ requestPermission: true });
-      if (registerResult !== "registered") {
-        const messages: Record<string, string> = {
-          "permission-denied":
-            "Enable notifications for this site in your browser (iOS: Settings → Safari → Notifications, or reinstall the PWA).",
-          unsupported: "This browser does not support web push.",
-          misconfigured: "Firebase or VAPID configuration is missing.",
-          "not-authenticated": "Sign in again to enable push.",
-          "register-failed":
-            "Could not save your device token. Apply the latest Supabase migrations (push token account switch), then try again.",
-        };
-        setError(messages[registerResult] ?? "Could not register for push.");
-        return;
+      if (next) {
+        const registerResult = await ensurePushRegistered({ requestPermission: true });
+        if (registerResult !== "registered") {
+          const messages: Record<string, string> = {
+            "permission-denied":
+              "Enable notifications for this site in your browser (iOS: Settings → Safari → Notifications, or reinstall the PWA).",
+            unsupported: "This browser does not support web push on this device.",
+            misconfigured: "Firebase or VAPID configuration is missing.",
+            "not-authenticated": "Sign in again to enable push.",
+            "register-failed":
+              "Could not save your device token. Apply the latest Supabase migrations (push token account switch), then try again.",
+          };
+          setError(messages[registerResult] ?? "Could not register for push.");
+          return;
+        }
+      } else {
+        const tokenResult = await getDeviceFcmToken();
+        if (tokenResult.ok) {
+          const ok = await unregisterDevicePushToken(tokenResult.token);
+          if (!ok) {
+            setError("Could not disable notifications for this device.");
+            return;
+          }
+        }
       }
-
-      const response = await fetch("/api/push/test", { method: "POST" });
-      const payload = (await response.json().catch(() => ({}))) as {
-        ok?: boolean;
-        error?: string;
-        successCount?: number;
-        requested?: number;
-      };
-      if (!response.ok || !payload.ok) {
-        setError(payload.error ?? "Could not send test push.");
-        return;
-      }
-      setPushHint(
-        `Test push sent (${payload.successCount ?? 0}/${payload.requested ?? 0} delivered).`,
-      );
+      await refreshPushToggle();
     } catch {
-      setError("Could not send test push.");
+      setError("Could not update notification settings.");
     } finally {
-      setSendingPushTest(false);
+      setPushBusy(false);
     }
   }
 
@@ -191,37 +208,32 @@ export function ProfileSettings() {
       </div>
 
       <div className="space-y-2 rounded-lg border border-border/60 bg-muted/20 p-3">
-        <Label htmlFor="profile-badge-debug-overlay">Badge debug overlay</Label>
+        <Label htmlFor="profile-notifications-enabled">Notifications</Label>
         <label
-          htmlFor="profile-badge-debug-overlay"
+          htmlFor="profile-notifications-enabled"
           className="flex cursor-pointer items-center justify-between gap-3"
         >
           <p className="text-xs text-muted-foreground">
-            Show performance telemetry overlay on achievements pages.
+            Receive push notifications on this device when you enable them here.
           </p>
           <input
-            id="profile-badge-debug-overlay"
+            id="profile-notifications-enabled"
             type="checkbox"
-            checked={badgeDebugOverlay}
-            onChange={(e) => setBadgeDebugOverlay(e.target.checked)}
-            className="h-4 w-4 shrink-0 accent-foreground"
+            checked={pushEnabled}
+            disabled={pushBusy || pushStatusLoading}
+            onChange={(e) => void handlePushToggle(e.target.checked)}
+            className="h-4 w-4 shrink-0 accent-foreground disabled:opacity-50"
           />
         </label>
       </div>
 
+      {isAdmin ? (
+        <AdminProfileTools onError={setError} onPushHint={setPushHint} />
+      ) : null}
+
       <div className="flex justify-center">
         <Button type="submit" disabled={saving}>
           {saving ? "Saving…" : "Save"}
-        </Button>
-      </div>
-      <div className="flex justify-center">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={sendingPushTest}
-          onClick={() => void handleSendPushTest()}
-        >
-          {sendingPushTest ? "Sending push…" : "Send test push"}
         </Button>
       </div>
     </form>

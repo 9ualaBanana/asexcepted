@@ -30,10 +30,10 @@ const SKELETON_CELL_COUNT = 18;
 
 function AchievementGridFallback() {
   return (
-    <div className="space-y-4">
+    <div>
       <div
         className={cn(
-          "-mx-2 flex min-h-[calc(100dvh-9.5rem)] flex-col rounded-none bg-transparent px-2 py-6",
+          "-mx-2 flex min-h-[calc(100dvh-9.5rem)] flex-col rounded-none bg-transparent px-2 pt-0 pb-4",
           "sm:mx-0 sm:min-h-[calc(100dvh-10rem)] sm:rounded-2xl sm:px-4",
         )}
       >
@@ -54,10 +54,10 @@ function AchievementGridInner({
   onSelectAchievement,
 }: Omit<AchievementGridProps, "isLoading">) {
   return (
-    <div className="space-y-4">
+    <div>
       <div
         className={cn(
-          "-mx-2 min-h-[200px] rounded-none bg-transparent px-2 py-6",
+          "-mx-2 min-h-[200px] rounded-none bg-transparent px-2 pt-0 pb-4",
           "sm:mx-0 sm:rounded-2xl sm:px-4",
         )}
       >

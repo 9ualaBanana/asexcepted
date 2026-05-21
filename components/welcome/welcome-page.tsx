@@ -8,7 +8,7 @@ import { ROUTES } from "@/lib/routes";
 
 export function WelcomePage() {
   return (
-    <AppPageShell showBell={false} title="AsExcepted" subtitle="">
+    <AppPageShell title="AsExcepted" subtitle="">
       <div className="mx-auto flex max-w-lg flex-col items-center gap-10 text-center">
         <div className="space-y-4">
           <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground/80">

@@ -17,6 +17,7 @@ function tryGetHighResNow() {
  */
 export function useAchievementBadgeMetricsController(
   detailAchievement: AchievementRecord | null,
+  isAdmin = false,
 ) {
   const detailOpenStartedAtRef = useRef<number | null>(null);
   const detailPerfMeasuredForIdRef = useRef<string | null>(null);
@@ -72,7 +73,8 @@ export function useAchievementBadgeMetricsController(
     return () => window.clearTimeout(timeout);
   }, [detailAchievement?.icon_url, detailAchievement?.id]);
 
-  const [badgeDebugOverlay] = useBadgeDebugOverlayPreference();
+  const [badgeDebugOverlayPref] = useBadgeDebugOverlayPreference();
+  const badgeDebugOverlay = isAdmin && badgeDebugOverlayPref;
 
   return {
     badgeDebugOverlay,

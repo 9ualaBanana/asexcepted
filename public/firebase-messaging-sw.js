@@ -62,18 +62,27 @@ self.addEventListener("fetch", (event) => {
   );
 });
 
+function resolveNotificationTargetUrl(raw) {
+  const fallback = "/feed";
+  if (!raw || typeof raw !== "string") return fallback;
+  try {
+    return new URL(raw, self.location.origin).href;
+  } catch {
+    return fallback;
+  }
+}
+
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || "/feed";
+  const targetUrl = resolveNotificationTargetUrl(event.notification.data?.url);
 
   event.waitUntil(
     self.clients
       .matchAll({ type: "window", includeUncontrolled: true })
-      .then((clients) => {
-        for (const client of clients) {
+      .then((windowClients) => {
+        for (const client of windowClients) {
           if ("focus" in client && "navigate" in client) {
-            client.navigate(targetUrl);
-            return client.focus();
+            return client.navigate(targetUrl).then(() => client.focus());
           }
         }
         if (self.clients.openWindow) {

@@ -26,15 +26,19 @@ export function createInitialForm(): FormState {
 
 export function sortAchievements(rows: AchievementRecord[]) {
   return [...rows].sort((a, b) => {
-    const aPrimary = a.achieved_at
-      ? new Date(`${a.achieved_at}T23:59:59`).getTime()
-      : new Date(a.created_at).getTime();
-    const bPrimary = b.achieved_at
-      ? new Date(`${b.achieved_at}T23:59:59`).getTime()
-      : new Date(b.created_at).getTime();
+    const aDated = Boolean(a.achieved_at);
+    const bDated = Boolean(b.achieved_at);
 
-    if (bPrimary !== aPrimary) {
-      return bPrimary - aPrimary;
+    if (aDated !== bDated) {
+      return aDated ? 1 : -1;
+    }
+
+    if (aDated && bDated) {
+      const aTime = new Date(`${a.achieved_at}T00:00:00`).getTime();
+      const bTime = new Date(`${b.achieved_at}T00:00:00`).getTime();
+      if (bTime !== aTime) {
+        return bTime - aTime;
+      }
     }
 
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { deleteAchievement, listAchievements } from "@/components/achievements/achievement-db";
 import { sortAchievements } from "@/components/achievements/achievement-manager-utils";
@@ -65,6 +65,16 @@ export function useAchievementDataController({
     void loadAchievements();
   }, [loadAchievements]);
 
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        void loadAchievements();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [loadAchievements]);
+
   const deleteAchievementById = useCallback(
     async (id: string) => {
       if (readOnly) return;
@@ -112,13 +122,17 @@ export function useAchievementDataController({
     ],
   );
 
-  const actions: AchievementDataControllerActions = {
-    loadAchievements,
-    deleteAchievementById,
-  };
+  const actions = useMemo<AchievementDataControllerActions>(
+    () => ({
+      loadAchievements,
+      deleteAchievementById,
+    }),
+    [deleteAchievementById, loadAchievements],
+  );
 
   return {
     isLoading,
     actions,
+    loadAchievements,
   };
 }

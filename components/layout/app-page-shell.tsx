@@ -1,6 +1,5 @@
 import { Suspense, type ReactNode } from "react";
 import { AuthButton } from "@/components/auth-button";
-import { NotificationBell } from "@/components/push/notification-bell";
 import { cn } from "@/lib/utils";
 
 type AppPageShellProps = {
@@ -8,7 +7,6 @@ type AppPageShellProps = {
   subtitle?: string;
   children: ReactNode;
   headerExtra?: ReactNode;
-  showBell?: boolean;
   className?: string;
 };
 
@@ -17,7 +15,6 @@ export function AppPageShell({
   subtitle,
   children,
   headerExtra,
-  showBell = true,
   className,
 }: AppPageShellProps) {
   return (
@@ -33,7 +30,6 @@ export function AppPageShell({
             <Suspense>
               <AuthButton />
             </Suspense>
-            {showBell ? <NotificationBell /> : null}
           </div>
         </nav>
 
