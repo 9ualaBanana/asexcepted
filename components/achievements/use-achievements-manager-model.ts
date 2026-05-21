@@ -185,11 +185,11 @@ export function useAchievementsManagerModel({
   ]);
 
   const gridItems = useMemo(() => {
-    const visible = hideLocked && !readOnly
+    const visible = hideLocked
       ? achievements.filter((a) => !a.is_locked)
       : achievements;
     return visible.map(achievementToGridItem);
-  }, [achievements, hideLocked, readOnly]);
+  }, [achievements, hideLocked]);
 
   const unlockedCount = useMemo(
     () => achievements.filter((a) => !a.is_locked).length,
