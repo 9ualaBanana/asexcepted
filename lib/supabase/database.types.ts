@@ -24,7 +24,6 @@ export type Database = {
           icon_file_id: string | null
           icon_url: string | null
           id: string
-          impressions: string[]
           is_locked: boolean
           title: string | null
           tone: string | null
@@ -40,7 +39,6 @@ export type Database = {
           icon_file_id?: string | null
           icon_url?: string | null
           id?: string
-          impressions?: string[]
           is_locked?: boolean
           title?: string | null
           tone?: string | null
@@ -56,7 +54,6 @@ export type Database = {
           icon_file_id?: string | null
           icon_url?: string | null
           id?: string
-          impressions?: string[]
           is_locked?: boolean
           title?: string | null
           tone?: string | null

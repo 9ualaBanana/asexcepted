@@ -15,7 +15,6 @@ export type AchievementDbRow = Pick<
   | "tone"
   | "is_locked"
   | "achieved_at"
-  | "impressions"
   | "created_at"
 >;
 

@@ -18,7 +18,7 @@ export type AchievementSingleResult = Result<AchievementRecord, string>;
 export type AchievementDeleteResult = Result<void, string>;
 
 const SELECT_COLUMNS =
-  "id,title,description,category,icon,icon_url,icon_file_id,tone,is_locked,achieved_at,impressions,created_at";
+  "id,title,description,category,icon,icon_url,icon_file_id,tone,is_locked,achieved_at,created_at";
 
 function toAchievementSingleResult(row: AchievementDbRow): AchievementSingleResult {
   try {

@@ -51,17 +51,18 @@ begin
     raise exception 'cannot impress own achievement';
   end if;
 
-  if v_uid = any (coalesce(v_row.impressions, '{}'::uuid[])) then
+  if exists (
+    select 1
+    from public.achievement_impression_events e
+    where e.achievement_id = p_achievement_id
+      and e.actor_user_id = v_uid
+  ) then
     return jsonb_build_object(
       'added', false,
       'owner_user_id', v_row.user_id,
       'title', coalesce(v_row.title, 'Achievement')
     );
   end if;
-
-  update public.achievements
-  set impressions = array_append(coalesce(impressions, '{}'::uuid[]), v_uid)
-  where id = p_achievement_id;
 
   insert into public.achievement_impression_events (
     achievement_id,

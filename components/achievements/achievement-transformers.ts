@@ -30,7 +30,6 @@ export type AchievementRecord = {
   tone: AchievementTone;
   is_locked: boolean;
   achieved_at: string | null;
-  impressions: string[];
   created_at: string;
 };
 
@@ -58,9 +57,6 @@ const normalizeAchievementSchema = achievementDbRowSchema.transform<AchievementR
     tone: getSafeTone(record.tone),
     is_locked: Boolean(record.is_locked),
     achieved_at: record.achieved_at,
-    impressions: Array.isArray(record.impressions)
-      ? record.impressions.map(String)
-      : [],
     created_at: record.created_at,
   }),
 );
