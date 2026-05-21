@@ -26,6 +26,7 @@ import {
   iconMap,
 } from "@/components/achievements/achievement-editor-shared";
 import { Button } from "@/components/ui/button";
+import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import { cn } from "@/lib/utils";
 import { useBadgeImageUploader } from "@/components/achievements/badge/use-badge-image-uploader";
 
@@ -255,7 +256,7 @@ export function AchievementRoundBadgeEditor({
         ) : null}
         {hasRemote ? (
           <RemoteBadgeImage
-            src={trimmed}
+            src={toOptimizedBadgeRenderSrc(trimmed)}
             className={cn(
               "p-1 transition-all duration-500 ease-out",
               "h-full w-full object-contain drop-shadow-lg",

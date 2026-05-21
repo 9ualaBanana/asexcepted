@@ -100,7 +100,6 @@ export function useAchievementDataController({
 
       setAchievements((prev) => prev.filter((achievement) => achievement.id !== id));
       if (targetSrc) {
-        clearBadgeRenderCacheForSrc(targetSrc);
         clearBadgeRenderCacheForSrc(toOptimizedBadgeRenderSrc(targetSrc));
       }
       if (detailAchievementId === id) {

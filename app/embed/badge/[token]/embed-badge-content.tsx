@@ -2,6 +2,7 @@ import { connection } from "next/server";
 import { notFound } from "next/navigation";
 
 import { AchievementBadge3DViewer } from "@/components/achievements/badge/achievement-badge-3d-viewer";
+import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import { verifyEmbedBadgeToken } from "@/lib/embed-badge-token";
 import { createAnonServerClient } from "@/lib/supabase/server-anon";
 import { EmbedTransparentSurface } from "./embed-transparent-surface";
@@ -35,7 +36,7 @@ export async function EmbedBadgeContent({ params }: Props) {
     notFound();
   }
 
-  const src = data.icon_url.trim();
+  const src = toOptimizedBadgeRenderSrc(data.icon_url.trim());
 
   return (
     <div className="flex min-h-dvh min-h-[100dvh] items-center justify-center bg-transparent p-4">

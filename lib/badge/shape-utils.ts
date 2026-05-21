@@ -87,6 +87,9 @@ export function estimateUnlockRevealCompletionProgress(mask: AlphaMaskData) {
 export async function loadAlphaMaskDataFromImage(
   src: string,
 ): Promise<AlphaMaskData | null> {
+  if (typeof window === "undefined") {
+    return null;
+  }
   return new Promise((resolve) => {
     let settled = false;
     const finish = (value: AlphaMaskData | null) => {

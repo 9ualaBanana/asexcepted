@@ -12,13 +12,16 @@
  * alongside icon_url so files can be removed from ImageKit when the badge or
  * achievement is deleted.
  */
-import ImageKit from "imagekit";
 import { NextResponse } from "next/server";
 
 import {
   isImageKitReachabilityError,
   logImageKitRouteError,
 } from "@/lib/imagekit-route-errors";
+import {
+  getImageKitServerClient,
+  isImageKitServerConfigured,
+} from "@/lib/imagekit/server-client";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST() {
@@ -31,9 +34,6 @@ export async function POST() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const publicKey = process.env.IMAGEKIT_PUBLIC_KEY?.trim() ?? "";
-  const privateKey = process.env.IMAGEKIT_PRIVATE_KEY?.trim() ?? "";
-  const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT?.trim() ?? "";
   const uploadBaseFolderRaw =
     process.env.IMAGEKIT_UPLOAD_BASE_FOLDER?.trim() || "achievements";
   const uploadBaseFolder = uploadBaseFolderRaw.replace(/^\/+|\/+$/g, "");
@@ -41,7 +41,10 @@ export async function POST() {
     ? `${uploadBaseFolder}/${user.id}`
     : user.id;
 
-  if (!publicKey || !privateKey || !urlEndpoint) {
+  if (!isImageKitServerConfigured()) {
+    const publicKey = process.env.IMAGEKIT_PUBLIC_KEY?.trim() ?? "";
+    const privateKey = process.env.IMAGEKIT_PRIVATE_KEY?.trim() ?? "";
+    const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT?.trim() ?? "";
     return NextResponse.json(
       {
         error: "ImageKit is not configured on the server.",
@@ -56,12 +59,9 @@ export async function POST() {
   }
 
   try {
-    const imagekit = new ImageKit({
-      publicKey,
-      privateKey,
-      urlEndpoint,
-    });
+    const imagekit = getImageKitServerClient();
     const auth = imagekit.getAuthenticationParameters();
+    const publicKey = process.env.IMAGEKIT_PUBLIC_KEY?.trim() ?? "";
 
     return NextResponse.json({
       token: auth.token,

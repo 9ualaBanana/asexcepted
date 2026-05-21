@@ -3,6 +3,7 @@
 import { LRUCache } from "lru-cache";
 import type { CSSProperties } from "react";
 
+import { logCdnDeliveryOnce } from "@/lib/imagekit/telemetry";
 import { makeBadgeMotionStyle } from "@/lib/badge/motion";
 import { decodeImageReadyPromise } from "@/lib/badge/image-decode";
 import {
@@ -13,22 +14,27 @@ import {
 
 const decodeReady = new LRUCache<string, Promise<void>>({
   max: 300,
-  memoMethod: decodeImageReadyPromise,
- });
+  memoMethod: (_key, _value, { context }) => {
+    const src = context as string;
+    return decodeImageReadyPromise(src).then(() => {
+      logCdnDeliveryOnce(src, "decode");
+    });
+  },
+});
 const alphaMaskReady = new LRUCache<string, Promise<AlphaMaskData | null>>({
   max: 300,
-  memoMethod: loadAlphaMaskDataFromImage
+  memoMethod: loadAlphaMaskDataFromImage,
 });
 const maskStyleCache = new LRUCache<string, CSSProperties>({
   max: 300,
-  memoMethod: getAlphaMaskStyle
+  memoMethod: getAlphaMaskStyle,
 });
 const motionStyleCache = new LRUCache<string, CSSProperties>({
   max: 500,
-  memoMethod: (_key, _value, { context }) =>{
+  memoMethod: (_key, _value, { context }) => {
     const { seed, startCentered } = context as { seed: string; startCentered: boolean };
     return makeBadgeMotionStyle(seed, startCentered);
-  }
+  },
 });
 
 /**
@@ -36,7 +42,12 @@ const motionStyleCache = new LRUCache<string, CSSProperties>({
  * Reuses one promise per URL so repeat opens do not spawn redundant decode work.
  */
 export function ensureBadgeImageDecoded(src: string): Promise<void> {
-  return decodeReady.memo(src);
+  return decodeReady.memo(src, { context: src });
+}
+
+/** True when decode is already in flight or completed for this URL. */
+export function hasBadgeDecodeCached(src: string): boolean {
+  return decodeReady.has(src);
 }
 
 export function getCachedBadgeMaskStyle(src: string): CSSProperties {

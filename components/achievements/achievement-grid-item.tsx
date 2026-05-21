@@ -9,6 +9,7 @@ import {
 import { AchievementFallbackBadge } from "@/components/achievements/badge/achievement-fallback-badge";
 import type { AchievementTone } from "@/components/achievements/achievement-card";
 import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
+import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import { cn } from "@/lib/utils";
 
 function getAlphaMaskStyle(src: string) {
@@ -94,7 +95,8 @@ export function AchievementGridItem({
   onClick,
 }: AchievementGridItemProps) {
   const displayTitle = title?.trim() || (isLocked ? "Locked" : "Untitled");
-  const silhouetteMaskStyle = iconUrl ? getAlphaMaskStyle(iconUrl) : null;
+  const displaySrc = iconUrl?.trim() ? toOptimizedBadgeRenderSrc(iconUrl.trim()) : null;
+  const silhouetteMaskStyle = displaySrc ? getAlphaMaskStyle(displaySrc) : null;
 
   return (
     <AchievementGridItemContainer
@@ -103,7 +105,7 @@ export function AchievementGridItem({
       badge={
         <AchievementBadgeSlot size="grid">
           <div className="relative h-full w-full">
-            {iconUrl ? (
+            {displaySrc ? (
               <>
                 {!isLocked && silhouetteMaskStyle ? (
                   <div
@@ -113,7 +115,7 @@ export function AchievementGridItem({
                   />
                 ) : null}
                 <div className="relative h-full w-full">
-                  <RemoteBadgeImage src={iconUrl} />
+                  <RemoteBadgeImage src={displaySrc} />
                 </div>
               </>
             ) : (

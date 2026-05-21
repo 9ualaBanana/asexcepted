@@ -4,13 +4,20 @@
  *
  * Env: same as /api/imagekit/auth (IMAGEKIT_PUBLIC_KEY, IMAGEKIT_PRIVATE_KEY, IMAGEKIT_URL_ENDPOINT).
  */
-import ImageKit from "imagekit";
 import { NextResponse } from "next/server";
 
 import {
   isImageKitReachabilityError,
   logImageKitRouteError,
 } from "@/lib/imagekit-route-errors";
+import {
+  fileIdPrefix,
+  withImageKitTiming,
+} from "@/lib/imagekit/telemetry";
+import {
+  getImageKitServerClient,
+  isImageKitServerConfigured,
+} from "@/lib/imagekit/server-client";
 import { createClient } from "@/lib/supabase/server";
 
 export async function DELETE(req: Request) {
@@ -42,11 +49,7 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "fileId is required" }, { status: 400 });
   }
 
-  const publicKey = process.env.IMAGEKIT_PUBLIC_KEY?.trim() ?? "";
-  const privateKey = process.env.IMAGEKIT_PRIVATE_KEY?.trim() ?? "";
-  const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT?.trim() ?? "";
-
-  if (!publicKey || !privateKey || !urlEndpoint) {
+  if (!isImageKitServerConfigured()) {
     return NextResponse.json(
       { error: "ImageKit is not configured on the server." },
       { status: 503 },
@@ -54,12 +57,14 @@ export async function DELETE(req: Request) {
   }
 
   try {
-    const imagekit = new ImageKit({
-      publicKey,
-      privateKey,
-      urlEndpoint,
-    });
-    await imagekit.deleteFile(fileId);
+    await withImageKitTiming(
+      "delete_file",
+      async () => {
+        const imagekit = getImageKitServerClient();
+        await imagekit.deleteFile(fileId);
+      },
+      { fileIdPrefix: fileIdPrefix(fileId) },
+    );
     return NextResponse.json({ ok: true });
   } catch (e) {
     logImageKitRouteError("ImageKit deleteFile", e, { fileId });

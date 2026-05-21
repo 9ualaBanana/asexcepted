@@ -2,7 +2,11 @@
 
 import { useEffect } from "react";
 
-import { prewarmBadgeRenderCache } from "@/lib/badge/render-cache";
+import {
+  hasBadgeDecodeCached,
+  prewarmBadgeRenderCache,
+} from "@/lib/badge/render-cache";
+import { logImageKitEvent } from "@/lib/imagekit/telemetry";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
 
@@ -20,12 +24,33 @@ export function useBadgeChunkedPrewarm({ achievements, pause }: UseBadgeChunkedP
     if (pause) return;
 
     const jobs: { src: string; id: string }[] = [];
+    let skippedCached = 0;
+
     for (const achievement of achievements) {
       const rawSrc = achievement.icon_url?.trim() ?? "";
       if (!rawSrc) continue;
-      jobs.push({ src: toOptimizedBadgeRenderSrc(rawSrc), id: achievement.id });
+      const src = toOptimizedBadgeRenderSrc(rawSrc);
+      if (hasBadgeDecodeCached(src)) {
+        skippedCached += 1;
+        continue;
+      }
+      jobs.push({ src, id: achievement.id });
     }
-    if (jobs.length === 0) return;
+
+    const emitSummary = (scheduled: number, skippedHidden: number) => {
+      if (scheduled === 0 && skippedCached === 0 && skippedHidden === 0) return;
+      logImageKitEvent({
+        op: "grid_prewarm",
+        scheduled,
+        skippedCached,
+        skippedHidden,
+      });
+    };
+
+    if (jobs.length === 0) {
+      emitSummary(0, 0);
+      return;
+    }
 
     let cancelled = false;
     let index = 0;
@@ -34,6 +59,8 @@ export function useBadgeChunkedPrewarm({ achievements, pause }: UseBadgeChunkedP
 
     const pump = () => {
       if (cancelled) return;
+      if (typeof document !== "undefined" && document.hidden) return;
+
       const end = Math.min(index + CHUNK, jobs.length);
       for (; index < end; index += 1) {
         const j = jobs[index];
@@ -41,15 +68,45 @@ export function useBadgeChunkedPrewarm({ achievements, pause }: UseBadgeChunkedP
       }
       if (index < jobs.length) {
         rafId = requestAnimationFrame(pump);
+      } else {
+        emitSummary(jobs.length, 0);
       }
     };
 
-    rafId = requestAnimationFrame(() => {
-      rafId = requestAnimationFrame(pump);
-    });
+    const startPump = () => {
+      if (cancelled) return;
+      if (typeof document !== "undefined" && document.hidden) {
+        emitSummary(0, jobs.length);
+        return;
+      }
+      rafId = requestAnimationFrame(() => {
+        rafId = requestAnimationFrame(pump);
+      });
+    };
+
+    const onVisibility = () => {
+      if (cancelled) return;
+      if (document.hidden) return;
+      if (index >= jobs.length) return;
+      startPump();
+    };
+
+    if (typeof document !== "undefined" && document.hidden) {
+      emitSummary(0, jobs.length);
+      document.addEventListener("visibilitychange", onVisibility);
+      return () => {
+        cancelled = true;
+        document.removeEventListener("visibilitychange", onVisibility);
+        cancelAnimationFrame(rafId);
+      };
+    }
+
+    startPump();
+    document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       cancelled = true;
+      document.removeEventListener("visibilitychange", onVisibility);
       cancelAnimationFrame(rafId);
     };
   }, [achievements, pause]);

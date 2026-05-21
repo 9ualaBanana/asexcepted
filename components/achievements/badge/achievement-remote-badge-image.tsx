@@ -1,8 +1,8 @@
 "use client";
 
-import { LRUCache } from "lru-cache";
-import { Suspense, use } from "react";
+import { useEffect, useState } from "react";
 
+import { ensureBadgeImageDecoded } from "@/lib/badge/render-cache";
 import { cn } from "@/lib/utils";
 
 /** Suspends until the remote badge URL has loaded, with a slot-sized shimmer fallback. */
@@ -13,21 +13,23 @@ export function RemoteBadgeImage({
   src: string;
   className?: string;
 }) {
-  return (
-    <Suspense fallback={<RemoteBadgeImageFallback className={className} />}>
-      <RemoteBadgeImageInner src={src} className={className} />
-    </Suspense>
-  );
-}
+  const [ready, setReady] = useState(false);
 
-function RemoteBadgeImageInner({
-  src,
-  className,
-}: {
-  src: string;
-  className?: string;
-}) {
-  use(preloadRemoteImage(src));
+  useEffect(() => {
+    let cancelled = false;
+    setReady(false);
+    void ensureBadgeImageDecoded(src).then(() => {
+      if (!cancelled) setReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [src]);
+
+  if (!ready) {
+    return <RemoteBadgeImageFallback className={className} />;
+  }
+
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -49,30 +51,4 @@ function RemoteBadgeImageFallback({ className }: { className?: string }) {
       )}
     />
   );
-}
-
-const remoteImageReady = new LRUCache<string, Promise<void>>({ max: 300 });
-
-function preloadRemoteImage(src: string): Promise<void> {
-  if (typeof window === "undefined") {
-    return Promise.resolve();
-  }
-  let p = remoteImageReady.get(src);
-  if (!p) {
-    p = loadImageElement(src);
-    remoteImageReady.set(src, p);
-  }
-  return p;
-}
-
-function loadImageElement(src: string): Promise<void> {
-  if (typeof window === "undefined") {
-    return Promise.resolve();
-  }
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => resolve();
-    img.onerror = () => resolve();
-    img.src = src;
-  });
 }

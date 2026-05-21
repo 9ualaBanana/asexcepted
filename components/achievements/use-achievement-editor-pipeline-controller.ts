@@ -135,11 +135,10 @@ export function useAchievementEditorPipelineController({
       const createdSrc = createdAchievement.icon_url?.trim() ?? "";
       if (createdSrc) {
         const renderSrc = toOptimizedBadgeRenderSrc(createdSrc);
-        prewarmBadgeRenderCache(createdSrc, {
+        prewarmBadgeRenderCache(renderSrc, {
           motionSeed: createdAchievement.id,
           includeAlphaMaskData: Boolean(createdAchievement.is_locked) && !readOnly,
         });
-        prewarmBadgeRenderCache(renderSrc, { motionSeed: createdAchievement.id });
       }
       playSavePop();
       setAchievements((prev) => sortAchievements([createdAchievement, ...prev]));
@@ -188,16 +187,14 @@ export function useAchievementEditorPipelineController({
       const previousSrc = detailAchievement?.icon_url?.trim() ?? "";
       const nextSrc = updatedAchievement.icon_url?.trim() ?? "";
       if (previousSrc && previousSrc !== nextSrc) {
-        clearBadgeRenderCacheForSrc(previousSrc);
         clearBadgeRenderCacheForSrc(toOptimizedBadgeRenderSrc(previousSrc));
       }
       if (nextSrc) {
         const renderSrc = toOptimizedBadgeRenderSrc(nextSrc);
-        prewarmBadgeRenderCache(nextSrc, {
+        prewarmBadgeRenderCache(renderSrc, {
           motionSeed: updatedAchievement.id,
           includeAlphaMaskData: Boolean(updatedAchievement.is_locked) && !readOnly,
         });
-        prewarmBadgeRenderCache(renderSrc, { motionSeed: updatedAchievement.id });
       }
       playSavePop();
 

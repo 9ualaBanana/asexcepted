@@ -9,6 +9,7 @@ import {
   getSafeIcon,
 } from "@/components/achievements/achievement-editor-shared";
 import { formatImpressionActivityMessage } from "@/lib/feed/impression-message";
+import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import type { FeedRow } from "@/lib/feed-db";
 import { userAchievementDetail } from "@/lib/routes";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,9 @@ export function FeedItem({ row }: FeedItemProps) {
   const actor = row.actor_display_name || "Someone";
   const isImpression = row.event_type === "impression";
   const impressionLine = formatImpressionActivityMessage(title, actor);
+  const badgeSrc = row.icon_url?.trim()
+    ? toOptimizedBadgeRenderSrc(row.icon_url.trim())
+    : null;
 
   return (
     <Link
@@ -38,8 +42,8 @@ export function FeedItem({ row }: FeedItemProps) {
     >
       <div className="relative h-12 w-12 shrink-0">
         <AchievementBadgeSlot size="grid" className="max-w-12">
-          {row.icon_url ? (
-            <RemoteBadgeImage src={row.icon_url} />
+          {badgeSrc ? (
+            <RemoteBadgeImage src={badgeSrc} />
           ) : (
             <AchievementFallbackBadge
               tone={tone}
