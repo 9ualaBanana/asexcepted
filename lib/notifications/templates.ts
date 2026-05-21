@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { formatImpressionActivityMessage } from "@/lib/feed/impression-message";
 import type { NotificationKind } from "@/lib/notifications/kinds";
 import { notificationLinks } from "@/lib/notifications/links";
 
@@ -89,10 +90,12 @@ export function buildNotificationContent<K extends NotificationKind>(
     }
     case "impression": {
       const p = params as ImpressionParams;
-      const title = p.achievementTitle.trim() || "Achievement";
       return {
         title: "New impression",
-        body: `${title} left impression on ${p.actorName}`,
+        body: formatImpressionActivityMessage(
+          p.achievementTitle,
+          p.actorName,
+        ),
         url: links.achievementDetail(p.ownerUserId, p.achievementId),
         type: "impression",
       };

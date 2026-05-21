@@ -1,7 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { err, ok, type Result } from "neverthrow";
 
-export type FeedUnlockRow = {
+export type FeedEventType = "unlock" | "impression";
+
+export type FeedRow = {
+  event_type: FeedEventType;
+  event_id: string;
   achievement_id: string;
   user_id: string;
   actor_display_name: string;
@@ -15,7 +19,11 @@ export type FeedUnlockRow = {
   achieved_at: string | null;
   created_at: string;
   updated_at: string;
+  event_at: string;
 };
+
+/** @deprecated Use FeedRow */
+export type FeedUnlockRow = FeedRow;
 
 export type FeedCursor = {
   updated_at: string;
@@ -23,9 +31,44 @@ export type FeedCursor = {
 };
 
 export type FeedPage = {
-  rows: FeedUnlockRow[];
+  rows: FeedRow[];
   nextCursor: FeedCursor | null;
 };
+
+function normalizeFeedRow(raw: Record<string, unknown>): FeedRow | null {
+  const rawType = raw.event_type;
+  const eventType =
+    rawType === "impression"
+      ? "impression"
+      : rawType === "unlock" || rawType === undefined || rawType === null
+        ? "unlock"
+        : null;
+  if (!eventType) {
+    return null;
+  }
+
+  const eventId = raw.event_id ?? raw.achievement_id;
+  if (typeof eventId !== "string") return null;
+
+  return {
+    event_type: eventType,
+    event_id: eventId,
+    achievement_id: String(raw.achievement_id),
+    user_id: String(raw.user_id),
+    actor_display_name: String(raw.actor_display_name ?? ""),
+    title: (raw.title as string | null) ?? null,
+    description: (raw.description as string | null) ?? null,
+    category: (raw.category as string | null) ?? null,
+    icon: String(raw.icon ?? "trophy"),
+    icon_url: (raw.icon_url as string | null) ?? null,
+    icon_file_id: (raw.icon_file_id as string | null) ?? null,
+    tone: String(raw.tone ?? "teal"),
+    achieved_at: (raw.achieved_at as string | null) ?? null,
+    created_at: String(raw.created_at),
+    updated_at: String(raw.updated_at),
+    event_at: String(raw.event_at ?? raw.updated_at),
+  };
+}
 
 export async function fetchFollowingUnlockFeed(
   supabase: SupabaseClient,
@@ -52,11 +95,20 @@ export async function fetchFollowingUnlockFeed(
     return err(error.message);
   }
 
-  const rows = (Array.isArray(data) ? data : []) as FeedUnlockRow[];
+  const rows = (Array.isArray(data) ? data : [])
+    .map((row) =>
+      normalizeFeedRow(
+        typeof row === "object" && row !== null
+          ? (row as Record<string, unknown>)
+          : {},
+      ),
+    )
+    .filter((row): row is FeedRow => row !== null);
+
   const last = rows[rows.length - 1];
   const nextCursor =
     rows.length >= limit && last
-      ? { updated_at: last.updated_at, id: last.achievement_id }
+      ? { updated_at: last.event_at, id: last.event_id }
       : null;
 
   return ok({ rows, nextCursor });

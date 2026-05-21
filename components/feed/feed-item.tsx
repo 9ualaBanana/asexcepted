@@ -8,12 +8,13 @@ import {
   formatAchievedAt,
   getSafeIcon,
 } from "@/components/achievements/achievement-editor-shared";
-import type { FeedUnlockRow } from "@/lib/feed-db";
+import { formatImpressionActivityMessage } from "@/lib/feed/impression-message";
+import type { FeedRow } from "@/lib/feed-db";
 import { userAchievementDetail } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 type FeedItemProps = {
-  row: FeedUnlockRow;
+  row: FeedRow;
 };
 
 export function FeedItem({ row }: FeedItemProps) {
@@ -22,6 +23,9 @@ export function FeedItem({ row }: FeedItemProps) {
   const tone = getSafeTone(row.tone);
   const FallbackIcon = getSafeIcon(row.icon);
   const title = row.title?.trim() || "Achievement";
+  const actor = row.actor_display_name || "Someone";
+  const isImpression = row.event_type === "impression";
+  const impressionLine = formatImpressionActivityMessage(title, actor);
 
   return (
     <Link
@@ -29,6 +33,7 @@ export function FeedItem({ row }: FeedItemProps) {
       className={cn(
         "group flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4",
         "transition hover:bg-white/[0.06]",
+        isImpression && "border-amber-200/15",
       )}
     >
       <div className="relative h-12 w-12 shrink-0">
@@ -47,13 +52,25 @@ export function FeedItem({ row }: FeedItemProps) {
       </div>
 
       <div className="min-w-0 flex-1 text-left">
-        <p className="truncate text-sm font-semibold text-foreground/95">
-          {row.actor_display_name || "Someone"}
-        </p>
-        <p className="truncate text-xs text-muted-foreground/80">{title}</p>
-        {dateLabel ? (
-          <p className="mt-0.5 text-[10px] text-muted-foreground/60">{dateLabel}</p>
-        ) : null}
+        {isImpression ? (
+          <p className="text-sm leading-snug text-foreground/95">
+            {impressionLine}
+          </p>
+        ) : (
+          <>
+            <p className="truncate text-sm font-semibold text-foreground/95">
+              {actor}
+            </p>
+            <p className="truncate text-xs text-muted-foreground/80">
+              unlocked {title}
+            </p>
+            {dateLabel ? (
+              <p className="mt-0.5 text-[10px] text-muted-foreground/60">
+                {dateLabel}
+              </p>
+            ) : null}
+          </>
+        )}
       </div>
 
       <ChevronRight

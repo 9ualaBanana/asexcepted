@@ -1,13 +1,4 @@
--- Viewer impressions on achievements (uuid[] of auth user ids who double-tapped the badge).
-
-alter table public.achievements
-  add column if not exists impressions uuid[] not null default '{}';
-
-comment on column public.achievements.impressions is
-  'Auth user ids who left an impression on this achievement (double-tap on badge).';
-
-create index if not exists achievements_impressions_gin_idx
-  on public.achievements using gin (impressions);
+-- Impressions must not touch achievements.updated_at (avoids resurfacing the badge in unlock feeds).
 
 create or replace function public.append_achievement_impression(p_achievement_id uuid)
 returns jsonb
@@ -18,7 +9,6 @@ as $$
 declare
   v_uid uuid;
   v_row public.achievements%rowtype;
-  v_added boolean;
 begin
   v_uid := auth.uid();
   if v_uid is null then
@@ -49,6 +39,13 @@ begin
   set impressions = array_append(coalesce(impressions, '{}'::uuid[]), v_uid)
   where id = p_achievement_id;
 
+  insert into public.achievement_impression_events (
+    achievement_id,
+    owner_user_id,
+    actor_user_id
+  )
+  values (p_achievement_id, v_row.user_id, v_uid);
+
   return jsonb_build_object(
     'added', true,
     'owner_user_id', v_row.user_id,
@@ -56,6 +53,3 @@ begin
   );
 end;
 $$;
-
-revoke all on function public.append_achievement_impression(uuid) from public;
-grant execute on function public.append_achievement_impression(uuid) to authenticated;

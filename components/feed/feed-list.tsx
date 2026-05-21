@@ -83,8 +83,8 @@ export function FeedList({ initialPage }: FeedListProps) {
     return (
       <div className="mx-auto max-w-md space-y-4 py-12 text-center">
         <p className="text-sm text-muted-foreground/80">
-          No unlocks from people you follow yet. Follow someone on Social to see
-          their achievements here.
+          Nothing here yet. Follow people on Social to see their unlocks, or wait
+          for someone to leave an impression on one of your badges.
         </p>
         <Button asChild variant="outline">
           <Link href={ROUTES.social}>Find people to follow</Link>
@@ -99,7 +99,10 @@ export function FeedList({ initialPage }: FeedListProps) {
         <p className="text-center text-sm text-muted-foreground">Loading feed…</p>
       ) : null}
       {rows.map((row) => (
-        <FeedItem key={`${row.achievement_id}-${row.updated_at}`} row={row} />
+        <FeedItem
+          key={`${row.event_type}-${row.event_id}`}
+          row={row}
+        />
       ))}
       {error ? <p className="text-center text-sm text-red-500">{error}</p> : null}
       {cursor ? (

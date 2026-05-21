@@ -20,7 +20,10 @@ async function FeedPageInner() {
     : { rows: [], nextCursor: null };
 
   return (
-    <AppPageShell title="Feed" subtitle="Unlocks from people you follow">
+    <AppPageShell
+      title="Feed"
+      subtitle="Unlocks from people you follow, plus impressions left on your badges"
+    >
       {!feedResult.isOk() ? (
         <p className="text-center text-sm text-red-500">{feedResult.error}</p>
       ) : null}
