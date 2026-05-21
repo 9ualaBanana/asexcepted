@@ -21,6 +21,13 @@ export type NewFollowerParams = {
   followerName: string;
 };
 
+export type ImpressionParams = {
+  achievementTitle: string;
+  actorName: string;
+  ownerUserId: string;
+  achievementId: string;
+};
+
 export type TestParams = Record<string, never>;
 
 export type AdminNewSignupParams = {
@@ -31,6 +38,7 @@ export type AdminNewSignupParams = {
 export type NotificationParams = {
   unlock: UnlockParams;
   new_follower: NewFollowerParams;
+  impression: ImpressionParams;
   test: TestParams;
   admin_new_signup: AdminNewSignupParams;
 };
@@ -77,6 +85,16 @@ export function buildNotificationContent<K extends NotificationKind>(
         body: `${p.followerName} is now inspired by you`,
         url: links.social,
         type: "new_follower",
+      };
+    }
+    case "impression": {
+      const p = params as ImpressionParams;
+      const title = p.achievementTitle.trim() || "Achievement";
+      return {
+        title: "New impression",
+        body: `${title} left impression on ${p.actorName}`,
+        url: links.achievementDetail(p.ownerUserId, p.achievementId),
+        type: "impression",
       };
     }
     case "test":

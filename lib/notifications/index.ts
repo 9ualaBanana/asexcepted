@@ -4,6 +4,7 @@ export { buildFcmWebPushMessage } from "@/lib/notifications/fcm";
 export {
   buildNotificationContent,
   resolveDisplayName,
+  type ImpressionParams,
   type NotificationContent,
   type NotificationParams,
 } from "@/lib/notifications/templates";

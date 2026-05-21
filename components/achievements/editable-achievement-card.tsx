@@ -9,7 +9,7 @@ import {
   type RefObject,
   type SetStateAction,
 } from "react";
-import { ArrowLeft, Loader2, Save, X } from "lucide-react";
+import { ArrowLeft, Loader2, Save, Trash2, X } from "lucide-react";
 
 import { AchievementRoundBadgeEditor } from "@/components/achievements/badge/achievement-round-badge-editor";
 import {
@@ -46,6 +46,8 @@ export type EditorCardProps = {
   showBackArrow?: boolean;
   /** Bubble upload-in-progress state to parent panel controls. */
   onUploadInProgressChange?: (inProgress: boolean) => void;
+  /** Delete existing achievement (panel edit only). */
+  onRequestDelete?: () => void;
 };
 
 export function EditableAchievementCard({
@@ -59,6 +61,7 @@ export function EditableAchievementCard({
   onClosePanel,
   showBackArrow = false,
   onUploadInProgressChange,
+  onRequestDelete,
 }: EditorCardProps) {
   const formId = useId();
   const showDialogChrome = Boolean(onClosePanel);
@@ -271,10 +274,19 @@ export function EditableAchievementCard({
               )}
             </button>
           </div>
-          <div
-            className={cn(achievementDialogIconSideSlot, "justify-end")}
-            aria-hidden
-          />
+          <div className={cn(achievementDialogIconSideSlot, "justify-end")}>
+            {onRequestDelete ? (
+              <button
+                type="button"
+                aria-label="Delete"
+                className={achievementDialogIconBtn}
+                disabled={isSaving || isBadgeUploadInProgress}
+                onClick={() => onRequestDelete()}
+              >
+                <Trash2 className="h-4 w-4" aria-hidden />
+              </button>
+            ) : null}
+          </div>
         </div>
       ) : (
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">

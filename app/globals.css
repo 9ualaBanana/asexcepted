@@ -294,3 +294,130 @@
   animation: badge-upload-blob-orbit-c 2200ms ease-in-out infinite;
 }
 
+/* Comic impression: explode from center over badge, arc out, snap to zero. */
+@keyframes impression-wow-flash {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  14% {
+    transform: translate(-50%, -50%) scale(1.05);
+    opacity: 0.95;
+  }
+  38% {
+    transform: translate(-50%, -50%) scale(1.35);
+    opacity: 0.55;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.55);
+    opacity: 0;
+  }
+}
+
+@keyframes impression-wow-stamp {
+  0% {
+    transform: translate(-50%, -50%) scale(0) rotate(-14deg);
+    opacity: 0;
+  }
+  10% {
+    transform: translate(-50%, -50%) scale(1.55) rotate(6deg);
+    opacity: 1;
+  }
+  22% {
+    transform: translate(-50%, -50%) scale(1.15) rotate(-4deg);
+    opacity: 1;
+  }
+  58% {
+    transform: translate(-50%, -50%) scale(1.08) rotate(2deg);
+    opacity: 1;
+  }
+  72% {
+    transform: translate(-50%, -50%) scale(1.05) rotate(0deg);
+    opacity: 0.92;
+  }
+  88% {
+    transform: translate(-50%, -50%) scale(0.85) rotate(3deg);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0) rotate(10deg);
+    opacity: 0;
+  }
+}
+
+@keyframes impression-comic-pop {
+  0% {
+    transform: translate(-50%, -50%) scale(0) rotate(var(--pop-rot));
+    opacity: 0;
+  }
+  7% {
+    transform: translate(-50%, -50%) scale(calc(var(--peak-scale) * 1.2))
+      rotate(var(--pop-rot));
+    opacity: 1;
+  }
+  16% {
+    transform: translate(calc(-50% + var(--tx-mid)), calc(-50% + var(--ty-mid)))
+      scale(var(--peak-scale)) rotate(calc(var(--pop-rot) + 8deg));
+    opacity: 1;
+  }
+  32% {
+    transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty)))
+      scale(calc(var(--peak-scale) * 0.95)) rotate(calc(var(--pop-rot) + 12deg));
+    opacity: 1;
+  }
+  58% {
+    transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty)))
+      scale(calc(var(--peak-scale) * 0.9)) rotate(calc(var(--pop-rot) + 14deg));
+    opacity: 0.95;
+  }
+  78% {
+    transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty)))
+      scale(calc(var(--peak-scale) * 0.72)) rotate(calc(var(--pop-rot) + 16deg));
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0)
+      rotate(calc(var(--pop-rot) + 20deg));
+    opacity: 0;
+  }
+}
+
+.impression-wow-flash {
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(253, 224, 71, 0.75) 18%,
+    rgba(244, 114, 182, 0.45) 42%,
+    rgba(34, 211, 238, 0.2) 58%,
+    transparent 72%
+  );
+  mix-blend-mode: screen;
+  filter: contrast(1.35) saturate(1.2);
+  animation: impression-wow-flash 680ms cubic-bezier(0.12, 0.9, 0.2, 1) forwards;
+}
+
+.impression-wow-stamp {
+  animation: impression-wow-stamp 820ms linear forwards;
+  z-index: 1;
+}
+
+.impression-comic-pop {
+  animation: impression-comic-pop 760ms linear forwards;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.85);
+}
+
+.impression-comic-star {
+  clip-path: polygon(
+    50% 0%,
+    61% 35%,
+    98% 35%,
+    68% 57%,
+    79% 91%,
+    50% 70%,
+    21% 91%,
+    32% 57%,
+    2% 35%,
+    39% 35%
+  );
+}
+

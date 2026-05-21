@@ -2,14 +2,16 @@
 
 import { createPortal } from "react-dom";
 import {
+  useCallback,
   useEffect,
+  useState,
   type CSSProperties,
   type Dispatch,
   type FormEvent,
   type RefObject,
   type SetStateAction,
 } from "react";
-import { Link2, PenLine, Trash2, X, type LucideIcon } from "lucide-react";
+import { Link2, PenLine, X, type LucideIcon } from "lucide-react";
 
 import type { AchievementTone } from "@/components/achievements/achievement-card";
 import { AchievementBadgeSlot } from "@/components/achievements/badge/achievement-badge-slot";
@@ -27,7 +29,12 @@ import {
   type FormState,
 } from "@/components/achievements/achievement-editor-shared";
 import { EditableAchievementCard } from "@/components/achievements/editable-achievement-card";
+import { ImpressionBurst } from "@/components/achievements/badge/impression-burst";
+import { submitImpression } from "@/components/achievements/use-impression-on-badge";
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
+import { TutorialCallout } from "@/components/tutorials/tutorial-callout";
+import { useDoubleActivate } from "@/lib/hooks/use-double-activate";
+import { getTutorial, TUTORIAL_IDS, useTutorial } from "@/lib/tutorials";
 import { cn } from "@/lib/utils";
 
 export type AchievementDialogStackProps = {
@@ -117,6 +124,34 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     onRequestDelete,
   } = props;
 
+  const impressionTutorial = useTutorial(TUTORIAL_IDS.impressionDoubleTap);
+  const [impressionBurstPulse, setImpressionBurstPulse] = useState(0);
+
+  const handleLeaveImpression = useCallback(() => {
+    if (!detailAchievement || !readOnly || detailIsUnlocking) {
+      return;
+    }
+
+    setImpressionBurstPulse((n) => n + 1);
+    impressionTutorial.dismiss();
+
+    void submitImpression(detailAchievement.id).then((result) => {
+      if (result.ok) {
+        impressionTutorial.dismiss();
+      }
+    });
+  }, [
+    detailAchievement,
+    readOnly,
+    detailIsUnlocking,
+    impressionTutorial,
+  ]);
+
+  const impressionDoubleActivate = useDoubleActivate({
+    onActivate: handleLeaveImpression,
+    disabled: !readOnly || !detailAchievement || detailIsUnlocking,
+  });
+
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -194,7 +229,28 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                   </button>
                 </div>
                 <div className="flex justify-center">
-                  <AchievementBadgeSlot size="detail">
+                  <div
+                    className={cn(
+                      "relative",
+                      readOnly && !detailIsUnlocking && "no-tap-highlight",
+                    )}
+                    onDoubleClick={
+                      readOnly ? impressionDoubleActivate.onDoubleClick : undefined
+                    }
+                    onPointerUp={
+                      readOnly ? impressionDoubleActivate.onPointerUp : undefined
+                    }
+                  >
+                    {readOnly && impressionTutorial.active ? (
+                      <TutorialCallout
+                        message={
+                          getTutorial(TUTORIAL_IDS.impressionDoubleTap).message
+                        }
+                        onDismiss={impressionTutorial.dismiss}
+                        className="absolute bottom-[88%] left-1/2 z-40 w-max max-w-[10.5rem] -translate-x-1/2"
+                      />
+                    ) : null}
+                    <AchievementBadgeSlot size="detail" className="relative">
                     {detailIsLockedUi && !readOnly ? (
                       <button
                         type="button"
@@ -281,7 +337,11 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                         </UnlockRevealWave>
                       </>
                     )}
-                  </AchievementBadgeSlot>
+                    </AchievementBadgeSlot>
+                    {readOnly ? (
+                      <ImpressionBurst pulse={impressionBurstPulse} />
+                    ) : null}
+                  </div>
                 </div>
               </div>
 
@@ -340,15 +400,6 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                         </button>
                       ) : null}
                     </div>
-                    <button
-                      type="button"
-                      aria-label="Delete"
-                      className={achievementDialogIconBtn}
-                      disabled={isSaving}
-                      onClick={() => onRequestDelete(detailAchievement.id)}
-                    >
-                      <Trash2 className="h-4 w-4" aria-hidden />
-                    </button>
                   </div>
                   {embedCopyHint ? (
                     <p className="text-center text-xs text-white/50" role="status">
@@ -372,6 +423,11 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
               baselineIconFileId={panelBadgeIkSessionRef.current.baselineFileId}
               onClosePanel={() => closeDetailPanel()}
               showBackArrow
+              onRequestDelete={
+                detailAchievement
+                  ? () => onRequestDelete(detailAchievement.id)
+                  : undefined
+              }
             />
           ) : null}
         </div>

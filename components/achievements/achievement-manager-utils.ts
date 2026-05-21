@@ -24,24 +24,31 @@ export function createInitialForm(): FormState {
   };
 }
 
+function createdAtMs(record: AchievementRecord): number {
+  return new Date(record.created_at).getTime();
+}
+
+function achievedAtMs(record: AchievementRecord): number {
+  if (!record.achieved_at) return 0;
+  return new Date(`${record.achieved_at}T00:00:00`).getTime();
+}
+
+/** 0 = locked undated, 1 = unlocked undated, 2 = has achieved_at */
+function achievementSortKey(record: AchievementRecord): [number, number, number] {
+  const dated = Boolean(record.achieved_at);
+  if (!dated && record.is_locked) return [0, 0, -createdAtMs(record)];
+  if (!dated && !record.is_locked) return [1, 0, -createdAtMs(record)];
+  return [2, -achievedAtMs(record), -createdAtMs(record)];
+}
+
 export function sortAchievements(rows: AchievementRecord[]) {
   return [...rows].sort((a, b) => {
-    const aDated = Boolean(a.achieved_at);
-    const bDated = Boolean(b.achieved_at);
-
-    if (aDated !== bDated) {
-      return aDated ? 1 : -1;
+    const ak = achievementSortKey(a);
+    const bk = achievementSortKey(b);
+    for (let i = 0; i < ak.length; i++) {
+      if (ak[i] !== bk[i]) return ak[i] - bk[i];
     }
-
-    if (aDated && bDated) {
-      const aTime = new Date(`${a.achieved_at}T00:00:00`).getTime();
-      const bTime = new Date(`${b.achieved_at}T00:00:00`).getTime();
-      if (bTime !== aTime) {
-        return bTime - aTime;
-      }
-    }
-
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    return 0;
   });
 }
 
