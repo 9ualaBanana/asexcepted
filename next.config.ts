@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
+const sentryBuildOptions = {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 
@@ -45,4 +45,9 @@ export default withSentryConfig(nextConfig, {
       removeDebugLogging: true,
     },
   },
-});
+} as const;
+
+/** Sentry webpack plugin + tunnel only on Vercel, not local dev. */
+export default process.env.VERCEL === "1"
+  ? withSentryConfig(nextConfig, sentryBuildOptions)
+  : nextConfig;
