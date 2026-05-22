@@ -8,6 +8,7 @@ type UiState = {
   overlay: OverlayState;
   detailAchievementId: string | null;
   deleteConfirmId: string | null;
+  discardEditConfirmOpen: boolean;
 };
 
 type UiAction =
@@ -17,7 +18,9 @@ type UiAction =
   | { type: "exit-detail-edit" }
   | { type: "close-overlay" }
   | { type: "request-delete"; achievementId: string }
-  | { type: "clear-delete" };
+  | { type: "clear-delete" }
+  | { type: "request-discard-edit" }
+  | { type: "clear-discard-edit" };
 
 function reduceUiState(state: UiState, action: UiAction): UiState {
   switch (action.type) {
@@ -46,11 +49,16 @@ function reduceUiState(state: UiState, action: UiAction): UiState {
         ...state,
         overlay: "closed",
         detailAchievementId: null,
+        discardEditConfirmOpen: false,
       };
     case "request-delete":
       return { ...state, deleteConfirmId: action.achievementId };
     case "clear-delete":
       return { ...state, deleteConfirmId: null };
+    case "request-discard-edit":
+      return { ...state, discardEditConfirmOpen: true };
+    case "clear-discard-edit":
+      return { ...state, discardEditConfirmOpen: false };
     default:
       return state;
   }
@@ -61,6 +69,7 @@ export function useAchievementUiStateMachine() {
     overlay: "closed",
     detailAchievementId: null,
     deleteConfirmId: null,
+    discardEditConfirmOpen: false,
   });
 
   const isCreating = state.overlay === "create";
@@ -95,6 +104,14 @@ export function useAchievementUiStateMachine() {
     dispatch({ type: "clear-delete" });
   }, []);
 
+  const requestDiscardEdit = useCallback(() => {
+    dispatch({ type: "request-discard-edit" });
+  }, []);
+
+  const clearDiscardEdit = useCallback(() => {
+    dispatch({ type: "clear-discard-edit" });
+  }, []);
+
   const actions: AchievementUiStateActions = useMemo(
     () => ({
       openCreate,
@@ -104,15 +121,19 @@ export function useAchievementUiStateMachine() {
       closeOverlay,
       requestDelete,
       clearDelete,
+      requestDiscardEdit,
+      clearDiscardEdit,
     }),
     [
       clearDelete,
+      clearDiscardEdit,
       closeOverlay,
       enterDetailEdit,
       exitDetailEdit,
       openCreate,
       openDetailView,
       requestDelete,
+      requestDiscardEdit,
     ],
   );
 
@@ -122,6 +143,7 @@ export function useAchievementUiStateMachine() {
       detailMode,
       detailAchievementId: state.detailAchievementId,
       deleteConfirmId: state.deleteConfirmId,
+      discardEditConfirmOpen: state.discardEditConfirmOpen,
       achievementOverlayOpen,
       actions,
     }),
@@ -131,6 +153,7 @@ export function useAchievementUiStateMachine() {
       detailMode,
       isCreating,
       state.deleteConfirmId,
+      state.discardEditConfirmOpen,
       state.detailAchievementId,
     ],
   );
@@ -145,4 +168,6 @@ export type AchievementUiStateActions = {
   closeOverlay: () => void;
   requestDelete: (achievementId: string) => void;
   clearDelete: () => void;
+  requestDiscardEdit: () => void;
+  clearDiscardEdit: () => void;
 };

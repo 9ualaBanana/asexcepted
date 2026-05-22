@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { createInitialForm } from "@/components/achievements/achievement-manager-utils";
@@ -8,6 +8,7 @@ import { type FormState } from "@/components/achievements/achievement-editor-sha
 import type { AchievementDialogStackProps } from "@/components/achievements/achievement-dialog-stack";
 import {
   achievementToGridItem,
+  isAchievementFormDirty,
   type AchievementRecord,
 } from "@/components/achievements/achievement-transformers";
 import { useAchievementBadgeMetricsController } from "@/components/achievements/use-achievement-badge-metrics-controller";
@@ -214,6 +215,20 @@ export function useAchievementsManagerModel({
   );
   const totalCount = achievements.length;
 
+  const handleCancelPanelEdit = useCallback(() => {
+    if (!detailAchievement) return;
+    if (isAchievementFormDirty(panelForm, detailAchievement)) {
+      ui.actions.requestDiscardEdit();
+      return;
+    }
+    editorPipeline.actions.cancelPanelEdit();
+  }, [detailAchievement, editorPipeline.actions, panelForm, ui.actions]);
+
+  const handleConfirmDiscardPanelEdit = useCallback(() => {
+    ui.actions.clearDiscardEdit();
+    editorPipeline.actions.cancelPanelEdit();
+  }, [editorPipeline.actions, ui.actions]);
+
   const dialogStackProps: AchievementDialogStackProps = {
     readOnly,
     editorUploadInProgress: badgeSession.editorUploadInProgress,
@@ -232,7 +247,7 @@ export function useAchievementsManagerModel({
     setPanelUploadInProgress: badgeSession.setPanelUploadInProgress,
     panelBadgeIkSessionRef: badgeSession.panelBadgeIkSessionRef,
     onSubmitPanelSave: editorPipeline.actions.submitPanelSave,
-    onCancelPanelEdit: editorPipeline.actions.closeOverlayFlow,
+    onCancelPanelEdit: handleCancelPanelEdit,
     onRequestPanelEdit: editorPipeline.actions.startPanelEditFlow,
     detailIsUnlocking,
     detailIsLockedUi,
@@ -276,6 +291,7 @@ export function useAchievementsManagerModel({
     DetailFallbackIcon,
     data,
     editorPipeline,
+    handleConfirmDiscardPanelEdit,
     detailIsUnlocking,
     detailIsLockedUi,
     detailFloating,

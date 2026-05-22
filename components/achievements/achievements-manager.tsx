@@ -2,6 +2,7 @@
 
 import { AchievementBadgeDebugOverlay } from "@/components/achievements/achievement-badge-debug-overlay";
 import { AchievementDeleteConfirmDialog } from "@/components/achievements/achievement-delete-confirm-dialog";
+import { AchievementDiscardEditConfirmDialog } from "@/components/achievements/achievement-discard-edit-confirm-dialog";
 import { AchievementDialogStack } from "@/components/achievements/achievement-dialog-stack";
 import { AchievementGrid } from "@/components/achievements/achievement-grid";
 import { AchievementManualEmbedDialog } from "@/components/achievements/achievement-manual-embed-dialog";
@@ -68,6 +69,13 @@ export function AchievementsManager({
           isSaving={model.isSaving}
           onDismiss={ui.actions.clearDelete}
           onConfirm={() => void data.actions.deleteAchievementById(ui.deleteConfirmId!)}
+        />
+      ) : null}
+
+      {ui.discardEditConfirmOpen ? (
+        <AchievementDiscardEditConfirmDialog
+          onDismiss={ui.actions.clearDiscardEdit}
+          onConfirm={model.handleConfirmDiscardPanelEdit}
         />
       ) : null}
 

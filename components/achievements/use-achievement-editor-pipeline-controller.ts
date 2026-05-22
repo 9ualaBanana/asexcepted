@@ -41,6 +41,7 @@ export type AchievementEditorPipelineActions = {
   submitCreate: (e: FormEvent) => Promise<void>;
   submitPanelSave: (e: FormEvent) => Promise<void>;
   closeOverlayFlow: () => boolean;
+  cancelPanelEdit: () => boolean;
   closeDetailPanel: () => void;
 };
 
@@ -64,6 +65,23 @@ export function useAchievementEditorPipelineController({
   resetUnlockWave,
   clearManualEmbedUrl,
 }: UseAchievementEditorPipelineControllerArgs) {
+  const cancelPanelEdit = useCallback(() => {
+    if (badgeSessionController.editorUploadInProgress) return false;
+    if (detailMode !== "edit" || !detailAchievement) return false;
+
+    badgeSessionController.rollbackPanelBadgeSession();
+    setPanelForm(achievementToForm(detailAchievement));
+    badgeSessionController.setPanelUploadInProgress(false);
+    uiActions.exitDetailEdit();
+    return true;
+  }, [
+    badgeSessionController,
+    detailAchievement,
+    detailMode,
+    setPanelForm,
+    uiActions,
+  ]);
+
   const closeOverlayFlow = useCallback(() => {
     if (badgeSessionController.editorUploadInProgress) return false;
 
@@ -76,6 +94,7 @@ export function useAchievementEditorPipelineController({
       badgeSessionController.rollbackPanelBadgeSession();
       setPanelForm(achievementToForm(detailAchievement));
       badgeSessionController.setPanelUploadInProgress(false);
+      uiActions.exitDetailEdit();
     }
     uiActions.closeOverlay();
     return true;
@@ -237,6 +256,7 @@ export function useAchievementEditorPipelineController({
     submitCreate,
     submitPanelSave,
     closeOverlayFlow,
+    cancelPanelEdit,
     closeDetailPanel,
   };
 

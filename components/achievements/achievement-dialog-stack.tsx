@@ -20,6 +20,7 @@ import {
   achievementBadgeChromeWidth,
   achievementDialogChromeInset,
   achievementDialogIconBtn,
+  achievementDialogIconSideSlot,
   type BadgeIkSession,
   formatAchievedAt,
   type FormState,
@@ -321,8 +322,10 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                     !formatAchievedAt(detailAchievement.achieved_at) && "mt-6",
                   )}
                 >
-                  <div className="flex min-h-10 items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
+                  <div className="flex min-h-10 items-center">
+                    <div
+                      className={cn(achievementDialogIconSideSlot, "justify-start")}
+                    >
                       <button
                         type="button"
                         aria-label="Edit"
@@ -332,6 +335,11 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       >
                         <PenLine className="h-4 w-4" aria-hidden />
                       </button>
+                    </div>
+                    <div className="min-w-0 flex-1" aria-hidden />
+                    <div
+                      className={cn(achievementDialogIconSideSlot, "justify-end")}
+                    >
                       {detailAchievement.icon_url?.trim() ? (
                         <button
                           type="button"

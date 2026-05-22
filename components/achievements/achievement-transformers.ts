@@ -113,6 +113,26 @@ export function formToPayload(form: FormState): AchievementDbWritePayload {
   return formToPayloadSchema.parse(form);
 }
 
+/** True when panel edit form differs from the saved achievement. */
+export function isAchievementFormDirty(
+  form: FormState,
+  record: AchievementRecord,
+): boolean {
+  const current = formToPayload(form);
+  const baseline = formToPayload(achievementToForm(record));
+  return (
+    current.title !== baseline.title ||
+    current.description !== baseline.description ||
+    current.category !== baseline.category ||
+    current.icon !== baseline.icon ||
+    current.icon_url !== baseline.icon_url ||
+    current.icon_file_id !== baseline.icon_file_id ||
+    current.tone !== baseline.tone ||
+    current.is_locked !== baseline.is_locked ||
+    current.achieved_at !== baseline.achieved_at
+  );
+}
+
 export function achievementToGridItem(record: AchievementRecord): AchievementGridViewModel {
   return achievementToGridItemSchema.parse(record);
 }
