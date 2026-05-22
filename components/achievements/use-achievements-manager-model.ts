@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { createInitialForm } from "@/components/achievements/achievement-manager-utils";
 import { type FormState } from "@/components/achievements/achievement-editor-shared";
@@ -21,7 +21,10 @@ import { useAchievementUiStateMachine } from "@/components/achievements/use-achi
 import { useAchievementUnlockReveal } from "@/components/achievements/use-achievement-unlock-reveal";
 import { useBadgeChunkedPrewarm } from "@/components/achievements/use-badge-chunked-prewarm";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
-import { useHideLockedPreference } from "@/lib/achievements/hide-locked-preference";
+import {
+  resetHideLockedPreferenceForNewAccount,
+  useHideLockedPreference,
+} from "@/lib/achievements/hide-locked-preference";
 import { userCollection } from "@/lib/routes";
 import { createClient } from "@/lib/supabase/client";
 
@@ -42,6 +45,7 @@ export function useAchievementsManagerModel({
   initialDetailAchievementId,
 }: UseAchievementsManagerModelArgs) {
   const pathname = usePathname();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = useMemo(() => createClient(), []);
   const [achievements, setAchievements] = useState<AchievementRecord[]>([]);
@@ -149,6 +153,19 @@ export function useAchievementsManagerModel({
 
   const lastDeepLinkedIdRef = useRef<string | null>(null);
   const deepLinkRefetchedForRef = useRef<string | null>(null);
+  const onboardingHandledRef = useRef(false);
+
+  useEffect(() => {
+    if (readOnly || onboardingHandledRef.current) return;
+    if (searchParams.get("onboarding") !== "1") return;
+    onboardingHandledRef.current = true;
+    resetHideLockedPreferenceForNewAccount();
+    setHideLocked(false);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("onboarding");
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname);
+  }, [pathname, readOnly, router, searchParams, setHideLocked]);
 
   useEffect(() => {
     if (!deepLinkAchievementId) {

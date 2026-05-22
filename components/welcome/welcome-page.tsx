@@ -1,53 +1,31 @@
-import Link from "next/link";
-import { Trophy } from "lucide-react";
-import { AchievementBadgeSlot } from "@/components/achievements/badge/achievement-badge-slot";
-import { AchievementFallbackBadge } from "@/components/achievements/badge/achievement-fallback-badge";
-import { AppPageShell } from "@/components/layout/app-page-shell";
-import { Button } from "@/components/ui/button";
-import { ROUTES } from "@/lib/routes";
+"use client";
+
+import { WelcomeAchievementShowcase } from "@/components/welcome/welcome-achievement-showcase";
+import { WelcomeCollectButton } from "@/components/welcome/welcome-collect-button";
 
 export function WelcomePage() {
   return (
-    <AppPageShell title="AsExcepted" subtitle="">
-      <div className="mx-auto flex max-w-lg flex-col items-center gap-10 text-center">
-        <div className="space-y-4">
-          <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground/80">
-            Collect and share achievements that matter
-          </p>
-          <p className="text-sm leading-relaxed text-muted-foreground/80">
-            Inspire others with what you have earned. Unlock badges, share your
-            collection, and embed achievements anywhere.
-          </p>
+    <div className="fixed inset-0 overflow-hidden overscroll-none bg-[#14121c] text-[#f5f3ff]">
+      <div className="relative z-10 flex h-[100dvh] max-h-[100dvh] w-full flex-col px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-[max(0.5rem,env(safe-area-inset-top))] sm:px-5">
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-2">
+          <header className="w-full max-w-md space-y-1 text-center">
+            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-emerald-200/70 sm:text-xs">
+              %dopæminer%
+            </p>
+            <h1 className="text-balance text-lg font-semibold uppercase leading-snug tracking-tight text-white sm:text-2xl">
+              life&apos;s &apos;bout seen&apos;n&apos;done
+            </h1>
+          </header>
         </div>
 
-        <div className="relative flex items-center justify-center">
-          <div
-            className="pointer-events-none absolute inset-0 -z-10 scale-150 rounded-full bg-white/[0.04] blur-3xl"
-            aria-hidden
-          />
-          <AchievementBadgeSlot size="detail">
-            <AchievementFallbackBadge
-              tone="rose"
-              isLocked={false}
-              FallbackIcon={Trophy}
-              size="detail"
-            />
-          </AchievementBadgeSlot>
+        <div className="flex w-full shrink-0 flex-col items-center justify-center">
+          <WelcomeAchievementShowcase />
         </div>
 
-        <div className="flex w-full max-w-xs flex-col gap-3 sm:flex-row sm:max-w-none sm:justify-center">
-          <Button asChild className="w-full sm:w-auto">
-            <Link href={ROUTES.signUp}>Sign up</Link>
-          </Button>
-          <Button asChild variant="outline" className="w-full sm:w-auto">
-            <Link href={ROUTES.login}>Sign in</Link>
-          </Button>
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
+          <WelcomeCollectButton />
         </div>
-
-        <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground/60">
-          Your collection. Your story.
-        </p>
       </div>
-    </AppPageShell>
+    </div>
   );
 }

@@ -42,8 +42,9 @@ export function AchievementsManager({
           onClick={() => model.setHideLocked(!model.hideLocked)}
           className="absolute right-0 top-1/2 -translate-y-1/2 m-0 cursor-pointer border-0 bg-transparent p-0 text-[10px] font-normal lowercase tracking-tight text-muted-foreground/40 shadow-none outline-none hover:text-muted-foreground/40 focus:text-muted-foreground/40 focus-visible:ring-0 active:text-muted-foreground/40 aria-pressed:text-muted-foreground/40"
           aria-pressed={model.hideLocked}
+          aria-label={model.hideLocked ? "Show locked achievements" : "Hide locked achievements"}
         >
-          hide locked
+          {model.hideLocked ? "show locked" : "hide locked"}
         </button>
       </div>
 

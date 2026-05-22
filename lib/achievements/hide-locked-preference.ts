@@ -20,6 +20,11 @@ export function writeHideLockedPreference(enabled: boolean): void {
   window.localStorage.setItem(HIDE_LOCKED_STORAGE_KEY, enabled ? "1" : "0");
 }
 
+/** New accounts should see locked achievements until the user opts to hide them. */
+export function resetHideLockedPreferenceForNewAccount(): void {
+  writeHideLockedPreference(false);
+}
+
 export function useHideLockedPreference() {
   const [hideLocked, setHideLocked] = useState(false);
 

@@ -14,12 +14,8 @@ import {
 import { Link2, PenLine, X, type LucideIcon } from "lucide-react";
 
 import type { AchievementTone } from "@/components/achievements/achievement-card";
-import { AchievementBadgeSlot } from "@/components/achievements/badge/achievement-badge-slot";
-import { AchievementFallbackBadge } from "@/components/achievements/badge/achievement-fallback-badge";
-import { AchievementBadge3DViewer } from "@/components/achievements/badge/achievement-badge-3d-viewer";
-import { UnlockRevealWave } from "@/components/achievements/badge/unlock-reveal-wave";
-import { isOpaqueBadgeHit, type AlphaMaskData } from "@/lib/badge/shape-utils";
-import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
+import { AchievementDetailBadgeInteractive } from "@/components/achievements/badge/achievement-detail-badge-interactive";
+import type { AlphaMaskData } from "@/lib/badge/shape-utils";
 import {
   achievementBadgeChromeWidth,
   achievementDialogChromeInset,
@@ -125,7 +121,13 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
   } = props;
 
   const impressionTutorial = useTutorial(TUTORIAL_IDS.impressionDoubleTap);
+  const unlockHoldTutorial = useTutorial(TUTORIAL_IDS.unlockHold);
   const [impressionBurstPulse, setImpressionBurstPulse] = useState(0);
+
+  const handleUnlockPointerDown = useCallback(() => {
+    unlockHoldTutorial.dismiss();
+    startUnlockHold();
+  }, [startUnlockHold, unlockHoldTutorial]);
 
   const handleLeaveImpression = useCallback(() => {
     if (!detailAchievement || !readOnly || detailIsUnlocking) {
@@ -250,97 +252,39 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                         className="absolute bottom-[88%] left-1/2 z-40 w-max max-w-[10.5rem] -translate-x-1/2"
                       />
                     ) : null}
-                    <AchievementBadgeSlot size="detail" className="relative">
-                    {detailIsLockedUi && !readOnly ? (
-                      <button
-                        type="button"
-                        aria-label="Press and hold to unlock"
-                        className={cn(
-                          "no-tap-highlight absolute inset-0 z-20",
-                          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40",
-                        )}
-                        onPointerDown={(e) => {
-                          if (
-                            !isOpaqueBadgeHit(
-                              e.clientX,
-                              e.clientY,
-                              e.currentTarget.getBoundingClientRect(),
-                              unlockAlphaMaskRef.current,
-                            )
-                          ) {
-                            return;
-                          }
-                          startUnlockHold();
-                        }}
-                        onPointerUp={cancelUnlockHold}
-                        onPointerLeave={cancelUnlockHold}
-                        onPointerCancel={cancelUnlockHold}
-                        onContextMenu={(e) => e.preventDefault()}
+                    {!readOnly && detailIsLockedUi && unlockHoldTutorial.active ? (
+                      <TutorialCallout
+                        message={getTutorial(TUTORIAL_IDS.unlockHold).message}
+                        onDismiss={unlockHoldTutorial.dismiss}
+                        className="absolute bottom-[88%] left-1/2 z-40 w-max max-w-[11rem] -translate-x-1/2"
                       />
                     ) : null}
-                    {detailAchievement.icon_url?.trim() ? (
-                      <>
-                        <div className="relative h-full w-full">
-                          <AchievementBadge3DViewer
-                            src={detailRenderSrc}
-                            className="p-1"
-                            float={detailFloating}
-                            motionSeed={detailAchievement.id}
-                            motionStartCentered={
-                              optimisticUnlockedAchievementId === detailAchievement.id
-                            }
-                            onImageDecoded={onDetailBadgeImageDecoded}
-                            onVisualReady={onDetailBadgeVisualReady}
-                          />
-                        </div>
-                        {detailIsLockedUi ? (
-                          <div className="absolute inset-0">
-                            <RemoteBadgeImage
-                              src={detailRenderSrc}
-                              className={cn(
-                                "p-1 h-full w-full object-contain opacity-80 grayscale",
-                                detailIsUnlocking && "opacity-90",
-                              )}
-                            />
-                          </div>
-                        ) : null}
-                        <UnlockRevealWave
-                          isUnlocking={detailIsUnlocking}
-                          detailMaskStyle={detailMaskStyle}
-                          unlockRevealClipPath={unlockRevealClipPath}
-                        >
-                          <RemoteBadgeImage
-                            src={detailRenderSrc}
-                            className="p-1 h-full w-full object-contain"
-                          />
-                        </UnlockRevealWave>
-                      </>
-                    ) : (
-                      <>
-                        <AchievementFallbackBadge
-                          tone={detailTone}
-                          isLocked={detailIsLockedUi}
-                          FallbackIcon={DetailFallbackIcon}
-                          size="detail"
-                        />
-                        <UnlockRevealWave
-                          isUnlocking={detailIsUnlocking}
-                          detailMaskStyle={detailMaskStyle}
-                          unlockRevealClipPath={unlockRevealClipPath}
-                        >
-                          <AchievementFallbackBadge
-                            tone={detailTone}
-                            isLocked={false}
-                            FallbackIcon={DetailFallbackIcon}
-                            size="detail"
-                          />
-                        </UnlockRevealWave>
-                      </>
-                    )}
-                    </AchievementBadgeSlot>
-                    {readOnly ? (
-                      <ImpressionBurst pulse={impressionBurstPulse} />
-                    ) : null}
+                    <AchievementDetailBadgeInteractive
+                      renderSrc={detailRenderSrc}
+                      motionSeed={detailAchievement.id}
+                      tone={detailTone}
+                      FallbackIcon={DetailFallbackIcon}
+                      hasIconUrl={Boolean(detailAchievement.icon_url?.trim())}
+                      lockedUi={detailIsLockedUi}
+                      unlocking={detailIsUnlocking}
+                      floating={detailFloating}
+                      motionStartCentered={
+                        optimisticUnlockedAchievementId === detailAchievement.id
+                      }
+                      detailMaskStyle={detailMaskStyle}
+                      unlockRevealClipPath={unlockRevealClipPath}
+                      unlockAlphaMaskRef={unlockAlphaMaskRef}
+                      enableUnlockHold={detailIsLockedUi && !readOnly}
+                      onUnlockPointerDown={handleUnlockPointerDown}
+                      onUnlockPointerEnd={cancelUnlockHold}
+                      onImageDecoded={onDetailBadgeImageDecoded}
+                      onVisualReady={onDetailBadgeVisualReady}
+                      impressionOverlay={
+                        readOnly ? (
+                          <ImpressionBurst pulse={impressionBurstPulse} />
+                        ) : null
+                      }
+                    />
                   </div>
                 </div>
               </div>

@@ -11,7 +11,7 @@ export function LogoutButton() {
   const logout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push(ROUTES.login);
+    router.push(ROUTES.home);
   };
 
   return <Button onClick={logout} variant="link" size="sm" className="text-xs text-muted-foreground/50 hover:text-foreground font-medium tracking-tight">logout</Button>;

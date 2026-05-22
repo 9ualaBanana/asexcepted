@@ -20,6 +20,7 @@ import { OAuthProviderButtons } from "@/components/auth/oauth-provider-buttons";
 import { hasEnabledOAuthProviders } from "@/lib/auth/oauth-providers";
 import { validatePassword } from "@/lib/auth/password-policy";
 import { ROUTES, safeRedirectPath } from "@/lib/routes";
+import { completeOnboardingAfterSignup } from "@/lib/welcome/complete-onboarding";
 
 type SignUpFormProps = {
   className?: string;
@@ -78,7 +79,11 @@ export function SignUpForm({ className, next }: SignUpFormProps) {
             email: data.user.email ?? undefined,
           }),
         }).catch(() => undefined);
-        router.push(redirectTo);
+        const destination = await completeOnboardingAfterSignup(
+          data.user.id,
+          supabase,
+        );
+        router.push(destination);
         router.refresh();
         return;
       }
