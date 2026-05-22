@@ -5,10 +5,11 @@ export const INTRO_ACHIEVEMENT_ICON_URL =
   "https://ik.imagekit.io/gualabanana/achievements/intro_achievement.png";
 
 export const INTRO_ACHIEVEMENT_SEED = {
-  title: "Collector's Relic",
+  title: "%dopæminer%",
   description:
-    "Your first badge waits in the vault. Unlock it when you are ready to claim your collection.",
-  category: "Origin",
+    // "Claim the first badge and start turning real moments into something worth keeping.",
+    "Claim first badge to start promoting rewarding behavior.",
+  category: "reward",
   icon: "trophy" as const,
   icon_url: INTRO_ACHIEVEMENT_ICON_URL,
   icon_file_id: null,

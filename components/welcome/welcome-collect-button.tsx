@@ -23,11 +23,12 @@ export function WelcomeCollectButton() {
           className={[
             "inline-flex h-full w-full cursor-pointer items-center justify-center gap-2",
             "rounded-full bg-gradient-to-r from-neutral-100 via-neutral-200 to-neutral-100",
-            "px-6 py-2.5 text-sm font-medium text-neutral-900",
+            "px-6 py-2.5 text-sm font-semibold text-neutral-900",
             "dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900 dark:text-neutral-100",
+            "uppercase",
           ].join(" ")}
         >
-          Collect
+          To collection
           <span aria-hidden>&rarr;</span>
         </span>
       </NoiseBackground>
