@@ -4,11 +4,13 @@ import { useCallback, useMemo, useReducer } from "react";
 
 type OverlayState = "closed" | "create" | "detail-view" | "detail-edit";
 
+export type DiscardEditIntent = "back" | "close";
+
 type UiState = {
   overlay: OverlayState;
   detailAchievementId: string | null;
   deleteConfirmId: string | null;
-  discardEditConfirmOpen: boolean;
+  discardEditIntent: DiscardEditIntent | null;
 };
 
 type UiAction =
@@ -19,7 +21,7 @@ type UiAction =
   | { type: "close-overlay" }
   | { type: "request-delete"; achievementId: string }
   | { type: "clear-delete" }
-  | { type: "request-discard-edit" }
+  | { type: "request-discard-edit"; intent: DiscardEditIntent }
   | { type: "clear-discard-edit" };
 
 function reduceUiState(state: UiState, action: UiAction): UiState {
@@ -49,16 +51,16 @@ function reduceUiState(state: UiState, action: UiAction): UiState {
         ...state,
         overlay: "closed",
         detailAchievementId: null,
-        discardEditConfirmOpen: false,
+        discardEditIntent: null,
       };
     case "request-delete":
       return { ...state, deleteConfirmId: action.achievementId };
     case "clear-delete":
       return { ...state, deleteConfirmId: null };
     case "request-discard-edit":
-      return { ...state, discardEditConfirmOpen: true };
+      return { ...state, discardEditIntent: action.intent };
     case "clear-discard-edit":
-      return { ...state, discardEditConfirmOpen: false };
+      return { ...state, discardEditIntent: null };
     default:
       return state;
   }
@@ -69,7 +71,7 @@ export function useAchievementUiStateMachine() {
     overlay: "closed",
     detailAchievementId: null,
     deleteConfirmId: null,
-    discardEditConfirmOpen: false,
+    discardEditIntent: null,
   });
 
   const isCreating = state.overlay === "create";
@@ -104,8 +106,8 @@ export function useAchievementUiStateMachine() {
     dispatch({ type: "clear-delete" });
   }, []);
 
-  const requestDiscardEdit = useCallback(() => {
-    dispatch({ type: "request-discard-edit" });
+  const requestDiscardEdit = useCallback((intent: DiscardEditIntent) => {
+    dispatch({ type: "request-discard-edit", intent });
   }, []);
 
   const clearDiscardEdit = useCallback(() => {
@@ -143,7 +145,7 @@ export function useAchievementUiStateMachine() {
       detailMode,
       detailAchievementId: state.detailAchievementId,
       deleteConfirmId: state.deleteConfirmId,
-      discardEditConfirmOpen: state.discardEditConfirmOpen,
+      discardEditIntent: state.discardEditIntent,
       achievementOverlayOpen,
       actions,
     }),
@@ -153,7 +155,7 @@ export function useAchievementUiStateMachine() {
       detailMode,
       isCreating,
       state.deleteConfirmId,
-      state.discardEditConfirmOpen,
+      state.discardEditIntent,
       state.detailAchievementId,
     ],
   );
@@ -168,6 +170,6 @@ export type AchievementUiStateActions = {
   closeOverlay: () => void;
   requestDelete: (achievementId: string) => void;
   clearDelete: () => void;
-  requestDiscardEdit: () => void;
+  requestDiscardEdit: (intent: DiscardEditIntent) => void;
   clearDiscardEdit: () => void;
 };

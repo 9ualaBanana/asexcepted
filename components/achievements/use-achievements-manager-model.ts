@@ -218,21 +218,44 @@ export function useAchievementsManagerModel({
   const handleCancelPanelEdit = useCallback(() => {
     if (!detailAchievement) return;
     if (isAchievementFormDirty(panelForm, detailAchievement)) {
-      ui.actions.requestDiscardEdit();
+      ui.actions.requestDiscardEdit("back");
       return;
     }
     editorPipeline.actions.cancelPanelEdit();
   }, [detailAchievement, editorPipeline.actions, panelForm, ui.actions]);
 
+  const handleCloseDetailPanel = useCallback(() => {
+    if (
+      ui.detailMode === "edit" &&
+      detailAchievement &&
+      isAchievementFormDirty(panelForm, detailAchievement)
+    ) {
+      ui.actions.requestDiscardEdit("close");
+      return;
+    }
+    editorPipeline.actions.closeDetailPanel();
+  }, [
+    detailAchievement,
+    editorPipeline.actions,
+    panelForm,
+    ui.actions,
+    ui.detailMode,
+  ]);
+
   const handleConfirmDiscardPanelEdit = useCallback(() => {
+    const intent = ui.discardEditIntent;
     ui.actions.clearDiscardEdit();
+    if (intent === "close") {
+      editorPipeline.actions.closeDetailPanel();
+      return;
+    }
     editorPipeline.actions.cancelPanelEdit();
-  }, [editorPipeline.actions, ui.actions]);
+  }, [editorPipeline.actions, ui.actions, ui.discardEditIntent]);
 
   const dialogStackProps: AchievementDialogStackProps = {
     readOnly,
     editorUploadInProgress: badgeSession.editorUploadInProgress,
-    closeDetailPanel: editorPipeline.actions.closeDetailPanel,
+    closeDetailPanel: handleCloseDetailPanel,
     isCreating: ui.isCreating,
     createForm,
     setCreateForm,

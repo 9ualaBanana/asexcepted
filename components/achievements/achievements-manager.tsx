@@ -72,7 +72,7 @@ export function AchievementsManager({
         />
       ) : null}
 
-      {ui.discardEditConfirmOpen ? (
+      {ui.discardEditIntent ? (
         <AchievementDiscardEditConfirmDialog
           onDismiss={ui.actions.clearDiscardEdit}
           onConfirm={model.handleConfirmDiscardPanelEdit}

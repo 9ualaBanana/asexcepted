@@ -30,9 +30,9 @@ export function AchievementDiscardEditConfirmDialog({
           Discard changes?
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          You have unsaved edits. Going back will discard them and return to the
-          achievement view.
+          You have unsaved edits. Discarding will undo your changes.
         </p>
+
         <div className="mt-6 flex justify-end gap-2">
           <Button type="button" variant="secondary" onClick={onDismiss}>
             Keep editing
