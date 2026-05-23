@@ -5,14 +5,31 @@ import { ROUTES } from "@/lib/routes";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
-export function LogoutButton() {
+type LogoutButtonProps = {
+  onBeforeLogout?: () => boolean | Promise<boolean>;
+};
+
+export function LogoutButton({ onBeforeLogout }: LogoutButtonProps = {}) {
   const router = useRouter();
 
   const logout = async () => {
+    if (onBeforeLogout) {
+      const allowed = await onBeforeLogout();
+      if (!allowed) return;
+    }
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push(ROUTES.home);
   };
 
-  return <Button onClick={logout} variant="link" size="sm" className="text-xs text-muted-foreground/50 hover:text-foreground font-medium tracking-tight">logout</Button>;
+  return (
+    <Button
+      onClick={() => void logout()}
+      variant="link"
+      size="sm"
+      className="text-xs font-medium tracking-tight text-muted-foreground/50 hover:text-foreground"
+    >
+      logout
+    </Button>
+  );
 }

@@ -8,7 +8,9 @@ export type FeedRow = {
   event_id: string;
   achievement_id: string;
   user_id: string;
+  actor_user_id: string;
   actor_display_name: string;
+  actor_avatar_url: string | null;
   title: string | null;
   description: string | null;
   category: string | null;
@@ -55,7 +57,9 @@ function normalizeFeedRow(raw: Record<string, unknown>): FeedRow | null {
     event_id: eventId,
     achievement_id: String(raw.achievement_id),
     user_id: String(raw.user_id),
+    actor_user_id: String(raw.actor_user_id ?? raw.user_id),
     actor_display_name: String(raw.actor_display_name ?? ""),
+    actor_avatar_url: (raw.actor_avatar_url as string | null) ?? null,
     title: (raw.title as string | null) ?? null,
     description: (raw.description as string | null) ?? null,
     category: (raw.category as string | null) ?? null,

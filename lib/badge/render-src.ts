@@ -1,3 +1,5 @@
+import { IMAGEKIT_OPTIMIZED_RENDER_TRANSFORM } from "@/lib/imagekit/render-transform";
+
 /**
  * Produce a decode-friendly badge render URL for ImageKit-hosted images.
  * Keeps visual quality high for our <= ~320px on-screen detail badge while
@@ -15,8 +17,7 @@ export function toOptimizedBadgeRenderSrc(src: string): string {
   if (!isImageKit) return src;
   if (u.searchParams.has("tr")) return src;
 
-  // ~2x device-pixel cap for a ~320px render target.
-  u.searchParams.set("tr", "w-640,h-640,c-at_max,q-85,f-auto");
+  u.searchParams.set("tr", IMAGEKIT_OPTIMIZED_RENDER_TRANSFORM);
   return u.toString();
 }
 

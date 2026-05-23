@@ -5,7 +5,9 @@
  * - IMAGEKIT_PUBLIC_KEY   — Dashboard → Developer options → Public API key
  * - IMAGEKIT_PRIVATE_KEY  — same, Private API key (never expose to client except via this route’s response pairing w/ signature)
  * - IMAGEKIT_URL_ENDPOINT — e.g. https://ik.imagekit.io/your_imagekit_id
- * - IMAGEKIT_UPLOAD_BASE_FOLDER — optional, default "achievements" (folder path prefix in media library)
+ * - IMAGEKIT_UPLOAD_BASE_FOLDER — optional, default "achievements" (badge folder prefix)
+ *
+ * Profile avatars upload to `{achievements}/{userId}/profile/` with `avatar` filename prefix (unique per upload).
  *
  * Database (Supabase): store ImageKit `fileId` from upload responses in column
  *   icon_file_id text null
@@ -24,7 +26,21 @@ import {
 } from "@/lib/imagekit/server-client";
 import { createClient } from "@/lib/supabase/server";
 
-export async function POST() {
+type UploadPurpose = "badge" | "avatar";
+
+function parseUploadPurpose(body: unknown): UploadPurpose {
+  if (
+    typeof body === "object" &&
+    body !== null &&
+    "purpose" in body &&
+    (body as { purpose?: string }).purpose === "avatar"
+  ) {
+    return "avatar";
+  }
+  return "badge";
+}
+
+export async function POST(request: Request) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -34,12 +50,21 @@ export async function POST() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  let purpose: UploadPurpose = "badge";
+  try {
+    const body = await request.json();
+    purpose = parseUploadPurpose(body);
+  } catch {
+    // empty body → badge uploads (legacy clients)
+  }
+
   const uploadBaseFolderRaw =
     process.env.IMAGEKIT_UPLOAD_BASE_FOLDER?.trim() || "achievements";
   const uploadBaseFolder = uploadBaseFolderRaw.replace(/^\/+|\/+$/g, "");
-  const folder = uploadBaseFolder
-    ? `${uploadBaseFolder}/${user.id}`
-    : user.id;
+  const folder =
+    purpose === "avatar"
+        ? `${uploadBaseFolder}/${user.id}/profile`
+        : `${uploadBaseFolder}/${user.id}`;
 
   if (!isImageKitServerConfigured()) {
     const publicKey = process.env.IMAGEKIT_PUBLIC_KEY?.trim() ?? "";

@@ -1,19 +1,31 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+
 import { AdminProfileTools } from "@/components/admin/admin-profile-tools";
+import { normalizeImageKitFileId } from "@/components/achievements/badge/badge-imagekit-session";
+import { ProfileAvatarSlot } from "@/components/profile/profile-avatar-slot";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useSoundsEnabledPreference } from "@/lib/sounds-enabled-preference";
+import {
+  beginProfileAvatarSession,
+  commitProfileAvatarUploadSession,
+  deleteImageKitFileQuietly,
+  discardProfileAvatarUploadSession,
+  stageProfileAvatarUpload,
+  type ProfileAvatarUploadSession,
+} from "@/lib/profile/profile-avatar-session";
+import { fetchProfileRow, updateProfileAvatar } from "@/lib/profile/profile-db";
 import { ensurePushRegistered } from "@/lib/push/ensure-push-registered";
 import {
   fetchDevicePushRegistered,
   getDeviceFcmToken,
   unregisterDevicePushToken,
 } from "@/lib/push/device-push-status";
+import { useSoundsEnabledPreference } from "@/lib/sounds-enabled-preference";
+import { createClient } from "@/lib/supabase/client";
 
 function displayNameFromMetadata(meta: Record<string, unknown> | null | undefined) {
   if (!meta) return "";
@@ -24,17 +36,32 @@ function displayNameFromMetadata(meta: Record<string, unknown> | null | undefine
 
 type ProfileSettingsProps = {
   isAdmin?: boolean;
+  onDirtyChange?: (dirty: boolean) => void;
+  registerDiscardHandler?: (handler: () => Promise<void>) => void;
 };
 
 /**
- * Profile fields backed by Supabase Auth `user_metadata` only (single source of truth for display name).
+ * Profile fields backed by Supabase Auth `user_metadata` (display name) and
+ * `public.profile` (avatar).
  */
-export function ProfileSettings({ isAdmin = false }: ProfileSettingsProps) {
+export function ProfileSettings({
+  isAdmin = false,
+  onDirtyChange,
+  registerDiscardHandler,
+}: ProfileSettingsProps) {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
+  const avatarSessionRef = useRef<ProfileAvatarUploadSession>(
+    beginProfileAvatarSession("", ""),
+  );
+
   const [soundsEnabled, setSoundsEnabled] = useSoundsEnabledPreference();
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [savedDisplayName, setSavedDisplayName] = useState("");
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState("");
+  const [avatarFileId, setAvatarFileId] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [pushBusy, setPushBusy] = useState(false);
@@ -43,6 +70,30 @@ export function ProfileSettings({ isAdmin = false }: ProfileSettingsProps) {
   const [error, setError] = useState<string | null>(null);
   const [savedHint, setSavedHint] = useState(false);
   const [pushHint, setPushHint] = useState<string | null>(null);
+
+  const displayNameDirty = displayName.trim() !== savedDisplayName.trim();
+  const avatarDirty =
+    avatarPreviewUrl.trim() !== avatarSessionRef.current.baselineUrl.trim() ||
+    normalizeImageKitFileId(avatarFileId) !==
+      normalizeImageKitFileId(avatarSessionRef.current.baselineFileId);
+  const isDirty = displayNameDirty || avatarDirty;
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
+
+  const discardChanges = useCallback(async () => {
+    discardProfileAvatarUploadSession(avatarSessionRef.current);
+    setAvatarPreviewUrl(avatarSessionRef.current.baselineUrl);
+    setAvatarFileId(avatarSessionRef.current.baselineFileId);
+    setDisplayName(savedDisplayName);
+    setError(null);
+    setSavedHint(false);
+  }, [savedDisplayName]);
+
+  useEffect(() => {
+    registerDiscardHandler?.(discardChanges);
+  }, [discardChanges, registerDiscardHandler]);
 
   const refreshPushToggle = useCallback(async () => {
     setPushStatusLoading(true);
@@ -68,9 +119,25 @@ export function ProfileSettings({ isAdmin = false }: ProfileSettingsProps) {
       return;
     }
     const u = data.user;
+    setUserId(u.id);
     setEmail(u.email ?? "");
     const name = displayNameFromMetadata(u.user_metadata as Record<string, unknown>);
     setDisplayName(name);
+    setSavedDisplayName(name);
+
+    const profileResult = await fetchProfileRow(supabase, u.id);
+    if (profileResult.isErr()) {
+      setError(profileResult.error);
+      setLoading(false);
+      return;
+    }
+
+    const savedUrl = profileResult.value?.avatar_url?.trim() ?? "";
+    const savedFileId = profileResult.value?.avatar_file_id?.trim() ?? "";
+    avatarSessionRef.current = beginProfileAvatarSession(savedUrl, savedFileId);
+    setAvatarPreviewUrl(savedUrl);
+    setAvatarFileId(savedFileId);
+
     setLoading(false);
     await refreshPushToggle();
   }, [refreshPushToggle, supabase]);
@@ -79,8 +146,16 @@ export function ProfileSettings({ isAdmin = false }: ProfileSettingsProps) {
     void load();
   }, [load]);
 
+  function handleAvatarUploadSuccess(url: string, fileId: string) {
+    stageProfileAvatarUpload(avatarSessionRef.current, fileId);
+    setAvatarPreviewUrl(url);
+    setAvatarFileId(fileId);
+    setSavedHint(false);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!userId) return;
     setSaving(true);
     setError(null);
     setSavedHint(false);
@@ -103,6 +178,31 @@ export function ProfileSettings({ isAdmin = false }: ProfileSettingsProps) {
       setSaving(false);
       return;
     }
+
+    const nextUrl = avatarPreviewUrl.trim() || null;
+    const nextFileId = normalizeImageKitFileId(avatarFileId) || null;
+    const avatarUpdate = await updateProfileAvatar(supabase, userId, {
+      avatar_url: nextUrl,
+      avatar_file_id: nextFileId,
+    });
+    if (avatarUpdate.isErr()) {
+      setError(avatarUpdate.error);
+      setSaving(false);
+      return;
+    }
+
+    const replacedOnSave = commitProfileAvatarUploadSession(
+      avatarSessionRef.current,
+      nextUrl ?? "",
+      nextFileId ?? "",
+    );
+    await deleteImageKitFileQuietly(replacedOnSave);
+
+    setAvatarPreviewUrl(avatarSessionRef.current.baselineUrl);
+    setAvatarFileId(avatarSessionRef.current.baselineFileId);
+    setSavedDisplayName(trimmed);
+    setDisplayName(trimmed);
+
     setSaving(false);
     setSavedHint(true);
     router.refresh();
@@ -149,7 +249,7 @@ export function ProfileSettings({ isAdmin = false }: ProfileSettingsProps) {
 
   if (loading) {
     return (
-      <p className="text-center text-sm text-muted-foreground py-8">Loading…</p>
+      <p className="py-8 text-center text-sm text-muted-foreground">Loading…</p>
     );
   }
 
@@ -165,6 +265,17 @@ export function ProfileSettings({ isAdmin = false }: ProfileSettingsProps) {
       {pushHint ? (
         <p className="text-sm text-muted-foreground">{pushHint}</p>
       ) : null}
+
+      <div className="flex justify-center pb-2">
+        <ProfileAvatarSlot
+          layout="profile"
+          editable
+          disabled={saving}
+          imageUrl={avatarPreviewUrl}
+          onUploadSuccess={handleAvatarUploadSuccess}
+          onUploadError={setError}
+        />
+      </div>
 
       <div className="space-y-2">
         <Label htmlFor="profile-email">Email</Label>
@@ -182,7 +293,10 @@ export function ProfileSettings({ isAdmin = false }: ProfileSettingsProps) {
         <Input
           id="profile-display-name"
           value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
+          onChange={(e) => {
+            setDisplayName(e.target.value);
+            setSavedHint(false);
+          }}
           placeholder="Shown in the app header and Supabase Auth"
           autoComplete="name"
         />
@@ -232,7 +346,7 @@ export function ProfileSettings({ isAdmin = false }: ProfileSettingsProps) {
       ) : null}
 
       <div className="flex justify-center">
-        <Button type="submit" disabled={saving}>
+        <Button type="submit" disabled={saving || !isDirty}>
           {saving ? "Saving…" : "Save"}
         </Button>
       </div>

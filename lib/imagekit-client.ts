@@ -11,17 +11,27 @@ export async function deleteImageKitFile(fileId: string) {
   }
 }
 
+export type ImageKitUploadPurpose = "badge" | "avatar";
+
 type ImageKitUploadAuth = {
   token: string;
   expire: number;
   signature: string;
   publicKey: string;
   folder?: string;
+  /** Fixed upload name from server (e.g. profile → `avatar`). */
+  fileName?: string;
 };
 
 /** Client-side call to request short-lived ImageKit upload auth from server route. */
-export async function getImageKitUploadAuth(): Promise<ImageKitUploadAuth> {
-  const res = await fetch("/api/imagekit/auth", { method: "POST" });
+export async function getImageKitUploadAuth(
+  options: { purpose?: ImageKitUploadPurpose } = {},
+): Promise<ImageKitUploadAuth> {
+  const res = await fetch("/api/imagekit/auth", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ purpose: options.purpose ?? "badge" }),
+  });
   const data = (await res.json()) as {
     error?: string;
     token?: string;
@@ -29,6 +39,7 @@ export async function getImageKitUploadAuth(): Promise<ImageKitUploadAuth> {
     signature?: string;
     publicKey?: string;
     folder?: string;
+    fileName?: string;
   };
 
   if (!res.ok) {
@@ -44,5 +55,6 @@ export async function getImageKitUploadAuth(): Promise<ImageKitUploadAuth> {
     signature: data.signature,
     publicKey: data.publicKey,
     folder: data.folder,
+    fileName: data.fileName,
   };
 }

@@ -5,15 +5,13 @@ type FeedActivityTextProps = {
   row: FeedRow;
 };
 
-const verbClass = "text-[13px] font-normal text-muted-foreground/75";
-
-function ActorName({ children }: { children: string }) {
+function ActorLabel({ children }: { children: string }) {
   return (
-    <span className="font-medium text-foreground/88">{children}</span>
+    <span className="font-semibold text-foreground">{children}</span>
   );
 }
 
-function AchievementName({
+function AchievementLabel({
   children,
   impression,
 }: {
@@ -23,8 +21,8 @@ function AchievementName({
   return (
     <span
       className={cn(
-        "font-semibold tracking-tight text-foreground",
-        impression && "text-amber-50/95",
+        "font-bold tracking-tight",
+        impression ? "text-amber-100" : "text-foreground",
       )}
     >
       {children}
@@ -32,26 +30,41 @@ function AchievementName({
   );
 }
 
+function MutedVerb({ children }: { children: string }) {
+  return (
+    <span className="font-normal text-muted-foreground/75">{children}</span>
+  );
+}
+
+/** Compact copy for fixed-height feed rows (truncate with line-clamp). */
 export function FeedActivityText({ row }: FeedActivityTextProps) {
   const title = row.title?.trim() || "Achievement";
   const actor = row.actor_display_name?.trim() || "Someone";
   const isImpression = row.event_type === "impression";
 
+  if (isImpression) {
+    return (
+      <div className="flex min-h-0 min-w-0 flex-col justify-center gap-px overflow-hidden">
+        <p className="line-clamp-1 text-[13px] leading-tight">
+          <AchievementLabel impression>{title}</AchievementLabel>
+        </p>
+        <p className="line-clamp-1 text-xs leading-tight">
+          <MutedVerb>left impression on </MutedVerb>
+          <ActorLabel>{actor}</ActorLabel>
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <p className="text-sm leading-snug">
-      {isImpression ? (
-        <>
-          <AchievementName impression>{title}</AchievementName>
-          <span className={verbClass}> left impression on </span>
-          <ActorName>{actor}</ActorName>
-        </>
-      ) : (
-        <>
-          <ActorName>{actor}</ActorName>
-          <span className={verbClass}> unlocked </span>
-          <AchievementName>{title}</AchievementName>
-        </>
-      )}
-    </p>
+    <div className="flex min-h-0 min-w-0 flex-col justify-center gap-px overflow-hidden">
+      <p className="line-clamp-1 text-xs leading-tight">
+        <ActorLabel>{actor}</ActorLabel>
+        <MutedVerb> unlocked</MutedVerb>
+      </p>
+      <p className="line-clamp-1 text-[13px] leading-tight">
+        <AchievementLabel>{title}</AchievementLabel>
+      </p>
+    </div>
   );
 }

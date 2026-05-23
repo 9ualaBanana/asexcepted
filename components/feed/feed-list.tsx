@@ -94,7 +94,7 @@ export function FeedList({ initialPage }: FeedListProps) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="mx-auto max-w-lg space-y-3 sm:space-y-4">
       {refreshing && rows.length === 0 ? (
         <p className="text-center text-sm text-muted-foreground">Loading feed…</p>
       ) : null}

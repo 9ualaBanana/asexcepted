@@ -7,7 +7,7 @@ export function FeedPageSkeleton() {
       title="Feed"
       subtitle="Unlocks from people you follow"
     >
-      <div className="space-y-3" aria-hidden>
+      <div className="mx-auto max-w-lg space-y-3 sm:space-y-4" aria-hidden>
         {Array.from({ length: 6 }).map((_, i) => (
           <SkeletonFeedRow key={i} />
         ))}
