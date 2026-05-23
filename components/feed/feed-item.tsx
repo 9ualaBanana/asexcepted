@@ -4,12 +4,10 @@ import { AchievementBadgeSlot } from "@/components/achievements/badge/achievemen
 import { AchievementFallbackBadge } from "@/components/achievements/badge/achievement-fallback-badge";
 import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
 import { getSafeTone } from "@/components/achievements/achievement-card";
-import {
-  formatAchievedAt,
-  getSafeIcon,
-} from "@/components/achievements/achievement-editor-shared";
-import { formatImpressionActivityMessage } from "@/lib/feed/impression-message";
+import { getSafeIcon } from "@/components/achievements/achievement-editor-shared";
+import { FeedActivityText } from "@/components/feed/feed-activity-text";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
+import { formatFeedEventTimestamp } from "@/lib/feed/format-feed-event-time";
 import type { FeedRow } from "@/lib/feed-db";
 import { userAchievementDetail } from "@/lib/routes";
 import { cn } from "@/lib/utils";
@@ -19,14 +17,11 @@ type FeedItemProps = {
 };
 
 export function FeedItem({ row }: FeedItemProps) {
-  const dateLabel = formatAchievedAt(row.achieved_at);
   const href = userAchievementDetail(row.user_id, row.achievement_id);
   const tone = getSafeTone(row.tone);
   const FallbackIcon = getSafeIcon(row.icon);
-  const title = row.title?.trim() || "Achievement";
-  const actor = row.actor_display_name || "Someone";
   const isImpression = row.event_type === "impression";
-  const impressionLine = formatImpressionActivityMessage(title, actor);
+  const eventTimeLabel = formatFeedEventTimestamp(row.event_at);
   const badgeSrc = row.icon_url?.trim()
     ? toOptimizedBadgeRenderSrc(row.icon_url.trim())
     : null;
@@ -56,25 +51,12 @@ export function FeedItem({ row }: FeedItemProps) {
       </div>
 
       <div className="min-w-0 flex-1 text-left">
-        {isImpression ? (
-          <p className="text-sm leading-snug text-foreground/95">
-            {impressionLine}
+        <FeedActivityText row={row} />
+        {eventTimeLabel ? (
+          <p className="mt-1 text-[11px] tabular-nums text-muted-foreground/65">
+            {eventTimeLabel}
           </p>
-        ) : (
-          <>
-            <p className="truncate text-sm font-semibold text-foreground/95">
-              {actor}
-            </p>
-            <p className="truncate text-xs text-muted-foreground/80">
-              unlocked {title}
-            </p>
-            {dateLabel ? (
-              <p className="mt-0.5 text-[10px] text-muted-foreground/60">
-                {dateLabel}
-              </p>
-            ) : null}
-          </>
-        )}
+        ) : null}
       </div>
 
       <ChevronRight

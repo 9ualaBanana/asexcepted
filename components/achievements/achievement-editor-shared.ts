@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 
 import { type AchievementTone } from "@/components/achievements/achievement-card";
+import { SpiralIcon } from "@/components/achievements/icons/spiral-icon";
 
 export type AchievementIconKey =
   | "trophy"
@@ -56,7 +57,8 @@ export type AchievementIconKey =
   | "waves"
   | "sunrise"
   | "flag"
-  | "pen";
+  | "pen"
+  | "spiral";
 
 export const iconMap: Record<AchievementIconKey, LucideIcon> = {
   trophy: Trophy,
@@ -85,6 +87,7 @@ export const iconMap: Record<AchievementIconKey, LucideIcon> = {
   sunrise: Sunrise,
   flag: Flag,
   pen: PenLine,
+  spiral: SpiralIcon as LucideIcon,
 };
 
 export function getSafeIconKey(value?: string | null): AchievementIconKey {

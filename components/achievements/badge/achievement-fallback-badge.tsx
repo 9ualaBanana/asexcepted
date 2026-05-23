@@ -79,7 +79,7 @@ export function AchievementFallbackBadge({
           "bg-[radial-gradient(ellipse_at_30%_72%,rgba(255,255,255,0.12)_0%,rgba(255,255,255,0)_58%)]",
         )}
       />
-      <AchievementBadgeIconDisc size={size}>
+      <AchievementBadgeIconDisc size={size} tone={isLocked ? undefined : tone}>
         {isLocked ? (
           <Lock
             className={cn(

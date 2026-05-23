@@ -9,7 +9,7 @@ import {
   type RefObject,
   type SetStateAction,
 } from "react";
-import { ArrowLeft, Loader2, Save, Trash2, X } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Trash2, X } from "lucide-react";
 
 import { AchievementRoundBadgeEditor } from "@/components/achievements/badge/achievement-round-badge-editor";
 import {
@@ -270,7 +270,7 @@ export function EditableAchievementCard({
               {isSaving ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
               ) : (
-                <Save className="h-4 w-4" aria-hidden />
+                <Check className="h-4 w-4" aria-hidden />
               )}
             </button>
           </div>
