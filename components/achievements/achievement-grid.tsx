@@ -16,6 +16,7 @@ type AchievementGridEntry = {
   FallbackIcon: LucideIcon;
   tone: AchievementTone;
   isLocked: boolean;
+  hasImpressions: boolean;
 };
 
 type AchievementGridProps = {
@@ -69,12 +70,14 @@ function AchievementGridInner({
           {items.map((achievement) => (
             <AchievementGridItem
               key={achievement.id}
+              id={achievement.id}
               title={achievement.title}
               dateLabel={achievement.dateLabel}
               iconUrl={achievement.iconUrl}
               FallbackIcon={achievement.FallbackIcon}
               tone={achievement.tone}
               isLocked={achievement.isLocked}
+              hasImpressions={achievement.hasImpressions}
               onClick={() => onSelectAchievement(achievement.id)}
             />
           ))}

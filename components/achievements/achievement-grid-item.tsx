@@ -9,6 +9,12 @@ import {
 import { AchievementFallbackBadge } from "@/components/achievements/badge/achievement-fallback-badge";
 import type { AchievementTone } from "@/components/achievements/achievement-card";
 import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
+import { ImpressionGlitterField } from "@/components/achievements/badge/impression-glitter-field";
+import { IMPRESSION_GLITTER_UI_ENABLED } from "@/lib/achievements/impression-glitter-feature";
+import {
+  badgeImageMaskStyle,
+  circularBadgeMaskStyle,
+} from "@/lib/achievements/badge-mask-style";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import { cn } from "@/lib/utils";
 
@@ -76,27 +82,34 @@ export function AchievementGridItemAdd({ onClick }: { onClick: () => void }) {
 }
 
 type AchievementGridItemProps = {
+  id: string;
   title: string | null;
   dateLabel: string | null;
   iconUrl: string | null;
   FallbackIcon: LucideIcon;
   tone: AchievementTone;
   isLocked: boolean;
+  hasImpressions: boolean;
   onClick: () => void;
 };
 
 export function AchievementGridItem({
+  id,
   title,
   dateLabel,
   iconUrl,
   FallbackIcon,
   tone,
   isLocked,
+  hasImpressions,
   onClick,
 }: AchievementGridItemProps) {
   const displayTitle = title?.trim() || (isLocked ? "Locked" : "Untitled");
   const displaySrc = iconUrl?.trim() ? toOptimizedBadgeRenderSrc(iconUrl.trim()) : null;
   const silhouetteMaskStyle = displaySrc ? getAlphaMaskStyle(displaySrc) : null;
+  const glitterMaskStyle = displaySrc
+    ? badgeImageMaskStyle(displaySrc)
+    : circularBadgeMaskStyle();
 
   return (
     <AchievementGridItemContainer
@@ -105,6 +118,14 @@ export function AchievementGridItem({
       badge={
         <AchievementBadgeSlot size="grid">
           <div className="relative h-full w-full">
+            {IMPRESSION_GLITTER_UI_ENABLED && hasImpressions ? (
+              <ImpressionGlitterField
+                active
+                motionSeed={id}
+                maskStyle={glitterMaskStyle}
+                variant="grid"
+              />
+            ) : null}
             {displaySrc ? (
               <>
                 {!isLocked && silhouetteMaskStyle ? (

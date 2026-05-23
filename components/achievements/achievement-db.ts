@@ -10,6 +10,11 @@ import {
   normalizeAchievement,
   type AchievementRecord,
 } from "@/components/achievements/achievement-transformers";
+import {
+  attachImpressionCounts,
+  fetchImpressionCountMap,
+} from "@/lib/achievements/impression-counts";
+import { IMPRESSION_GLITTER_UI_ENABLED } from "@/lib/achievements/impression-glitter-feature";
 
 export type { AchievementDbRow, AchievementDbWritePayload } from "@/components/achievements/achievement-db-schema";
 
@@ -18,7 +23,7 @@ export type AchievementSingleResult = Result<AchievementRecord, string>;
 export type AchievementDeleteResult = Result<void, string>;
 
 const SELECT_COLUMNS =
-  "id,title,description,category,icon,icon_url,icon_file_id,tone,is_locked,achieved_at,created_at";
+  "id,title,description,category,icon,icon_url,icon_file_id,tone,is_locked,achieved_at,created_at,visibility";
 
 function toAchievementSingleResult(row: AchievementDbRow): AchievementSingleResult {
   try {
@@ -48,6 +53,13 @@ export async function listAchievements(
     const records = rawRows.map((row) =>
       normalizeAchievement(row as AchievementDbRow),
     );
+    if (IMPRESSION_GLITTER_UI_ENABLED) {
+      const countMap = await fetchImpressionCountMap(
+        supabase,
+        records.map((record) => record.id),
+      );
+      return ok(attachImpressionCounts(records, countMap));
+    }
     return ok(records);
   } catch {
     return err("Invalid achievement data received from the server.");

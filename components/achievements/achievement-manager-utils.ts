@@ -21,6 +21,7 @@ export function createInitialForm(): FormState {
     tone: "teal",
     isLocked: true,
     achievedAt: "",
+    visibility: "public",
   };
 }
 

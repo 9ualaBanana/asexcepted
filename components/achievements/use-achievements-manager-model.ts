@@ -27,6 +27,7 @@ import {
   useHideLockedPreference,
 } from "@/lib/achievements/hide-locked-preference";
 import { userCollection } from "@/lib/routes";
+import { IMPRESSION_GLITTER_UI_ENABLED } from "@/lib/achievements/impression-glitter-feature";
 import { createClient } from "@/lib/supabase/client";
 
 const UUID_RE =
@@ -54,6 +55,8 @@ export function useAchievementsManagerModel({
   const [error, setError] = useState<string | null>(null);
   const [createForm, setCreateForm] = useState<FormState>(createInitialForm);
   const [panelForm, setPanelForm] = useState<FormState>(createInitialForm);
+  const [impressionGlitterRevealPulse, setImpressionGlitterRevealPulse] = useState(0);
+  const [optimisticImpressionGlitter, setOptimisticImpressionGlitter] = useState(false);
 
   const ui = useAchievementUiStateMachine();
   const badgeSession = useAchievementBadgeSessionController({
@@ -65,6 +68,33 @@ export function useAchievementsManagerModel({
     detailAchievementId: ui.detailAchievementId,
     uiActions: ui.actions,
   });
+
+  useEffect(() => {
+    setOptimisticImpressionGlitter(false);
+    setImpressionGlitterRevealPulse(0);
+  }, [detailAchievement?.id]);
+
+  const detailShowsImpressionGlitter =
+    IMPRESSION_GLITTER_UI_ENABLED &&
+    Boolean(
+      detailAchievement &&
+        ((detailAchievement.impression_count ?? 0) > 0 ||
+          optimisticImpressionGlitter),
+    );
+
+  const bumpDetailImpressionCount = useCallback(() => {
+    if (!detailAchievement) return;
+    setAchievements((prev) =>
+      prev.map((achievement) =>
+        achievement.id === detailAchievement.id
+          ? {
+              ...achievement,
+              impression_count: (achievement.impression_count ?? 0) + 1,
+            }
+          : achievement,
+      ),
+    );
+  }, [detailAchievement, setAchievements]);
   const badgeMetrics = useAchievementBadgeMetricsController(detailAchievement, isAdmin);
   const [hideLocked, setHideLocked] = useHideLockedPreference();
   const embedLink = useAchievementEmbedLinkController({
@@ -291,6 +321,21 @@ export function useAchievementsManagerModel({
     embedCopyHint: embedLink.embedCopyHint,
     onCopyEmbedLink: embedLink.copyEmbedLink,
     onRequestDelete: ui.actions.requestDelete,
+    detailShowsImpressionGlitter,
+    impressionGlitterRevealPulse,
+    onImpressionGlitterReveal: () => {
+      setOptimisticImpressionGlitter(true);
+      setImpressionGlitterRevealPulse((pulse) => pulse + 1);
+    },
+    onImpressionRecorded: (added: boolean, hadImpressionsBefore: boolean) => {
+      if (added) {
+        bumpDetailImpressionCount();
+        return;
+      }
+      if (!hadImpressionsBefore) {
+        setOptimisticImpressionGlitter(false);
+      }
+    },
   };
 
   return {

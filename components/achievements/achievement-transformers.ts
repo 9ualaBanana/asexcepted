@@ -7,10 +7,12 @@ import {
 } from "@/components/achievements/achievement-card";
 import {
   type AchievementIconKey,
+  type AchievementVisibility,
   type FormState,
   formatGridDate,
   getSafeIcon,
   getSafeIconKey,
+  getSafeVisibility,
   toNullable,
 } from "@/components/achievements/achievement-editor-shared";
 import { normalizeImageKitFileId } from "@/components/achievements/badge/badge-imagekit-session";
@@ -31,6 +33,8 @@ export type AchievementRecord = {
   is_locked: boolean;
   achieved_at: string | null;
   created_at: string;
+  visibility: AchievementVisibility;
+  impression_count: number;
 };
 
 export type AchievementGridViewModel = {
@@ -41,6 +45,7 @@ export type AchievementGridViewModel = {
   FallbackIcon: LucideIcon;
   tone: AchievementTone;
   isLocked: boolean;
+  hasImpressions: boolean;
 };
 
 const achievementDbRowSchema = z.custom<AchievementDbRow>();
@@ -58,6 +63,8 @@ const normalizeAchievementSchema = achievementDbRowSchema.transform<AchievementR
     is_locked: Boolean(record.is_locked),
     achieved_at: record.achieved_at,
     created_at: record.created_at,
+    visibility: getSafeVisibility(record.visibility),
+    impression_count: 0,
   }),
 );
 
@@ -73,6 +80,7 @@ const achievementToFormSchema = achievementRecordSchema.transform<FormState>((re
   tone: getSafeTone(record.tone),
   isLocked: Boolean(record.is_locked),
   achievedAt: record.achieved_at ?? "",
+  visibility: record.visibility,
 }));
 
 const achievementToGridItemSchema = achievementRecordSchema.transform<AchievementGridViewModel>(
@@ -84,6 +92,7 @@ const achievementToGridItemSchema = achievementRecordSchema.transform<Achievemen
     FallbackIcon: getSafeIcon(record.icon),
     tone: getSafeTone(record.tone),
     isLocked: record.is_locked,
+    hasImpressions: record.impression_count > 0,
   }),
 );
 
@@ -99,6 +108,7 @@ const formToPayloadSchema = formStateSchema.transform<AchievementDbWritePayload>
   tone: form.tone,
   is_locked: form.isLocked,
   achieved_at: toNullable(form.achievedAt),
+  visibility: form.visibility,
 }));
 
 export function normalizeAchievement(record: AchievementDbRow): AchievementRecord {
@@ -129,7 +139,8 @@ export function isAchievementFormDirty(
     current.icon_file_id !== baseline.icon_file_id ||
     current.tone !== baseline.tone ||
     current.is_locked !== baseline.is_locked ||
-    current.achieved_at !== baseline.achieved_at
+    current.achieved_at !== baseline.achieved_at ||
+    current.visibility !== baseline.visibility
   );
 }
 

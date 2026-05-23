@@ -4,8 +4,10 @@ import type { CSSProperties, ReactNode, RefObject } from "react";
 import type { LucideIcon } from "lucide-react";
 
 import { AchievementBadgeSlot } from "@/components/achievements/badge/achievement-badge-slot";
+import { ImpressionGlitterField } from "@/components/achievements/badge/impression-glitter-field";
 import { AchievementFallbackBadge } from "@/components/achievements/badge/achievement-fallback-badge";
 import { AchievementBadge3DViewer } from "@/components/achievements/badge/achievement-badge-3d-viewer";
+import { circularBadgeMaskStyle } from "@/lib/achievements/badge-mask-style";
 import { UnlockRevealWave } from "@/components/achievements/badge/unlock-reveal-wave";
 import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
 import type { AchievementTone } from "@/components/achievements/achievement-card";
@@ -32,6 +34,8 @@ export type AchievementDetailBadgeInteractiveProps = {
   onImageDecoded?: () => void;
   onVisualReady?: () => void;
   impressionOverlay?: ReactNode;
+  impressionGlitter?: boolean;
+  impressionGlitterRevealPulse?: number;
 };
 
 /**
@@ -57,6 +61,8 @@ export function AchievementDetailBadgeInteractive({
   onImageDecoded,
   onVisualReady,
   impressionOverlay,
+  impressionGlitter = false,
+  impressionGlitterRevealPulse = 0,
 }: AchievementDetailBadgeInteractiveProps) {
   return (
     <div className="relative">
@@ -100,6 +106,8 @@ export function AchievementDetailBadgeInteractive({
                 motionStartCentered={motionStartCentered}
                 onImageDecoded={onImageDecoded}
                 onVisualReady={onVisualReady}
+                impressionGlitter={impressionGlitter}
+                impressionGlitterRevealPulse={impressionGlitterRevealPulse}
               />
             </div>
             {lockedUi ? (
@@ -126,12 +134,23 @@ export function AchievementDetailBadgeInteractive({
           </>
         ) : (
           <>
-            <AchievementFallbackBadge
-              tone={tone}
-              isLocked={lockedUi}
-              FallbackIcon={FallbackIcon}
-              size="detail"
-            />
+            <div className="relative h-full w-full">
+              {impressionGlitter ? (
+                <ImpressionGlitterField
+                  active
+                  motionSeed={motionSeed}
+                  maskStyle={circularBadgeMaskStyle()}
+                  revealPulse={impressionGlitterRevealPulse}
+                  variant="detail"
+                />
+              ) : null}
+              <AchievementFallbackBadge
+                tone={tone}
+                isLocked={lockedUi}
+                FallbackIcon={FallbackIcon}
+                size="detail"
+              />
+            </div>
             <UnlockRevealWave
               isUnlocking={unlocking}
               detailMaskStyle={detailMaskStyle}

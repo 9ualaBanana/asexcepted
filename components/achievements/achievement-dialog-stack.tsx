@@ -77,6 +77,10 @@ export type AchievementDialogStackProps = {
   embedCopyHint: string | null;
   onCopyEmbedLink: () => void;
   onRequestDelete: (achievementId: string) => void;
+  detailShowsImpressionGlitter: boolean;
+  impressionGlitterRevealPulse: number;
+  onImpressionGlitterReveal: () => void;
+  onImpressionRecorded: (added: boolean, hadImpressionsBefore: boolean) => void;
 };
 
 export function AchievementDialogStack(props: AchievementDialogStackProps) {
@@ -119,6 +123,10 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     embedCopyHint,
     onCopyEmbedLink,
     onRequestDelete,
+    detailShowsImpressionGlitter,
+    impressionGlitterRevealPulse,
+    onImpressionGlitterReveal,
+    onImpressionRecorded,
   } = props;
 
   const impressionTutorial = useTutorial(TUTORIAL_IDS.impressionDoubleTap);
@@ -135,19 +143,30 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
       return;
     }
 
+    const hadImpressionsBefore =
+      (detailAchievement.impression_count ?? 0) > 0 || detailShowsImpressionGlitter;
+
     setImpressionBurstPulse((n) => n + 1);
     impressionTutorial.dismiss();
+
+    if (!hadImpressionsBefore) {
+      onImpressionGlitterReveal();
+    }
 
     void submitImpression(detailAchievement.id).then((result) => {
       if (result.ok) {
         impressionTutorial.dismiss();
       }
+      onImpressionRecorded(result.added, hadImpressionsBefore);
     });
   }, [
     detailAchievement,
-    readOnly,
     detailIsUnlocking,
+    detailShowsImpressionGlitter,
     impressionTutorial,
+    onImpressionGlitterReveal,
+    onImpressionRecorded,
+    readOnly,
   ]);
 
   const impressionDoubleActivate = useDoubleActivate({
@@ -274,6 +293,8 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       onUnlockPointerEnd={cancelUnlockHold}
                       onImageDecoded={onDetailBadgeImageDecoded}
                       onVisualReady={onDetailBadgeVisualReady}
+                      impressionGlitter={detailShowsImpressionGlitter}
+                      impressionGlitterRevealPulse={impressionGlitterRevealPulse}
                       impressionOverlay={
                         readOnly ? (
                           <ImpressionBurst pulse={impressionBurstPulse} />
@@ -368,7 +389,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
               badgeIkSessionRef={panelBadgeIkSessionRef}
               baselineIconFileId={panelBadgeIkSessionRef.current.baselineFileId}
               onClosePanel={() => closeDetailPanel()}
-              showBackArrow
+              showEditChrome
               onRequestDelete={
                 detailAchievement
                   ? () => onRequestDelete(detailAchievement.id)

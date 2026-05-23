@@ -12,6 +12,7 @@ import {
 import { ArrowLeft, Check, Loader2, Trash2, X } from "lucide-react";
 
 import { AchievementRoundBadgeEditor } from "@/components/achievements/badge/achievement-round-badge-editor";
+import { AchievementVisibilityToggle } from "@/components/achievements/achievement-visibility-toggle";
 import {
   clearSessionStagedUpload,
   rollbackBadgeUploadSession,
@@ -36,17 +37,12 @@ export type EditorCardProps = {
   isSaving: boolean;
   onSubmit: (e: FormEvent) => void;
   onCancel?: () => void;
-  /** ImageKit session for staged uploads (replace chain + cancel restore). */
   badgeIkSessionRef: RefObject<BadgeIkSession>;
-  /** Saved ImageKit file id at session start (empty for create). */
   baselineIconFileId: string;
-  /** Close entire achievement dialog (X above badge, right). */
   onClosePanel?: () => void;
-  /** Back arrow under the date (edit existing only; hidden while creating). */
-  showBackArrow?: boolean;
-  /** Bubble upload-in-progress state to parent panel controls. */
+  /** Panel edit (not create): top back, bottom save / visibility / delete. */
+  showEditChrome?: boolean;
   onUploadInProgressChange?: (inProgress: boolean) => void;
-  /** Delete existing achievement (panel edit only). */
   onRequestDelete?: () => void;
 };
 
@@ -59,7 +55,7 @@ export function EditableAchievementCard({
   badgeIkSessionRef,
   baselineIconFileId,
   onClosePanel,
-  showBackArrow = false,
+  showEditChrome = false,
   onUploadInProgressChange,
   onRequestDelete,
 }: EditorCardProps) {
@@ -102,7 +98,7 @@ export function EditableAchievementCard({
         aria-hidden
         className={cn(
           "pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full blur-2xl",
-          "bg-white/12"
+          "bg-white/12",
         )}
       />
 
@@ -114,10 +110,23 @@ export function EditableAchievementCard({
         {showDialogChrome ? (
           <div
             className={cn(
-              "flex w-full items-center justify-end pb-1",
+              "flex w-full min-h-10 items-center justify-between pb-1",
               achievementDialogChromeInset,
             )}
           >
+            {showEditChrome && onCancel ? (
+              <button
+                type="button"
+                aria-label="Back"
+                className={achievementDialogIconBtn}
+                disabled={closeDisabled}
+                onClick={() => onCancel()}
+              >
+                <ArrowLeft className="h-4 w-4" aria-hidden />
+              </button>
+            ) : (
+              <span className={achievementDialogIconSideSlot} aria-hidden />
+            )}
             <button
               type="button"
               aria-label="Close"
@@ -234,7 +243,7 @@ export function EditableAchievementCard({
         </Button>
       </div>
 
-      {showDialogChrome ? (
+      {showDialogChrome && showEditChrome ? (
         <div
           className={cn(
             achievementBadgeChromeWidth,
@@ -242,25 +251,10 @@ export function EditableAchievementCard({
             "mt-3 flex min-h-10 items-center",
           )}
         >
-          <div
-            className={cn(achievementDialogIconSideSlot, "justify-start")}
-          >
-            {onCancel && showBackArrow ? (
-              <button
-                type="button"
-                aria-label="Back"
-                className={achievementDialogIconBtn}
-                disabled={closeDisabled}
-                onClick={() => onCancel()}
-              >
-                <ArrowLeft className="h-4 w-4" aria-hidden />
-              </button>
-            ) : null}
-          </div>
-          <div className="flex min-w-0 flex-1 justify-center">
+          <div className={cn(achievementDialogIconSideSlot, "justify-start")}>
             <button
               type="submit"
-              aria-label={isSaving ? "Saving" : "Save"}
+              aria-label={isSaving ? "Saving" : "Save changes"}
               disabled={isSaveDisabled}
               className={cn(
                 achievementDialogIconBtn,
@@ -273,6 +267,15 @@ export function EditableAchievementCard({
                 <Check className="h-4 w-4" aria-hidden />
               )}
             </button>
+          </div>
+          <div className="flex min-w-0 flex-1 justify-center">
+            <AchievementVisibilityToggle
+              visibility={form.visibility}
+              disabled={closeDisabled}
+              onToggle={(visibility) =>
+                setForm((prev) => ({ ...prev, visibility }))
+              }
+            />
           </div>
           <div className={cn(achievementDialogIconSideSlot, "justify-end")}>
             {onRequestDelete ? (
@@ -287,6 +290,30 @@ export function EditableAchievementCard({
               </button>
             ) : null}
           </div>
+        </div>
+      ) : showDialogChrome ? (
+        <div
+          className={cn(
+            achievementBadgeChromeWidth,
+            achievementDialogChromeInset,
+            "mt-3 flex min-h-10 items-center justify-end",
+          )}
+        >
+          <button
+            type="submit"
+            aria-label={isSaving ? "Saving" : "Save"}
+            disabled={isSaveDisabled}
+            className={cn(
+              achievementDialogIconBtn,
+              "bg-white/10 text-white hover:bg-white/15",
+            )}
+          >
+            {isSaving ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <Check className="h-4 w-4" aria-hidden />
+            )}
+          </button>
         </div>
       ) : (
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">

@@ -421,3 +421,83 @@
   );
 }
 
+/* Loved badges: warm glitter hugging the badge silhouette (moves with 3D model). */
+.impression-glitter-3d {
+  transform: translateZ(-2.75px);
+  transform-style: preserve-3d;
+}
+
+@keyframes impression-glitter-reveal {
+  0% {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateZ(-4px) scale(0.68);
+  }
+  55% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateZ(-2.75px) scale(1);
+  }
+}
+
+.impression-glitter-revealing.impression-glitter-3d {
+  animation: impression-glitter-reveal 980ms cubic-bezier(0.16, 0.84, 0.22, 1) forwards;
+}
+
+@keyframes impression-glitter-drift {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: translate3d(0, 0, 0) scale(0.85);
+  }
+  18% {
+    opacity: 0.95;
+    transform: translate3d(
+        calc(var(--glitter-dx) * 0.35),
+        calc(var(--glitter-dy) * 0.35),
+        calc(var(--glitter-dz) * 0.2)
+      )
+      scale(1.05);
+  }
+  52% {
+    opacity: 0.55;
+    transform: translate3d(var(--glitter-dx), var(--glitter-dy), var(--glitter-dz))
+      scale(1.12);
+  }
+  78% {
+    opacity: 0.82;
+    transform: translate3d(
+        calc(var(--glitter-dx) * 0.6),
+        calc(var(--glitter-dy) * 0.55),
+        calc(var(--glitter-dz) * 0.45)
+      )
+      scale(0.96);
+  }
+}
+
+.impression-glitter-particle {
+  animation: impression-glitter-drift var(--glitter-duration, 3s) ease-in-out
+    var(--glitter-delay, 0ms) infinite;
+}
+
+/* Edit panel: public / private pull-switch (sink into Z, then pop out) */
+.achievement-visibility-pull {
+  transform: perspective(480px) translateZ(0) scale(1);
+  opacity: 1;
+  transition:
+    transform 165ms cubic-bezier(0.28, 1.35, 0.42, 1),
+    opacity 165ms ease;
+}
+
+.achievement-visibility-pull-pressed {
+  transform: perspective(480px) translateZ(-16px) scale(0.86);
+  opacity: 0.68;
+  transition:
+    transform 70ms cubic-bezier(0.45, 0, 0.85, 1),
+    opacity 70ms ease;
+}
+

@@ -16,6 +16,7 @@ export type AchievementDbRow = Pick<
   | "is_locked"
   | "achieved_at"
   | "created_at"
+  | "visibility"
 >;
 
 export type AchievementDbWritePayload = Pick<
@@ -29,4 +30,5 @@ export type AchievementDbWritePayload = Pick<
   | "tone"
   | "is_locked"
   | "achieved_at"
+  | "visibility"
 >;

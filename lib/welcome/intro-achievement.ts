@@ -34,5 +34,7 @@ export function getWelcomeIntroAchievementRecord(): AchievementRecord {
     is_locked: true,
     achieved_at: INTRO_ACHIEVEMENT_SEED.achieved_at,
     created_at: "1970-01-01T00:00:00.000Z",
+    impression_count: 0,
+    visibility: "public",
   };
 }

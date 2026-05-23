@@ -101,6 +101,14 @@ export function getSafeIcon(value?: string | null): LucideIcon {
   return iconMap[getSafeIconKey(value)];
 }
 
+export type AchievementVisibility = "public" | "private";
+
+export function getSafeVisibility(
+  value?: string | null,
+): AchievementVisibility {
+  return value === "private" ? "private" : "public";
+}
+
 export type FormState = {
   title: string;
   description: string;
@@ -111,6 +119,7 @@ export type FormState = {
   tone: AchievementTone;
   isLocked: boolean;
   achievedAt: string;
+  visibility: AchievementVisibility;
 };
 
 export type BadgeIkSession = {

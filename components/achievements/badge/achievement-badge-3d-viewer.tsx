@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 
+import { ImpressionGlitterField } from "@/components/achievements/badge/impression-glitter-field";
 import {
   ensureBadgeImageDecoded,
   getCachedBadgeMaskStyle,
@@ -26,6 +27,9 @@ type AchievementBadge3DViewerProps = {
   onImageDecoded?: () => void;
   /** Debug hook: fired once when source image is decoded and first paint should be ready. */
   onVisualReady?: () => void;
+  /** Warm glitter when the badge has at least one impression. */
+  impressionGlitter?: boolean;
+  impressionGlitterRevealPulse?: number;
 };
 
 const MODEL_DEPTH_LAYERS = 7;
@@ -44,6 +48,8 @@ export function AchievementBadge3DViewer({
   motionStartCentered = false,
   onImageDecoded,
   onVisualReady,
+  impressionGlitter = false,
+  impressionGlitterRevealPulse = 0,
 }: AchievementBadge3DViewerProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const modelRef = useRef<HTMLDivElement>(null);
@@ -247,6 +253,15 @@ export function AchievementBadge3DViewer({
         )}
         style={{ transform: "rotateX(0deg) rotateY(0deg)" }}
       >
+        {impressionGlitter ? (
+          <ImpressionGlitterField
+            active
+            motionSeed={(motionSeed ?? src).trim() || "badge"}
+            maskStyle={maskStyle}
+            revealPulse={impressionGlitterRevealPulse}
+            variant="detail"
+          />
+        ) : null}
         {sideLayerStyle.map((layer, i) => {
           return (
             <div

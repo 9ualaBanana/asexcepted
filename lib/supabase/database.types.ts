@@ -29,6 +29,7 @@ export type Database = {
           tone: string | null
           updated_at: string
           user_id: string
+          visibility: string
         }
         Insert: {
           achieved_at?: string | null
@@ -44,6 +45,7 @@ export type Database = {
           tone?: string | null
           updated_at?: string
           user_id?: string
+          visibility?: string
         }
         Update: {
           achieved_at?: string | null
@@ -59,6 +61,7 @@ export type Database = {
           tone?: string | null
           updated_at?: string
           user_id?: string
+          visibility?: string
         }
         Relationships: []
       }
