@@ -1,19 +1,27 @@
 import Link from "next/link";
 
 import { userCollection } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 
 type DedicationBylineProps = {
   senderUserId: string;
   senderDisplayName: string;
+  className?: string;
 };
 
 export function DedicationByline({
   senderUserId,
   senderDisplayName,
+  className,
 }: DedicationBylineProps) {
   const label = senderDisplayName.trim() || "Someone";
   return (
-    <p className="mt-2 text-center text-sm leading-snug text-white/55">
+    <p
+      className={cn(
+        "text-center text-xs leading-snug text-white/55",
+        className ?? "mt-2",
+      )}
+    >
       dedicated by{" "}
       <Link
         href={userCollection(senderUserId)}

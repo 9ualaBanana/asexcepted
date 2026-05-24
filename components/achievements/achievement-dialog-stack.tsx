@@ -357,7 +357,11 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                 {detailAchievement.title?.trim() ||
                   (detailIsLockedUi ? "Locked" : "Untitled")}
               </h2>
-              {detailIsDedicated && dedicationSenderId ? (
+              {detailIsDedicated &&
+              dedicationSenderId &&
+              readOnly &&
+              detailMode === "view" &&
+              !isVisibilityOnlyEdit ? (
                 <DedicationByline
                   senderUserId={dedicationSenderId}
                   senderDisplayName={
@@ -432,11 +436,15 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                             setPanelForm((prev) => ({ ...prev, visibility }))
                           }
                         />
-                      ) : dedicatedVisibilityEditable ? (
-                        <AchievementVisibilityToggle
-                          visibility={panelForm.visibility}
-                          disabled
-                          onToggle={() => undefined}
+                      ) : detailMode === "view" &&
+                        detailIsDedicated &&
+                        dedicationSenderId ? (
+                        <DedicationByline
+                          senderUserId={dedicationSenderId}
+                          senderDisplayName={
+                            dedicationSenderDisplayName?.trim() || "Someone"
+                          }
+                          className="mt-0 px-1"
                         />
                       ) : null}
                     </div>
