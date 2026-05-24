@@ -41,7 +41,11 @@ export async function POST(request: Request) {
 
   if (error) {
     const message = error.message ?? "Could not leave impression";
-    const status = message.includes("cannot impress own") ? 403 : 500;
+    const status =
+      message.includes("cannot impress own") ||
+      message.includes("cannot impress locked")
+        ? 403
+        : 500;
     return NextResponse.json({ error: message }, { status });
   }
 

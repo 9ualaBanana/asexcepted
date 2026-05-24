@@ -9,6 +9,7 @@ import type { AchievementUiStateActions } from "@/components/achievements/use-ac
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
 import { clearBadgeRenderCacheForSrc } from "@/lib/badge/render-cache";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
+import { useUserAchievementsLiveUpdates } from "@/lib/live-updates";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 type UseAchievementDataControllerArgs = {
@@ -45,21 +46,25 @@ export function useAchievementDataController({
 }: UseAchievementDataControllerArgs) {
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadAchievements = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
+  const loadAchievements = useCallback(
+    async (opts?: { silent?: boolean }) => {
+      const silent = opts?.silent ?? false;
+      if (!silent) setIsLoading(true);
+      setError(null);
 
-    const result = await listAchievements(supabase, userId);
-    if (result.isErr()) {
-      setError(result.error);
-      setAchievements([]);
-      setIsLoading(false);
-      return;
-    }
+      const result = await listAchievements(supabase, userId);
+      if (result.isErr()) {
+        setError(result.error);
+        if (!silent) setAchievements([]);
+        if (!silent) setIsLoading(false);
+        return;
+      }
 
-    setAchievements(sortAchievements(result.value));
-    setIsLoading(false);
-  }, [setAchievements, setError, supabase, userId]);
+      setAchievements(sortAchievements(result.value));
+      if (!silent) setIsLoading(false);
+    },
+    [setAchievements, setError, supabase, userId],
+  );
 
   useEffect(() => {
     void loadAchievements();
@@ -68,12 +73,20 @@ export function useAchievementDataController({
   useEffect(() => {
     const onVisibility = () => {
       if (document.visibilityState === "visible") {
-        void loadAchievements();
+        void loadAchievements({ silent: true });
       }
     };
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, [loadAchievements]);
+
+  useUserAchievementsLiveUpdates({
+    enabled: readOnly,
+    profileUserId: userId,
+    onInvalidate: () => {
+      void loadAchievements({ silent: true });
+    },
+  });
 
   const deleteAchievementById = useCallback(
     async (id: string) => {

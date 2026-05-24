@@ -139,7 +139,12 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
   }, [startUnlockHold, unlockHoldTutorial]);
 
   const handleLeaveImpression = useCallback(() => {
-    if (!detailAchievement || !readOnly || detailIsUnlocking) {
+    if (
+      !detailAchievement ||
+      !readOnly ||
+      detailIsUnlocking ||
+      detailIsLockedUi
+    ) {
       return;
     }
 
@@ -161,6 +166,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     });
   }, [
     detailAchievement,
+    detailIsLockedUi,
     detailIsUnlocking,
     detailShowsImpressionGlitter,
     impressionTutorial,
@@ -171,7 +177,11 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
 
   const impressionDoubleActivate = useDoubleActivate({
     onActivate: handleLeaveImpression,
-    disabled: !readOnly || !detailAchievement || detailIsUnlocking,
+    disabled:
+      !readOnly ||
+      !detailAchievement ||
+      detailIsUnlocking ||
+      detailIsLockedUi,
   });
 
   useEffect(() => {
@@ -257,7 +267,9 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       readOnly ? impressionDoubleActivate.onPointerUp : undefined
                     }
                   >
-                    {readOnly && impressionTutorial.active ? (
+                    {readOnly &&
+                    !detailIsLockedUi &&
+                    impressionTutorial.active ? (
                       <TutorialCallout
                         message={
                           getTutorial(TUTORIAL_IDS.impressionDoubleTap).message

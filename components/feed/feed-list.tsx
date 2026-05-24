@@ -7,6 +7,7 @@ import { FeedItem } from "@/components/feed/feed-item";
 import { Button } from "@/components/ui/button";
 import type { FeedPage } from "@/lib/feed-db";
 import { fetchFollowingUnlockFeed } from "@/lib/feed-db";
+import { useFeedLiveUpdates } from "@/lib/live-updates";
 import { ROUTES } from "@/lib/routes";
 import { createClient } from "@/lib/supabase/client";
 
@@ -21,6 +22,7 @@ export function FeedList({ initialPage }: FeedListProps) {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const refreshFeed = useCallback(async (opts?: { silent?: boolean }) => {
     const silent = opts?.silent ?? false;
@@ -35,6 +37,13 @@ export function FeedList({ initialPage }: FeedListProps) {
       setCursor(pageResult.value.nextCursor);
     }
     if (!silent) setRefreshing(false);
+  }, []);
+
+  useEffect(() => {
+    const supabase = createClient();
+    void supabase.auth.getUser().then(({ data }) => {
+      setUserId(data.user?.id ?? null);
+    });
   }, []);
 
   useEffect(() => {
@@ -56,6 +65,14 @@ export function FeedList({ initialPage }: FeedListProps) {
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, [pathname, refreshFeed]);
+
+  useFeedLiveUpdates({
+    enabled: pathname === ROUTES.feed,
+    userId,
+    onInvalidate: () => {
+      void refreshFeed({ silent: true });
+    },
+  });
 
   async function loadMore() {
     if (!cursor || loading) return;
