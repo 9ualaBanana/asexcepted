@@ -3,6 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   AchievementGridItem,
   AchievementGridItemAdd,
+  AchievementGridItemDedicate,
   AchievementGridItemFallback,
 } from "@/components/achievements/achievement-grid-item";
 import type { AchievementTone } from "@/components/achievements/achievement-card";
@@ -22,8 +23,10 @@ type AchievementGridEntry = {
 type AchievementGridProps = {
   isLoading: boolean;
   readOnly: boolean;
+  canDedicate?: boolean;
   items: AchievementGridEntry[];
   onAddAchievement: () => void;
+  onDedicateAchievement?: () => void;
   onSelectAchievement: (id: string) => void;
 };
 
@@ -50,8 +53,10 @@ function AchievementGridFallback() {
 
 function AchievementGridInner({
   readOnly,
+  canDedicate = false,
   items,
   onAddAchievement,
+  onDedicateAchievement,
   onSelectAchievement,
 }: Omit<AchievementGridProps, "isLoading">) {
   return (
@@ -65,6 +70,9 @@ function AchievementGridInner({
         <div className="grid grid-cols-3 gap-x-2 gap-y-8">
           {!readOnly ? (
             <AchievementGridItemAdd onClick={onAddAchievement} />
+          ) : null}
+          {canDedicate && onDedicateAchievement ? (
+            <AchievementGridItemDedicate onClick={onDedicateAchievement} />
           ) : null}
 
           {items.map((achievement) => (
@@ -99,16 +107,20 @@ function AchievementGridInner({
 export function AchievementGrid({
   isLoading,
   readOnly,
+  canDedicate,
   items,
   onAddAchievement,
+  onDedicateAchievement,
   onSelectAchievement,
 }: AchievementGridProps) {
   if (isLoading) return <AchievementGridFallback />;
   return (
     <AchievementGridInner
       readOnly={readOnly}
+      canDedicate={canDedicate}
       items={items}
       onAddAchievement={onAddAchievement}
+      onDedicateAchievement={onDedicateAchievement}
       onSelectAchievement={onSelectAchievement}
     />
   );

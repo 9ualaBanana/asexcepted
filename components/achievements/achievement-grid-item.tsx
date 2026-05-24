@@ -1,4 +1,4 @@
-import { Sparkles, type LucideIcon } from "lucide-react";
+import { Gift, Sparkles, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { AchievementBadgeSlot } from "@/components/achievements/badge/achievement-badge-slot";
@@ -38,6 +38,49 @@ const gridItemButtonClass =
 
 const gridItemTitleClass =
   "line-clamp-2 w-full shrink-0 overflow-hidden text-[11px] font-medium leading-[1.35] h-[2.7em] max-h-[2.7em] sm:text-xs";
+
+export function AchievementGridItemDedicate({ onClick }: { onClick: () => void }) {
+  return (
+    <AchievementGridItemContainer
+      onClick={onClick}
+      buttonClassName="group text-violet-200/55 hover:text-violet-100/90"
+      badge={
+        <AchievementBadgeSlot
+          size="grid"
+          className={cn(
+            "rounded-3xl border border-dashed border-violet-300/30 bg-transparent transition-colors",
+            "group-hover:border-violet-200/50 group-hover:bg-violet-500/[0.06]",
+          )}
+        >
+          <div className="flex h-full w-full items-center justify-center">
+            <AchievementBadgeIconDisc size="grid">
+              <Gift
+                className={cn(
+                  "text-violet-200/80",
+                  achievementBadgeIconDiscSizeStyles.grid.iconLocked,
+                )}
+                aria-hidden
+              />
+            </AchievementBadgeIconDisc>
+          </div>
+        </AchievementBadgeSlot>
+      }
+      title={
+        <p
+          className={cn(
+            gridItemTitleClass,
+            "text-violet-200/70 group-hover:text-violet-100/90",
+          )}
+        >
+          Dedicate achievement
+        </p>
+      }
+      dateLine={
+        <p className="text-[10px] text-violet-200/40 sm:text-[11px]">Admin</p>
+      }
+    />
+  );
+}
 
 export function AchievementGridItemAdd({ onClick }: { onClick: () => void }) {
   return (

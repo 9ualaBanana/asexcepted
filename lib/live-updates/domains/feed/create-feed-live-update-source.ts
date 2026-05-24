@@ -15,6 +15,7 @@ export type CreateFeedLiveUpdateSourceOptions = {
 
 const UNLOCK_TABLE = "achievement_unlock_events";
 const IMPRESSION_TABLE = "achievement_impression_events";
+const DEDICATION_TABLE = "achievement_dedication_events";
 const FOLLOW_TABLE = "profile_follow";
 
 /**
@@ -44,6 +45,10 @@ export function createFeedLiveUpdateSource(
         filter: `owner_user_id=eq.${userId}`,
       },
       {
+        table: DEDICATION_TABLE,
+        filter: `recipient_user_id=eq.${userId}`,
+      },
+      {
         table: UNLOCK_TABLE,
       },
       {
@@ -53,7 +58,7 @@ export function createFeedLiveUpdateSource(
     ],
     shouldNotify: ({ table, new: rowNew, old: rowOld }) => {
       const row = rowNew ?? rowOld;
-      if (table === IMPRESSION_TABLE) {
+      if (table === IMPRESSION_TABLE || table === DEDICATION_TABLE) {
         return true;
       }
       if (table === UNLOCK_TABLE) {

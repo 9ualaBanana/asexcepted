@@ -35,6 +35,8 @@ export type AchievementRecord = {
   created_at: string;
   visibility: AchievementVisibility;
   impression_count: number;
+  dedicated_by_user_id: string | null;
+  dedication_status: "pending" | "accepted" | null;
 };
 
 export type AchievementGridViewModel = {
@@ -65,6 +67,12 @@ const normalizeAchievementSchema = achievementDbRowSchema.transform<AchievementR
     created_at: record.created_at,
     visibility: getSafeVisibility(record.visibility),
     impression_count: 0,
+    dedicated_by_user_id: record.dedicated_by_user_id ?? null,
+    dedication_status:
+      record.dedication_status === "pending" ||
+      record.dedication_status === "accepted"
+        ? record.dedication_status
+        : null,
   }),
 );
 

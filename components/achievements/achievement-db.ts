@@ -23,7 +23,7 @@ export type AchievementSingleResult = Result<AchievementRecord, string>;
 export type AchievementDeleteResult = Result<void, string>;
 
 const SELECT_COLUMNS =
-  "id,title,description,category,icon,icon_url,icon_file_id,tone,is_locked,achieved_at,created_at,visibility";
+  "id,title,description,category,icon,icon_url,icon_file_id,tone,is_locked,achieved_at,created_at,visibility,dedicated_by_user_id,dedication_status";
 
 function toAchievementSingleResult(row: AchievementDbRow): AchievementSingleResult {
   try {
@@ -41,6 +41,7 @@ export async function listAchievements(
     .from("achievements")
     .select(SELECT_COLUMNS)
     .eq("user_id", userId)
+    .or("dedication_status.is.null,dedication_status.eq.accepted")
     .order("achieved_at", { ascending: false })
     .order("created_at", { ascending: false });
 

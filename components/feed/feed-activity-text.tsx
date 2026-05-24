@@ -1,4 +1,5 @@
 import type { FeedRow } from "@/lib/feed-db";
+import { dedicationActivityParts } from "@/lib/feed/dedication-message";
 import { cn } from "@/lib/utils";
 
 type FeedActivityTextProps = {
@@ -41,6 +42,21 @@ export function FeedActivityText({ row }: FeedActivityTextProps) {
   const title = row.title?.trim() || "Achievement";
   const actor = row.actor_display_name?.trim() || "Someone";
   const isImpression = row.event_type === "impression";
+  const isDedication = row.event_type === "dedication";
+
+  if (isDedication) {
+    const { sender, achievement } = dedicationActivityParts(actor, title);
+    return (
+      <div className="flex min-h-0 min-w-0 flex-col justify-center gap-px overflow-hidden">
+        <p className="line-clamp-2 text-xs leading-tight">
+          <ActorLabel>{sender}</ActorLabel>
+          <MutedVerb> dedicated </MutedVerb>
+          <AchievementLabel>{achievement}</AchievementLabel>
+          <MutedVerb> to u</MutedVerb>
+        </p>
+      </div>
+    );
+  }
 
   if (isImpression) {
     return (

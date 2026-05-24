@@ -2,7 +2,12 @@
 
 import { useCallback, useMemo, useReducer } from "react";
 
-type OverlayState = "closed" | "create" | "detail-view" | "detail-edit";
+type OverlayState =
+  | "closed"
+  | "create"
+  | "detail-view"
+  | "detail-edit"
+  | "detail-visibility-edit";
 
 export type DiscardEditIntent = "back" | "close";
 
@@ -17,6 +22,7 @@ type UiAction =
   | { type: "open-create" }
   | { type: "open-detail-view"; achievementId: string }
   | { type: "enter-detail-edit" }
+  | { type: "enter-detail-visibility-edit" }
   | { type: "exit-detail-edit" }
   | { type: "close-overlay" }
   | { type: "request-delete"; achievementId: string }
@@ -41,6 +47,9 @@ function reduceUiState(state: UiState, action: UiAction): UiState {
     case "enter-detail-edit":
       if (!state.detailAchievementId) return state;
       return { ...state, overlay: "detail-edit" };
+    case "enter-detail-visibility-edit":
+      if (!state.detailAchievementId) return state;
+      return { ...state, overlay: "detail-visibility-edit" };
     case "exit-detail-edit":
       if (!state.detailAchievementId) {
         return { ...state, overlay: "closed" };
@@ -75,7 +84,9 @@ export function useAchievementUiStateMachine() {
   });
 
   const isCreating = state.overlay === "create";
-  const detailMode: "view" | "edit" = state.overlay === "detail-edit" ? "edit" : "view";
+  const isVisibilityOnlyEdit = state.overlay === "detail-visibility-edit";
+  const detailMode: "view" | "edit" =
+    state.overlay === "detail-edit" || isVisibilityOnlyEdit ? "edit" : "view";
   const achievementOverlayOpen = state.overlay !== "closed";
 
   const openCreate = useCallback(() => {
@@ -88,6 +99,10 @@ export function useAchievementUiStateMachine() {
 
   const enterDetailEdit = useCallback(() => {
     dispatch({ type: "enter-detail-edit" });
+  }, []);
+
+  const enterDetailVisibilityEdit = useCallback(() => {
+    dispatch({ type: "enter-detail-visibility-edit" });
   }, []);
 
   const exitDetailEdit = useCallback(() => {
@@ -119,6 +134,7 @@ export function useAchievementUiStateMachine() {
       openCreate,
       openDetailView,
       enterDetailEdit,
+      enterDetailVisibilityEdit,
       exitDetailEdit,
       closeOverlay,
       requestDelete,
@@ -131,6 +147,7 @@ export function useAchievementUiStateMachine() {
       clearDiscardEdit,
       closeOverlay,
       enterDetailEdit,
+      enterDetailVisibilityEdit,
       exitDetailEdit,
       openCreate,
       openDetailView,
@@ -143,6 +160,7 @@ export function useAchievementUiStateMachine() {
     () => ({
       isCreating,
       detailMode,
+      isVisibilityOnlyEdit,
       detailAchievementId: state.detailAchievementId,
       deleteConfirmId: state.deleteConfirmId,
       discardEditIntent: state.discardEditIntent,
@@ -153,6 +171,7 @@ export function useAchievementUiStateMachine() {
       actions,
       achievementOverlayOpen,
       detailMode,
+      isVisibilityOnlyEdit,
       isCreating,
       state.deleteConfirmId,
       state.discardEditIntent,
@@ -166,6 +185,7 @@ export type AchievementUiStateActions = {
   openCreate: () => void;
   openDetailView: (achievementId: string) => void;
   enterDetailEdit: () => void;
+  enterDetailVisibilityEdit: () => void;
   exitDetailEdit: () => void;
   closeOverlay: () => void;
   requestDelete: (achievementId: string) => void;

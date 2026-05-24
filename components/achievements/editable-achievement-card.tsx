@@ -44,6 +44,8 @@ export type EditorCardProps = {
   showEditChrome?: boolean;
   onUploadInProgressChange?: (inProgress: boolean) => void;
   onRequestDelete?: () => void;
+  /** Admin dedicating to another user: always locked + private. */
+  dedicateMode?: boolean;
 };
 
 export function EditableAchievementCard({
@@ -58,6 +60,7 @@ export function EditableAchievementCard({
   showEditChrome = false,
   onUploadInProgressChange,
   onRequestDelete,
+  dedicateMode = false,
 }: EditorCardProps) {
   const formId = useId();
   const showDialogChrome = Boolean(onClosePanel);
@@ -144,12 +147,13 @@ export function EditableAchievementCard({
             iconFileId={form.iconFileId}
             baselineIconFileId={baselineIconFileId}
             tone={form.tone}
-            isLocked={form.isLocked}
+            isLocked={dedicateMode ? true : form.isLocked}
             icon={form.icon}
             onToneChange={(tone) => setForm((prev) => ({ ...prev, tone }))}
-            onToggleLocked={() =>
-              setForm((prev) => ({ ...prev, isLocked: !prev.isLocked }))
-            }
+            onToggleLocked={() => {
+              if (dedicateMode) return;
+              setForm((prev) => ({ ...prev, isLocked: !prev.isLocked }));
+            }}
             onIconChange={(icon) => setForm((prev) => ({ ...prev, icon }))}
             onRemoteUploadCommit={(url, fileId) => {
               rollbackBadgeUploadSession(badgeIkSessionRef.current);
@@ -296,24 +300,29 @@ export function EditableAchievementCard({
           className={cn(
             achievementBadgeChromeWidth,
             achievementDialogChromeInset,
-            "mt-3 flex min-h-10 items-center justify-end",
+            "mt-3 flex min-h-10 items-center",
           )}
         >
-          <button
-            type="submit"
-            aria-label={isSaving ? "Saving" : "Save"}
-            disabled={isSaveDisabled}
-            className={cn(
-              achievementDialogIconBtn,
-              "bg-white/10 text-white hover:bg-white/15",
-            )}
-          >
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-            ) : (
-              <Check className="h-4 w-4" aria-hidden />
-            )}
-          </button>
+          <div className={cn(achievementDialogIconSideSlot, "justify-start")}>
+            <button
+              type="submit"
+              aria-label={
+                isSaving ? "Saving" : dedicateMode ? "Dedicate achievement" : "Save"
+              }
+              disabled={isSaveDisabled}
+              className={cn(
+                achievementDialogIconBtn,
+                "bg-white/10 text-white hover:bg-white/15",
+              )}
+            >
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              ) : (
+                <Check className="h-4 w-4" aria-hidden />
+              )}
+            </button>
+          </div>
+          <div className="min-w-0 flex-1" aria-hidden />
         </div>
       ) : (
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">

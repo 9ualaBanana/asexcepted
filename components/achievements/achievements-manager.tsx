@@ -6,11 +6,14 @@ import { AchievementDiscardEditConfirmDialog } from "@/components/achievements/a
 import { AchievementDialogStack } from "@/components/achievements/achievement-dialog-stack";
 import { AchievementGrid } from "@/components/achievements/achievement-grid";
 import { AchievementManualEmbedDialog } from "@/components/achievements/achievement-manual-embed-dialog";
+import { DedicationResponseDialog } from "@/components/achievements/dedication/dedication-response-dialog";
+import { DedicationSenderConfirmDialog } from "@/components/achievements/dedication/dedication-sender-confirm-dialog";
 import { useAchievementsManagerModel } from "@/components/achievements/use-achievements-manager-model";
 export type AchievementsManagerProps = {
   userId: string;
   readOnly: boolean;
   isAdmin?: boolean;
+  canDedicate?: boolean;
   initialDetailAchievementId?: string | null;
 };
 
@@ -18,12 +21,14 @@ export function AchievementsManager({
   userId,
   readOnly,
   isAdmin = false,
+  canDedicate = false,
   initialDetailAchievementId,
 }: AchievementsManagerProps) {
   const model = useAchievementsManagerModel({
     userId,
     readOnly,
     isAdmin,
+    canDedicate,
     initialDetailAchievementId,
   });
   const { data, editorPipeline, ui, badgeMetrics, embedLink } = model;
@@ -40,6 +45,14 @@ export function AchievementsManager({
         </p>
         <button
           type="button"
+          onClick={() => model.cycleVisibilityFilter()}
+          className="absolute left-0 top-1/2 -translate-y-1/2 m-0 cursor-pointer border-0 bg-transparent p-0 text-[10px] font-normal lowercase tracking-tight text-muted-foreground/40 shadow-none outline-none hover:text-muted-foreground/40 focus:text-muted-foreground/40 focus-visible:ring-0 active:text-muted-foreground/40"
+          aria-label={`Filter by visibility: ${model.visibilityFilter}`}
+        >
+          {model.visibilityFilter}
+        </button>
+        <button
+          type="button"
           onClick={() => model.setHideLocked(!model.hideLocked)}
           className="absolute right-0 top-1/2 -translate-y-1/2 m-0 cursor-pointer border-0 bg-transparent p-0 text-[10px] font-normal lowercase tracking-tight text-muted-foreground/40 shadow-none outline-none hover:text-muted-foreground/40 focus:text-muted-foreground/40 focus-visible:ring-0 active:text-muted-foreground/40 aria-pressed:text-muted-foreground/40"
           aria-pressed={model.hideLocked}
@@ -52,8 +65,10 @@ export function AchievementsManager({
       <AchievementGrid
         isLoading={data.isLoading}
         readOnly={model.readOnly}
+        canDedicate={model.canDedicate}
         items={model.gridItems}
         onAddAchievement={editorPipeline.actions.startCreateFlow}
+        onDedicateAchievement={editorPipeline.actions.startDedicateFlow}
         onSelectAchievement={(achievementId) => {
           badgeMetrics.markDetailOpenStart(achievementId);
           ui.actions.openDetailView(achievementId);
@@ -91,6 +106,26 @@ export function AchievementsManager({
         <AchievementBadgeDebugOverlay
           detailOpenToImageDecodedMs={badgeMetrics.detailOpenToImageDecodedMs}
           detailOpenToVisualReadyMs={badgeMetrics.detailOpenToVisualReadyMs}
+        />
+      ) : null}
+
+      {model.dedicationSenderConfirmOpen ? (
+        <DedicationSenderConfirmDialog
+          isSaving={model.isSaving}
+          onDismiss={() => model.setDedicationSenderConfirmOpen(false)}
+          onConfirm={() => void model.handleConfirmDedicate()}
+        />
+      ) : null}
+
+      {model.dedicationQueue.dedicationDialogOpen &&
+      model.dedicationQueue.dedicationAchievement ? (
+        <DedicationResponseDialog
+          achievement={model.dedicationQueue.dedicationAchievement}
+          senderDisplayName={model.dedicationQueue.dedicationSenderName}
+          isBusy={model.dedicationQueue.dedicationBusy}
+          onDismiss={model.dedicationQueue.dismissDedicationDialog}
+          onAccept={() => void model.dedicationQueue.acceptDedication()}
+          onReject={() => void model.dedicationQueue.rejectDedication()}
         />
       ) : null}
     </div>

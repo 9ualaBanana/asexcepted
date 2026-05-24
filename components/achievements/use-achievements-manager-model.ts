@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import { createInitialForm } from "@/components/achievements/achievement-manager-utils";
+import {
+  createInitialForm,
+  sortAchievements,
+} from "@/components/achievements/achievement-manager-utils";
 import { type FormState } from "@/components/achievements/achievement-editor-shared";
 import type { AchievementDialogStackProps } from "@/components/achievements/achievement-dialog-stack";
 import {
@@ -26,8 +29,23 @@ import {
   resetHideLockedPreferenceForNewAccount,
   useHideLockedPreference,
 } from "@/lib/achievements/hide-locked-preference";
+import { useVisibilityFilterPreference } from "@/lib/achievements/visibility-filter-preference";
+import {
+  canEditDedicatedVisibility,
+  isDedicatedVisibilityDirty,
+} from "@/lib/achievements/dedication-utils";
 import { userCollection } from "@/lib/routes";
 import { IMPRESSION_GLITTER_UI_ENABLED } from "@/lib/achievements/impression-glitter-feature";
+import { useDedicationQueueController } from "@/components/achievements/dedication/use-dedication-queue-controller";
+import {
+  achievementToForm,
+  formToPayload,
+} from "@/components/achievements/achievement-transformers";
+import {
+  payloadToDedicateApiBody,
+  postDedicateAchievement,
+} from "@/lib/dedications/dedicate-achievement-api";
+import { fetchPublicUserDisplayName } from "@/lib/user-profile-db";
 import { createClient } from "@/lib/supabase/client";
 
 const UUID_RE =
@@ -37,6 +55,7 @@ type UseAchievementsManagerModelArgs = {
   userId: string;
   readOnly: boolean;
   isAdmin?: boolean;
+  canDedicate?: boolean;
   initialDetailAchievementId?: string | null;
 };
 
@@ -44,6 +63,7 @@ export function useAchievementsManagerModel({
   userId,
   readOnly,
   isAdmin = false,
+  canDedicate = false,
   initialDetailAchievementId,
 }: UseAchievementsManagerModelArgs) {
   const pathname = usePathname();
@@ -57,6 +77,9 @@ export function useAchievementsManagerModel({
   const [panelForm, setPanelForm] = useState<FormState>(createInitialForm);
   const [impressionGlitterRevealPulse, setImpressionGlitterRevealPulse] = useState(0);
   const [optimisticImpressionGlitter, setOptimisticImpressionGlitter] = useState(false);
+  const [isDedicatingCreate, setIsDedicatingCreate] = useState(false);
+  const [dedicationSenderConfirmOpen, setDedicationSenderConfirmOpen] = useState(false);
+  const [dedicationBySenderName, setDedicationBySenderName] = useState<string | null>(null);
 
   const ui = useAchievementUiStateMachine();
   const badgeSession = useAchievementBadgeSessionController({
@@ -97,6 +120,7 @@ export function useAchievementsManagerModel({
   }, [detailAchievement, setAchievements]);
   const badgeMetrics = useAchievementBadgeMetricsController(detailAchievement, isAdmin);
   const [hideLocked, setHideLocked] = useHideLockedPreference();
+  const { visibilityFilter, cycleVisibilityFilter } = useVisibilityFilterPreference();
   const embedLink = useAchievementEmbedLinkController({
     detailAchievementId: detailAchievement?.id ?? null,
   });
@@ -139,8 +163,13 @@ export function useAchievementsManagerModel({
 
   const editorPipeline = useAchievementEditorPipelineController({
     readOnly,
+    canDedicate,
+    isDedicatingCreate,
+    setIsDedicatingCreate,
+    onRequestDedicateConfirm: () => setDedicationSenderConfirmOpen(true),
     isCreating: ui.isCreating,
     detailMode: ui.detailMode,
+    isVisibilityOnlyEdit: ui.isVisibilityOnlyEdit,
     createForm,
     panelForm,
     detailAchievementId: ui.detailAchievementId,
@@ -169,6 +198,22 @@ export function useAchievementsManagerModel({
     setIsSaving,
     badgeSessionController: badgeSession,
     uiActions: ui.actions,
+  });
+
+  const collectionAchievementIds = useMemo(
+    () => new Set(achievements.map((a) => a.id)),
+    [achievements],
+  );
+
+  const dedicationQueue = useDedicationQueueController({
+    ownerUserId: userId,
+    readOnly,
+    collectionAchievementIds,
+    onAccepted: (record) => {
+      setAchievements((prev) => sortAchievements([record, ...prev]));
+    },
+    onRejected: () => undefined,
+    reloadAchievements: data.loadAchievements,
   });
 
   const achievementOverlayOpen = ui.achievementOverlayOpen;
@@ -210,6 +255,26 @@ export function useAchievementsManagerModel({
   }, [deepLinkAchievementId, data.loadAchievements, pathname, userId]);
 
   useEffect(() => {
+    if (!detailAchievement?.dedicated_by_user_id) {
+      setDedicationBySenderName(null);
+      return;
+    }
+    void fetchPublicUserDisplayName(supabase, detailAchievement.dedicated_by_user_id).then(
+      (result) => {
+        if (result.isOk() && result.value) {
+          setDedicationBySenderName(result.value);
+        }
+      },
+    );
+  }, [detailAchievement?.dedicated_by_user_id, supabase]);
+
+  useEffect(() => {
+    if (!detailAchievement || ui.isVisibilityOnlyEdit) return;
+    if (!canEditDedicatedVisibility(detailAchievement)) return;
+    setPanelForm(achievementToForm(detailAchievement));
+  }, [detailAchievement, ui.isVisibilityOnlyEdit, setPanelForm]);
+
+  useEffect(() => {
     if (!deepLinkAchievementId) {
       lastDeepLinkedIdRef.current = null;
       return;
@@ -218,6 +283,12 @@ export function useAchievementsManagerModel({
     if (data.isLoading) return;
     const exists = achievements.some((a) => a.id === deepLinkAchievementId);
     if (!exists) return;
+    if (
+      searchParams.get("dedication") === "1" &&
+      !collectionAchievementIds.has(deepLinkAchievementId)
+    ) {
+      return;
+    }
     if (lastDeepLinkedIdRef.current === deepLinkAchievementId) return;
     lastDeepLinkedIdRef.current = deepLinkAchievementId;
     badgeMetrics.markDetailOpenStart(deepLinkAchievementId);
@@ -230,14 +301,51 @@ export function useAchievementsManagerModel({
     pathname,
     ui.actions.openDetailView,
     userId,
+    searchParams,
+    collectionAchievementIds,
+  ]);
+
+  const handleConfirmDedicate = useCallback(async () => {
+    if (!canDedicate) return;
+    setIsSaving(true);
+    setError(null);
+    const payload = formToPayload(createForm);
+    const body = payloadToDedicateApiBody(userId, payload);
+    const result = await postDedicateAchievement(body);
+    if (result.isErr()) {
+      setError(result.error);
+      setIsSaving(false);
+      return;
+    }
+    playSavePop();
+    setCreateForm(createInitialForm());
+    setIsDedicatingCreate(false);
+    setDedicationSenderConfirmOpen(false);
+    badgeSession.beginCreateBadgeSession();
+    setIsSaving(false);
+    ui.actions.closeOverlay();
+  }, [
+    badgeSession,
+    canDedicate,
+    createForm,
+    playSavePop,
+    setCreateForm,
+    ui.actions,
+    userId,
   ]);
 
   const gridItems = useMemo(() => {
-    const visible = hideLocked
-      ? achievements.filter((a) => !a.is_locked)
-      : achievements;
+    let visible = achievements;
+    if (hideLocked) {
+      visible = visible.filter((a) => !a.is_locked);
+    }
+    if (visibilityFilter === "public") {
+      visible = visible.filter((a) => a.visibility === "public");
+    } else if (visibilityFilter === "private") {
+      visible = visible.filter((a) => a.visibility === "private");
+    }
     return visible.map(achievementToGridItem);
-  }, [achievements, hideLocked]);
+  }, [achievements, hideLocked, visibilityFilter]);
 
   const unlockedCount = useMemo(
     () => achievements.filter((a) => !a.is_locked).length,
@@ -247,21 +355,31 @@ export function useAchievementsManagerModel({
 
   const handleCancelPanelEdit = useCallback(() => {
     if (!detailAchievement) return;
-    if (isAchievementFormDirty(panelForm, detailAchievement)) {
+    const dirty = ui.isVisibilityOnlyEdit
+      ? isDedicatedVisibilityDirty(panelForm, detailAchievement)
+      : isAchievementFormDirty(panelForm, detailAchievement);
+    if (dirty) {
       ui.actions.requestDiscardEdit("back");
       return;
     }
     editorPipeline.actions.cancelPanelEdit();
-  }, [detailAchievement, editorPipeline.actions, panelForm, ui.actions]);
+  }, [
+    detailAchievement,
+    editorPipeline.actions,
+    panelForm,
+    ui.actions,
+    ui.isVisibilityOnlyEdit,
+  ]);
 
   const handleCloseDetailPanel = useCallback(() => {
-    if (
-      ui.detailMode === "edit" &&
-      detailAchievement &&
-      isAchievementFormDirty(panelForm, detailAchievement)
-    ) {
-      ui.actions.requestDiscardEdit("close");
-      return;
+    if (ui.detailMode === "edit" && detailAchievement) {
+      const dirty = ui.isVisibilityOnlyEdit
+        ? isDedicatedVisibilityDirty(panelForm, detailAchievement)
+        : isAchievementFormDirty(panelForm, detailAchievement);
+      if (dirty) {
+        ui.actions.requestDiscardEdit("close");
+        return;
+      }
     }
     editorPipeline.actions.closeDetailPanel();
   }, [
@@ -270,6 +388,7 @@ export function useAchievementsManagerModel({
     panelForm,
     ui.actions,
     ui.detailMode,
+    ui.isVisibilityOnlyEdit,
   ]);
 
   const handleConfirmDiscardPanelEdit = useCallback(() => {
@@ -294,14 +413,17 @@ export function useAchievementsManagerModel({
     onSubmitCreate: editorPipeline.actions.submitCreate,
     onCancelCreate: editorPipeline.actions.closeOverlayFlow,
     detailMode: ui.detailMode,
+    isVisibilityOnlyEdit: ui.isVisibilityOnlyEdit,
     detailAchievement,
     panelForm,
     setPanelForm,
     setPanelUploadInProgress: badgeSession.setPanelUploadInProgress,
     panelBadgeIkSessionRef: badgeSession.panelBadgeIkSessionRef,
     onSubmitPanelSave: editorPipeline.actions.submitPanelSave,
+    onSubmitPanelVisibilitySave: editorPipeline.actions.submitPanelVisibilitySave,
     onCancelPanelEdit: handleCancelPanelEdit,
     onRequestPanelEdit: editorPipeline.actions.startPanelEditFlow,
+    onRequestPanelVisibilityEdit: editorPipeline.actions.startPanelVisibilityEditFlow,
     detailIsUnlocking,
     detailIsLockedUi,
     detailFloating,
@@ -336,6 +458,8 @@ export function useAchievementsManagerModel({
         setOptimisticImpressionGlitter(false);
       }
     },
+    dedicationSenderDisplayName: dedicationBySenderName,
+    isDedicatingCreate,
   };
 
   return {
@@ -371,7 +495,14 @@ export function useAchievementsManagerModel({
     achievementOverlayOpen,
     hideLocked,
     setHideLocked,
+    visibilityFilter,
+    cycleVisibilityFilter,
     unlockedCount,
     totalCount,
+    canDedicate,
+    dedicationQueue,
+    dedicationSenderConfirmOpen,
+    setDedicationSenderConfirmOpen,
+    handleConfirmDedicate,
   };
 }

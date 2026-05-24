@@ -17,6 +17,8 @@ export type AchievementDbRow = Pick<
   | "achieved_at"
   | "created_at"
   | "visibility"
+  | "dedicated_by_user_id"
+  | "dedication_status"
 >;
 
 export type AchievementDbWritePayload = Pick<

@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { err, ok, type Result } from "neverthrow";
 
-export type FeedEventType = "unlock" | "impression";
+export type FeedEventType = "unlock" | "impression" | "dedication";
 
 export type FeedRow = {
   event_type: FeedEventType;
@@ -42,9 +42,11 @@ function normalizeFeedRow(raw: Record<string, unknown>): FeedRow | null {
   const eventType =
     rawType === "impression"
       ? "impression"
-      : rawType === "unlock" || rawType === undefined || rawType === null
-        ? "unlock"
-        : null;
+      : rawType === "dedication"
+        ? "dedication"
+        : rawType === "unlock" || rawType === undefined || rawType === null
+          ? "unlock"
+          : null;
   if (!eventType) {
     return null;
   }

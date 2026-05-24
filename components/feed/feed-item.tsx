@@ -25,10 +25,14 @@ type FeedItemProps = {
 };
 
 export function FeedItem({ row }: FeedItemProps) {
-  const href = userAchievementDetail(row.user_id, row.achievement_id);
+  const href =
+    row.event_type === "dedication"
+      ? `${userAchievementDetail(row.user_id, row.achievement_id)}&dedication=1`
+      : userAchievementDetail(row.user_id, row.achievement_id);
   const tone = getSafeTone(row.tone);
   const FallbackIcon = getSafeIcon(row.icon);
   const isImpression = row.event_type === "impression";
+  const isDedication = row.event_type === "dedication";
   const eventTimeLabel = formatFeedEventTimestamp(row.event_at);
   const badgeSrc = row.icon_url?.trim()
     ? toOptimizedBadgeRenderSrc(row.icon_url.trim())
@@ -43,6 +47,7 @@ export function FeedItem({ row }: FeedItemProps) {
         "group flex items-center gap-3 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] py-2 pl-3.5 pr-3 sm:gap-3.5 sm:pl-4 sm:pr-3.5",
         "transition hover:border-white/15 hover:bg-white/[0.07]",
         isImpression && "border-amber-200/20 bg-amber-500/[0.04]",
+        isDedication && "border-violet-200/20 bg-violet-500/[0.04]",
       )}
     >
       <div className="flex h-full shrink-0 items-center justify-center pr-0.5">

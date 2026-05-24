@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { formatDedicationActivityMessage } from "@/lib/feed/dedication-message";
 import { formatImpressionActivityMessage } from "@/lib/feed/impression-message";
 import type { NotificationKind } from "@/lib/notifications/kinds";
 import { notificationLinks } from "@/lib/notifications/links";
@@ -29,6 +30,13 @@ export type ImpressionParams = {
   achievementId: string;
 };
 
+export type DedicationParams = {
+  senderName: string;
+  achievementTitle: string;
+  recipientUserId: string;
+  achievementId: string;
+};
+
 export type TestParams = Record<string, never>;
 
 export type AdminNewSignupParams = {
@@ -40,6 +48,7 @@ export type NotificationParams = {
   unlock: UnlockParams;
   new_follower: NewFollowerParams;
   impression: ImpressionParams;
+  dedication: DedicationParams;
   test: TestParams;
   admin_new_signup: AdminNewSignupParams;
 };
@@ -98,6 +107,15 @@ export function buildNotificationContent<K extends NotificationKind>(
         ),
         url: links.achievementDetail(p.ownerUserId, p.achievementId),
         type: "impression",
+      };
+    }
+    case "dedication": {
+      const p = params as DedicationParams;
+      return {
+        title: "Dedicated achievement",
+        body: formatDedicationActivityMessage(p.senderName, p.achievementTitle),
+        url: `${links.achievementDetail(p.recipientUserId, p.achievementId)}&dedication=1`,
+        type: "dedication",
       };
     }
     case "test":

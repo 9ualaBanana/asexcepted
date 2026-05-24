@@ -11,7 +11,7 @@ import {
   type RefObject,
   type SetStateAction,
 } from "react";
-import { Link2, PenLine, X, type LucideIcon } from "lucide-react";
+import { Check, Link2, Loader2, PenLine, X, type LucideIcon } from "lucide-react";
 
 import type { AchievementTone } from "@/components/achievements/achievement-card";
 import { AchievementDetailBadgeInteractive } from "@/components/achievements/badge/achievement-detail-badge-interactive";
@@ -25,7 +25,13 @@ import {
   formatAchievedAt,
   type FormState,
 } from "@/components/achievements/achievement-editor-shared";
+import { DedicationByline } from "@/components/achievements/dedication/dedication-byline";
 import { EditableAchievementCard } from "@/components/achievements/editable-achievement-card";
+import { AchievementVisibilityToggle } from "@/components/achievements/achievement-visibility-toggle";
+import {
+  canEditDedicatedVisibility,
+  isDedicatedAchievement,
+} from "@/lib/achievements/dedication-utils";
 import { ImpressionBurst } from "@/components/achievements/badge/impression-burst";
 import { submitImpression } from "@/components/achievements/use-impression-on-badge";
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
@@ -48,14 +54,17 @@ export type AchievementDialogStackProps = {
   onCancelCreate: () => void;
 
   detailMode: "view" | "edit";
+  isVisibilityOnlyEdit?: boolean;
   detailAchievement: AchievementRecord | null;
   panelForm: FormState;
   setPanelForm: Dispatch<SetStateAction<FormState>>;
   setPanelUploadInProgress: (inProgress: boolean) => void;
   panelBadgeIkSessionRef: RefObject<BadgeIkSession>;
   onSubmitPanelSave: (e: FormEvent) => void | Promise<void>;
+  onSubmitPanelVisibilitySave: () => void | Promise<void>;
   onCancelPanelEdit: () => void;
   onRequestPanelEdit: () => void;
+  onRequestPanelVisibilityEdit: () => void;
 
   detailIsUnlocking: boolean;
   detailIsLockedUi: boolean;
@@ -81,6 +90,8 @@ export type AchievementDialogStackProps = {
   impressionGlitterRevealPulse: number;
   onImpressionGlitterReveal: () => void;
   onImpressionRecorded: (added: boolean, hadImpressionsBefore: boolean) => void;
+  dedicationSenderDisplayName?: string | null;
+  isDedicatingCreate?: boolean;
 };
 
 export function AchievementDialogStack(props: AchievementDialogStackProps) {
@@ -96,14 +107,17 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     onSubmitCreate,
     onCancelCreate,
     detailMode,
+    isVisibilityOnlyEdit = false,
     detailAchievement,
     panelForm,
     setPanelForm,
     setPanelUploadInProgress,
     panelBadgeIkSessionRef,
     onSubmitPanelSave,
+    onSubmitPanelVisibilitySave,
     onCancelPanelEdit,
     onRequestPanelEdit,
+    onRequestPanelVisibilityEdit,
     detailIsUnlocking,
     detailIsLockedUi,
     detailFloating,
@@ -127,7 +141,18 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     impressionGlitterRevealPulse,
     onImpressionGlitterReveal,
     onImpressionRecorded,
+    dedicationSenderDisplayName,
+    isDedicatingCreate = false,
   } = props;
+
+  const detailIsDedicated =
+    detailAchievement != null && isDedicatedAchievement(detailAchievement);
+  const dedicatedVisibilityEditable =
+    detailAchievement != null && canEditDedicatedVisibility(detailAchievement);
+  const dedicationSenderId = detailAchievement?.dedicated_by_user_id ?? null;
+  const showDetailContent =
+    detailAchievement != null &&
+    (detailMode === "view" || isVisibilityOnlyEdit);
 
   const impressionTutorial = useTutorial(TUTORIAL_IDS.impressionDoubleTap);
   const unlockHoldTutorial = useTutorial(TUTORIAL_IDS.unlockHold);
@@ -232,8 +257,9 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
               badgeIkSessionRef={createBadgeIkSessionRef}
               baselineIconFileId={createBadgeIkSessionRef.current.baselineFileId}
               onClosePanel={() => closeDetailPanel()}
+              dedicateMode={isDedicatingCreate}
             />
-          ) : detailMode === "view" && detailAchievement ? (
+          ) : showDetailContent ? (
             <div className="no-tap-highlight flex w-full flex-col items-center pt-1">
               <div className={achievementBadgeChromeWidth}>
                 <div
@@ -328,6 +354,14 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                 {detailAchievement.title?.trim() ||
                   (detailIsLockedUi ? "Locked" : "Untitled")}
               </h2>
+              {detailIsDedicated && dedicationSenderId ? (
+                <DedicationByline
+                  senderUserId={dedicationSenderId}
+                  senderDisplayName={
+                    dedicationSenderDisplayName?.trim() || "Someone"
+                  }
+                />
+              ) : null}
               <p className="mt-4 break-words text-center text-sm leading-relaxed text-white/65">
                 {detailIsLockedUi
                   ? detailAchievement.description?.trim() ||
@@ -353,21 +387,70 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                     <div
                       className={cn(achievementDialogIconSideSlot, "justify-start")}
                     >
-                      <button
-                        type="button"
-                        aria-label="Edit"
-                        className={achievementDialogIconBtn}
-                        disabled={isSaving}
-                        onClick={onRequestPanelEdit}
-                      >
-                        <PenLine className="h-4 w-4" aria-hidden />
-                      </button>
+                      {isVisibilityOnlyEdit ? (
+                        <button
+                          type="button"
+                          aria-label={isSaving ? "Saving" : "Save visibility"}
+                          className={cn(
+                            achievementDialogIconBtn,
+                            "bg-white/10 text-white hover:bg-white/15",
+                          )}
+                          disabled={isSaving}
+                          onClick={() => void onSubmitPanelVisibilitySave()}
+                        >
+                          {isSaving ? (
+                            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                          ) : (
+                            <Check className="h-4 w-4" aria-hidden />
+                          )}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          aria-label="Edit"
+                          className={achievementDialogIconBtn}
+                          disabled={isSaving}
+                          onClick={
+                            dedicatedVisibilityEditable
+                              ? onRequestPanelVisibilityEdit
+                              : onRequestPanelEdit
+                          }
+                        >
+                          <PenLine className="h-4 w-4" aria-hidden />
+                        </button>
+                      )}
                     </div>
-                    <div className="min-w-0 flex-1" aria-hidden />
+                    <div className="flex min-w-0 flex-1 justify-center">
+                      {dedicatedVisibilityEditable && isVisibilityOnlyEdit ? (
+                        <AchievementVisibilityToggle
+                          visibility={panelForm.visibility}
+                          disabled={isSaving}
+                          onToggle={(visibility) =>
+                            setPanelForm((prev) => ({ ...prev, visibility }))
+                          }
+                        />
+                      ) : dedicatedVisibilityEditable ? (
+                        <AchievementVisibilityToggle
+                          visibility={panelForm.visibility}
+                          disabled
+                          onToggle={() => undefined}
+                        />
+                      ) : null}
+                    </div>
                     <div
                       className={cn(achievementDialogIconSideSlot, "justify-end")}
                     >
-                      {detailAchievement.icon_url?.trim() ? (
+                      {isVisibilityOnlyEdit ? (
+                        <button
+                          type="button"
+                          aria-label="Cancel editing visibility"
+                          className={achievementDialogIconBtn}
+                          disabled={isSaving}
+                          onClick={onCancelPanelEdit}
+                        >
+                          <X className="h-4 w-4" aria-hidden />
+                        </button>
+                      ) : detailAchievement.icon_url?.trim() ? (
                         <button
                           type="button"
                           aria-label="Copy embed link"
@@ -380,7 +463,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       ) : null}
                     </div>
                   </div>
-                  {embedCopyHint ? (
+                  {embedCopyHint && !isVisibilityOnlyEdit ? (
                     <p className="text-center text-xs text-white/50" role="status">
                       {embedCopyHint}
                     </p>
@@ -390,7 +473,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                 <div className="mt-6" aria-hidden />
               )}
             </div>
-          ) : detailAchievement ? (
+          ) : detailMode === "edit" && detailAchievement ? (
             <EditableAchievementCard
               form={panelForm}
               setForm={setPanelForm}

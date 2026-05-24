@@ -4,6 +4,10 @@ import { useCallback, type FormEvent } from "react";
 
 import { ACHIEVEMENT_UI_COPY } from "@/components/achievements/achievement-ui-copy";
 import { createAchievement, updateAchievement } from "@/components/achievements/achievement-db";
+import {
+  canEditDedicatedVisibility,
+  isDedicatedAchievement,
+} from "@/lib/achievements/dedication-utils";
 import { createInitialForm, sortAchievements } from "@/components/achievements/achievement-manager-utils";
 import { type FormState, hasMeaningfulContent } from "@/components/achievements/achievement-editor-shared";
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
@@ -16,8 +20,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 type UseAchievementEditorPipelineControllerArgs = {
   readOnly: boolean;
+  canDedicate?: boolean;
+  isDedicatingCreate: boolean;
+  setIsDedicatingCreate: (value: boolean) => void;
+  onRequestDedicateConfirm: () => void;
   isCreating: boolean;
   detailMode: "view" | "edit";
+  isVisibilityOnlyEdit: boolean;
   createForm: FormState;
   panelForm: FormState;
   detailAchievementId: string | null;
@@ -37,9 +46,12 @@ type UseAchievementEditorPipelineControllerArgs = {
 
 export type AchievementEditorPipelineActions = {
   startCreateFlow: () => void;
+  startDedicateFlow: () => void;
   startPanelEditFlow: () => void;
+  startPanelVisibilityEditFlow: () => void;
   submitCreate: (e: FormEvent) => Promise<void>;
   submitPanelSave: (e: FormEvent) => Promise<void>;
+  submitPanelVisibilitySave: () => Promise<void>;
   closeOverlayFlow: () => boolean;
   cancelPanelEdit: () => boolean;
   closeDetailPanel: () => void;
@@ -47,8 +59,13 @@ export type AchievementEditorPipelineActions = {
 
 export function useAchievementEditorPipelineController({
   readOnly,
+  canDedicate = false,
+  isDedicatingCreate,
+  setIsDedicatingCreate,
+  onRequestDedicateConfirm,
   isCreating,
   detailMode,
+  isVisibilityOnlyEdit,
   createForm,
   panelForm,
   detailAchievementId,
@@ -66,8 +83,15 @@ export function useAchievementEditorPipelineController({
   clearManualEmbedUrl,
 }: UseAchievementEditorPipelineControllerArgs) {
   const cancelPanelEdit = useCallback(() => {
-    if (badgeSessionController.editorUploadInProgress) return false;
     if (detailMode !== "edit" || !detailAchievement) return false;
+
+    if (isVisibilityOnlyEdit) {
+      setPanelForm(achievementToForm(detailAchievement));
+      uiActions.exitDetailEdit();
+      return true;
+    }
+
+    if (badgeSessionController.editorUploadInProgress) return false;
 
     badgeSessionController.rollbackPanelBadgeSession();
     setPanelForm(achievementToForm(detailAchievement));
@@ -78,6 +102,7 @@ export function useAchievementEditorPipelineController({
     badgeSessionController,
     detailAchievement,
     detailMode,
+    isVisibilityOnlyEdit,
     setPanelForm,
     uiActions,
   ]);
@@ -89,12 +114,18 @@ export function useAchievementEditorPipelineController({
       badgeSessionController.rollbackCreateBadgeSession();
       setCreateForm(createInitialForm());
       badgeSessionController.setCreateUploadInProgress(false);
+      setIsDedicatingCreate(false);
     }
     if (detailMode === "edit" && detailAchievement) {
-      badgeSessionController.rollbackPanelBadgeSession();
-      setPanelForm(achievementToForm(detailAchievement));
-      badgeSessionController.setPanelUploadInProgress(false);
-      uiActions.exitDetailEdit();
+      if (isVisibilityOnlyEdit) {
+        setPanelForm(achievementToForm(detailAchievement));
+        uiActions.exitDetailEdit();
+      } else {
+        badgeSessionController.rollbackPanelBadgeSession();
+        setPanelForm(achievementToForm(detailAchievement));
+        badgeSessionController.setPanelUploadInProgress(false);
+        uiActions.exitDetailEdit();
+      }
     }
     uiActions.closeOverlay();
     return true;
@@ -102,6 +133,7 @@ export function useAchievementEditorPipelineController({
     badgeSessionController,
     detailAchievement,
     detailMode,
+    isVisibilityOnlyEdit,
     isCreating,
     setCreateForm,
     setPanelForm,
@@ -109,17 +141,38 @@ export function useAchievementEditorPipelineController({
   ]);
 
   const startCreateFlow = useCallback(() => {
+    setIsDedicatingCreate(false);
     badgeSessionController.beginCreateBadgeSession();
     uiActions.openCreate();
     setCreateForm(createInitialForm());
-  }, [badgeSessionController, setCreateForm, uiActions]);
+  }, [badgeSessionController, setCreateForm, setIsDedicatingCreate, uiActions]);
+
+  const startDedicateFlow = useCallback(() => {
+    if (!canDedicate) return;
+    setIsDedicatingCreate(true);
+    badgeSessionController.beginCreateBadgeSession();
+    uiActions.openCreate();
+    setCreateForm({
+      ...createInitialForm(),
+      isLocked: true,
+      visibility: "private",
+    });
+  }, [badgeSessionController, canDedicate, setCreateForm, setIsDedicatingCreate, uiActions]);
 
   const startPanelEditFlow = useCallback(() => {
     if (!detailAchievement) return;
+    if (isDedicatedAchievement(detailAchievement)) return;
     badgeSessionController.beginPanelBadgeSession(detailAchievement);
     setPanelForm(achievementToForm(detailAchievement));
     uiActions.enterDetailEdit();
   }, [badgeSessionController, detailAchievement, setPanelForm, uiActions]);
+
+  const startPanelVisibilityEditFlow = useCallback(() => {
+    if (!detailAchievement) return;
+    if (!canEditDedicatedVisibility(detailAchievement)) return;
+    setPanelForm(achievementToForm(detailAchievement));
+    uiActions.enterDetailVisibilityEdit();
+  }, [detailAchievement, setPanelForm, uiActions]);
 
   const closeDetailPanel = useCallback(() => {
     const closed = closeOverlayFlow();
@@ -132,11 +185,18 @@ export function useAchievementEditorPipelineController({
   const submitCreate = useCallback(
     async (e: FormEvent) => {
       e.preventDefault();
-      if (readOnly) return;
+      if (readOnly && !canDedicate) return;
       if (!hasMeaningfulContent(createForm)) {
         setError(ACHIEVEMENT_UI_COPY.validationMeaningfulContent);
         return;
       }
+
+      if (isDedicatingCreate) {
+        onRequestDedicateConfirm();
+        return;
+      }
+
+      if (readOnly) return;
 
       setIsSaving(true);
       setError(null);
@@ -168,7 +228,10 @@ export function useAchievementEditorPipelineController({
     },
     [
       badgeSessionController,
+      canDedicate,
       createForm,
+      isDedicatingCreate,
+      onRequestDedicateConfirm,
       playSavePop,
       readOnly,
       setAchievements,
@@ -185,6 +248,7 @@ export function useAchievementEditorPipelineController({
       e.preventDefault();
       if (readOnly) return;
       if (!detailAchievementId) return;
+      if (detailAchievement && isDedicatedAchievement(detailAchievement)) return;
       if (!hasMeaningfulContent(panelForm)) {
         setError(ACHIEVEMENT_UI_COPY.validationMeaningfulContent);
         return;
@@ -250,11 +314,64 @@ export function useAchievementEditorPipelineController({
     ],
   );
 
+  const submitPanelVisibilitySave = useCallback(async () => {
+    if (readOnly) return;
+    if (!detailAchievementId || !detailAchievement) return;
+    if (!canEditDedicatedVisibility(detailAchievement)) return;
+    if (panelForm.visibility === detailAchievement.visibility) {
+      uiActions.exitDetailEdit();
+      return;
+    }
+
+    setIsSaving(true);
+    setError(null);
+
+    const updatePayload = {
+      ...formToPayload(achievementToForm(detailAchievement)),
+      visibility: panelForm.visibility,
+    };
+    const result = await updateAchievement(supabase, detailAchievementId, updatePayload);
+
+    if (result.isErr()) {
+      setError(result.error);
+      setIsSaving(false);
+      return;
+    }
+
+    playSavePop();
+    const updatedAchievement = result.value;
+    setAchievements((prev) =>
+      sortAchievements(
+        prev.map((achievement) =>
+          achievement.id === updatedAchievement.id ? updatedAchievement : achievement,
+        ),
+      ),
+    );
+    setPanelForm(achievementToForm(updatedAchievement));
+    uiActions.exitDetailEdit();
+    setIsSaving(false);
+  }, [
+    detailAchievement,
+    detailAchievementId,
+    panelForm.visibility,
+    playSavePop,
+    readOnly,
+    setAchievements,
+    setError,
+    setIsSaving,
+    setPanelForm,
+    supabase,
+    uiActions,
+  ]);
+
   const actions: AchievementEditorPipelineActions = {
     startCreateFlow,
+    startDedicateFlow,
     startPanelEditFlow,
+    startPanelVisibilityEditFlow,
     submitCreate,
     submitPanelSave,
+    submitPanelVisibilitySave,
     closeOverlayFlow,
     cancelPanelEdit,
     closeDetailPanel,

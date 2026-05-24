@@ -14,11 +14,37 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievement_dedication_events: {
+        Row: {
+          achievement_id: string
+          created_at: string
+          id: string
+          recipient_user_id: string
+          sender_user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          created_at?: string
+          id?: string
+          recipient_user_id: string
+          sender_user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          created_at?: string
+          id?: string
+          recipient_user_id?: string
+          sender_user_id?: string
+        }
+        Relationships: []
+      }
       achievements: {
         Row: {
           achieved_at: string | null
           category: string | null
           created_at: string
+          dedicated_by_user_id: string | null
+          dedication_status: string | null
           description: string | null
           icon: string
           icon_file_id: string | null
@@ -35,6 +61,8 @@ export type Database = {
           achieved_at?: string | null
           category?: string | null
           created_at?: string
+          dedicated_by_user_id?: string | null
+          dedication_status?: string | null
           description?: string | null
           icon?: string
           icon_file_id?: string | null
@@ -51,6 +79,8 @@ export type Database = {
           achieved_at?: string | null
           category?: string | null
           created_at?: string
+          dedicated_by_user_id?: string | null
+          dedication_status?: string | null
           description?: string | null
           icon?: string
           icon_file_id?: string | null

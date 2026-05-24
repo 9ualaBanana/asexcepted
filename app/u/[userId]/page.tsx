@@ -13,7 +13,7 @@ import { Suspense } from "react";
 
 type PageProps = {
   params: Promise<{ userId: string }>;
-  searchParams: Promise<{ achievement?: string }>;
+  searchParams: Promise<{ achievement?: string; dedication?: string }>;
 };
 
 /** `userId` is Supabase Auth user id (`auth.users.id`). Owners edit; everyone else (including signed out) can view. */
@@ -29,6 +29,8 @@ async function UserAchievementsContent({ params, searchParams }: PageProps) {
   const user = userData.user;
   const isOwner = Boolean(user?.id === userId);
   const readOnly = !isOwner;
+  const viewerIsAdmin = Boolean(user && isAdminUserId(user.id));
+  const canDedicate = viewerIsAdmin && !isOwner;
 
   let initialIsFollowing = false;
   if (user && !isOwner) {
@@ -93,7 +95,8 @@ async function UserAchievementsContent({ params, searchParams }: PageProps) {
             <AchievementsManager
               userId={userId}
               readOnly={readOnly}
-              isAdmin={isOwner && isAdminUserId(user?.id)}
+              isAdmin={viewerIsAdmin}
+              canDedicate={canDedicate}
               initialDetailAchievementId={achievementParam ?? null}
             />
           </Suspense>

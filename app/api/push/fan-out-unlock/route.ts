@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { FOLLOWER_UNLOCK_NOTIFICATIONS_REQUIRE_PUBLIC_VISIBILITY } from "@/lib/achievements/unlock-notification-policy";
 import { resolveDisplayName, sendPushToUsers } from "@/lib/notifications";
 import { createClient } from "@/lib/supabase/server";
 
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
 
   const { data: achievement, error: achError } = await supabase
     .from("achievements")
-    .select("id, user_id, title, is_locked")
+    .select("id, user_id, title, is_locked, visibility")
     .eq("id", parsed.data.achievementId)
     .single();
 
@@ -40,6 +41,13 @@ export async function POST(request: Request) {
 
   if (achievement.is_locked) {
     return NextResponse.json({ error: "Achievement is still locked" }, { status: 400 });
+  }
+
+  if (
+    FOLLOWER_UNLOCK_NOTIFICATIONS_REQUIRE_PUBLIC_VISIBILITY &&
+    achievement.visibility !== "public"
+  ) {
+    return NextResponse.json({ ok: true, requested: 0, successCount: 0, failureCount: 0 });
   }
 
   const actorName = await resolveDisplayName(supabase, user.id);
