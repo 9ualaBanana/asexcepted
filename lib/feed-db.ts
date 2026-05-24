@@ -22,6 +22,8 @@ export type FeedRow = {
   created_at: string;
   updated_at: string;
   event_at: string;
+  /** True for dedication inbox rows and unlock rows of dedicated achievements. */
+  is_dedicated: boolean;
 };
 
 /** @deprecated Use FeedRow */
@@ -73,6 +75,7 @@ function normalizeFeedRow(raw: Record<string, unknown>): FeedRow | null {
     created_at: String(raw.created_at),
     updated_at: String(raw.updated_at),
     event_at: String(raw.event_at ?? raw.updated_at),
+    is_dedicated: eventType === "dedication" || Boolean(raw.is_dedicated),
   };
 }
 

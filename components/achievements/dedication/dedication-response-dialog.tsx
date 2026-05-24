@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { Check, X } from "lucide-react";
 
 import { AchievementDetailBadgeInteractive } from "@/components/achievements/badge/achievement-detail-badge-interactive";
-import { DedicationByline } from "@/components/achievements/dedication/dedication-byline";
+import { DedicationBylineChromeRow } from "@/components/achievements/dedication/dedication-byline-chrome-row";
 import { resolveTone } from "@/components/achievements/achievement-manager-utils";
 import {
   achievementDialogIconBtn,
@@ -101,37 +101,61 @@ export function DedicationResponseDialog({
           >
             {achievement.title?.trim() || "Achievement"}
           </h2>
-          {senderId ? (
-            <DedicationByline
-              senderUserId={senderId}
-              senderDisplayName={senderDisplayName}
-            />
-          ) : null}
           <p className="mt-4 break-words text-center text-sm leading-relaxed text-white/65">
             {achievement.description?.trim() ||
               "Someone dedicated this achievement to you."}
           </p>
 
-          <div className="mt-8 flex items-center justify-between gap-4">
-            <button
-              type="button"
-              aria-label="Accept dedication"
-              disabled={isBusy}
-              className={cn(achievementDialogIconBtn, "h-11 w-11")}
-              onClick={onAccept}
-            >
-              <Check className="h-5 w-5" aria-hidden />
-            </button>
-            <button
-              type="button"
-              aria-label="Reject dedication"
-              disabled={isBusy}
-              className={cn(achievementDialogIconBtn, "h-11 w-11")}
-              onClick={onReject}
-            >
-              <X className="h-5 w-5" aria-hidden />
-            </button>
-          </div>
+          {senderId ? (
+            <DedicationBylineChromeRow
+              senderUserId={senderId}
+              senderDisplayName={senderDisplayName}
+              className="mt-6"
+              startSlot={
+                <button
+                  type="button"
+                  aria-label="Accept dedication"
+                  disabled={isBusy}
+                  className={cn(achievementDialogIconBtn, "h-11 w-11")}
+                  onClick={onAccept}
+                >
+                  <Check className="h-5 w-5" aria-hidden />
+                </button>
+              }
+              endSlot={
+                <button
+                  type="button"
+                  aria-label="Reject dedication"
+                  disabled={isBusy}
+                  className={cn(achievementDialogIconBtn, "h-11 w-11")}
+                  onClick={onReject}
+                >
+                  <X className="h-5 w-5" aria-hidden />
+                </button>
+              }
+            />
+          ) : (
+            <div className="mt-8 flex items-center justify-between gap-4">
+              <button
+                type="button"
+                aria-label="Accept dedication"
+                disabled={isBusy}
+                className={cn(achievementDialogIconBtn, "h-11 w-11")}
+                onClick={onAccept}
+              >
+                <Check className="h-5 w-5" aria-hidden />
+              </button>
+              <button
+                type="button"
+                aria-label="Reject dedication"
+                disabled={isBusy}
+                className={cn(achievementDialogIconBtn, "h-11 w-11")}
+                onClick={onReject}
+              >
+                <X className="h-5 w-5" aria-hidden />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>,

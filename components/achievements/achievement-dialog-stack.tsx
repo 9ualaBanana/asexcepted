@@ -26,6 +26,7 @@ import {
   type FormState,
 } from "@/components/achievements/achievement-editor-shared";
 import { DedicationByline } from "@/components/achievements/dedication/dedication-byline";
+import { DedicationBylineChromeRow } from "@/components/achievements/dedication/dedication-byline-chrome-row";
 import { EditableAchievementCard } from "@/components/achievements/editable-achievement-card";
 import { AchievementVisibilityToggle } from "@/components/achievements/achievement-visibility-toggle";
 import {
@@ -357,18 +358,6 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                 {detailAchievement.title?.trim() ||
                   (detailIsLockedUi ? "Locked" : "Untitled")}
               </h2>
-              {detailIsDedicated &&
-              dedicationSenderId &&
-              readOnly &&
-              detailMode === "view" &&
-              !isVisibilityOnlyEdit ? (
-                <DedicationByline
-                  senderUserId={dedicationSenderId}
-                  senderDisplayName={
-                    dedicationSenderDisplayName?.trim() || "Someone"
-                  }
-                />
-              ) : null}
               <p className="mt-4 break-words text-center text-sm leading-relaxed text-white/65">
                 {detailIsLockedUi
                   ? detailAchievement.description?.trim() ||
@@ -379,6 +368,20 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                 <p className="mt-4 text-center text-xs text-white/40">
                   {formatAchievedAt(detailAchievement.achieved_at)}
                 </p>
+              ) : null}
+
+              {readOnly &&
+              detailIsDedicated &&
+              dedicationSenderId &&
+              detailMode === "view" &&
+              !isVisibilityOnlyEdit ? (
+                <DedicationBylineChromeRow
+                  senderUserId={dedicationSenderId}
+                  senderDisplayName={
+                    dedicationSenderDisplayName?.trim() || "Someone"
+                  }
+                  className={!formatAchievedAt(detailAchievement.achieved_at) ? "mt-6" : undefined}
+                />
               ) : null}
 
               {!readOnly ? (
@@ -480,7 +483,8 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                     </p>
                   ) : null}
                 </div>
-              ) : formatAchievedAt(detailAchievement.achieved_at) ? null : (
+              ) : formatAchievedAt(detailAchievement.achieved_at) ||
+                (detailIsDedicated && dedicationSenderId) ? null : (
                 <div className="mt-6" aria-hidden />
               )}
             </div>

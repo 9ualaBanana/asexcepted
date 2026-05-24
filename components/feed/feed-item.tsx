@@ -15,6 +15,7 @@ import {
   FEED_ROW_HEIGHT_CLASS,
 } from "@/lib/feed/feed-row-layout";
 import type { FeedRow } from "@/lib/feed-db";
+import { feedRowShowsDedicatedBadge } from "@/lib/feed/feed-dedicated-badge";
 import { userAchievementDetail } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +35,7 @@ export function FeedItem({ row }: FeedItemProps) {
   const FallbackIcon = getSafeIcon(row.icon);
   const isImpression = row.event_type === "impression";
   const isDedication = row.event_type === "dedication";
+  const showDedicatedBadge = feedRowShowsDedicatedBadge(row);
   const eventTimeLabel = formatFeedEventTimestamp(row.event_at);
   const badgeSrc = row.icon_url?.trim()
     ? toOptimizedBadgeRenderSrc(row.icon_url.trim())
@@ -48,7 +50,7 @@ export function FeedItem({ row }: FeedItemProps) {
         "group flex items-center gap-3 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] py-2 pl-3.5 pr-3 sm:gap-3.5 sm:pl-4 sm:pr-3.5",
         "transition hover:border-white/15 hover:bg-white/[0.07]",
         isImpression && "border-amber-200/20 bg-amber-500/[0.04]",
-        isDedication && "border-violet-200/20 bg-violet-500/[0.04]",
+        showDedicatedBadge && "border-violet-200/20 bg-violet-500/[0.04]",
       )}
     >
       <div className="flex h-full shrink-0 items-center justify-center pr-0.5">
@@ -71,7 +73,7 @@ export function FeedItem({ row }: FeedItemProps) {
                   size="grid"
                 />
               )}
-              {isDedication && badgeSrc ? (
+              {showDedicatedBadge && badgeSrc ? (
                 <DedicatedBadgeGlitter
                   renderSrc={badgeSrc}
                   motionSeed={row.achievement_id}
