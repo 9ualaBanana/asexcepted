@@ -1,6 +1,7 @@
 /* eslint-disable no-undef */
 const OFFLINE_URL = "/offline.html";
 
+importScripts("/app-brand.js");
 importScripts("/firebase-push-config.js");
 importScripts("https://www.gstatic.com/firebasejs/12.12.1/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/12.12.1/firebase-messaging-compat.js");
@@ -19,7 +20,7 @@ function showNotificationFromPayload(payload) {
   const notification = payload?.notification ?? {};
   const data = payload?.data ?? {};
   const title =
-    notification.title || data.title || "AsExcepted";
+    notification.title || data.title || self.APP_DISPLAY_NAME;
   const body = notification.body || data.body || "";
   const icon =
     notification.icon || data.icon || "/icons/icon-192.png";

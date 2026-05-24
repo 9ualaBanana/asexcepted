@@ -6,6 +6,7 @@ import { LiveUpdateProvider } from "@/lib/live-updates";
 import { PwaInit } from "@/components/pwa/pwa-init";
 import { PushRegistration } from "@/components/push/push-registration";
 import { StartupSplash } from "@/components/pwa/startup-splash";
+import { APP_DESCRIPTION, APP_DISPLAY_NAME } from "@/lib/brand";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -22,13 +23,13 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "AsExcepted",
-  description: "Collect and share your achievements.",
-  applicationName: "AsExcepted",
+  title: APP_DISPLAY_NAME,
+  description: APP_DESCRIPTION,
+  applicationName: APP_DISPLAY_NAME,
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "AsExcepted",
+    title: APP_DISPLAY_NAME,
   },
   manifest: "/manifest.webmanifest",
   icons: {

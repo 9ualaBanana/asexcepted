@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { formatDedicationActivityMessage } from "@/lib/feed/dedication-message";
 import { formatImpressionActivityMessage } from "@/lib/feed/impression-message";
 import type { NotificationKind } from "@/lib/notifications/kinds";
+import { APP_DISPLAY_NAME } from "@/lib/brand";
 import { notificationLinks } from "@/lib/notifications/links";
 
 export type NotificationContent = {
@@ -80,7 +81,8 @@ export function buildNotificationContent<K extends NotificationKind>(
       const p = params as UnlockParams;
       const title = `${p.actorName} unlocked an achievement`;
       const body =
-        p.achievementTitle.trim() || "Open AsExcepted to see what they earned.";
+        p.achievementTitle.trim() ||
+        `Open ${APP_DISPLAY_NAME} to see what they earned.`;
       return {
         title,
         body,
@@ -120,7 +122,7 @@ export function buildNotificationContent<K extends NotificationKind>(
     }
     case "test":
       return {
-        title: "AsExcepted test notification",
+        title: `${APP_DISPLAY_NAME} test notification`,
         body: "Push is wired correctly for this profile.",
         url: links.profile,
         type: "push.test",
@@ -128,7 +130,7 @@ export function buildNotificationContent<K extends NotificationKind>(
     case "admin_new_signup": {
       const p = params as AdminNewSignupParams;
       return {
-        title: "AsExcepted: New signup",
+        title: `${APP_DISPLAY_NAME}: New signup`,
         body: p.email
           ? `New user signed up: ${p.email}`
           : `New user signed up: ${p.userId}`,
@@ -138,7 +140,7 @@ export function buildNotificationContent<K extends NotificationKind>(
     }
     default:
       return {
-        title: "AsExcepted",
+        title: APP_DISPLAY_NAME,
         body: "You have a new notification.",
         url: links.feed,
         type: "generic",

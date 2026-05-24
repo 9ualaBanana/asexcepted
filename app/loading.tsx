@@ -1,5 +1,7 @@
 import Image from "next/image";
 
+import { APP_DISPLAY_NAME } from "@/lib/brand";
+
 export default function Loading() {
   return (
     <main className="min-h-screen w-full bg-[#14121c] text-[#f5f3ff]">
@@ -11,7 +13,7 @@ export default function Loading() {
           />
           <Image
             src="/icons/icon-512.png"
-            alt="AsExcepted"
+            alt={APP_DISPLAY_NAME}
             width={256}
             height={256}
             priority

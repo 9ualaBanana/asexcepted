@@ -4,6 +4,7 @@ import { onMessage } from "firebase/messaging";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+import { APP_DISPLAY_NAME } from "@/lib/brand";
 import { getFirebaseMessagingClient } from "@/lib/push/firebase-client";
 import {
   attachPushNotificationClickHandler,
@@ -39,7 +40,7 @@ function showForegroundNotification(
   }
   const notification = payload.notification ?? {};
   const data = payload.data ?? {};
-  const title = notification.title || data.title || "AsExcepted";
+  const title = notification.title || data.title || APP_DISPLAY_NAME;
   const body = notification.body || data.body || "";
   const icon = notification.icon || data.icon || "/icons/icon-192.png";
   const url = extractPushUrl(payload);

@@ -1,4 +1,4 @@
-# AsExcepted
+# %dopæminer%
 
 Next.js app with Supabase auth, achievements, profiles, and friends.
 
