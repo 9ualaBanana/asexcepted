@@ -36,13 +36,28 @@ const PALETTES: GlitterParticleSpec["palette"][] = [
   "champagne",
 ];
 
+/** Particles spread across the mask with inset + capped drift so motion stays inside. */
 export function buildGlitterParticles(
   seed: string,
   count: number,
   salt = 0,
+  options?: {
+    marginPct?: number;
+    maxDriftPx?: number;
+    sizeMinPx?: number;
+    sizeRangePx?: number;
+  },
 ): GlitterParticleSpec[] {
+  const margin = options?.marginPct ?? 11;
+  const maxDrift = options?.maxDriftPx ?? 7;
+  const sizeMin = options?.sizeMinPx ?? 2;
+  const sizeRange = options?.sizeRangePx ?? 2.2;
+  const span = 100 - margin * 2;
+
   let state = hashSeed(`${seed}:${salt}`);
   const particles: GlitterParticleSpec[] = [];
+  const cols = Math.max(1, Math.ceil(Math.sqrt(count * 1.15)));
+  const rows = Math.max(1, Math.ceil(count / cols));
 
   for (let i = 0; i < count; i++) {
     state = (state + i * 2654435761) >>> 0;
@@ -52,16 +67,25 @@ export function buildGlitterParticles(
     const r4 = mulberry32(state ^ 0xc2b2ae35);
     const r5 = mulberry32(state ^ 0x27d4eb2f);
 
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const cellW = span / cols;
+    const cellH = span / rows;
+    const leftPct =
+      margin + col * cellW + cellW * 0.5 + (r1 - 0.5) * cellW * 0.72;
+    const topPct =
+      margin + row * cellH + cellH * 0.5 + (r2 - 0.5) * cellH * 0.72;
+
     particles.push({
       id: i,
-      leftPct: 6 + r1 * 88,
-      topPct: 6 + r2 * 88,
-      sizePx: 2 + Math.floor(r3 * 2.8),
+      leftPct,
+      topPct,
+      sizePx: sizeMin + Math.floor(r3 * sizeRange),
       delayMs: Math.floor(r4 * 4200),
       durationMs: 2200 + Math.floor(r5 * 2800),
-      driftX: (r1 - 0.5) * 18,
-      driftY: (r2 - 0.5) * 16,
-      driftZ: (r3 - 0.5) * 10,
+      driftX: (r3 - 0.5) * maxDrift * 2,
+      driftY: (r4 - 0.5) * maxDrift * 2,
+      driftZ: (r5 - 0.5) * maxDrift * 0.35,
       palette: PALETTES[i % PALETTES.length]!,
     });
   }

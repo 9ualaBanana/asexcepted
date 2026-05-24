@@ -18,6 +18,18 @@ export function canEditDedicatedVisibility(
   );
 }
 
+/** In-collection dedication (accepted, or legacy row missing status). */
+export function showsDedicatedBadgeAura(
+  achievement: Pick<
+    AchievementRecord,
+    "dedicated_by_user_id" | "dedication_status"
+  >,
+): boolean {
+  if (!achievement.dedicated_by_user_id) return false;
+  if (achievement.dedication_status === "pending") return false;
+  return true;
+}
+
 export function isDedicatedVisibilityDirty(
   form: Pick<FormState, "visibility">,
   record: Pick<AchievementRecord, "visibility">,

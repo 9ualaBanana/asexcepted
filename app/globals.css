@@ -427,6 +427,11 @@
   transform-style: preserve-3d;
 }
 
+/* Glitter on top of the badge face (detail 3D viewer). */
+.impression-glitter-3d-front.impression-glitter-3d {
+  transform: translateZ(1.15px);
+}
+
 @keyframes impression-glitter-reveal {
   0% {
     opacity: 0;
@@ -481,6 +486,40 @@
 
 .impression-glitter-particle {
   animation: impression-glitter-drift var(--glitter-duration, 3s) ease-in-out
+    var(--glitter-delay, 0ms) infinite;
+}
+
+/* Flat overlay: 2D drift only, stays fixed while the 3D badge spins. */
+@keyframes impression-glitter-drift-flat {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: translate(0, 0) scale(0.88);
+  }
+  18% {
+    opacity: 0.95;
+    transform: translate(
+        calc(var(--glitter-dx) * 0.35),
+        calc(var(--glitter-dy) * 0.35)
+      )
+      scale(1.05);
+  }
+  52% {
+    opacity: 0.55;
+    transform: translate(var(--glitter-dx), var(--glitter-dy)) scale(1.08);
+  }
+  78% {
+    opacity: 0.82;
+    transform: translate(
+        calc(var(--glitter-dx) * 0.6),
+        calc(var(--glitter-dy) * 0.55)
+      )
+      scale(0.96);
+  }
+}
+
+.impression-glitter-particle-flat {
+  animation: impression-glitter-drift-flat var(--glitter-duration, 3s) ease-in-out
     var(--glitter-delay, 0ms) infinite;
 }
 

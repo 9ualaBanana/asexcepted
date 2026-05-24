@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { AchievementBadgeSlot } from "@/components/achievements/badge/achievement-badge-slot";
 import { AchievementFallbackBadge } from "@/components/achievements/badge/achievement-fallback-badge";
+import { DedicatedBadgeGlitter } from "@/components/achievements/badge/dedicated-badge-glitter";
 import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
 import { getSafeTone } from "@/components/achievements/achievement-card";
 import { getSafeIcon } from "@/components/achievements/achievement-editor-shared";
@@ -59,16 +60,25 @@ export function FeedItem({ row }: FeedItemProps) {
             size="grid"
             className="h-full w-full max-w-none"
           >
-            {badgeSrc ? (
-              <RemoteBadgeImage src={badgeSrc} />
-            ) : (
-              <AchievementFallbackBadge
-                tone={tone}
-                isLocked={false}
-                FallbackIcon={FallbackIcon}
-                size="grid"
-              />
-            )}
+            <div className="relative h-full w-full">
+              {badgeSrc ? (
+                <RemoteBadgeImage src={badgeSrc} />
+              ) : (
+                <AchievementFallbackBadge
+                  tone={tone}
+                  isLocked={false}
+                  FallbackIcon={FallbackIcon}
+                  size="grid"
+                />
+              )}
+              {isDedication && badgeSrc ? (
+                <DedicatedBadgeGlitter
+                  renderSrc={badgeSrc}
+                  motionSeed={row.achievement_id}
+                  className="z-[12]"
+                />
+              ) : null}
+            </div>
           </AchievementBadgeSlot>
           <div
             className="pointer-events-none absolute bottom-0 right-0 z-10"

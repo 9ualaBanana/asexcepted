@@ -36,20 +36,27 @@ export async function listPendingDedications(
 export async function acceptDedication(
   supabase: SupabaseClient,
   achievementId: string,
-): Promise<Result<void, string>> {
-  const { error } = await supabase
+): Promise<Result<AchievementRecord, string>> {
+  const { data, error } = await supabase
     .from("achievements")
     .update({
       dedication_status: "accepted",
       updated_at: new Date().toISOString(),
     })
     .eq("id", achievementId)
-    .eq("dedication_status", "pending");
+    .eq("dedication_status", "pending")
+    .select(PENDING_SELECT)
+    .single();
 
   if (error) {
     return err(error.message);
   }
-  return ok(undefined);
+
+  try {
+    return ok(normalizeAchievement(data as AchievementDbRow));
+  } catch {
+    return err("Invalid dedication data received from the server.");
+  }
 }
 
 export async function rejectDedication(

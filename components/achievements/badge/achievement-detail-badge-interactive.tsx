@@ -7,7 +7,12 @@ import { AchievementBadgeSlot } from "@/components/achievements/badge/achievemen
 import { ImpressionGlitterField } from "@/components/achievements/badge/impression-glitter-field";
 import { AchievementFallbackBadge } from "@/components/achievements/badge/achievement-fallback-badge";
 import { AchievementBadge3DViewer } from "@/components/achievements/badge/achievement-badge-3d-viewer";
-import { circularBadgeMaskStyle } from "@/lib/achievements/badge-mask-style";
+import {
+  badgeImageMaskStylePadded,
+  circularBadgeMaskStyle,
+  paddedBadgeMaskStyle,
+} from "@/lib/achievements/badge-mask-style";
+import { IMPRESSION_GLITTER_UI_ENABLED } from "@/lib/achievements/impression-glitter-feature";
 import { UnlockRevealWave } from "@/components/achievements/badge/unlock-reveal-wave";
 import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
 import type { AchievementTone } from "@/components/achievements/achievement-card";
@@ -36,6 +41,7 @@ export type AchievementDetailBadgeInteractiveProps = {
   impressionOverlay?: ReactNode;
   impressionGlitter?: boolean;
   impressionGlitterRevealPulse?: number;
+  dedicatedBadgeGlitter?: boolean;
 };
 
 /**
@@ -63,7 +69,16 @@ export function AchievementDetailBadgeInteractive({
   impressionOverlay,
   impressionGlitter = false,
   impressionGlitterRevealPulse = 0,
+  dedicatedBadgeGlitter = false,
 }: AchievementDetailBadgeInteractiveProps) {
+  const showGlitter =
+    dedicatedBadgeGlitter ||
+    (IMPRESSION_GLITTER_UI_ENABLED && impressionGlitter);
+  const glitterRevealPulse = dedicatedBadgeGlitter ? 0 : impressionGlitterRevealPulse;
+  const glitterMaskStyle = renderSrc
+    ? badgeImageMaskStylePadded(renderSrc, 108)
+    : paddedBadgeMaskStyle(circularBadgeMaskStyle(), 108);
+
   return (
     <div className="relative">
       {impressionOverlay}
@@ -106,12 +121,12 @@ export function AchievementDetailBadgeInteractive({
                 motionStartCentered={motionStartCentered}
                 onImageDecoded={onImageDecoded}
                 onVisualReady={onVisualReady}
-                impressionGlitter={impressionGlitter}
-                impressionGlitterRevealPulse={impressionGlitterRevealPulse}
+                impressionGlitter={showGlitter && !lockedUi}
+                impressionGlitterRevealPulse={glitterRevealPulse}
               />
             </div>
             {lockedUi ? (
-              <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute inset-0 z-[14] pointer-events-none">
                 <RemoteBadgeImage
                   src={renderSrc}
                   className={cn(
@@ -120,6 +135,17 @@ export function AchievementDetailBadgeInteractive({
                   )}
                 />
               </div>
+            ) : null}
+            {showGlitter && lockedUi ? (
+              <ImpressionGlitterField
+                active
+                motionSeed={motionSeed}
+                maskStyle={glitterMaskStyle}
+                revealPulse={glitterRevealPulse}
+                variant="detail"
+                overlay
+                className="z-[19]"
+              />
             ) : null}
             <UnlockRevealWave
               isUnlocking={unlocking}
@@ -135,12 +161,12 @@ export function AchievementDetailBadgeInteractive({
         ) : (
           <>
             <div className="relative h-full w-full">
-              {impressionGlitter ? (
+              {showGlitter ? (
                 <ImpressionGlitterField
                   active
                   motionSeed={motionSeed}
-                  maskStyle={circularBadgeMaskStyle()}
-                  revealPulse={impressionGlitterRevealPulse}
+                  maskStyle={paddedBadgeMaskStyle(circularBadgeMaskStyle(), 108)}
+                  revealPulse={glitterRevealPulse}
                   variant="detail"
                 />
               ) : null}

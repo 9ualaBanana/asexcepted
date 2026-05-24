@@ -58,7 +58,7 @@ export async function POST(request: Request) {
       tone: parsed.data.tone ?? "teal",
       is_locked: true,
       achieved_at: parsed.data.achieved_at ?? null,
-      visibility: "private",
+      visibility: "public",
       dedicated_by_user_id: admin.id,
       dedication_status: "pending",
     })

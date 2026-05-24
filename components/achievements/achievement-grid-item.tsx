@@ -10,10 +10,10 @@ import { AchievementFallbackBadge } from "@/components/achievements/badge/achiev
 import type { AchievementTone } from "@/components/achievements/achievement-card";
 import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
 import { ImpressionGlitterField } from "@/components/achievements/badge/impression-glitter-field";
-import { IMPRESSION_GLITTER_UI_ENABLED } from "@/lib/achievements/impression-glitter-feature";
 import {
-  badgeImageMaskStyle,
+  badgeImageMaskStylePadded,
   circularBadgeMaskStyle,
+  paddedBadgeMaskStyle,
 } from "@/lib/achievements/badge-mask-style";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import { cn } from "@/lib/utils";
@@ -133,6 +133,7 @@ type AchievementGridItemProps = {
   tone: AchievementTone;
   isLocked: boolean;
   hasImpressions: boolean;
+  isDedicated: boolean;
   onClick: () => void;
 };
 
@@ -145,51 +146,60 @@ export function AchievementGridItem({
   tone,
   isLocked,
   hasImpressions,
+  isDedicated,
   onClick,
 }: AchievementGridItemProps) {
   const displayTitle = title?.trim() || (isLocked ? "Locked" : "Untitled");
   const displaySrc = iconUrl?.trim() ? toOptimizedBadgeRenderSrc(iconUrl.trim()) : null;
   const silhouetteMaskStyle = displaySrc ? getAlphaMaskStyle(displaySrc) : null;
   const glitterMaskStyle = displaySrc
-    ? badgeImageMaskStyle(displaySrc)
-    : circularBadgeMaskStyle();
+    ? badgeImageMaskStylePadded(displaySrc, 108)
+    : paddedBadgeMaskStyle(circularBadgeMaskStyle(), 108);
 
   return (
     <AchievementGridItemContainer
       onClick={onClick}
-      buttonClassName={isLocked ? "opacity-70 grayscale" : undefined}
       badge={
         <AchievementBadgeSlot size="grid">
           <div className="relative h-full w-full">
-            {IMPRESSION_GLITTER_UI_ENABLED && hasImpressions ? (
+            <div
+              className={cn(
+                "relative h-full w-full",
+                isLocked && "opacity-70 grayscale",
+              )}
+            >
+              {displaySrc ? (
+                <>
+                  {!isLocked && silhouetteMaskStyle ? (
+                    <div
+                      aria-hidden
+                      className="achievement-badge-silhouette-shadow"
+                      style={silhouetteMaskStyle}
+                    />
+                  ) : null}
+                  <div className="relative h-full w-full">
+                    <RemoteBadgeImage src={displaySrc} />
+                  </div>
+                </>
+              ) : (
+                <AchievementFallbackBadge
+                  tone={tone}
+                  isLocked={isLocked}
+                  FallbackIcon={FallbackIcon}
+                  size="grid"
+                />
+              )}
+            </div>
+            {isDedicated && displaySrc ? (
               <ImpressionGlitterField
                 active
                 motionSeed={id}
                 maskStyle={glitterMaskStyle}
                 variant="grid"
+                overlay
+                className="z-[12]"
               />
             ) : null}
-            {displaySrc ? (
-              <>
-                {!isLocked && silhouetteMaskStyle ? (
-                  <div
-                    aria-hidden
-                    className="achievement-badge-silhouette-shadow"
-                    style={silhouetteMaskStyle}
-                  />
-                ) : null}
-                <div className="relative h-full w-full">
-                  <RemoteBadgeImage src={displaySrc} />
-                </div>
-              </>
-            ) : (
-              <AchievementFallbackBadge
-                tone={tone}
-                isLocked={isLocked}
-                FallbackIcon={FallbackIcon}
-                size="grid"
-              />
-            )}
           </div>
         </AchievementBadgeSlot>
       }

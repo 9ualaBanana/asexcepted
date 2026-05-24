@@ -155,7 +155,7 @@ export function useAchievementEditorPipelineController({
     setCreateForm({
       ...createInitialForm(),
       isLocked: true,
-      visibility: "private",
+      visibility: "public",
     });
   }, [badgeSessionController, canDedicate, setCreateForm, setIsDedicatingCreate, uiActions]);
 

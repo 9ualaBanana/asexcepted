@@ -88,6 +88,7 @@ export function DedicationResponseDialog({
               unlockRevealClipPath="inset(0 0 0 0)"
               unlockAlphaMaskRef={unlockAlphaMaskRef}
               enableUnlockHold={false}
+              dedicatedBadgeGlitter
             />
           </div>
 

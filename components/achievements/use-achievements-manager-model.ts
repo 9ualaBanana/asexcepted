@@ -36,6 +36,7 @@ import {
 } from "@/lib/achievements/dedication-utils";
 import { userCollection } from "@/lib/routes";
 import { IMPRESSION_GLITTER_UI_ENABLED } from "@/lib/achievements/impression-glitter-feature";
+import { showsDedicatedBadgeAura } from "@/lib/achievements/dedication-utils";
 import { useDedicationQueueController } from "@/components/achievements/dedication/use-dedication-queue-controller";
 import {
   achievementToForm,
@@ -104,6 +105,10 @@ export function useAchievementsManagerModel({
         ((detailAchievement.impression_count ?? 0) > 0 ||
           optimisticImpressionGlitter),
     );
+
+  const detailShowsDedicatedGlitter = Boolean(
+    detailAchievement && showsDedicatedBadgeAura(detailAchievement),
+  );
 
   const bumpDetailImpressionCount = useCallback(() => {
     if (!detailAchievement) return;
@@ -446,6 +451,7 @@ export function useAchievementsManagerModel({
     onCopyEmbedLink: embedLink.copyEmbedLink,
     onRequestDelete: ui.actions.requestDelete,
     detailShowsImpressionGlitter,
+    dedicatedBadgeGlitter: detailShowsDedicatedGlitter,
     impressionGlitterRevealPulse,
     onImpressionGlitterReveal: () => {
       setOptimisticImpressionGlitter(true);

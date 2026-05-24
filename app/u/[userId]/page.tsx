@@ -71,8 +71,6 @@ async function UserAchievementsContent({ params, searchParams }: PageProps) {
                   {ownerPublicLabel
                     ? `Viewing ${ownerPublicLabel}'s public achievements.`
                     : "Viewing public achievements."}
-                  <br />
-                  Sign in to manage your own collection.
                 </>
               )}
             </p>

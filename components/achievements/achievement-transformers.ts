@@ -16,6 +16,7 @@ import {
   toNullable,
 } from "@/components/achievements/achievement-editor-shared";
 import { normalizeImageKitFileId } from "@/components/achievements/badge/badge-imagekit-session";
+import { showsDedicatedBadgeAura } from "@/lib/achievements/dedication-utils";
 import type {
   AchievementDbRow,
   AchievementDbWritePayload,
@@ -48,6 +49,7 @@ export type AchievementGridViewModel = {
   tone: AchievementTone;
   isLocked: boolean;
   hasImpressions: boolean;
+  isDedicated: boolean;
 };
 
 const achievementDbRowSchema = z.custom<AchievementDbRow>();
@@ -69,10 +71,11 @@ const normalizeAchievementSchema = achievementDbRowSchema.transform<AchievementR
     impression_count: 0,
     dedicated_by_user_id: record.dedicated_by_user_id ?? null,
     dedication_status:
-      record.dedication_status === "pending" ||
-      record.dedication_status === "accepted"
-        ? record.dedication_status
-        : null,
+      record.dedication_status === "pending"
+        ? "pending"
+        : record.dedication_status === "accepted" || record.dedicated_by_user_id
+          ? "accepted"
+          : null,
   }),
 );
 
@@ -101,6 +104,7 @@ const achievementToGridItemSchema = achievementRecordSchema.transform<Achievemen
     tone: getSafeTone(record.tone),
     isLocked: record.is_locked,
     hasImpressions: record.impression_count > 0,
+    isDedicated: showsDedicatedBadgeAura(record),
   }),
 );
 

@@ -87,6 +87,7 @@ export type AchievementDialogStackProps = {
   onCopyEmbedLink: () => void;
   onRequestDelete: (achievementId: string) => void;
   detailShowsImpressionGlitter: boolean;
+  dedicatedBadgeGlitter?: boolean;
   impressionGlitterRevealPulse: number;
   onImpressionGlitterReveal: () => void;
   onImpressionRecorded: (added: boolean, hadImpressionsBefore: boolean) => void;
@@ -138,6 +139,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     onCopyEmbedLink,
     onRequestDelete,
     detailShowsImpressionGlitter,
+    dedicatedBadgeGlitter = false,
     impressionGlitterRevealPulse,
     onImpressionGlitterReveal,
     onImpressionRecorded,
@@ -332,6 +334,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       onImageDecoded={onDetailBadgeImageDecoded}
                       onVisualReady={onDetailBadgeVisualReady}
                       impressionGlitter={detailShowsImpressionGlitter}
+                      dedicatedBadgeGlitter={dedicatedBadgeGlitter}
                       impressionGlitterRevealPulse={impressionGlitterRevealPulse}
                       impressionOverlay={
                         readOnly ? (

@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 
-import { IMPRESSION_GLITTER_UI_ENABLED } from "@/lib/achievements/impression-glitter-feature";
 import { buildGlitterParticles } from "@/lib/achievements/glitter-particles";
 import { cn } from "@/lib/utils";
 
@@ -10,9 +9,10 @@ type ImpressionGlitterFieldProps = {
   active: boolean;
   motionSeed: string;
   maskStyle: CSSProperties;
-  /** Increment to replay the “emerge from behind” entrance. */
   revealPulse?: number;
   variant?: "detail" | "grid";
+  /** Flat layer on top of badge art (grid, locked detail). */
+  overlay?: boolean;
   className?: string;
 };
 
@@ -20,10 +20,10 @@ const paletteClass: Record<
   ReturnType<typeof buildGlitterParticles>[number]["palette"],
   string
 > = {
-  gold: "bg-amber-200/90 shadow-[0_0_6px_rgba(252,211,77,0.75)]",
-  champagne: "bg-yellow-100/85 shadow-[0_0_5px_rgba(254,240,138,0.65)]",
-  cream: "bg-orange-50/90 shadow-[0_0_5px_rgba(255,247,237,0.7)]",
-  rose: "bg-rose-200/80 shadow-[0_0_6px_rgba(251,207,232,0.65)]",
+  gold: "bg-amber-200/90",
+  champagne: "bg-yellow-100/85",
+  cream: "bg-orange-50/90",
+  rose: "bg-rose-200/80",
 };
 
 export function ImpressionGlitterField({
@@ -32,15 +32,23 @@ export function ImpressionGlitterField({
   maskStyle,
   revealPulse = 0,
   variant = "detail",
+  overlay = false,
   className,
 }: ImpressionGlitterFieldProps) {
   const [reduceMotion, setReduceMotion] = useState(false);
-  const [revealing, setRevealing] = useState(false);
+  const spinsWithBadge = variant === "detail" && !overlay;
 
-  const particleCount = variant === "grid" ? 14 : 32;
+  const particleCount = variant === "grid" ? 22 : 44;
   const particles = useMemo(
-    () => buildGlitterParticles(motionSeed, particleCount, revealPulse),
-    [motionSeed, particleCount, revealPulse],
+    () =>
+      buildGlitterParticles(motionSeed, particleCount, revealPulse, {
+        marginPct: 8,
+        maxDriftPx: 9,
+        ...(variant === "detail"
+          ? { sizeMinPx: 3, sizeRangePx: 2.8 }
+          : { sizeMinPx: 2, sizeRangePx: 2.2 }),
+      }),
+    [motionSeed, particleCount, revealPulse, variant],
   );
 
   useEffect(() => {
@@ -51,54 +59,27 @@ export function ImpressionGlitterField({
     return () => mq.removeEventListener("change", sync);
   }, []);
 
-  useEffect(() => {
-    if (!active || revealPulse <= 0 || reduceMotion) {
-      setRevealing(false);
-      return;
-    }
-    setRevealing(true);
-    const timer = window.setTimeout(() => setRevealing(false), 1100);
-    return () => window.clearTimeout(timer);
-  }, [active, revealPulse, reduceMotion]);
-
-  if (!IMPRESSION_GLITTER_UI_ENABLED || !active) return null;
-
-  if (reduceMotion) {
-    return (
-      <div
-        aria-hidden
-        className={cn(
-          "pointer-events-none absolute -inset-[10%] rounded-full",
-          "bg-[radial-gradient(ellipse_at_50%_48%,rgba(252,211,77,0.22)_0%,rgba(251,191,36,0.08)_42%,transparent_68%)]",
-          className,
-        )}
-        style={maskStyle}
-      />
-    );
-  }
+  if (!active) return null;
 
   return (
     <div
       aria-hidden
       className={cn(
-        "pointer-events-none absolute -inset-[16%] overflow-visible",
-        variant === "detail" && "impression-glitter-3d",
-        revealing && "impression-glitter-revealing",
+        "pointer-events-none absolute -inset-[11%] overflow-hidden",
+        spinsWithBadge && "impression-glitter-3d",
         className,
       )}
       style={maskStyle}
     >
-      <div
-        className={cn(
-          "absolute inset-0",
-          "bg-[radial-gradient(ellipse_at_50%_52%,rgba(255,237,180,0.14)_0%,rgba(251,191,36,0.06)_38%,transparent_72%)]",
-        )}
-      />
       {particles.map((particle) => (
         <span
           key={`${revealPulse}-${particle.id}`}
           className={cn(
             "impression-glitter-particle absolute rounded-full will-change-transform",
+            !reduceMotion &&
+              (spinsWithBadge
+                ? undefined
+                : "impression-glitter-particle-flat"),
             paletteClass[particle.palette],
           )}
           style={
@@ -109,7 +90,7 @@ export function ImpressionGlitterField({
               height: particle.sizePx,
               "--glitter-dx": `${particle.driftX}px`,
               "--glitter-dy": `${particle.driftY}px`,
-              "--glitter-dz": `${particle.driftZ}px`,
+              "--glitter-dz": spinsWithBadge ? `${particle.driftZ}px` : "0px",
               "--glitter-delay": `${particle.delayMs}ms`,
               "--glitter-duration": `${particle.durationMs}ms`,
             } as CSSProperties

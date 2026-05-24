@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 
 import { ImpressionGlitterField } from "@/components/achievements/badge/impression-glitter-field";
+import { badgeImageMaskStylePadded } from "@/lib/achievements/badge-mask-style";
 import {
   ensureBadgeImageDecoded,
   getCachedBadgeMaskStyle,
@@ -27,7 +28,6 @@ type AchievementBadge3DViewerProps = {
   onImageDecoded?: () => void;
   /** Debug hook: fired once when source image is decoded and first paint should be ready. */
   onVisualReady?: () => void;
-  /** Warm glitter when the badge has at least one impression. */
   impressionGlitter?: boolean;
   impressionGlitterRevealPulse?: number;
 };
@@ -67,6 +67,10 @@ export function AchievementBadge3DViewer({
   const safeSrc = useMemo(() => src.replace(/"/g, '\\"'), [src]);
   const maskStyle = useMemo(
     () => getCachedBadgeMaskStyle(src),
+    [src],
+  );
+  const glitterMaskStyle = useMemo(
+    () => badgeImageMaskStylePadded(src, 108),
     [src],
   );
   const floatMotionStyle = useMemo(
@@ -253,15 +257,6 @@ export function AchievementBadge3DViewer({
         )}
         style={{ transform: "rotateX(0deg) rotateY(0deg)" }}
       >
-        {impressionGlitter ? (
-          <ImpressionGlitterField
-            active
-            motionSeed={(motionSeed ?? src).trim() || "badge"}
-            maskStyle={maskStyle}
-            revealPulse={impressionGlitterRevealPulse}
-            variant="detail"
-          />
-        ) : null}
         {sideLayerStyle.map((layer, i) => {
           return (
             <div
@@ -293,6 +288,16 @@ export function AchievementBadge3DViewer({
             backgroundImage: `url("${safeSrc}")`,
           }}
         />
+        {impressionGlitter ? (
+          <ImpressionGlitterField
+            active
+            motionSeed={(motionSeed ?? src).trim() || "badge"}
+            maskStyle={glitterMaskStyle}
+            revealPulse={impressionGlitterRevealPulse}
+            variant="detail"
+            className="impression-glitter-3d-front"
+          />
+        ) : null}
       </div>
     </div>
   );

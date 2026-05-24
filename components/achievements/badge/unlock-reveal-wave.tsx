@@ -19,7 +19,7 @@ export function UnlockRevealWave({
   if (!isUnlocking) return null;
   return (
     <div
-      className="absolute inset-0"
+      className="absolute inset-0 z-[18] pointer-events-none"
       style={{
         ...(detailMaskStyle ?? {}),
         clipPath: unlockRevealClipPath,
