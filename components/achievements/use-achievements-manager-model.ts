@@ -339,13 +339,15 @@ export function useAchievementsManagerModel({
     if (hideLocked) {
       visible = visible.filter((a) => !a.is_locked);
     }
-    if (visibilityFilter === "public") {
-      visible = visible.filter((a) => a.visibility === "public");
-    } else if (visibilityFilter === "private") {
-      visible = visible.filter((a) => a.visibility === "private");
+    if (!readOnly) {
+      if (visibilityFilter === "public") {
+        visible = visible.filter((a) => a.visibility === "public");
+      } else if (visibilityFilter === "private") {
+        visible = visible.filter((a) => a.visibility === "private");
+      }
     }
     return visible.map(achievementToGridItem);
-  }, [achievements, hideLocked, visibilityFilter]);
+  }, [achievements, hideLocked, readOnly, visibilityFilter]);
 
   const unlockedCount = useMemo(
     () => achievements.filter((a) => !a.is_locked).length,

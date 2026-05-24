@@ -43,14 +43,16 @@ export function AchievementsManager({
           <span className="mx-1.5 text-muted-foreground/25">/</span>
           <span>{model.totalCount}</span>
         </p>
-        <button
-          type="button"
-          onClick={() => model.cycleVisibilityFilter()}
-          className="absolute left-0 top-1/2 -translate-y-1/2 m-0 cursor-pointer border-0 bg-transparent p-0 text-[10px] font-normal lowercase tracking-tight text-muted-foreground/40 shadow-none outline-none hover:text-muted-foreground/40 focus:text-muted-foreground/40 focus-visible:ring-0 active:text-muted-foreground/40"
-          aria-label={`Filter by visibility: ${model.visibilityFilter}`}
-        >
-          {model.visibilityFilter}
-        </button>
+        {!model.readOnly ? (
+          <button
+            type="button"
+            onClick={() => model.cycleVisibilityFilter()}
+            className="absolute left-0 top-1/2 -translate-y-1/2 m-0 cursor-pointer border-0 bg-transparent p-0 text-[10px] font-normal lowercase tracking-tight text-muted-foreground/40 shadow-none outline-none hover:text-muted-foreground/40 focus:text-muted-foreground/40 focus-visible:ring-0 active:text-muted-foreground/40"
+            aria-label={`Filter by visibility: ${model.visibilityFilter}`}
+          >
+            {model.visibilityFilter}
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={() => model.setHideLocked(!model.hideLocked)}
