@@ -11,6 +11,7 @@ import {
 import { Search } from "lucide-react";
 
 import { ProfileAvatarSlot } from "@/components/profile/profile-avatar-slot";
+import { useInspaUiStateMachine } from "@/components/social/use-inspa-ui-state-machine";
 import { createClient } from "@/lib/supabase/client";
 import { profileListLabel } from "@/lib/profile-label";
 import { userCollection } from "@/lib/routes";
@@ -24,7 +25,6 @@ type ProfileRow = {
   display_name: string;
   avatar_url: string | null;
 };
-type SocialView = "followers" | "following";
 
 type FriendsPanelProps = {
   viewerId: string;
@@ -52,20 +52,33 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
   const supabase = useMemo(() => createClient(), []);
   const searchRootRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const prevSearchOpenRef = useRef(false);
-  const [query, setQuery] = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
+  const prevPromptTargetRef = useRef("u");
   const [searchPending, setSearchPending] = useState(false);
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<ProfileRow[]>([]);
   const [following, setFollowing] = useState<ProfileRow[]>([]);
   const [followers, setFollowers] = useState<ProfileRow[]>([]);
-  const [activeView, setActiveView] = useState<SocialView>("following");
+  const [recommended, setRecommended] = useState<ProfileRow[]>([]);
+  const [recommendedLoading, setRecommendedLoading] = useState(false);
   const [listsLoading, setListsLoading] = useState(true);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [leftPrompt, setLeftPrompt] = useState("u");
   const [caretMode, setCaretMode] = useState<CaretMode>("hidden");
   const [caretPosition, setCaretPosition] = useState<CaretPosition>("normal");
+
+  const zeroRelationshipMode =
+    !listsLoading && following.length === 0 && followers.length === 0;
+  const {
+    activeView,
+    canToggleView,
+    collapseSearch,
+    openSearch,
+    promptTarget,
+    query,
+    searchOpen,
+    setQuery,
+    toggleView,
+  } = useInspaUiStateMachine({ zeroRelationshipMode });
 
   useErrorToast(searchError, { id: "friends-search" });
 
@@ -105,14 +118,6 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
     [supabase],
   );
 
-  const collapseSearch = useCallback(() => {
-    setSearchOpen(false);
-    setQuery("");
-    setResults([]);
-    setSearchError(null);
-    setSearching(false);
-  }, []);
-
   const loadLists = useCallback(async () => {
     setListsLoading(true);
     const { data: outRows, error: outErr } = await supabase
@@ -142,6 +147,56 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
   useEffect(() => {
     void loadLists();
   }, [loadLists]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!zeroRelationshipMode) {
+      setRecommended([]);
+      setRecommendedLoading(false);
+      return;
+    }
+
+    setRecommendedLoading(true);
+    setSearchError(null);
+
+    void (async () => {
+      const { data, error } = await supabase
+        .from("profile")
+        .select("user_id")
+        .neq("user_id", viewerId)
+        .limit(40);
+
+      if (cancelled) return;
+
+      if (error) {
+        setRecommended([]);
+        setRecommendedLoading(false);
+        setSearchError(error.message);
+        return;
+      }
+
+      const ids = Array.isArray(data)
+        ? data.map((row) => row.user_id as string)
+        : [];
+      const shuffledIds = [...ids];
+
+      for (let i = shuffledIds.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledIds[i], shuffledIds[j]] = [shuffledIds[j], shuffledIds[i]];
+      }
+
+      const hydrated = await hydrateProfiles(shuffledIds.slice(0, 16));
+      if (cancelled) return;
+
+      setRecommended(hydrated);
+      setRecommendedLoading(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrateProfiles, supabase, viewerId, zeroRelationshipMode]);
 
   useEffect(() => {
     if (!searchOpen) {
@@ -193,10 +248,9 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
   }, [hydrateProfiles, searchOpen, supabase, trimmedQuery, viewerId]);
 
   useEffect(() => {
-    if (prevSearchOpenRef.current === searchOpen) return;
-    prevSearchOpenRef.current = searchOpen;
+    if (prevPromptTargetRef.current === promptTarget) return;
+    prevPromptTargetRef.current = promptTarget;
 
-    const target = searchOpen ? "?" : "u";
     const timeouts: number[] = [];
     const schedule = (delay: number, action: () => void) => {
       timeouts.push(window.setTimeout(action, delay));
@@ -209,11 +263,11 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
     });
     schedule(140, () => setCaretMode("blink-once"));
     schedule(500, () => {
-      setLeftPrompt(target);
+      setLeftPrompt(promptTarget);
       setCaretPosition("normal");
     });
 
-    if (searchOpen) {
+    if (promptTarget === "?") {
       schedule(520, () => setCaretMode("hidden"));
     } else {
       schedule(540, () => setCaretMode("blink-once"));
@@ -225,7 +279,7 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
         window.clearTimeout(timeout);
       }
     };
-  }, [searchOpen]);
+  }, [promptTarget]);
 
   useEffect(() => {
     if (!searchOpen) return;
@@ -257,21 +311,23 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
 
   const visibleProfiles = showingSearchResults
     ? results
-    : activeView === "following"
+    : zeroRelationshipMode
+      ? recommended
+      : activeView === "following"
       ? following
       : followers;
 
-  const emptyMessage = showingSearchResults
-    ? "no matches"
-    : "Find inspiration";
   const showNoMatches =
     showingSearchResults &&
     !searchPending &&
     !searching &&
     !searchError &&
     results.length === 0;
+  const showProfilesRailSkeleton =
+    !showingSearchResults &&
+    (listsLoading || (zeroRelationshipMode && recommendedLoading));
 
-  const leftSelected = !showingSearchResults && activeView === "followers";
+  const leftSelected = promptTarget === "u" && activeView === "followers";
   const rightSelected = activeView === "following";
 
   return (
@@ -287,8 +343,8 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
             >
               <button
                 type="button"
-                aria-label="Search people"
-                onClick={() => setSearchOpen(true)}
+                aria-label="find inspiration"
+                onClick={openSearch}
                 className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-white/75 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <Search className="h-4 w-4" aria-hidden />
@@ -298,9 +354,9 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
                 id="friend-search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search people"
+                placeholder="find inspiration"
                 autoComplete="off"
-                aria-label="Search people"
+                aria-label="find inspiration"
                 className={cn(
                   "h-full min-w-0 flex-1 bg-transparent pr-4 text-sm text-white placeholder:text-white/35 focus:outline-none",
                   searchOpen ? "opacity-100" : "pointer-events-none opacity-0",
@@ -312,22 +368,20 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
           <button
             type="button"
             onClick={() => {
-              if (searchOpen) return;
-              setActiveView((current) =>
-                current === "following" ? "followers" : "following",
-              );
+                if (!canToggleView) return;
+                toggleView();
             }}
             className={cn(
               "mx-auto mt-4 flex w-full items-center justify-center gap-2.5 text-center",
-              searchOpen ? "cursor-default" : "cursor-pointer",
+                canToggleView ? "cursor-pointer" : "cursor-default",
             )}
             aria-label="Toggle between following and followers"
-            aria-disabled={searchOpen}
+              aria-disabled={!canToggleView}
           >
             <span
               className={cn(
                 "relative inline-flex w-[1.35ch] items-center justify-center text-base font-semibold lowercase tracking-[0.06em] transition-colors sm:text-[1.02rem]",
-                searchOpen
+                  promptTarget === "?"
                   ? "text-white/88"
                   : leftSelected
                     ? "text-white"
@@ -364,7 +418,7 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
           </button>
 
           <div className="mt-3 flex min-h-0 flex-1 flex-col justify-center">
-            {searchError ? null : listsLoading && !showingSearchResults ? (
+            {searchError ? null : showProfilesRailSkeleton ? (
               <ProfilesRailSkeleton />
             ) : showNoMatches ? (
               <div className="flex h-full items-center justify-center">
@@ -395,9 +449,7 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
                   ))}
                 </ul>
               </div>
-            ) : (
-              <p className="text-center text-sm text-muted-foreground">{emptyMessage}</p>
-            )}
+            ) : null}
           </div>
         </div>
       </section>
