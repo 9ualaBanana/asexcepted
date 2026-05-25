@@ -9,12 +9,15 @@ type UiMode = "browse" | "search" | "discovery";
 type InspaUiState = {
   activeView: SocialView;
   mode: UiMode;
+  promptAnimationNonce: number;
+  promptTarget: "u" | "?";
   query: string;
 };
 
 type InspaUiAction =
   | { type: "close-search"; zeroRelationshipMode: boolean }
   | { type: "open-search" }
+  | { type: "replay-prompt-animation" }
   | { type: "set-query"; query: string }
   | { type: "sync-relationships"; zeroRelationshipMode: boolean }
   | { type: "toggle-view" };
@@ -22,21 +25,50 @@ type InspaUiAction =
 const initialState: InspaUiState = {
   activeView: "following",
   mode: "browse",
+  promptAnimationNonce: 0,
+  promptTarget: "u",
   query: "",
 };
+
+function withPromptTarget(
+  state: InspaUiState,
+  promptTarget: "u" | "?",
+): Pick<InspaUiState, "promptAnimationNonce" | "promptTarget"> {
+  if (state.promptTarget === promptTarget) {
+    return {
+      promptAnimationNonce: state.promptAnimationNonce,
+      promptTarget: state.promptTarget,
+    };
+  }
+
+  return {
+    promptAnimationNonce: state.promptAnimationNonce + 1,
+    promptTarget,
+  };
+}
 
 function reducer(state: InspaUiState, action: InspaUiAction): InspaUiState {
   switch (action.type) {
     case "open-search":
-      return { ...state, mode: "search" };
+      return {
+        ...state,
+        ...withPromptTarget(state, "?"),
+        mode: "search",
+      };
     case "close-search":
       return {
         ...state,
         mode: action.zeroRelationshipMode ? "discovery" : "browse",
+        ...withPromptTarget(state, action.zeroRelationshipMode ? "?" : "u"),
         query: "",
       };
     case "set-query":
       return { ...state, query: action.query };
+    case "replay-prompt-animation":
+      return {
+        ...state,
+        promptAnimationNonce: state.promptAnimationNonce + 1,
+      };
     case "toggle-view":
       if (state.mode !== "browse") return state;
       return {
@@ -52,12 +84,18 @@ function reducer(state: InspaUiState, action: InspaUiAction): InspaUiState {
           ...state,
           activeView: "following",
           mode: "discovery",
+          ...withPromptTarget(state, "?"),
           query: "",
         };
       }
 
       if (state.mode === "discovery") {
-        return { ...state, mode: "browse", query: "" };
+        return {
+          ...state,
+          mode: "browse",
+          ...withPromptTarget(state, "u"),
+          query: "",
+        };
       }
 
       return state;
@@ -76,8 +114,10 @@ type InspaUiModel = {
   collapseSearch: () => void;
   isDiscoveryMode: boolean;
   openSearch: () => void;
+  promptAnimationNonce: number;
   promptTarget: "u" | "?";
   query: string;
+  replayPromptAnimation: () => void;
   searchOpen: boolean;
   setQuery: (query: string) => void;
   toggleView: () => void;
@@ -87,7 +127,6 @@ export function useInspaUiStateMachine({
   zeroRelationshipMode,
 }: UseInspaUiStateMachineArgs): InspaUiModel {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const promptTarget: "u" | "?" = state.mode === "browse" ? "u" : "?";
 
   useEffect(() => {
     dispatch({ type: "sync-relationships", zeroRelationshipMode });
@@ -95,6 +134,10 @@ export function useInspaUiStateMachine({
 
   const openSearch = useCallback(() => {
     dispatch({ type: "open-search" });
+  }, []);
+
+  const replayPromptAnimation = useCallback(() => {
+    dispatch({ type: "replay-prompt-animation" });
   }, []);
 
   const collapseSearch = useCallback(() => {
@@ -115,8 +158,10 @@ export function useInspaUiStateMachine({
     collapseSearch,
     isDiscoveryMode: state.mode === "discovery",
     openSearch,
-    promptTarget,
+    promptAnimationNonce: state.promptAnimationNonce,
+    promptTarget: state.promptTarget,
     query: state.query,
+    replayPromptAnimation,
     searchOpen: state.mode === "search",
     setQuery,
     toggleView,

@@ -9,12 +9,14 @@ import {
   useState,
 } from "react";
 import { Search } from "lucide-react";
+import { usePathname } from "next/navigation";
 
+import { useNavigationSequence } from "@/components/navigation/app-navigation-provider";
 import { ProfileAvatarSlot } from "@/components/profile/profile-avatar-slot";
 import { useInspaUiStateMachine } from "@/components/social/use-inspa-ui-state-machine";
 import { createClient } from "@/lib/supabase/client";
 import { profileListLabel } from "@/lib/profile-label";
-import { userCollection } from "@/lib/routes";
+import { ROUTES, userCollection } from "@/lib/routes";
 import { useErrorToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
@@ -49,10 +51,13 @@ function ProfilesRailSkeleton() {
 }
 
 export function FriendsPanel({ viewerId }: FriendsPanelProps) {
+  const pathname = usePathname();
+  const navigationSequence = useNavigationSequence();
   const supabase = useMemo(() => createClient(), []);
   const searchRootRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const prevPromptTargetRef = useRef("u");
+  const lastPromptAnimationNonceRef = useRef(0);
+  const lastReplayedNavigationSequenceRef = useRef(0);
   const [searchPending, setSearchPending] = useState(false);
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<ProfileRow[]>([]);
@@ -60,6 +65,7 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
   const [followers, setFollowers] = useState<ProfileRow[]>([]);
   const [recommended, setRecommended] = useState<ProfileRow[]>([]);
   const [recommendedLoading, setRecommendedLoading] = useState(false);
+  const [listsResolved, setListsResolved] = useState(false);
   const [listsLoading, setListsLoading] = useState(true);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [leftPrompt, setLeftPrompt] = useState("u");
@@ -67,14 +73,16 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
   const [caretPosition, setCaretPosition] = useState<CaretPosition>("normal");
 
   const zeroRelationshipMode =
-    !listsLoading && following.length === 0 && followers.length === 0;
+    listsResolved && following.length === 0 && followers.length === 0;
   const {
     activeView,
     canToggleView,
     collapseSearch,
     openSearch,
+    promptAnimationNonce,
     promptTarget,
     query,
+    replayPromptAnimation,
     searchOpen,
     setQuery,
     toggleView,
@@ -141,6 +149,7 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
 
     setFollowing(fProfiles);
     setFollowers(gProfiles);
+    setListsResolved(true);
     setListsLoading(false);
   }, [hydrateProfiles, supabase, viewerId]);
 
@@ -248,8 +257,36 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
   }, [hydrateProfiles, searchOpen, supabase, trimmedQuery, viewerId]);
 
   useEffect(() => {
-    if (prevPromptTargetRef.current === promptTarget) return;
-    prevPromptTargetRef.current = promptTarget;
+    if (
+      pathname !== ROUTES.inspa ||
+      !zeroRelationshipMode ||
+      promptTarget !== "?" ||
+      lastReplayedNavigationSequenceRef.current === navigationSequence
+    ) {
+      return;
+    }
+    lastReplayedNavigationSequenceRef.current = navigationSequence;
+
+    setLeftPrompt("u");
+    setCaretMode("hidden");
+    setCaretPosition("normal");
+    replayPromptAnimation();
+  }, [
+    navigationSequence,
+    pathname,
+    promptTarget,
+    replayPromptAnimation,
+    zeroRelationshipMode,
+  ]);
+
+  useEffect(() => {
+    if (
+      promptAnimationNonce === 0 ||
+      lastPromptAnimationNonceRef.current === promptAnimationNonce
+    ) {
+      return;
+    }
+    lastPromptAnimationNonceRef.current = promptAnimationNonce;
 
     const timeouts: number[] = [];
     const schedule = (delay: number, action: () => void) => {
@@ -279,7 +316,7 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
         window.clearTimeout(timeout);
       }
     };
-  }, [promptTarget]);
+  }, [promptAnimationNonce, promptTarget]);
 
   useEffect(() => {
     if (!searchOpen) return;
@@ -325,7 +362,7 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
     results.length === 0;
   const showProfilesRailSkeleton =
     !showingSearchResults &&
-    (listsLoading || (zeroRelationshipMode && recommendedLoading));
+    ((!listsResolved && listsLoading) || (zeroRelationshipMode && recommendedLoading));
 
   const leftSelected = promptTarget === "u" && activeView === "followers";
   const rightSelected = activeView === "following";

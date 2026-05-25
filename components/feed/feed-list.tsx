@@ -100,17 +100,6 @@ export function FeedList({ initialPage, initialError = null }: FeedListProps) {
     setLoading(false);
   }
 
-  if (rows.length === 0 && !refreshing) {
-    return (
-      <div className="mx-auto max-w-md space-y-4 py-12 text-center">
-        <p className="text-sm text-muted-foreground/80">
-          Nothing here yet. Find inspiring life experiencers and let their achievements leave an impression on u
-          or impress them with your own achievements.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="mx-auto max-w-lg space-y-3 sm:space-y-4">
       {refreshing && rows.length === 0 ? (

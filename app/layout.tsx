@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { AppNavigationProvider } from "@/components/navigation/app-navigation-provider";
 import { AppToaster } from "@/components/toasts/app-toaster";
 import { LiveUpdateProvider } from "@/lib/live-updates";
 import { PwaInit } from "@/components/pwa/pwa-init";
@@ -71,13 +72,15 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <LiveUpdateProvider>
-            <StartupSplash />
-            <PwaInit />
-            <PushRegistration />
-            <AppToaster />
-            {children}
-          </LiveUpdateProvider>
+          <AppNavigationProvider>
+            <LiveUpdateProvider>
+              <StartupSplash />
+              <PwaInit />
+              <PushRegistration />
+              <AppToaster />
+              {children}
+            </LiveUpdateProvider>
+          </AppNavigationProvider>
         </ThemeProvider>
         <SpeedInsights />
       </body>
