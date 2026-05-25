@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireAdminUser } from "@/lib/admin";
-import { formatDedicationActivityMessage } from "@/lib/feed/dedication-message";
+import { formatDedicationActivityMessage } from "@/lib/activity-text";
 import { resolveDisplayName, sendPushToUsers } from "@/lib/notifications";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 
 const bodySchema = z.object({
-  recipientUserId: z.string().uuid(),
+  recipientUserId: z.uuid(),
   title: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   category: z.string().nullable().optional(),
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: eventError.message }, { status: 500 });
   }
 
-  const senderName = await resolveDisplayName(supabase, admin.id);
+  const sender = await resolveDisplayName(supabase, admin.id);
   const achievementTitle = row.title ?? "Achievement";
 
   await sendPushToUsers({
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
     userIds: [parsed.data.recipientUserId],
     kind: "dedication",
     params: {
-      senderName,
+      sender,
       achievementTitle,
       recipientUserId: parsed.data.recipientUserId,
       achievementId: row.id,
@@ -102,6 +102,6 @@ export async function POST(request: Request) {
   return NextResponse.json({
     ok: true,
     achievementId: row.id,
-    pushBody: formatDedicationActivityMessage(senderName, achievementTitle),
+    pushBody: formatDedicationActivityMessage(sender, achievementTitle),
   });
 }

@@ -5,7 +5,7 @@ import type { Database } from "@/lib/supabase/database.types";
 
 export type FollowRelationshipResult = Result<boolean, string>;
 export type FollowMutationResult = Result<void, string>;
-export type PublicUserDisplayNameResult = Result<string | null, string>;
+export type PublicUserDisplayNameResult = Result<string, string>;
 export type AuthUserExistsResult = Result<boolean, string>;
 
 /**
@@ -79,7 +79,7 @@ export async function removeProfileFollow(
 }
 
 /**
- * Public display name for a user id (RPC). Returns trimmed non-empty string, or `null` if unset/empty.
+ * Public display name for a user id (RPC). Returns trimmed non-empty string.
  */
 export async function fetchPublicUserDisplayName(
   supabase: SupabaseClient<Database>,
@@ -95,8 +95,11 @@ export async function fetchPublicUserDisplayName(
 
   if (typeof label === "string") {
     const trimmed = label.trim();
-    return ok(trimmed.length > 0 ? trimmed : null);
+    if (trimmed.length === 0) {
+      return err("No public display name found");
+    }
+    return ok(trimmed);
   }
 
-  return ok(null);
+  return err("No public display name found");
 }

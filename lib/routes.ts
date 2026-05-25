@@ -44,15 +44,16 @@ export function safeRedirectPath(next: string | null | undefined): string {
   return trimmed;
 }
 
-export function userCollection(authUserId: string): string {
-  return `/u/${authUserId}`;
+export function userCollection(userId: string): string {
+  return `/u/${userId}`;
 }
 
 export function userAchievementDetail(
-  authUserId: string,
+  userId: string,
   achievementId: string,
+  isDedication?: boolean,
 ): string {
-  return `${userCollection(authUserId)}?achievement=${encodeURIComponent(achievementId)}`;
+  return `${userCollection(userId)}?achievement=${encodeURIComponent(achievementId)}${isDedication ? "&dedication=1" : ""}`;
 }
 
 export function loginWithNext(next: string): string {

@@ -1,10 +1,56 @@
+import {
+  buildFeedActivityText,
+  type ActivityTextPart,
+} from "@/lib/activity-text";
 import type { FeedRow } from "@/lib/feed-db";
-import { dedicationActivityParts } from "@/lib/feed/dedication-message";
 import { cn } from "@/lib/utils";
 
 type FeedActivityTextProps = {
   row: FeedRow;
 };
+
+export function FeedActivityText({ row }: FeedActivityTextProps) {
+  const activity = buildFeedActivityText(row);
+  const [firstPart, middlePart, ...lastRowParts] = activity.parts;
+  const rows: ActivityTextPart[][] = [
+    firstPart ? [firstPart] : [],
+    middlePart ? [middlePart] : [],
+    lastRowParts,
+  ];
+
+  return (
+    <div className="grid h-full min-h-0 min-w-0 grid-rows-3 overflow-visible">
+      {rows.map((parts, rowIndex) => (
+        <p
+          key={`${row.event_id}-row-${rowIndex}`}
+          className="flex min-h-0 items-center text-xs leading-tight"
+        >
+          {parts.map((part, partIndex) =>
+            renderPart(part, `${row.event_id}-${rowIndex}-${partIndex}`),
+          )}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+function renderPart(
+  part: ActivityTextPart,
+  key: string,
+): React.ReactNode {
+  switch (part.kind) {
+    case "actor":
+      return <ActorLabel key={key}>{part.text}</ActorLabel>;
+    case "achievement":
+      return (
+        <AchievementLabel key={key}>
+          {part.text}
+        </AchievementLabel>
+      );
+    default:
+      return <MutedVerb key={key}>{part.text}</MutedVerb>;
+  }
+}
 
 function ActorLabel({ children }: { children: string }) {
   return (
@@ -12,18 +58,12 @@ function ActorLabel({ children }: { children: string }) {
   );
 }
 
-function AchievementLabel({
-  children,
-  impression,
-}: {
-  children: string;
-  impression?: boolean;
-}) {
+function AchievementLabel({ children }: { children: string }) {
   return (
     <span
       className={cn(
         "font-bold tracking-tight",
-        impression ? "text-amber-100" : "text-foreground",
+        "text-amber-100",
       )}
     >
       {children}
@@ -33,54 +73,8 @@ function AchievementLabel({
 
 function MutedVerb({ children }: { children: string }) {
   return (
-    <span className="font-normal text-muted-foreground/75">{children}</span>
-  );
-}
-
-/** Compact copy for fixed-height feed rows (truncate with line-clamp). */
-export function FeedActivityText({ row }: FeedActivityTextProps) {
-  const title = row.title?.trim() || "Achievement";
-  const actor = row.actor_display_name?.trim() || "Someone";
-  const isImpression = row.event_type === "impression";
-  const isDedication = row.event_type === "dedication";
-
-  if (isDedication) {
-    const { sender, achievement } = dedicationActivityParts(actor, title);
-    return (
-      <div className="flex min-h-0 min-w-0 flex-col justify-center gap-px overflow-hidden">
-        <p className="line-clamp-2 text-xs leading-tight">
-          <ActorLabel>{sender}</ActorLabel>
-          <MutedVerb> dedicated </MutedVerb>
-          <AchievementLabel>{achievement}</AchievementLabel>
-          <MutedVerb> to u</MutedVerb>
-        </p>
-      </div>
-    );
-  }
-
-  if (isImpression) {
-    return (
-      <div className="flex min-h-0 min-w-0 flex-col justify-center gap-px overflow-hidden">
-        <p className="line-clamp-1 text-[13px] leading-tight">
-          <AchievementLabel impression>{title}</AchievementLabel>
-        </p>
-        <p className="line-clamp-1 text-xs leading-tight">
-          <MutedVerb>left impression on </MutedVerb>
-          <ActorLabel>{actor}</ActorLabel>
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex min-h-0 min-w-0 flex-col justify-center gap-px overflow-hidden">
-      <p className="line-clamp-1 text-xs leading-tight">
-        <ActorLabel>{actor}</ActorLabel>
-        <MutedVerb> unlocked</MutedVerb>
-      </p>
-      <p className="line-clamp-1 text-[13px] leading-tight">
-        <AchievementLabel>{title}</AchievementLabel>
-      </p>
-    </div>
+    <span className="whitespace-pre-wrap font-normal text-muted-foreground/75">
+      {children}
+    </span>
   );
 }

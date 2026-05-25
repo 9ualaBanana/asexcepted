@@ -15,9 +15,8 @@ import {
   FEED_ROW_HEIGHT_CLASS,
 } from "@/lib/feed/feed-row-layout";
 import type { FeedRow } from "@/lib/feed-db";
-import { feedRowShowsDedicatedBadge } from "@/lib/feed/feed-dedicated-badge";
-import { userAchievementDetail } from "@/lib/routes";
 import { cn } from "@/lib/utils";
+import { links } from "@/lib/notifications/templates";
 
 /** Actor avatar as a fraction of badge width. */
 const FEED_AVATAR_RATIO = 0.34;
@@ -27,15 +26,11 @@ type FeedItemProps = {
 };
 
 export function FeedItem({ row }: FeedItemProps) {
-  const href =
-    row.event_type === "dedication"
-      ? `${userAchievementDetail(row.user_id, row.achievement_id)}&dedication=1`
-      : userAchievementDetail(row.user_id, row.achievement_id);
+  const href = links.achievementDetail(row.user_id, row.achievement_id, row.event_type === "dedication");
   const tone = getSafeTone(row.tone);
   const FallbackIcon = getSafeIcon(row.icon);
   const isImpression = row.event_type === "impression";
   const isDedication = row.event_type === "dedication";
-  const showDedicatedBadge = feedRowShowsDedicatedBadge(row);
   const eventTimeLabel = formatFeedEventTimestamp(row.event_at);
   const badgeSrc = row.icon_url?.trim()
     ? toOptimizedBadgeRenderSrc(row.icon_url.trim())
@@ -47,13 +42,13 @@ export function FeedItem({ row }: FeedItemProps) {
       href={href}
       className={cn(
         FEED_ROW_HEIGHT_CLASS,
-        "group flex items-center gap-3 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] py-2 pl-3.5 pr-3 sm:gap-3.5 sm:pl-4 sm:pr-3.5",
+        "group relative flex items-center gap-3 overflow-x-hidden overflow-y-visible rounded-2xl border border-white/10 bg-white/[0.04] py-2 pl-3.5 pr-11 sm:gap-4 sm:pl-4 sm:pr-12",
         "transition hover:border-white/15 hover:bg-white/[0.07]",
         isImpression && "border-amber-200/20 bg-amber-500/[0.04]",
-        showDedicatedBadge && "border-violet-200/20 bg-violet-500/[0.04]",
+        isDedication && "border-violet-200/20 bg-violet-500/[0.04]",
       )}
     >
-      <div className="flex h-full shrink-0 items-center justify-center pr-0.5">
+      <div className="flex h-full shrink-0 items-center justify-center pr-1">
         <div
           className="relative"
           style={{ width: FEED_BADGE_PX, height: FEED_BADGE_PX }}
@@ -73,7 +68,7 @@ export function FeedItem({ row }: FeedItemProps) {
                   size="grid"
                 />
               )}
-              {showDedicatedBadge && badgeSrc ? (
+              {isDedication && badgeSrc ? (
                 <DedicatedBadgeGlitter
                   renderSrc={badgeSrc}
                   motionSeed={row.achievement_id}
@@ -96,17 +91,18 @@ export function FeedItem({ row }: FeedItemProps) {
         </div>
       </div>
 
-      <div className="flex h-full min-w-0 flex-1 flex-col justify-center overflow-hidden">
+      <div className="flex h-full min-w-0 flex-1 flex-col justify-start overflow-visible pb-5 pt-2 pr-2">
         <FeedActivityText row={row} />
-        {eventTimeLabel ? (
-          <p className="mt-px line-clamp-1 text-[10px] leading-none tabular-nums text-muted-foreground/65">
-            {eventTimeLabel}
-          </p>
-        ) : null}
       </div>
 
+      {eventTimeLabel ? (
+        <p className="pointer-events-none absolute bottom-2.5 right-10 text-[10px] leading-none tabular-nums text-muted-foreground/65 sm:right-11">
+          {eventTimeLabel}
+        </p>
+      ) : null}
+
       <ChevronRight
-        className="h-4 w-4 shrink-0 text-muted-foreground/45 transition group-hover:text-muted-foreground/75"
+        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/45 transition group-hover:text-muted-foreground/75 sm:right-3.5"
         aria-hidden
       />
     </Link>

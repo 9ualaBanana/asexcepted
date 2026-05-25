@@ -11,7 +11,6 @@ import { Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Input } from "@/components/ui/input";
 import { profileListLabel } from "@/lib/profile-label";
-import { userAchievementsPath } from "@/lib/user-achievements-path";
 import { userCollection } from "@/lib/routes";
 
 type ProfileRow = { user_id: string; display_name: string };

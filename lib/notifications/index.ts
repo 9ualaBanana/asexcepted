@@ -1,4 +1,3 @@
-export { getAdminSignupsTopic, getAdminUserId } from "@/lib/notifications/constants";
 export type { NotificationKind } from "@/lib/notifications/kinds";
 export { buildFcmWebPushMessage } from "@/lib/notifications/fcm";
 export {

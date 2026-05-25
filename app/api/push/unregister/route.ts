@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getAdminSignupsTopic, getAdminUserId } from "@/lib/notifications";
+import { getAdminSignupsTopic, getAdminUserId } from "@/lib/admin";
 import { getFirebaseAdminMessaging } from "@/lib/push/firebase-admin";
 import { createClient } from "@/lib/supabase/server";
 

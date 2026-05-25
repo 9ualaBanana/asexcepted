@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { getAdminSignupsTopic, getAdminUserId } from "@/lib/notifications/constants";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { buildFcmWebPushMessage } from "@/lib/notifications/fcm";
 import type { NotificationKind } from "@/lib/notifications/kinds";
@@ -9,6 +8,7 @@ import {
   type NotificationParams,
 } from "@/lib/notifications/templates";
 import { getFirebaseAdminMessaging } from "@/lib/push/firebase-admin";
+import { getAdminSignupsTopic, getAdminUserId } from "@/lib/admin";
 
 const INVALID_TOKEN_CODES = new Set([
   "messaging/invalid-registration-token",

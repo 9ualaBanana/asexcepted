@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getAdminSignupsTopic, getAdminUserId } from "@/lib/notifications";
 import { getFirebaseAdminMessaging } from "@/lib/push/firebase-admin";
 import { createClient } from "@/lib/supabase/server";
+import { getAdminSignupsTopic, getAdminUserId } from "@/lib/admin";
 
 const bodySchema = z.object({
   token: z.string().trim().min(20),
