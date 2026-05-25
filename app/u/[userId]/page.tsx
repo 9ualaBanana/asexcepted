@@ -3,6 +3,7 @@ import { Suspense } from "react";
 
 import { AuthButton } from "@/components/auth-button";
 import { AchievementsManager } from "@/components/achievements/achievements-manager";
+import { ErrorToastOnce } from "@/components/toasts/error-toast-once";
 import { FollowButton } from "@/components/social/follow-button";
 import { isAdmin } from "@/lib/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -13,6 +14,33 @@ type PageProps = {
   params: Promise<{ userId: string }>;
   searchParams: Promise<{ achievement?: string; dedication?: string }>;
 };
+
+function UserAchievementsErrorState() {
+  return (
+    <main className="min-h-screen flex flex-col items-center overflow-x-hidden">
+      <ErrorToastOnce
+        id="user-achievements-load"
+        message="Could not load this profile right now. Please try again."
+      />
+      <div className="flex-1 w-full flex flex-col gap-10 items-center">
+        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-14">
+          <div className="relative w-full max-w-5xl flex justify-center items-center p-3 px-5 text-sm">
+            <Suspense>
+              <AuthButton />
+            </Suspense>
+          </div>
+        </nav>
+        <section className="w-full max-w-5xl px-5 pb-8">
+          <div className="py-12 text-center">
+            <p className="text-sm text-muted-foreground">
+              Could not load this profile right now. Please try again.
+            </p>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
 
 /** `userId` is Supabase Auth user id (`auth.users.id`). Owners edit; everyone else (including signed out) can view. */
 async function UserAchievementsContent({ params, searchParams }: PageProps) {
@@ -33,7 +61,7 @@ async function UserAchievementsContent({ params, searchParams }: PageProps) {
     notFound();
   }
   if (profile.status === "error") {
-    throw new Error(profile.message);
+    return <UserAchievementsErrorState />;
   }
 
   const { userId, isOwner, publicDisplayName: ownerPublicLabel } = profile;
