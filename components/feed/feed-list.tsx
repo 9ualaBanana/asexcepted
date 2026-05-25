@@ -17,6 +17,7 @@ type FeedListProps = {
 
 export function FeedList({ initialPage }: FeedListProps) {
   const pathname = usePathname();
+  const feedVisible = pathname === ROUTES.feed || pathname === ROUTES.inspa;
   const [rows, setRows] = useState(initialPage.rows);
   const [cursor, setCursor] = useState(initialPage.nextCursor);
   const [loading, setLoading] = useState(false);
@@ -51,12 +52,12 @@ export function FeedList({ initialPage }: FeedListProps) {
   }, [refreshFeed]);
 
   useEffect(() => {
-    if (pathname !== ROUTES.feed) return;
+    if (!feedVisible) return;
     void refreshFeed({ silent: true });
-  }, [pathname, refreshFeed]);
+  }, [feedVisible, pathname, refreshFeed]);
 
   useEffect(() => {
-    if (pathname !== ROUTES.feed) return;
+    if (!feedVisible) return;
     const onVisibility = () => {
       if (document.visibilityState === "visible") {
         void refreshFeed({ silent: true });
@@ -64,10 +65,10 @@ export function FeedList({ initialPage }: FeedListProps) {
     };
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
-  }, [pathname, refreshFeed]);
+  }, [feedVisible, refreshFeed]);
 
   useFeedLiveUpdates({
-    enabled: pathname === ROUTES.feed,
+    enabled: feedVisible,
     userId,
     onInvalidate: () => {
       void refreshFeed({ silent: true });
@@ -100,11 +101,11 @@ export function FeedList({ initialPage }: FeedListProps) {
     return (
       <div className="mx-auto max-w-md space-y-4 py-12 text-center">
         <p className="text-sm text-muted-foreground/80">
-          Nothing here yet. Follow people on Social to see their unlocks, or wait
+          Nothing here yet. Follow people on Inspa to see their unlocks, or wait
           for someone to leave an impression on one of your badges.
         </p>
         <Button asChild variant="outline">
-          <Link href={ROUTES.social}>Find people to follow</Link>
+          <Link href={ROUTES.inspa}>Find people to follow</Link>
         </Button>
       </div>
     );

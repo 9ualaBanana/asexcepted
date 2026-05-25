@@ -81,6 +81,34 @@
   user-select: none;
 }
 
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes social-caret-blink {
+  0%,
+  48% {
+    opacity: 1;
+  }
+  49%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.social-type-caret {
+  animation: social-caret-blink 1300ms steps(1, end) infinite;
+}
+
+.social-type-caret-once {
+  animation: social-caret-blink 520ms steps(1, end) 1 both;
+}
+
 @property --badge-phase {
   syntax: "<angle>";
   inherits: false;

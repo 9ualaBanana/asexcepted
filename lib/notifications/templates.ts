@@ -60,8 +60,8 @@ export type NotificationParams = {
 
 export function notificationLinks() {
   return {
-    feed: ROUTES.feed,
-    social: ROUTES.social,
+    feed: ROUTES.inspa,
+    social: ROUTES.inspa,
     profile: ROUTES.profile,
     home: ROUTES.home,
     userCollection: (userId: string) => `/u/${userId}`,

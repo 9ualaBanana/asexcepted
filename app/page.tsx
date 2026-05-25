@@ -9,7 +9,7 @@ async function HomePageInner() {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (userData.user) {
-    redirect(ROUTES.feed);
+    redirect(ROUTES.inspa);
   }
   return <WelcomePage />;
 }

@@ -10,7 +10,7 @@ export function buildFcmWebPushMessage(args: {
   icon?: string;
   type?: string;
 }): MulticastMessage {
-  const url = args.url ?? ROUTES.feed;
+  const url = args.url ?? ROUTES.inspa;
   const icon = args.icon ?? "/icons/icon-192.png";
   const type = args.type ?? "generic";
 

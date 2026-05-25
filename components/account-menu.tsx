@@ -53,7 +53,7 @@ export function AccountMenu({ label, userId }: AccountMenuProps) {
         className={cn(
           "pointer-events-none absolute right-[calc(100%+0.5rem)] top-1/2 -translate-y-1/2",
           "min-w-0 overflow-hidden transition-[max-width] duration-[420ms] motion-reduce:duration-0 ease-[cubic-bezier(0.22,1,0.36,1)]",
-          open ? "max-w-[12rem]" : "max-w-0",
+          open ? "max-w-[6rem]" : "max-w-0",
         )}
       >
         <div
@@ -63,21 +63,11 @@ export function AccountMenu({ label, userId }: AccountMenuProps) {
           )}
         >
           <Link
-            href={ROUTES.feed}
+            href={ROUTES.inspa}
             onClick={close}
             className={cn(linkClass, "shrink-0 px-0.5 lowercase pointer-events-auto")}
           >
-            feed
-          </Link>
-          <span className="shrink-0 select-none text-xs text-muted-foreground/80" aria-hidden>
-            •
-          </span>
-          <Link
-            href={ROUTES.social}
-            onClick={close}
-            className={cn(linkClass, "shrink-0 px-0.5 lowercase pointer-events-auto")}
-          >
-            social
+            inspa
           </Link>
           <span className="shrink-0 select-none text-xs text-muted-foreground/80" aria-hidden>
             •

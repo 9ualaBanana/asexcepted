@@ -12,7 +12,7 @@ export function pathFromPushNotificationUrl(
   raw: string | undefined,
   origin?: string,
 ): string {
-  const fallback = "/feed";
+  const fallback = "/inspa";
   if (!raw || typeof raw !== "string") return fallback;
   const trimmed = raw.trim();
   if (!trimmed) return fallback;

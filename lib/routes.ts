@@ -4,6 +4,7 @@
 
 export const ROUTES = {
   home: "/",
+  inspa: "/inspa",
   feed: "/feed",
   social: "/social",
   profile: "/profile",
@@ -23,13 +24,14 @@ export const ROUTES = {
 } as const;
 
 export const PROTECTED_PREFIXES = [
+  ROUTES.inspa,
   ROUTES.feed,
   ROUTES.social,
   ROUTES.profile,
   ROUTES.achievementsLegacy,
 ] as const;
 
-const DEFAULT_POST_AUTH = ROUTES.feed;
+const DEFAULT_POST_AUTH = ROUTES.inspa;
 
 /** Internal paths only — blocks open redirects. */
 export function safeRedirectPath(next: string | null | undefined): string {
@@ -78,5 +80,5 @@ export function isAuthPath(pathname: string): boolean {
 }
 
 export function defaultPostAuthPath(userId: string): string {
-  return ROUTES.feed;
+  return ROUTES.inspa;
 }

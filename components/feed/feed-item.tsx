@@ -15,6 +15,7 @@ import {
   FEED_ROW_HEIGHT_CLASS,
 } from "@/lib/feed/feed-row-layout";
 import type { FeedRow } from "@/lib/feed-db";
+import { userCollection } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { links } from "@/lib/notifications/templates";
 
@@ -27,6 +28,7 @@ type FeedItemProps = {
 
 export function FeedItem({ row }: FeedItemProps) {
   const href = links.achievementDetail(row.user_id, row.achievement_id, row.event_type === "dedication");
+  const actorHref = userCollection(row.actor_user_id);
   const tone = getSafeTone(row.tone);
   const FallbackIcon = getSafeIcon(row.icon);
   const isImpression = row.event_type === "impression";
@@ -38,8 +40,7 @@ export function FeedItem({ row }: FeedItemProps) {
   const avatarPx = Math.round(FEED_BADGE_PX * FEED_AVATAR_RATIO);
 
   return (
-    <Link
-      href={href}
+    <article
       className={cn(
         FEED_ROW_HEIGHT_CLASS,
         "group relative flex items-center gap-3 overflow-x-hidden overflow-y-visible rounded-2xl border border-white/10 bg-white/[0.04] py-2 pl-3.5 pr-11 sm:gap-4 sm:pl-4 sm:pr-12",
@@ -48,7 +49,13 @@ export function FeedItem({ row }: FeedItemProps) {
         isDedication && "border-violet-200/20 bg-violet-500/[0.04]",
       )}
     >
-      <div className="flex h-full shrink-0 items-center justify-center pr-1">
+      <Link
+        href={href}
+        aria-label="Open feed entry"
+        className="absolute inset-0 z-0 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      />
+
+      <div className="pointer-events-none relative z-10 flex h-full shrink-0 items-center justify-center pr-1">
         <div
           className="relative"
           style={{ width: FEED_BADGE_PX, height: FEED_BADGE_PX }}
@@ -77,8 +84,10 @@ export function FeedItem({ row }: FeedItemProps) {
               ) : null}
             </div>
           </AchievementBadgeSlot>
-          <div
-            className="pointer-events-none absolute bottom-0 right-0 z-10"
+          <Link
+            href={actorHref}
+            aria-label={`Open ${row.actor_display_name || "profile"} profile`}
+            className="pointer-events-auto absolute bottom-0 right-0 z-20 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             style={{ width: avatarPx, height: avatarPx }}
           >
             <ProfileAvatarSlot
@@ -87,11 +96,11 @@ export function FeedItem({ row }: FeedItemProps) {
               editable={false}
               className="h-full w-full"
             />
-          </div>
+          </Link>
         </div>
       </div>
 
-      <div className="flex h-full min-w-0 flex-1 flex-col justify-start overflow-visible pb-5 pt-2 pr-2">
+      <div className="pointer-events-none relative z-10 flex h-full min-w-0 flex-1 flex-col justify-start overflow-visible pb-5 pt-2 pr-2">
         <FeedActivityText row={row} />
       </div>
 
@@ -102,9 +111,9 @@ export function FeedItem({ row }: FeedItemProps) {
       ) : null}
 
       <ChevronRight
-        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/45 transition group-hover:text-muted-foreground/75 sm:right-3.5"
+        className="pointer-events-none absolute right-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground/45 transition group-hover:text-muted-foreground/75 sm:right-3.5"
         aria-hidden
       />
-    </Link>
+    </article>
   );
 }

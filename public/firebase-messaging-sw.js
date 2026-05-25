@@ -28,7 +28,7 @@ function showNotificationFromPayload(payload) {
     data.url ||
     payload?.fcmOptions?.link ||
     notification.click_action ||
-    "/feed";
+    "/inspa";
 
   self.registration.showNotification(title, {
     body,
@@ -64,7 +64,7 @@ self.addEventListener("fetch", (event) => {
 });
 
 function resolveNotificationTargetUrl(raw) {
-  const fallback = "/feed";
+  const fallback = "/inspa";
   if (!raw || typeof raw !== "string") return fallback;
   try {
     return new URL(raw, self.location.origin).href;
@@ -78,7 +78,7 @@ function pathFromResolvedUrl(absoluteUrl) {
     const parsed = new URL(absoluteUrl);
     return parsed.pathname + parsed.search + parsed.hash;
   } catch {
-    return "/feed";
+    return "/inspa";
   }
 }
 
