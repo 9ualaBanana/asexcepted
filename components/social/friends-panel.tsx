@@ -92,6 +92,7 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
 
   const trimmedQuery = query.trim();
   const showingSearchResults = trimmedQuery.length > 0;
+  const showingRecommendedProfiles = promptTarget === "?" && !showingSearchResults;
 
   const hydrateProfiles = useCallback(
     async (ids: string[], preferredLabels?: ProfileLabelRow[]) => {
@@ -160,21 +161,20 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
   useEffect(() => {
     let cancelled = false;
 
-    if (!zeroRelationshipMode) {
-      setRecommended([]);
-      setRecommendedLoading(false);
+    if (!listsResolved || promptTarget !== "?") {
       return;
     }
 
     setRecommendedLoading(true);
     setSearchError(null);
+    const followingIds = new Set(following.map((row) => row.user_id));
 
     void (async () => {
       const { data, error } = await supabase
         .from("profile")
         .select("user_id")
         .neq("user_id", viewerId)
-        .limit(40);
+        .limit(120);
 
       if (cancelled) return;
 
@@ -186,7 +186,9 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
       }
 
       const ids = Array.isArray(data)
-        ? data.map((row) => row.user_id as string)
+        ? data
+            .map((row) => row.user_id as string)
+            .filter((userId) => !followingIds.has(userId))
         : [];
       const shuffledIds = [...ids];
 
@@ -205,7 +207,7 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
     return () => {
       cancelled = true;
     };
-  }, [hydrateProfiles, supabase, viewerId, zeroRelationshipMode]);
+  }, [following, hydrateProfiles, listsResolved, promptTarget, supabase, viewerId]);
 
   useEffect(() => {
     if (!searchOpen) {
@@ -234,11 +236,11 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
           p_max: 20,
         });
         if (cancelled) return;
-        setSearching(false);
-        setSearchPending(false);
         if (error) {
           setSearchError(error.message);
           setResults([]);
+          setSearching(false);
+          setSearchPending(false);
           return;
         }
         const rows = Array.isArray(data) ? (data as ProfileLabelRow[]) : [];
@@ -248,6 +250,8 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
         );
         if (cancelled) return;
         setResults(hydrated);
+        setSearching(false);
+        setSearchPending(false);
       })();
     }, 320);
     return () => {
@@ -348,11 +352,11 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
 
   const visibleProfiles = showingSearchResults
     ? results
-    : zeroRelationshipMode
+    : showingRecommendedProfiles
       ? recommended
       : activeView === "following"
-      ? following
-      : followers;
+        ? following
+        : followers;
 
   const showNoMatches =
     showingSearchResults &&
@@ -361,8 +365,7 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
     !searchError &&
     results.length === 0;
   const showProfilesRailSkeleton =
-    !showingSearchResults &&
-    ((!listsResolved && listsLoading) || (zeroRelationshipMode && recommendedLoading));
+    (!listsResolved && listsLoading) || (showingRecommendedProfiles && recommendedLoading);
 
   const leftSelected = promptTarget === "u" && activeView === "followers";
   const rightSelected = activeView === "following";
