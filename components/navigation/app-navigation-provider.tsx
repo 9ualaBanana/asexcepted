@@ -8,7 +8,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { usePathname } from "next/navigation";
 
 const NavigationSequenceContext = createContext(0);
 
@@ -19,18 +18,50 @@ type AppNavigationProviderProps = {
 export function AppNavigationProvider({
   children,
 }: AppNavigationProviderProps) {
-  const pathname = usePathname();
-  const previousPathnameRef = useRef(pathname);
+  const previousPathnameRef = useRef<string | null>(null);
   const [navigationSequence, setNavigationSequence] = useState(0);
 
   useEffect(() => {
-    if (previousPathnameRef.current === pathname) {
-      return;
-    }
+    const readPathname = () => window.location.pathname;
+    const scheduleSequenceBump = () => {
+      queueMicrotask(() => {
+        setNavigationSequence((current) => current + 1);
+      });
+    };
 
-    previousPathnameRef.current = pathname;
-    setNavigationSequence((current) => current + 1);
-  }, [pathname]);
+    const bumpIfPathChanged = () => {
+      const nextPathname = readPathname();
+      if (previousPathnameRef.current === nextPathname) {
+        return;
+      }
+
+      previousPathnameRef.current = nextPathname;
+      scheduleSequenceBump();
+    };
+
+    previousPathnameRef.current = readPathname();
+
+    const originalPushState = window.history.pushState;
+    const originalReplaceState = window.history.replaceState;
+
+    window.history.pushState = function (...args) {
+      originalPushState.apply(window.history, args);
+      bumpIfPathChanged();
+    };
+
+    window.history.replaceState = function (...args) {
+      originalReplaceState.apply(window.history, args);
+      bumpIfPathChanged();
+    };
+
+    window.addEventListener("popstate", bumpIfPathChanged);
+
+    return () => {
+      window.history.pushState = originalPushState;
+      window.history.replaceState = originalReplaceState;
+      window.removeEventListener("popstate", bumpIfPathChanged);
+    };
+  }, []);
 
   return (
     <NavigationSequenceContext.Provider value={navigationSequence}>
