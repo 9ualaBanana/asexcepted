@@ -7,6 +7,7 @@ import {
   ACHIEVEMENT_UI_HINT_MS,
 } from "@/components/achievements/achievement-ui-copy";
 import { copyTextToClipboard } from "@/lib/copy-text-to-clipboard";
+import { toast } from "@/lib/toast";
 import { requestEmbedBadgeToken } from "@/lib/embed-api-client";
 
 type UseAchievementEmbedLinkControllerArgs = {
@@ -51,8 +52,7 @@ export function useAchievementEmbedLinkController({
         return;
       }
 
-      setEmbedCopyHint(ACHIEVEMENT_UI_COPY.embedCopied);
-      window.setTimeout(() => setEmbedCopyHint(null), ACHIEVEMENT_UI_HINT_MS.embedCopied);
+      toast.success(ACHIEVEMENT_UI_COPY.embedCopied, { id: "achievement-embed-copied" });
     } catch (e) {
       const msg = e instanceof Error ? e.message : ACHIEVEMENT_UI_COPY.embedCopyUnknownError;
       if (/not allowed|denied permission|permission/i.test(msg)) {
@@ -69,9 +69,8 @@ export function useAchievementEmbedLinkController({
   }, [detailAchievementId]);
 
   const onManualEmbedCopied = useCallback(() => {
-    setEmbedCopyHint(ACHIEVEMENT_UI_COPY.embedCopied);
     setManualEmbedUrl(null);
-    window.setTimeout(() => setEmbedCopyHint(null), ACHIEVEMENT_UI_HINT_MS.embedCopied);
+    toast.success(ACHIEVEMENT_UI_COPY.embedCopied, { id: "achievement-embed-copied" });
   }, []);
 
   return {
