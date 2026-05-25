@@ -172,6 +172,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auth_user_exists: {
+        Args: { target_user_id: string }
+        Returns: boolean
+      }
       public_user_display_name: {
         Args: { target_user_id: string }
         Returns: string

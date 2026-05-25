@@ -6,6 +6,25 @@ import type { Database } from "@/lib/supabase/database.types";
 export type FollowRelationshipResult = Result<boolean, string>;
 export type FollowMutationResult = Result<void, string>;
 export type PublicUserDisplayNameResult = Result<string | null, string>;
+export type AuthUserExistsResult = Result<boolean, string>;
+
+/**
+ * Whether {@link targetUserId} is a row in `auth.users` (via RPC).
+ */
+export async function authUserExists(
+  supabase: SupabaseClient<Database>,
+  targetUserId: string,
+): Promise<AuthUserExistsResult> {
+  const { data, error } = await supabase.rpc("auth_user_exists", {
+    target_user_id: targetUserId,
+  });
+
+  if (error) {
+    return err(error.message);
+  }
+
+  return ok(data === true);
+}
 
 /**
  * Whether {@link followerId} follows {@link followingId} (row exists in `profile_follow`).

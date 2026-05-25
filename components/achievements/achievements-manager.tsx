@@ -12,16 +12,16 @@ import { useAchievementsManagerModel } from "@/components/achievements/use-achie
 export type AchievementsManagerProps = {
   userId: string;
   readOnly: boolean;
-  isAdmin?: boolean;
-  canDedicate?: boolean;
+  isAdmin: boolean;
+  canDedicate: boolean;
   initialDetailAchievementId?: string | null;
 };
 
 export function AchievementsManager({
   userId,
   readOnly,
-  isAdmin = false,
-  canDedicate = false,
+  isAdmin,
+  canDedicate,
   initialDetailAchievementId,
 }: AchievementsManagerProps) {
   const model = useAchievementsManagerModel({

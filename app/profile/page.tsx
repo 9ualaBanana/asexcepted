@@ -3,7 +3,7 @@ import { Suspense } from "react";
 
 import { AuthButton } from "@/components/auth-button";
 import { ProfilePageShell } from "@/components/profile/profile-page-shell";
-import { isAdminUserId } from "@/lib/admin";
+import { isAdmin } from "@/lib/admin";
 import { loginWithNext, ROUTES } from "@/lib/routes";
 import { createClient } from "@/lib/supabase/server";
 
@@ -25,7 +25,7 @@ async function ProfilePageInner() {
           </div>
         </nav>
 
-        <ProfilePageShell isAdmin={isAdminUserId(userData.user.id)} />
+        <ProfilePageShell isAdmin={isAdmin(userData.user.id)} />
       </div>
     </main>
   );

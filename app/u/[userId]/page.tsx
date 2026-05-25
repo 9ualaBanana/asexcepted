@@ -1,15 +1,13 @@
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
+
 import { AuthButton } from "@/components/auth-button";
 import { AchievementsManager } from "@/components/achievements/achievements-manager";
 import { FollowButton } from "@/components/social/follow-button";
-import { isAdminUserId } from "@/lib/admin";
+import { isAdmin } from "@/lib/admin";
 import { createClient } from "@/lib/supabase/server";
-import {
-  fetchPublicUserDisplayName,
-  isUserFollowingProfile,
-} from "@/lib/user-profile-db";
-import { isAuthUserIdSegment } from "@/lib/user-achievements-path";
-import { Suspense } from "react";
+import { isUserFollowingProfile } from "@/lib/user-profile-db";
+import { resolveAchievementsProfileUser } from "@/lib/user-achievements-page";
 
 type PageProps = {
   params: Promise<{ userId: string }>;
@@ -18,30 +16,39 @@ type PageProps = {
 
 /** `userId` is Supabase Auth user id (`auth.users.id`). Owners edit; everyone else (including signed out) can view. */
 async function UserAchievementsContent({ params, searchParams }: PageProps) {
-  const { userId } = await params;
+  const { userId: _userId } = await params;
   const { achievement: achievementParam } = await searchParams;
-  if (!isAuthUserIdSegment(userId)) {
-    notFound();
-  }
 
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
-  const user = userData.user;
-  const isOwner = Boolean(user?.id === userId);
+  const viewer = userData.user;
+
+  const profile = await resolveAchievementsProfileUser(
+    supabase,
+    _userId,
+    viewer?.id ?? null,
+  );
+
+  if (profile.status === "invalid-id" || profile.status === "not-found") {
+    notFound();
+  }
+  if (profile.status === "error") {
+    throw new Error(profile.message);
+  }
+
+  const { userId, isOwner, publicDisplayName: ownerPublicLabel } = profile;
   const readOnly = !isOwner;
-  const viewerIsAdmin = Boolean(user && isAdminUserId(user.id));
+  const viewerIsAdmin = Boolean(viewer && isAdmin(viewer.id));
   const canDedicate = viewerIsAdmin && !isOwner;
 
   let initialIsFollowing = false;
-  if (user && !isOwner) {
-    const followResult = await isUserFollowingProfile(supabase, user.id, userId);
+  if (viewer && !isOwner) {
+    const followResult = await isUserFollowingProfile(
+      supabase,
+      viewer.id,
+      userId,
+    );
     initialIsFollowing = followResult.isOk() ? followResult.value : false;
-  }
-
-  let ownerPublicLabel: string | null = null;
-  if (!isOwner) {
-    const labelResult = await fetchPublicUserDisplayName(supabase, userId);
-    ownerPublicLabel = labelResult.isOk() ? labelResult.value : null;
   }
 
   return (
@@ -75,7 +82,7 @@ async function UserAchievementsContent({ params, searchParams }: PageProps) {
               )}
             </p>
           </header>
-          {user && !isOwner ? (
+          {viewer && !isOwner ? (
             <div className="flex justify-center pb-1">
               <FollowButton
                 targetUserId={userId}

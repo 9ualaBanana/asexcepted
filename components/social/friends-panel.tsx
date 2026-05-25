@@ -12,6 +12,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Input } from "@/components/ui/input";
 import { profileListLabel } from "@/lib/profile-label";
 import { userAchievementsPath } from "@/lib/user-achievements-path";
+import { userCollection } from "@/lib/routes";
 
 type ProfileRow = { user_id: string; display_name: string };
 
@@ -136,7 +137,7 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
             {results.map((r) => (
               <li key={r.user_id}>
                 <Link
-                  href={userAchievementsPath(r.user_id)}
+                  href={userCollection(r.user_id)}
                   className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm hover:bg-muted/50"
                 >
                   <span className="font-medium truncate">
@@ -166,7 +167,7 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
             {following.map((r) => (
               <li key={r.user_id}>
                 <Link
-                  href={userAchievementsPath(r.user_id)}
+                  href={userCollection(r.user_id)}
                   className="block px-3 py-2.5 text-sm font-medium hover:bg-muted/50 truncate"
                 >
                   {profileListLabel(r)}
@@ -190,7 +191,7 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
             {followers.map((r) => (
               <li key={r.user_id}>
                 <Link
-                  href={userAchievementsPath(r.user_id)}
+                  href={userCollection(r.user_id)}
                   className="block px-3 py-2.5 text-sm font-medium hover:bg-muted/50 truncate"
                 >
                   {profileListLabel(r)}

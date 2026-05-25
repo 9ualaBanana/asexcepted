@@ -55,16 +55,16 @@ const UUID_RE =
 type UseAchievementsManagerModelArgs = {
   userId: string;
   readOnly: boolean;
-  isAdmin?: boolean;
-  canDedicate?: boolean;
+  isAdmin: boolean;
+  canDedicate: boolean;
   initialDetailAchievementId?: string | null;
 };
 
 export function useAchievementsManagerModel({
   userId,
   readOnly,
-  isAdmin = false,
-  canDedicate = false,
+  isAdmin,
+  canDedicate,
   initialDetailAchievementId,
 }: UseAchievementsManagerModelArgs) {
   const pathname = usePathname();
