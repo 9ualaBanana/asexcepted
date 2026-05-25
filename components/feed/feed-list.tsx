@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FeedItem } from "@/components/feed/feed-item";
 import { Button } from "@/components/ui/button";
@@ -10,20 +9,24 @@ import { fetchFollowingUnlockFeed } from "@/lib/feed-db";
 import { useFeedLiveUpdates } from "@/lib/live-updates";
 import { ROUTES } from "@/lib/routes";
 import { createClient } from "@/lib/supabase/client";
+import { useErrorToast } from "@/lib/toast";
 
 type FeedListProps = {
   initialPage: FeedPage;
+  initialError?: string | null;
 };
 
-export function FeedList({ initialPage }: FeedListProps) {
+export function FeedList({ initialPage, initialError = null }: FeedListProps) {
   const pathname = usePathname();
   const feedVisible = pathname === ROUTES.feed || pathname === ROUTES.inspa;
   const [rows, setRows] = useState(initialPage.rows);
   const [cursor, setCursor] = useState(initialPage.nextCursor);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialError);
   const [userId, setUserId] = useState<string | null>(null);
+
+  useErrorToast(error, { id: "feed" });
 
   const refreshFeed = useCallback(async (opts?: { silent?: boolean }) => {
     const silent = opts?.silent ?? false;
@@ -101,12 +104,9 @@ export function FeedList({ initialPage }: FeedListProps) {
     return (
       <div className="mx-auto max-w-md space-y-4 py-12 text-center">
         <p className="text-sm text-muted-foreground/80">
-          Nothing here yet. Follow people on Inspa to see their unlocks, or wait
-          for someone to leave an impression on one of your badges.
+          Nothing here yet. Find inspiring life experiencers and let their achievements leave an impression on u
+          or impress them with your own achievements.
         </p>
-        <Button asChild variant="outline">
-          <Link href={ROUTES.inspa}>Find people to follow</Link>
-        </Button>
       </div>
     );
   }
@@ -122,7 +122,6 @@ export function FeedList({ initialPage }: FeedListProps) {
           row={row}
         />
       ))}
-      {error ? <p className="text-center text-sm text-red-500">{error}</p> : null}
       {cursor ? (
         <div className="flex justify-center pt-4">
           <Button

@@ -27,6 +27,7 @@ import {
 } from "@/components/achievements/achievement-editor-shared";
 import { Button } from "@/components/ui/button";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
+import { useErrorToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { useBadgeImageUploader } from "@/components/achievements/badge/use-badge-image-uploader";
 
@@ -131,6 +132,8 @@ export function AchievementRoundBadgeEditor({
   const fileIdTrim = normalizeImageKitFileId(iconFileId);
   const baselineIdTrim = normalizeImageKitFileId(baselineIconFileId);
   const hasCustomBadge = hasRemote || !!fileIdTrim;
+
+  useErrorToast(error, { id: "badge-editor-upload" });
 
   const { queueUpload, uploadInProgress } = useBadgeImageUploader({
     instanceId: uppyInstanceId,
@@ -463,16 +466,6 @@ export function AchievementRoundBadgeEditor({
         </div>
       ) : null}
 
-      {error ? (
-        <p
-          className={cn(
-            "mt-2 max-w-[220px] text-center text-xs",
-            "text-red-300",
-          )}
-        >
-          {error}
-        </p>
-      ) : null}
     </div>
   );
 }

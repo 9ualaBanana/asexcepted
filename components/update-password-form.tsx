@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { validatePassword } from "@/lib/auth/password-policy";
 import { ROUTES } from "@/lib/routes";
+import { useErrorToast } from "@/lib/toast";
 
 export function UpdatePasswordForm({
   className,
@@ -25,6 +26,8 @@ export function UpdatePasswordForm({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  useErrorToast(error, { id: "update-password" });
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,7 +77,6 @@ export function UpdatePasswordForm({
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Saving..." : "Save new password"}
               </Button>

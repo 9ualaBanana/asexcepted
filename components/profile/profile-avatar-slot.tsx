@@ -8,9 +8,9 @@ import { toOptimizedAvatarRenderSrc } from "@/lib/profile/avatar-render-src";
 import {
   PROFILE_AVATAR_MAX_EDGE_PX,
   PROFILE_AVATAR_MAX_FILE_BYTES,
-  PROFILE_AVATAR_MIN_EDGE_PX,
 } from "@/lib/profile/avatar-limits";
 import { useImageKitImageUploader } from "@/lib/imagekit/use-imagekit-image-uploader";
+import { useErrorToast } from "@/lib/toast";
 
 import "@uppy/core/css/style.min.css";
 
@@ -50,6 +50,8 @@ export function ProfileAvatarSlot({
   const [armed, setArmed] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useErrorToast(error, { id: "profile-avatar-upload" });
 
   onUploadSuccessRef.current = onUploadSuccess;
 
@@ -229,10 +231,6 @@ export function ProfileAvatarSlot({
       >
         {circle}
       </button>
-
-      {error ? (
-        <p className="mt-2 max-w-[14rem] text-center text-xs text-red-500">{error}</p>
-      ) : null}
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { AchievementManualEmbedDialog } from "@/components/achievements/achievem
 import { DedicationResponseDialog } from "@/components/achievements/dedication/dedication-response-dialog";
 import { DedicationSenderConfirmDialog } from "@/components/achievements/dedication/dedication-sender-confirm-dialog";
 import { useAchievementsManagerModel } from "@/components/achievements/use-achievements-manager-model";
+import { useErrorToast } from "@/lib/toast";
 export type AchievementsManagerProps = {
   userId: string;
   readOnly: boolean;
@@ -33,10 +34,10 @@ export function AchievementsManager({
   });
   const { data, editorPipeline, ui, badgeMetrics, embedLink } = model;
 
+  useErrorToast(model.error, { id: "achievements-manager" });
+
   return (
     <div className="space-y-1">
-      {model.error ? <p className="text-sm text-red-500">{model.error}</p> : null}
-
       <div className="relative flex min-h-[1.25rem] items-center justify-center">
         <p className="text-center font-mono text-[11px] font-normal tabular-nums tracking-[0.18em] text-muted-foreground/40">
           <span>{model.unlockedCount}</span>

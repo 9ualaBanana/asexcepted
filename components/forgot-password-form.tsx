@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useState } from "react";
 import { ROUTES, authCallbackUrl } from "@/lib/routes";
+import { useErrorToast } from "@/lib/toast";
 
 export function ForgotPasswordForm({
   className,
@@ -24,6 +25,8 @@ export function ForgotPasswordForm({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  useErrorToast(error, { id: "forgot-password" });
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,7 +89,6 @@ export function ForgotPasswordForm({
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
-                {error && <p className="text-sm text-red-500">{error}</p>}
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Sending..." : "Send reset email"}
                 </Button>

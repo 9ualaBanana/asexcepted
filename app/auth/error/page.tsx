@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Suspense } from "react";
+import { ErrorToastOnce } from "@/components/toasts/error-toast-once";
 
 async function ErrorContent({
   searchParams,
@@ -10,6 +11,10 @@ async function ErrorContent({
 
   return (
     <>
+      <ErrorToastOnce
+        id="auth-error"
+        message={params?.error || "An unspecified error occurred."}
+      />
       {params?.error ? (
         <p className="text-sm text-muted-foreground">
           Code error: {params.error}

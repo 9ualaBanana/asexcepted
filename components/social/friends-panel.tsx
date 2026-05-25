@@ -14,6 +14,7 @@ import { ProfileAvatarSlot } from "@/components/profile/profile-avatar-slot";
 import { createClient } from "@/lib/supabase/client";
 import { profileListLabel } from "@/lib/profile-label";
 import { userCollection } from "@/lib/routes";
+import { useErrorToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 type ProfileLabelRow = { user_id: string; display_name: string };
@@ -65,6 +66,8 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
   const [leftPrompt, setLeftPrompt] = useState("u");
   const [caretMode, setCaretMode] = useState<CaretMode>("hidden");
   const [caretPosition, setCaretPosition] = useState<CaretPosition>("normal");
+
+  useErrorToast(searchError, { id: "friends-search" });
 
   const trimmedQuery = query.trim();
   const showingSearchResults = trimmedQuery.length > 0;
@@ -361,9 +364,7 @@ export function FriendsPanel({ viewerId }: FriendsPanelProps) {
           </button>
 
           <div className="mt-3 flex min-h-0 flex-1 flex-col justify-center">
-            {searchError ? (
-              <p className="text-center text-sm text-red-500">{searchError}</p>
-            ) : listsLoading && !showingSearchResults ? (
+            {searchError ? null : listsLoading && !showingSearchResults ? (
               <ProfilesRailSkeleton />
             ) : showNoMatches ? (
               <div className="flex h-full items-center justify-center">

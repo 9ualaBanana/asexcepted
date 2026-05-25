@@ -26,6 +26,7 @@ import {
 } from "@/lib/push/device-push-status";
 import { useSoundsEnabledPreference } from "@/lib/sounds-enabled-preference";
 import { createClient } from "@/lib/supabase/client";
+import { useErrorToast } from "@/lib/toast";
 
 function displayNameFromMetadata(meta: Record<string, unknown> | null | undefined) {
   if (!meta) return "";
@@ -70,6 +71,8 @@ export function ProfileSettings({
   const [error, setError] = useState<string | null>(null);
   const [savedHint, setSavedHint] = useState(false);
   const [pushHint, setPushHint] = useState<string | null>(null);
+
+  useErrorToast(error, { id: "profile-settings" });
 
   const displayNameDirty = displayName.trim() !== savedDisplayName.trim();
   const avatarDirty =
@@ -258,7 +261,6 @@ export function ProfileSettings({
       onSubmit={(e) => void handleSubmit(e)}
       className="mx-auto w-full max-w-md space-y-6 text-left"
     >
-      {error ? <p className="text-sm text-red-500">{error}</p> : null}
       {savedHint ? (
         <p className="text-sm text-muted-foreground">Saved.</p>
       ) : null}
@@ -273,7 +275,6 @@ export function ProfileSettings({
           disabled={saving}
           imageUrl={avatarPreviewUrl}
           onUploadSuccess={handleAvatarUploadSuccess}
-          onUploadError={setError}
         />
       </div>
 

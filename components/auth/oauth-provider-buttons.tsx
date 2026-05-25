@@ -8,6 +8,7 @@ import {
   type OAuthProviderId,
 } from "@/lib/auth/oauth-providers";
 import { authCallbackUrl } from "@/lib/routes";
+import { useErrorToast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 
 type OAuthProviderButtonsProps = {
@@ -18,6 +19,8 @@ export function OAuthProviderButtons({ next }: OAuthProviderButtonsProps) {
   const [busy, setBusy] = useState<OAuthProviderId | null>(null);
   const [error, setError] = useState<string | null>(null);
   const providers = getEnabledOAuthProviders();
+
+  useErrorToast(error, { id: "oauth-sign-in" });
 
   if (providers.length === 0) return null;
 
@@ -49,7 +52,6 @@ export function OAuthProviderButtons({ next }: OAuthProviderButtonsProps) {
           {busy === p.id ? "Redirecting…" : p.label}
         </Button>
       ))}
-      {error ? <p className="text-sm text-red-500">{error}</p> : null}
     </div>
   );
 }

@@ -18,6 +18,7 @@ import { useState } from "react";
 import { OAuthProviderButtons } from "@/components/auth/oauth-provider-buttons";
 import { hasEnabledOAuthProviders } from "@/lib/auth/oauth-providers";
 import { ROUTES, safeRedirectPath } from "@/lib/routes";
+import { useErrorToast } from "@/lib/toast";
 
 type LoginFormProps = React.ComponentPropsWithoutRef<"div"> & {
   next?: string;
@@ -31,6 +32,8 @@ export function LoginForm({ className, next, ...props }: LoginFormProps) {
   const router = useRouter();
   const redirectTo = safeRedirectPath(next);
   const showOAuth = hasEnabledOAuthProviders();
+
+  useErrorToast(error, { id: "login" });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,7 +108,6 @@ export function LoginForm({ className, next, ...props }: LoginFormProps) {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Login"}
               </Button>

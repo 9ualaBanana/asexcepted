@@ -19,7 +19,8 @@ import { useState, type FormEvent } from "react";
 import { OAuthProviderButtons } from "@/components/auth/oauth-provider-buttons";
 import { hasEnabledOAuthProviders } from "@/lib/auth/oauth-providers";
 import { validatePassword } from "@/lib/auth/password-policy";
-import { ROUTES, safeRedirectPath } from "@/lib/routes";
+import { ROUTES } from "@/lib/routes";
+import { useErrorToast } from "@/lib/toast";
 import { completeOnboardingAfterSignup } from "@/lib/welcome/complete-onboarding";
 
 type SignUpFormProps = {
@@ -34,8 +35,9 @@ export function SignUpForm({ className, next }: SignUpFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const redirectTo = safeRedirectPath(next);
   const showOAuth = hasEnabledOAuthProviders();
+
+  useErrorToast(error, { id: "sign-up" });
 
   const handleSignUp = async (e: FormEvent) => {
     e.preventDefault();
@@ -157,7 +159,6 @@ export function SignUpForm({ className, next }: SignUpFormProps) {
                   onChange={(e) => setRepeatPassword(e.target.value)}
                 />
               </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Creating an account..." : "Sign up"}
               </Button>

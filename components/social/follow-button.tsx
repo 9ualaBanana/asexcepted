@@ -9,6 +9,7 @@ import {
   isUserFollowingProfile,
   removeProfileFollow,
 } from "@/lib/user-profile-db";
+import { useErrorToast } from "@/lib/toast";
 
 type FollowButtonProps = {
   targetUserId: string;
@@ -21,6 +22,8 @@ export function FollowButton({ targetUserId, initialFollowing }: FollowButtonPro
   const [following, setFollowing] = useState(initialFollowing);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useErrorToast(error, { id: "follow-button" });
 
   useEffect(() => {
     setFollowing(initialFollowing);
@@ -88,7 +91,6 @@ export function FollowButton({ targetUserId, initialFollowing }: FollowButtonPro
       >
         {loading ? "…" : following ? "Unfollow" : "Follow"}
       </Button>
-      {error ? <p className="text-xs text-red-500">{error}</p> : null}
     </div>
   );
 }

@@ -29,10 +29,10 @@ async function InspaPageInner() {
     >
       <div className="space-y-8 sm:space-y-10">
         <FriendsPanel viewerId={userData.user.id} />
-        {!feedResult.isOk() ? (
-          <p className="text-center text-sm text-red-500">{feedResult.error}</p>
-        ) : null}
-        <FeedList initialPage={initialPage} />
+        <FeedList
+          initialPage={initialPage}
+          initialError={feedResult.isOk() ? null : feedResult.error}
+        />
       </div>
     </AppPageShell>
   );
