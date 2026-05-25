@@ -4,8 +4,8 @@ import { SkeletonFeedRow } from "@/components/layout/page-skeleton-primitives";
 export function FeedPageSkeleton() {
   return (
     <AppPageShell
-      title="Feed"
-      subtitle="Unlocks from people you follow"
+      title=""
+      subtitle=""
     >
       <div className="mx-auto max-w-lg space-y-3 sm:space-y-4" aria-hidden>
         {Array.from({ length: 6 }).map((_, i) => (

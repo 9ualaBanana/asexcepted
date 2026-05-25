@@ -4,8 +4,8 @@ import { SkeletonFeedRow } from "@/components/layout/page-skeleton-primitives";
 export function SocialPageSkeleton() {
   return (
     <AppPageShell
-      title="Inspa"
-      subtitle="Inspire and get inspired by people you care about"
+      title=""
+      subtitle=""
     >
       <div className="space-y-8" aria-hidden>
         <div className="rounded-[1.7rem] border border-white/10 bg-white/[0.04] p-3.5 shadow-[0_14px_38px_rgba(0,0,0,0.24)] backdrop-blur-sm sm:p-4">

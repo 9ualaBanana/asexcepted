@@ -26,14 +26,6 @@ export function ProfilePageShell({ isAdmin }: ProfilePageShellProps) {
   return (
     <>
       <section className="w-full max-w-5xl flex-1 space-y-4 px-5 pb-8">
-        <header className="space-y-2">
-          <p className="text-md text-center uppercase tracking-[0.22em]">
-            Profile
-          </p>
-          <p className="text-md text-center text-xs font-medium leading-relaxed tracking-tight text-muted-foreground/80 sm:text-sm">
-            View and update your profile information
-          </p>
-        </header>
         <ProfileSettings
           isAdmin={isAdmin}
           onDirtyChange={setDirty}
