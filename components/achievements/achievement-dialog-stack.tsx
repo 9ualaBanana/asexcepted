@@ -36,9 +36,8 @@ import {
 import { ImpressionBurst } from "@/components/achievements/badge/impression-burst";
 import { submitImpression } from "@/components/achievements/use-impression-on-badge";
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
-import { TutorialCallout } from "@/components/tutorials/tutorial-callout";
 import { useDoubleActivate } from "@/lib/hooks/use-double-activate";
-import { getTutorial, TUTORIAL_IDS, useTutorial } from "@/lib/tutorials";
+import { getTutorial, TUTORIAL_IDS, useTutorial, useTutorialToast } from "@/lib/tutorials";
 import { cn } from "@/lib/utils";
 
 export type AchievementDialogStackProps = {
@@ -159,7 +158,21 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
 
   const impressionTutorial = useTutorial(TUTORIAL_IDS.impressionDoubleTap);
   const unlockHoldTutorial = useTutorial(TUTORIAL_IDS.unlockHold);
+  const impressionTutorialDefinition = getTutorial(TUTORIAL_IDS.impressionDoubleTap);
+  const unlockHoldTutorialDefinition = getTutorial(TUTORIAL_IDS.unlockHold);
   const [impressionBurstPulse, setImpressionBurstPulse] = useState(0);
+
+  useTutorialToast({
+    tutorial: impressionTutorialDefinition,
+    active: readOnly && !detailIsLockedUi && impressionTutorial.active,
+    onDismiss: impressionTutorial.dismiss,
+  });
+
+  useTutorialToast({
+    tutorial: unlockHoldTutorialDefinition,
+    active: !readOnly && detailIsLockedUi && unlockHoldTutorial.active,
+    onDismiss: unlockHoldTutorial.dismiss,
+  });
 
   const handleUnlockPointerDown = useCallback(() => {
     unlockHoldTutorial.dismiss();
@@ -296,24 +309,6 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       readOnly ? impressionDoubleActivate.onPointerUp : undefined
                     }
                   >
-                    {readOnly &&
-                    !detailIsLockedUi &&
-                    impressionTutorial.active ? (
-                      <TutorialCallout
-                        message={
-                          getTutorial(TUTORIAL_IDS.impressionDoubleTap).message
-                        }
-                        onDismiss={impressionTutorial.dismiss}
-                        className="absolute bottom-[88%] left-1/2 z-40 w-max max-w-[10.5rem] -translate-x-1/2"
-                      />
-                    ) : null}
-                    {!readOnly && detailIsLockedUi && unlockHoldTutorial.active ? (
-                      <TutorialCallout
-                        message={getTutorial(TUTORIAL_IDS.unlockHold).message}
-                        onDismiss={unlockHoldTutorial.dismiss}
-                        className="absolute bottom-[88%] left-1/2 z-40 w-max max-w-[11rem] -translate-x-1/2"
-                      />
-                    ) : null}
                     <AchievementDetailBadgeInteractive
                       renderSrc={detailRenderSrc}
                       motionSeed={detailAchievement.id}

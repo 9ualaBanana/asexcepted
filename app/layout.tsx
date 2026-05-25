@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { AppToaster } from "@/components/toasts/app-toaster";
 import { LiveUpdateProvider } from "@/lib/live-updates";
 import { PwaInit } from "@/components/pwa/pwa-init";
 import { PushRegistration } from "@/components/push/push-registration";
@@ -74,6 +75,7 @@ export default function RootLayout({
             <StartupSplash />
             <PwaInit />
             <PushRegistration />
+            <AppToaster />
             {children}
           </LiveUpdateProvider>
         </ThemeProvider>
