@@ -44,6 +44,23 @@ export function useAchievementBadgeSessionController({
     rollbackBadgeUploadSession(createBadgeAssetSessionRef.current);
   };
 
+  const retainCreateBadgeSession = (asset: {
+    iconUrl?: string | null;
+    iconFileId?: string | null;
+    iconAssetKind?: string | null;
+    iconAssetPath?: string | null;
+  }) => {
+    createBadgeAssetSessionRef.current = {
+      baseline: createAchievementBadgeRemoteAsset({
+        iconUrl: asset.iconUrl ?? "",
+        iconFileId: asset.iconFileId ?? "",
+        iconAssetKind: asset.iconAssetKind ?? "image",
+        iconAssetPath: asset.iconAssetPath ?? "",
+      }),
+      staged: null,
+    };
+  };
+
   const beginPanelBadgeSession = (detailAchievement: AchievementRecord) => {
     panelBadgeAssetSessionRef.current = {
       baseline: createAchievementBadgeRemoteAsset({
@@ -137,6 +154,7 @@ export function useAchievementBadgeSessionController({
     panelBadgeAssetSessionRef,
     beginCreateBadgeSession,
     rollbackCreateBadgeSession,
+    retainCreateBadgeSession,
     beginPanelBadgeSession,
     rollbackPanelBadgeSession,
     commitPanelBadgeSession,
