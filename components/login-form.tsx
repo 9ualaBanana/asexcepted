@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { OAuthProviderButtons } from "@/components/auth/oauth-provider-buttons";
 import { hasEnabledOAuthProviders } from "@/lib/auth/oauth-providers";
-import { ROUTES, safeRedirectPath } from "@/lib/routes";
+import { ROUTES, safeRedirectPath, signUpWithNext } from "@/lib/routes";
 import { useErrorToast } from "@/lib/toast";
 
 type LoginFormProps = React.ComponentPropsWithoutRef<"div"> & {
@@ -115,7 +115,7 @@ export function LoginForm({ className, next, ...props }: LoginFormProps) {
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
               <Link
-                href={next ? `${ROUTES.signUp}?next=${encodeURIComponent(next)}` : ROUTES.signUp}
+                href={next ? signUpWithNext(next) : ROUTES.signUp}
                 className="underline underline-offset-4"
               >
                 Sign up

@@ -67,6 +67,33 @@ export function achievementShareInvitePath(
   return query ? `${base}?${query}` : base;
 }
 
+export function achievementShareInviteOgImagePath(token: string): string {
+  return `${ROUTES.invite}/${encodeURIComponent(token)}/opengraph-image`;
+}
+
+function rewriteInviteClaimNext(
+  next: string,
+  mode: "login" | "signup",
+): string {
+  const path = safeRedirectPath(next);
+  if (!path.startsWith(`${ROUTES.invite}/`)) {
+    return path;
+  }
+
+  const url = new URL(path, "https://asexcepted.local");
+  if (url.searchParams.get("claim") !== "1") {
+    return path;
+  }
+
+  if (mode === "signup") {
+    url.searchParams.set("auto", "1");
+  } else {
+    url.searchParams.delete("auto");
+  }
+
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
 export function userAchievementDetail(
   userId: string,
   achievementId: string,
@@ -76,8 +103,13 @@ export function userAchievementDetail(
 }
 
 export function loginWithNext(next: string): string {
-  const path = safeRedirectPath(next);
+  const path = rewriteInviteClaimNext(next, "login");
   return `${ROUTES.login}?next=${encodeURIComponent(path)}`;
+}
+
+export function signUpWithNext(next: string): string {
+  const path = rewriteInviteClaimNext(next, "signup");
+  return `${ROUTES.signUp}?next=${encodeURIComponent(path)}`;
 }
 
 export function authCallbackUrl(origin: string, next?: string): string {

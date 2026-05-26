@@ -110,6 +110,7 @@ export type Database = {
           icon_url: string
           id: string
           revoked_at: string | null
+          share_kind: string
           sender_user_id: string
           source_achievement_id: string | null
           status: string
@@ -132,6 +133,7 @@ export type Database = {
           icon_url: string
           id?: string
           revoked_at?: string | null
+          share_kind?: string
           sender_user_id: string
           source_achievement_id?: string | null
           status?: string
@@ -154,6 +156,7 @@ export type Database = {
           icon_url?: string
           id?: string
           revoked_at?: string | null
+          share_kind?: string
           sender_user_id?: string
           source_achievement_id?: string | null
           status?: string

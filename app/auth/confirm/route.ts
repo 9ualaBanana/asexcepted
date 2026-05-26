@@ -10,7 +10,8 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const next = safeRedirectPath(searchParams.get("next"));
+  const rawNext = searchParams.get("next");
+  const next = safeRedirectPath(rawNext);
 
   if (token_hash && type) {
     const supabase = await createClient();
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (user) {
+      if (user && !rawNext) {
         const seed = await seedIntroAchievementIfEmpty(supabase, user.id);
         if (seed.created && seed.achievementId) {
           redirect(onboardingAchievementDetailPath(user.id, seed.achievementId));

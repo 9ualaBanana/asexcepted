@@ -1,9 +1,18 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { AchievementBadge3DViewer } from "@/components/achievements/badge/achievement-badge-3d-viewer";
-import { DedicationByline } from "@/components/achievements/dedication/dedication-byline";
 import { formatAchievedAt } from "@/components/achievements/achievement-editor-shared";
+import { resolvePublicSiteOrigin } from "@/lib/public-site-origin";
+import {
+  achievementShareInviteOgImagePath,
+  userCollection,
+} from "@/lib/routes";
 import { getAchievementShareInvitePresentationByToken } from "@/lib/share-invites/server";
+import {
+  getAchievementShareInviteKind,
+  getAchievementShareInviteOwnerDetailPath,
+} from "@/lib/share-invites/server";
 import { ShareInviteClaimPanel } from "./share-invite-claim-panel";
 
 type PageProps = {
@@ -36,6 +45,7 @@ function buildInviteMetadata(args: {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { token } = await params;
   const result = await getAchievementShareInvitePresentationByToken(token);
+  const origin = await resolvePublicSiteOrigin();
 
   if (result.isErr()) {
     return buildInviteMetadata({
@@ -45,16 +55,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const { invite, senderDisplayName } = result.value;
+  const pageKind = getAchievementShareInviteKind(invite);
   const title =
     invite.title?.trim() || invite.category?.trim() || "Achievement invite";
   const description =
     invite.description?.trim() ||
-    `${senderDisplayName} shared an achievement waiting to be claimed.`;
+    (pageKind === "showcase"
+      ? `${senderDisplayName} shared an achievement from their collection.`
+      : `${senderDisplayName} shared an achievement waiting in your collection.`);
 
   return buildInviteMetadata({
     title: `${title} | asexcepted`,
     description,
-    imageUrl: invite.icon_url,
+    imageUrl: origin
+      ? `${origin}${achievementShareInviteOgImagePath(token)}`
+      : invite.icon_url,
   });
 }
 
@@ -87,6 +102,9 @@ export default async function Page({ params }: PageProps) {
   }
 
   const { invite, senderDisplayName } = result.value;
+  const pageKind = getAchievementShareInviteKind(invite);
+  const ownerDetailPath = getAchievementShareInviteOwnerDetailPath(invite);
+  const senderCollectionPath = userCollection(invite.sender_user_id);
 
   if (invite.status !== "pending") {
     return <InviteUnavailableState claimed={invite.status === "claimed"} />;
@@ -128,12 +146,28 @@ export default async function Page({ params }: PageProps) {
             ) : null}
           </div>
 
-          <div className="mt-5 flex justify-center">
-            <DedicationByline
-              senderUserId={invite.sender_user_id}
-              senderDisplayName={senderDisplayName}
-              className="mt-0"
-            />
+          <div className="mt-5 flex justify-center text-center">
+            {pageKind === "showcase" ? (
+              <p className="text-xs leading-snug text-white/55">
+                from{" "}
+                <Link
+                  href={senderCollectionPath}
+                  className="font-semibold text-emerald-200/90 underline-offset-2 hover:underline"
+                >
+                  {senderDisplayName}
+                </Link>
+              </p>
+            ) : (
+              <p className="text-xs leading-snug text-white/55">
+                dedicated by{" "}
+                <Link
+                  href={senderCollectionPath}
+                  className="font-semibold text-amber-200/95 underline-offset-2 hover:underline"
+                >
+                  {senderDisplayName}
+                </Link>
+              </p>
+            )}
           </div>
 
           <div className="mt-6 flex justify-center">
@@ -141,6 +175,8 @@ export default async function Page({ params }: PageProps) {
               token={token}
               senderUserId={invite.sender_user_id}
               inviteStatus={invite.status}
+              pageKind={pageKind}
+              ownerDetailPath={ownerDetailPath}
             />
           </div>
         </div>

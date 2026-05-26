@@ -33,6 +33,8 @@ export type AchievementShareInvitePresentation = {
   senderDisplayName: string;
 };
 
+export type AchievementSharePageKind = "invite" | "showcase";
+
 export type ClaimAchievementShareInviteSuccess = {
   achievementId: string;
   redirectPath: string;
@@ -57,6 +59,23 @@ export function isAchievementEligibleForShareInvite(
   payload: Pick<AchievementDbWritePayload, "icon_url">,
 ) {
   return Boolean(payload.icon_url?.trim());
+}
+
+export function getAchievementShareInviteKind(
+  invite: Pick<AchievementShareInviteRow, "share_kind" | "source_achievement_id">,
+): AchievementSharePageKind {
+  return invite.share_kind === "showcase" ? "showcase" : "invite";
+}
+
+export function getAchievementShareInviteOwnerDetailPath(
+  invite: Pick<AchievementShareInviteRow, "sender_user_id" | "source_achievement_id">,
+) {
+  const sourceAchievementId = invite.source_achievement_id?.trim();
+  if (!sourceAchievementId) {
+    return null;
+  }
+
+  return userAchievementDetail(invite.sender_user_id, sourceAchievementId);
 }
 
 export async function createAchievementShareInviteFromPayload(args: {
@@ -87,6 +106,7 @@ export async function createAchievementShareInviteFromPayload(args: {
     .insert({
       sender_user_id: args.senderUserId,
       source_achievement_id: args.sourceAchievementId ?? null,
+      share_kind: args.sourceAchievementId ? "showcase" : "invite",
       title: snapshot.title,
       description: snapshot.description,
       category: snapshot.category,
@@ -241,6 +261,10 @@ export async function claimAchievementShareInvite(args: {
   }
   if (!reservedInvite) {
     return err("This invite is no longer available.");
+  }
+  if (getAchievementShareInviteKind(reservedInvite) === "showcase") {
+    await releaseShareInviteClaimReservation(reservedInvite.id, supabase);
+    return err("This shared achievement is showcase-only.");
   }
   if (reservedInvite.sender_user_id === args.claimerUserId) {
     await releaseShareInviteClaimReservation(reservedInvite.id, supabase);

@@ -1,11 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import { achievementShareInvitePath, loginWithNext, ROUTES } from "@/lib/routes";
+import { WelcomeCollectButton } from "@/components/welcome/welcome-collect-button";
+import {
+  achievementShareInvitePath,
+  ROUTES,
+  userCollection,
+} from "@/lib/routes";
 import { postClaimAchievementShareInvite } from "@/lib/share-invites/share-invite-api";
 import { createClient } from "@/lib/supabase/client";
 import { showErrorToast } from "@/lib/toast";
@@ -14,6 +17,8 @@ type ShareInviteClaimPanelProps = {
   token: string;
   senderUserId: string;
   inviteStatus: string;
+  pageKind: "invite" | "showcase";
+  ownerDetailPath: string | null;
 };
 
 type AuthState =
@@ -24,6 +29,8 @@ export function ShareInviteClaimPanel({
   token,
   senderUserId,
   inviteStatus,
+  pageKind,
+  ownerDetailPath,
 }: ShareInviteClaimPanelProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -31,6 +38,7 @@ export function ShareInviteClaimPanel({
   const [authState, setAuthState] = useState<AuthState>({ ready: false, userId: null });
   const [busy, setBusy] = useState(false);
   const autoClaimAttemptedRef = useRef(false);
+  const senderFallbackPath = ownerDetailPath ?? userCollection(senderUserId);
 
   const claimRequested = searchParams.get("claim") === "1";
   const autoAccept = searchParams.get("auto") === "1";
@@ -44,6 +52,7 @@ export function ShareInviteClaimPanel({
 
   const runClaim = useCallback(
     async (claimAutoAccept: boolean) => {
+      if (busy) return;
       setBusy(true);
       const result = await postClaimAchievementShareInvite({
         token,
@@ -58,16 +67,17 @@ export function ShareInviteClaimPanel({
 
       router.replace(result.value.redirectPath);
     },
-    [router, token],
+    [busy, router, token],
   );
 
   useEffect(() => {
+    if (pageKind !== "invite") return;
     if (!authState.ready || !authState.userId || !claimRequested) return;
     if (inviteStatus !== "pending") return;
     if (autoClaimAttemptedRef.current) return;
     autoClaimAttemptedRef.current = true;
     void runClaim(autoAccept);
-  }, [authState, autoAccept, claimRequested, inviteStatus, runClaim]);
+  }, [authState, autoAccept, claimRequested, inviteStatus, pageKind, runClaim]);
 
   if (inviteStatus !== "pending") {
     return null;
@@ -76,57 +86,50 @@ export function ShareInviteClaimPanel({
   if (!authState.ready) {
     return (
       <div className="pt-2 text-center text-sm text-white/55">
-        Checking claim options...
+        Checking collection access...
       </div>
     );
   }
 
   if (!authState.userId) {
-    const signUpNext = `${pathname}?claim=1&auto=1`;
-    const loginNext = `${pathname}?claim=1`;
+    const signUpNext =
+      pageKind === "showcase" ? senderFallbackPath : `${pathname}?claim=1&auto=1`;
     return (
       <div className="flex w-full max-w-sm flex-col gap-3 pt-2">
-        <Button asChild size="lg" className="rounded-full">
-          <Link href={`${ROUTES.signUp}?next=${encodeURIComponent(signUpNext)}`}>
-            Create account to claim
-          </Link>
-        </Button>
-        <Button asChild size="lg" variant="secondary" className="rounded-full">
-          <Link href={loginWithNext(loginNext)}>Sign in to claim</Link>
-        </Button>
+        <WelcomeCollectButton
+          href={`${ROUTES.signUp}?next=${encodeURIComponent(signUpNext)}`}
+        />
+      </div>
+    );
+  }
+
+  if (pageKind === "showcase") {
+    return (
+      <div className="flex w-full max-w-sm flex-col gap-3 pt-2">
+        <WelcomeCollectButton href={senderFallbackPath} />
       </div>
     );
   }
 
   if (authState.userId === senderUserId) {
     return (
-      <p className="pt-2 text-center text-sm text-white/55">
-        This invite is already yours to share.
-      </p>
+      <div className="flex w-full max-w-sm flex-col gap-3 pt-2">
+        <WelcomeCollectButton href={senderFallbackPath} />
+      </div>
     );
   }
 
   if (busy) {
     return (
       <p className="pt-2 text-center text-sm text-white/55">
-        Claiming this achievement...
+        Opening collection...
       </p>
     );
   }
 
   return (
     <div className="flex w-full max-w-sm flex-col gap-3 pt-2">
-      <Button
-        type="button"
-        size="lg"
-        className="rounded-full"
-        onClick={() => void runClaim(false)}
-      >
-        Claim this achievement
-      </Button>
-      <p className="text-center text-xs text-white/45">
-        Existing accounts still confirm the claim inside the app.
-      </p>
+      <WelcomeCollectButton onClick={() => void runClaim(false)} />
     </div>
   );
 }

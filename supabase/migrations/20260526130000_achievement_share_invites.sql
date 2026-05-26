@@ -2,6 +2,7 @@ create table if not exists public.achievement_share_invites (
   id uuid primary key default gen_random_uuid(),
   sender_user_id uuid not null references auth.users (id) on delete cascade,
   source_achievement_id uuid null references public.achievements (id) on delete set null,
+  share_kind text not null default 'invite',
   title text null,
   description text null,
   category text null,
@@ -20,7 +21,9 @@ create table if not exists public.achievement_share_invites (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint achievement_share_invites_status_check
-    check (status in ('pending', 'claiming', 'claimed', 'revoked', 'expired'))
+    check (status in ('pending', 'claiming', 'claimed', 'revoked', 'expired')),
+  constraint achievement_share_invites_share_kind_check
+    check (share_kind in ('invite', 'showcase'))
 );
 
 create index if not exists achievement_share_invites_sender_idx

@@ -7,7 +7,8 @@ import { seedIntroAchievementIfEmpty } from "@/lib/welcome/seed-intro-achievemen
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = safeRedirectPath(searchParams.get("next"));
+  const rawNext = searchParams.get("next");
+  const next = safeRedirectPath(rawNext);
 
   if (!code) {
     return NextResponse.redirect(
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (user) {
+  if (user && !rawNext) {
     const seed = await seedIntroAchievementIfEmpty(supabase, user.id);
     if (seed.created && seed.achievementId) {
       return NextResponse.redirect(
