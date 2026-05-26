@@ -1,6 +1,5 @@
 import { ImageResponse } from "next/og";
 
-import { APP_DISPLAY_NAME } from "@/lib/brand";
 import {
   getAchievementShareInviteKind,
   getAchievementShareInvitePresentationByToken,
@@ -164,17 +163,6 @@ export default async function Image({ params }: ImageProps) {
               {pageKind === "showcase"
                 ? `by ${senderDisplayName}`
                 : `dedicated by ${senderDisplayName}`}
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                marginTop: "8px",
-                fontSize: 18,
-                color: "rgba(245,243,255,0.34)",
-              }}
-            >
-              {APP_DISPLAY_NAME}
             </div>
           </div>
         </div>
