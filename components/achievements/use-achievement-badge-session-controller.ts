@@ -11,6 +11,7 @@ import {
 } from "@/components/achievements/badge/badge-asset-session";
 import {
   createEmptyBadgeAssetSession,
+  getSafeIconAssetKind,
   type BadgeAssetSession,
 } from "@/components/achievements/achievement-editor-shared";
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
@@ -54,7 +55,7 @@ export function useAchievementBadgeSessionController({
       baseline: createAchievementBadgeRemoteAsset({
         iconUrl: asset.iconUrl ?? "",
         iconFileId: asset.iconFileId ?? "",
-        iconAssetKind: asset.iconAssetKind ?? "image",
+        iconAssetKind: getSafeIconAssetKind(asset.iconAssetKind),
         iconAssetPath: asset.iconAssetPath ?? "",
       }),
       staged: null,
