@@ -175,7 +175,7 @@ export default async function Image({ params }: ImageProps) {
               }}
             >
               {pageKind === "showcase"
-                ? `from ${senderDisplayName}`
+                ? `by ${senderDisplayName}`
                 : `dedicated by ${senderDisplayName}`}
             </div>
           </div>
