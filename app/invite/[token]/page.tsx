@@ -67,7 +67,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       : `${senderDisplayName} shared an achievement waiting in your collection.`);
 
   return buildInviteMetadata({
-    title: `${title} | ${APP_DISPLAY_NAME}`,
+    title,
     description,
     imageUrl: origin
       ? `${origin}${achievementShareInviteOgImagePath(token)}`

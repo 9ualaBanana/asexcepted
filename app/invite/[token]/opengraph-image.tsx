@@ -143,19 +143,6 @@ export default async function Image({ params }: ImageProps) {
             <div
               style={{
                 display: "flex",
-                marginTop: "8px",
-                fontSize: 18,
-                letterSpacing: "0.16em",
-                textTransform: "uppercase",
-                color: "rgba(245,243,255,0.34)",
-              }}
-            >
-              {APP_DISPLAY_NAME}
-            </div>
-
-            <div
-              style={{
-                display: "flex",
                 marginTop: "18px",
                 fontSize: 26,
                 lineHeight: 1.45,
@@ -177,6 +164,17 @@ export default async function Image({ params }: ImageProps) {
               {pageKind === "showcase"
                 ? `by ${senderDisplayName}`
                 : `dedicated by ${senderDisplayName}`}
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                marginTop: "8px",
+                fontSize: 18,
+                color: "rgba(245,243,255,0.34)",
+              }}
+            >
+              {APP_DISPLAY_NAME}
             </div>
           </div>
         </div>
