@@ -344,9 +344,13 @@ export function useAchievementsManagerModel({
     userId,
   ]);
 
-  const handleShareCreateInvite = useCallback(() => {
-    void shareInvite.shareDraftAchievement(formToPayload(createForm));
-  }, [createForm, shareInvite]);
+  const handleShareCreateInvite = useCallback(async () => {
+    const payload = formToPayload(createForm);
+    const inviteCreated = await shareInvite.shareDraftAchievement(payload);
+    if (!inviteCreated) return;
+
+    badgeSession.retainCreateBadgeSession(payload.icon_url, payload.icon_file_id);
+  }, [badgeSession, createForm, shareInvite]);
 
   const handleShareDetailInvite = useCallback(() => {
     void shareInvite.shareExistingAchievement();

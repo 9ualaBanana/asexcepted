@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
+import { AchievementDetailMeta } from "@/components/achievements/achievement-detail-meta";
 import { AchievementBadge3DViewer } from "@/components/achievements/badge/achievement-badge-3d-viewer";
-import { formatAchievedAt } from "@/components/achievements/achievement-editor-shared";
+import { achievementBadgeChromeWidth } from "@/components/achievements/achievement-editor-shared";
+import { DedicationByline } from "@/components/achievements/dedication/dedication-byline";
 import { APP_DISPLAY_NAME } from "@/lib/brand";
 import { resolvePublicSiteOrigin } from "@/lib/public-site-origin";
 import {
   achievementShareInviteOgImagePath,
-  userCollection,
 } from "@/lib/routes";
 import { getAchievementShareInvitePresentationByToken } from "@/lib/share-invites/server";
 import {
@@ -106,7 +106,6 @@ export default async function Page({ params }: PageProps) {
   const { invite, senderDisplayName } = result.value;
   const pageKind = getAchievementShareInviteKind(invite);
   const ownerDetailPath = getAchievementShareInviteOwnerDetailPath(invite);
-  const senderCollectionPath = userCollection(invite.sender_user_id);
 
   if (invite.status !== "pending") {
     return <InviteUnavailableState claimed={invite.status === "claimed"} />;
@@ -116,60 +115,36 @@ export default async function Page({ params }: PageProps) {
     <main className="min-h-screen bg-[#14121c] px-6 py-10 text-white">
       <section className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-xl flex-col items-center justify-center">
         <div className="w-full rounded-[2.25rem] border border-white/10 bg-[rgba(20,18,28,0.9)] px-6 py-8 shadow-[0_24px_80px_rgba(0,0,0,0.36)] backdrop-blur-xl sm:px-8">
-          <div className="mx-auto h-[18rem] w-full max-w-[18rem]">
-            <AchievementBadge3DViewer
-              src={invite.icon_url}
-              float
-              motionSeed={invite.id}
-              className="mx-auto"
+          <div className={achievementBadgeChromeWidth}>
+            <div className="flex justify-center">
+              <div className="mx-auto h-[18rem] w-full max-w-[18rem]">
+                <AchievementBadge3DViewer
+                  src={invite.icon_url}
+                  float
+                  motionSeed={invite.id}
+                  className="mx-auto"
+                />
+              </div>
+            </div>
+
+            <AchievementDetailMeta
+              achievedAt={invite.achieved_at}
+              category={invite.category?.trim() ?? null}
+              title={invite.title?.trim() || "Untitled"}
+              description={invite.description?.trim() || "No description yet."}
             />
-          </div>
 
-          <div className="mt-6 text-center">
-            {invite.category?.trim() ? (
-              <p className="text-xs uppercase tracking-[0.24em] text-white/38">
-                {invite.category}
-              </p>
-            ) : null}
-            {invite.title?.trim() ? (
-              <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white">
-                {invite.title}
-              </h1>
-            ) : null}
-            {invite.description?.trim() ? (
-              <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-white/68">
-                {invite.description}
-              </p>
-            ) : null}
-            {invite.achieved_at ? (
-              <p className="mt-4 text-sm text-white/48">
-                {formatAchievedAt(invite.achieved_at)}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="mt-5 flex justify-center text-center">
-            {pageKind === "showcase" ? (
-              <p className="text-xs leading-snug text-white/55">
-                by{" "}
-                <Link
-                  href={senderCollectionPath}
-                  className="font-semibold text-emerald-200/90 underline-offset-2 hover:underline"
-                >
-                  {senderDisplayName}
-                </Link>
-              </p>
-            ) : (
-              <p className="text-xs leading-snug text-white/55">
-                dedicated by{" "}
-                <Link
-                  href={senderCollectionPath}
-                  className="font-semibold text-amber-200/95 underline-offset-2 hover:underline"
-                >
-                  {senderDisplayName}
-                </Link>
-              </p>
-            )}
+            <div className="mt-2 flex justify-center text-center">
+              <DedicationByline
+                senderUserId={invite.sender_user_id}
+                senderDisplayName={senderDisplayName}
+                prefix={pageKind === "showcase" ? "by" : "dedicated by"}
+                accentClassName={
+                  pageKind === "showcase" ? "text-emerald-200/90" : undefined
+                }
+                className="mt-0"
+              />
+            </div>
           </div>
 
           <div className="mt-6 flex justify-center">

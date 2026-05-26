@@ -157,12 +157,22 @@ export default async function Image({ params }: ImageProps) {
                 display: "flex",
                 marginTop: "26px",
                 fontSize: 20,
-                color: pageKind === "showcase" ? "rgba(167,243,208,0.9)" : "rgba(253,230,138,0.92)",
+                alignItems: "center",
               }}
             >
-              {pageKind === "showcase"
-                ? `by ${senderDisplayName}`
-                : `dedicated by ${senderDisplayName}`}
+              <span style={{ color: "rgba(245,243,255,0.55)" }}>
+                {pageKind === "showcase" ? "by " : "dedicated by "}
+              </span>
+              <span
+                style={{
+                  color:
+                    pageKind === "showcase"
+                      ? "rgba(167,243,208,0.9)"
+                      : "rgba(253,230,138,0.92)",
+                }}
+              >
+                {senderDisplayName}
+              </span>
             </div>
           </div>
         </div>

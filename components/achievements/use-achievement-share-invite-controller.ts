@@ -99,15 +99,16 @@ export function useAchievementShareInviteController({
   }, [detailAchievementId, detailDescription, detailTitle, finishWithClipboardFallback]);
 
   const shareDraftAchievement = useCallback(
-    async (payload: AchievementDbWritePayload) => {
+    async (payload: AchievementDbWritePayload): Promise<boolean> => {
       if (!payload.icon_url?.trim()) {
         showErrorToast(ACHIEVEMENT_UI_COPY.shareInviteCreateOnlyCustomImage, {
           id: "achievement-share-invite-custom-image-only",
         });
-        return;
+        return false;
       }
 
       setShareInviteBusy(true);
+      let inviteCreated = false;
       try {
         const inviteResult = await postCreateAchievementShareInvite({
           mode: "draft",
@@ -116,9 +117,10 @@ export function useAchievementShareInviteController({
 
         if (inviteResult.isErr()) {
           showErrorToast(inviteResult.error, { id: "achievement-share-invite-draft" });
-          return;
+          return false;
         }
 
+        inviteCreated = true;
         const shareUrl = inviteResult.value.shareUrl;
         const nativeShare = await tryNativeShare({
           shareUrl,
@@ -134,9 +136,12 @@ export function useAchievementShareInviteController({
           error instanceof Error ? error.message : ACHIEVEMENT_UI_COPY.shareInviteUnknownError,
           { id: "achievement-share-invite-draft-unknown" },
         );
+        return inviteCreated;
       } finally {
         setShareInviteBusy(false);
       }
+
+      return inviteCreated;
     },
     [finishWithClipboardFallback],
   );

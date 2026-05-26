@@ -4,15 +4,19 @@ import { userCollection } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 type DedicationBylineProps = {
+  accentClassName?: string;
   senderUserId: string;
   senderDisplayName: string;
   className?: string;
+  prefix?: string;
 };
 
 export function DedicationByline({
+  accentClassName,
   senderUserId,
   senderDisplayName,
   className,
+  prefix = "dedicated by",
 }: DedicationBylineProps) {
   const label = senderDisplayName.trim() || "Someone";
   return (
@@ -22,10 +26,13 @@ export function DedicationByline({
         className ?? "mt-2",
       )}
     >
-      dedicated by{" "}
+      {prefix}{" "}
       <Link
         href={userCollection(senderUserId)}
-        className="font-semibold text-amber-200/95 underline-offset-2 hover:underline"
+        className={cn(
+          "font-semibold underline-offset-2 hover:underline",
+          accentClassName ?? "text-amber-200/95",
+        )}
       >
         {label}
       </Link>

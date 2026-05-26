@@ -14,6 +14,7 @@ import {
 import { Check, Loader2, PenLine, Share2, X, type LucideIcon } from "lucide-react";
 
 import type { AchievementTone } from "@/components/achievements/achievement-card";
+import { AchievementDetailMeta } from "@/components/achievements/achievement-detail-meta";
 import { AchievementDetailBadgeInteractive } from "@/components/achievements/badge/achievement-detail-badge-interactive";
 import type { AlphaMaskData } from "@/lib/badge/shape-utils";
 import {
@@ -22,7 +23,6 @@ import {
   achievementDialogIconBtn,
   achievementDialogIconSideSlot,
   type BadgeIkSession,
-  formatAchievedAt,
   type FormState,
 } from "@/components/achievements/achievement-editor-shared";
 import { DedicationByline } from "@/components/achievements/dedication/dedication-byline";
@@ -344,28 +344,22 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                 </div>
               </div>
 
-              <p className="mt-8 w-full text-center text-[11px] font-medium uppercase tracking-[0.2em] text-white/45">
-                {detailAchievement.category?.trim() ||
-                  (detailIsLockedUi ? "Locked" : "Uncategorized")}
-              </p>
-              <h2
-                id="achievement-detail-title"
-                className="mt-2 text-center text-xl font-semibold tracking-tight text-white"
-              >
-                {detailAchievement.title?.trim() ||
-                  (detailIsLockedUi ? "Locked" : "Untitled")}
-              </h2>
-              <p className="mt-4 break-words text-center text-sm leading-relaxed text-white/65">
-                {detailIsLockedUi
-                  ? detailAchievement.description?.trim() ||
-                    "This achievement is locked."
-                  : detailAchievement.description?.trim() || "No description yet."}
-              </p>
-              {formatAchievedAt(detailAchievement.achieved_at) ? (
-                <p className="mt-4 text-center text-xs text-white/40">
-                  {formatAchievedAt(detailAchievement.achieved_at)}
-                </p>
-              ) : null}
+              <AchievementDetailMeta
+                achievedAt={detailAchievement.achieved_at}
+                category={
+                  detailAchievement.category?.trim() ||
+                  (detailIsLockedUi ? "Locked" : "Uncategorized")
+                }
+                title={
+                  detailAchievement.title?.trim() ||
+                  (detailIsLockedUi ? "Locked" : "Untitled")
+                }
+                description={
+                  detailIsLockedUi
+                    ? detailAchievement.description?.trim() || "This achievement is locked."
+                    : detailAchievement.description?.trim() || "No description yet."
+                }
+              />
 
               {readOnly &&
               detailIsDedicated &&
@@ -377,7 +371,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                   senderDisplayName={
                     dedicationSenderDisplayName?.trim() || "Someone"
                   }
-                  className={!formatAchievedAt(detailAchievement.achieved_at) ? "mt-6" : undefined}
+                  className={!detailAchievement.achieved_at ? "mt-6" : undefined}
                 />
               ) : null}
 
@@ -387,7 +381,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                     achievementBadgeChromeWidth,
                     achievementDialogChromeInset,
                     "mt-3 flex min-h-10 flex-col items-stretch gap-2",
-                    !formatAchievedAt(detailAchievement.achieved_at) && "mt-6",
+                    !detailAchievement.achieved_at && "mt-6",
                   )}
                 >
                   <div className="flex min-h-10 items-center">
@@ -476,7 +470,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                     </div>
                   </div>
                 </div>
-              ) : formatAchievedAt(detailAchievement.achieved_at) ||
+              ) : detailAchievement.achieved_at ||
                 (detailIsDedicated && dedicationSenderId) ? null : (
                 <div className="mt-6" aria-hidden />
               )}

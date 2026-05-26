@@ -9,6 +9,7 @@ import {
   deleteImageKitFileQuietly,
   getReplacedImageKitFileId,
   normalizeImageKitFileId,
+  retainBadgeUploadSession,
   rollbackBadgeUploadSession,
 } from "@/components/achievements/badge/badge-imagekit-session";
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
@@ -40,6 +41,17 @@ export function useAchievementBadgeSessionController({
 
   const rollbackCreateBadgeSession = () => {
     rollbackBadgeUploadSession(createBadgeIkSessionRef.current);
+  };
+
+  const retainCreateBadgeSession = (
+    retainedIconUrl: string | null | undefined,
+    retainedIconFileId: string | null | undefined,
+  ) => {
+    retainBadgeUploadSession(
+      createBadgeIkSessionRef.current,
+      retainedIconUrl,
+      retainedIconFileId,
+    );
   };
 
   const beginPanelBadgeSession = (detailAchievement: AchievementRecord) => {
@@ -110,6 +122,7 @@ export function useAchievementBadgeSessionController({
     panelBadgeIkSessionRef,
     beginCreateBadgeSession,
     rollbackCreateBadgeSession,
+    retainCreateBadgeSession,
     beginPanelBadgeSession,
     rollbackPanelBadgeSession,
     commitPanelBadgeSession,

@@ -39,6 +39,16 @@ export function rollbackBadgeUploadSession(session: BadgeIkSession): void {
   clearSessionStagedUpload(session);
 }
 
+export function retainBadgeUploadSession(
+  session: BadgeIkSession,
+  retainedUrl: string | null | undefined,
+  retainedFileId: string | null | undefined,
+): void {
+  session.baselineUrl = retainedUrl?.trim() ?? "";
+  session.baselineFileId = normalizeImageKitFileId(retainedFileId);
+  clearSessionStagedUpload(session);
+}
+
 export async function deleteImageKitFileQuietly(
   fileId: string | null | undefined,
   onError?: (error: unknown) => void,
