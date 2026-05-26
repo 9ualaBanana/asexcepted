@@ -434,6 +434,7 @@ export function useAchievementsManagerModel({
     onCancelCreate: editorPipeline.actions.closeOverlayFlow,
     detailMode: ui.detailMode,
     isVisibilityOnlyEdit: ui.isVisibilityOnlyEdit,
+    detailViewSessionKey: ui.detailViewSessionKey,
     detailAchievement,
     panelForm,
     setPanelForm,

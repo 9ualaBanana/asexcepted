@@ -3,28 +3,25 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ACESFilmicToneMapping,
-  AmbientLight,
   AnimationMixer,
-  Box3,
-  DirectionalLight,
   Group,
   LoopRepeat,
   PerspectiveCamera,
   SRGBColorSpace,
   Scene,
-  Vector3,
   WebGLRenderer,
 } from "three";
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
 
 import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
+import {
+  addBadgeModelLights,
+  configureBadgeModelLoader,
+  frameBadgeModelForCamera,
+} from "@/lib/achievements/badge-model-rendering";
 import { getCachedBadgeMotionStyle } from "@/lib/badge/render-cache";
 import { cn } from "@/lib/utils";
-
-const DRACO_DECODER_CDN = "https://www.gstatic.com/draco/versioned/decoders/1.5.7/";
 
 type AchievementBadgeModelViewerProps = {
   signedModelUrl: string;
@@ -38,10 +35,7 @@ type AchievementBadgeModelViewerProps = {
 };
 
 function configureGlbLoader(loader: GLTFLoader) {
-  const dracoLoader = new DRACOLoader();
-  dracoLoader.setDecoderPath(DRACO_DECODER_CDN);
-  loader.setDRACOLoader(dracoLoader);
-  loader.setMeshoptDecoder(MeshoptDecoder);
+  configureBadgeModelLoader(loader);
 }
 
 const MAX_PITCH_RAD = Math.PI / 2.2;
@@ -59,6 +53,28 @@ const badgeModelViewStateCache = new Map<
     inertiaPitch: number;
   }
 >();
+
+let sharedBadgeModelRenderer: WebGLRenderer | null = null;
+
+function getSharedBadgeModelRenderer(): WebGLRenderer {
+  if (sharedBadgeModelRenderer) {
+    return sharedBadgeModelRenderer;
+  }
+
+  sharedBadgeModelRenderer = new WebGLRenderer({
+    alpha: true,
+    antialias: true,
+    powerPreference: "high-performance",
+  });
+  sharedBadgeModelRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  sharedBadgeModelRenderer.outputColorSpace = SRGBColorSpace;
+  sharedBadgeModelRenderer.toneMapping = ACESFilmicToneMapping;
+  sharedBadgeModelRenderer.setClearColor(0x000000, 0);
+  sharedBadgeModelRenderer.domElement.style.width = "100%";
+  sharedBadgeModelRenderer.domElement.style.height = "100%";
+  sharedBadgeModelRenderer.domElement.style.display = "block";
+  return sharedBadgeModelRenderer;
+}
 
 function disposeMaterial(value: unknown) {
   if (!value || typeof value !== "object" || !("dispose" in value)) return;
@@ -80,6 +96,7 @@ export function AchievementBadgeModelViewer({
 }: AchievementBadgeModelViewerProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
+  const [previewVisible, setPreviewVisible] = useState(true);
   const viewStateKey = useMemo(
     () => (stateKey ?? motionSeed ?? signedModelUrl).trim() || signedModelUrl,
     [motionSeed, signedModelUrl, stateKey],
@@ -87,6 +104,7 @@ export function AchievementBadgeModelViewer({
 
   useEffect(() => {
     setReady(false);
+    setPreviewVisible(true);
   }, [signedModelUrl]);
 
   useEffect(() => {
@@ -102,23 +120,23 @@ export function AchievementBadgeModelViewer({
     let dragPointerId: number | null = null;
     let lastX = 0;
     let lastY = 0;
-    const cachedState = badgeModelViewStateCache.get(viewStateKey);
+    const cachedState = motionStartCentered
+      ? undefined
+      : badgeModelViewStateCache.get(viewStateKey);
     let inertiaYaw = cachedState?.inertiaYaw ?? 0;
     let inertiaPitch = cachedState?.inertiaPitch ?? 0;
     let yaw = cachedState?.yaw ?? 0;
     let pitch = cachedState?.pitch ?? 0;
+    let allowAnimationAdvance = false;
+    let animationStartTimeout: number | null = null;
+    let previewFadeTimeout: number | null = null;
 
     const loader = new GLTFLoader();
     configureGlbLoader(loader);
 
     const scene = new Scene();
     const camera = new PerspectiveCamera(34, 1, 0.01, 1000);
-    const ambientLight = new AmbientLight(0xffffff, 1.8);
-    const keyLight = new DirectionalLight(0xffffff, 2.4);
-    keyLight.position.set(6, 8, 10);
-    const fillLight = new DirectionalLight(0xc7d2fe, 1.1);
-    fillLight.position.set(-8, 4, 6);
-    scene.add(ambientLight, keyLight, fillLight);
+    addBadgeModelLights(scene);
 
     const handleResize = () => {
       if (!renderer) return;
@@ -191,17 +209,10 @@ export function AchievementBadgeModelViewer({
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(mount);
 
-    renderer = new WebGLRenderer({
-      alpha: true,
-      antialias: true,
-      powerPreference: "high-performance",
-    });
-    renderer.outputColorSpace = SRGBColorSpace;
-    renderer.toneMapping = ACESFilmicToneMapping;
-    renderer.setClearColor(0x000000, 0);
-    renderer.domElement.style.width = "100%";
-    renderer.domElement.style.height = "100%";
-    renderer.domElement.style.display = "block";
+    renderer = getSharedBadgeModelRenderer();
+    if (renderer.domElement.parentNode && renderer.domElement.parentNode !== mount) {
+      renderer.domElement.parentNode.removeChild(renderer.domElement);
+    }
     mount.appendChild(renderer.domElement);
     handleResize();
 
@@ -221,7 +232,9 @@ export function AchievementBadgeModelViewer({
         }
       }
 
-      mixer?.update(deltaSeconds);
+      if (allowAnimationAdvance) {
+        mixer?.update(deltaSeconds);
+      }
       renderer.render(scene, camera);
     };
 
@@ -236,20 +249,7 @@ export function AchievementBadgeModelViewer({
         scene.add(interactiveRoot);
         interactiveRoot.updateMatrixWorld(true);
 
-        const box = new Box3().setFromObject(interactiveRoot);
-        const center = box.getCenter(new Vector3());
-        const size = box.getSize(new Vector3());
-        const maxDim = Math.max(size.x, size.y, size.z) || 1;
-
-        model.position.sub(center);
-        model.updateMatrixWorld(true);
-
-        const distance = maxDim * 2.35;
-        camera.position.set(maxDim * 0.34, Math.max(size.y * 0.22, 0.22), distance);
-        camera.near = Math.max(distance / 200, 0.01);
-        camera.far = distance * 12;
-        camera.lookAt(0, Math.max(size.y * 0.05, 0), 0);
-        camera.updateProjectionMatrix();
+        frameBadgeModelForCamera(model, camera);
 
         if (gltf.animations[0]) {
           mixer = new AnimationMixer(model);
@@ -257,6 +257,7 @@ export function AchievementBadgeModelViewer({
           action.reset();
           action.setLoop(LoopRepeat, Infinity);
           action.play();
+          mixer.setTime(0);
         }
 
         applyRotation();
@@ -266,6 +267,12 @@ export function AchievementBadgeModelViewer({
             if (cancelled) return;
             setReady(true);
             onVisualReady?.();
+            previewFadeTimeout = window.setTimeout(() => {
+              setPreviewVisible(false);
+            }, 90);
+            animationStartTimeout = window.setTimeout(() => {
+              allowAnimationAdvance = true;
+            }, 140);
           });
         });
       })
@@ -278,6 +285,12 @@ export function AchievementBadgeModelViewer({
     return () => {
       cancelled = true;
       cancelAnimationFrame(frameId);
+      if (animationStartTimeout !== null) {
+        window.clearTimeout(animationStartTimeout);
+      }
+      if (previewFadeTimeout !== null) {
+        window.clearTimeout(previewFadeTimeout);
+      }
       resizeObserver.disconnect();
       mount.removeEventListener("pointerdown", onPointerDown);
       mount.removeEventListener("pointermove", onPointerMove);
@@ -307,12 +320,11 @@ export function AchievementBadgeModelViewer({
         }
       });
       scene.clear();
-      renderer?.dispose();
       if (renderer?.domElement.parentNode === mount) {
         mount.removeChild(renderer.domElement);
       }
     };
-  }, [onVisualReady, signedModelUrl, viewStateKey]);
+  }, [motionStartCentered, onVisualReady, signedModelUrl, viewStateKey]);
 
   const floatMotionStyle = useMemo(
     () =>
@@ -327,18 +339,23 @@ export function AchievementBadgeModelViewer({
 
   const viewer = (
     <div className={cn("relative h-full w-full", className)}>
-      {!ready ? (
-        <div className="pointer-events-none absolute inset-0 z-10">
-          <RemoteBadgeImage src={previewSrc} className="h-full w-full object-contain p-1" />
+      <div className="relative h-full w-full p-1">
+        <div
+          className={cn(
+            "pointer-events-none absolute inset-0 z-10 transition-opacity duration-200",
+            previewVisible ? "opacity-100" : "opacity-0",
+          )}
+        >
+          <RemoteBadgeImage src={previewSrc} className="h-full w-full object-contain" />
         </div>
-      ) : null}
-      <div
-        ref={mountRef}
-        className={cn(
-          "h-full w-full touch-none transition-opacity duration-300",
-          !ready && "opacity-0",
-        )}
-      />
+        <div
+          ref={mountRef}
+          className={cn(
+            "h-full w-full touch-none transition-opacity duration-300",
+            !ready && "opacity-0",
+          )}
+        />
+      </div>
     </div>
   );
 

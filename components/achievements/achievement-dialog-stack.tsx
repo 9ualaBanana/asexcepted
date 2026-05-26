@@ -56,6 +56,7 @@ export type AchievementDialogStackProps = {
 
   detailMode: "view" | "edit";
   isVisibilityOnlyEdit?: boolean;
+  detailViewSessionKey: number;
   detailAchievement: AchievementRecord | null;
   panelForm: FormState;
   setPanelForm: Dispatch<SetStateAction<FormState>>;
@@ -110,6 +111,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     onCancelCreate,
     detailMode,
     isVisibilityOnlyEdit = false,
+    detailViewSessionKey,
     detailAchievement,
     panelForm,
     setPanelForm,
@@ -319,6 +321,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       hasIconUrl={Boolean(detailAchievement.icon_url?.trim())}
                       iconAssetKind={detailAchievement.icon_asset_kind}
                       iconAssetPath={detailAchievement.icon_asset_path}
+                      viewerStateKey={`${detailAchievement.id}:detail:${detailViewSessionKey}`}
                       lockedUi={detailIsLockedUi}
                       unlocking={detailIsUnlocking}
                       floating={detailFloating}

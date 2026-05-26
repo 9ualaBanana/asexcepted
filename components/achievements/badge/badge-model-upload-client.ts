@@ -2,22 +2,16 @@
 
 import {
   ACESFilmicToneMapping,
-  AmbientLight,
   AnimationMixer,
-  Box3,
-  DirectionalLight,
   LoopRepeat,
   PerspectiveCamera,
   Quaternion,
-  Scene,
   SRGBColorSpace,
-  Vector3,
+  Scene,
   WebGLRenderer,
   type KeyframeTrack,
 } from "three";
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
 
 import {
@@ -25,22 +19,22 @@ import {
   isGlbHeader,
   looksLikeGlbUpload,
 } from "@/lib/achievements/badge-assets";
+import {
+  addBadgeModelLights,
+  configureBadgeModelLoader,
+  frameBadgeModelForCamera,
+} from "@/lib/achievements/badge-model-rendering";
 
 const PREVIEW_SIZE_PX = 768;
 const LOOP_EPSILON = 0.025;
 const LOOP_QUATERNION_EPSILON_RAD = 0.06;
-const DRACO_DECODER_CDN = "https://www.gstatic.com/draco/versioned/decoders/1.5.7/";
-
 export type PreparedBadgeModelUpload = {
   previewBlob: Blob;
 };
 
 function createConfiguredGlbLoader() {
   const loader = new GLTFLoader();
-  const dracoLoader = new DRACOLoader();
-  dracoLoader.setDecoderPath(DRACO_DECODER_CDN);
-  loader.setDRACOLoader(dracoLoader);
-  loader.setMeshoptDecoder(MeshoptDecoder);
+  const dracoLoader = configureBadgeModelLoader(loader);
   return { loader, dracoLoader };
 }
 
@@ -131,12 +125,7 @@ async function renderPosterFromGltf(gltf: GLTF): Promise<Blob> {
   renderer.setClearColor(0x000000, 0);
 
   const scene = new Scene();
-  const ambientLight = new AmbientLight(0xffffff, 1.8);
-  const keyLight = new DirectionalLight(0xffffff, 2.4);
-  keyLight.position.set(6, 8, 10);
-  const fillLight = new DirectionalLight(0xc7d2fe, 1.1);
-  fillLight.position.set(-8, 4, 6);
-  scene.add(ambientLight, keyLight, fillLight);
+  addBadgeModelLights(scene);
 
   const model = cloneSkeleton(gltf.scene);
   scene.add(model);
@@ -149,25 +138,8 @@ async function renderPosterFromGltf(gltf: GLTF): Promise<Blob> {
     mixer.setTime(0);
   }
 
-  model.updateMatrixWorld(true);
-  const box = new Box3().setFromObject(model);
-  if (box.isEmpty()) {
-    throw new Error("This GLB does not contain any renderable geometry.");
-  }
-
-  const center = box.getCenter(new Vector3());
-  const size = box.getSize(new Vector3());
-  model.position.sub(center);
-  model.updateMatrixWorld(true);
-
   const camera = new PerspectiveCamera(34, 1, 0.01, 1000);
-  const maxDim = Math.max(size.x, size.y, size.z) || 1;
-  const distance = maxDim * 2.35;
-  camera.position.set(maxDim * 0.34, Math.max(size.y * 0.22, 0.22), distance);
-  camera.lookAt(0, Math.max(size.y * 0.05, 0), 0);
-  camera.near = Math.max(distance / 200, 0.01);
-  camera.far = distance * 12;
-  camera.updateProjectionMatrix();
+  frameBadgeModelForCamera(model, camera);
 
   renderer.render(scene, camera);
 
