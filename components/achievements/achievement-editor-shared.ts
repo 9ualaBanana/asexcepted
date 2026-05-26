@@ -103,6 +103,14 @@ export function getSafeIcon(value?: string | null): LucideIcon {
 
 export type AchievementVisibility = "public" | "private";
 
+export type AchievementIconAssetKind = "image" | "model_glb";
+
+export function getSafeIconAssetKind(
+  value?: string | null,
+): AchievementIconAssetKind {
+  return value === "model_glb" ? "model_glb" : "image";
+}
+
 export function getSafeVisibility(
   value?: string | null,
 ): AchievementVisibility {
@@ -116,10 +124,20 @@ export type FormState = {
   icon: AchievementIconKey;
   iconUrl: string;
   iconFileId: string;
+  iconAssetKind: AchievementIconAssetKind;
+  iconAssetPath: string;
+  iconCcAttribution: string;
   tone: AchievementTone;
   isLocked: boolean;
   achievedAt: string;
   visibility: AchievementVisibility;
+};
+
+export type BadgeRemoteAsset = {
+  iconUrl: string;
+  iconFileId: string;
+  iconAssetKind: AchievementIconAssetKind;
+  iconAssetPath: string;
 };
 
 export type BadgeIkSession = {
@@ -127,6 +145,20 @@ export type BadgeIkSession = {
   baselineFileId: string;
   lastSessionFileId: string | null;
 };
+
+export type BadgeAssetSession = {
+  baseline: BadgeRemoteAsset;
+  staged: BadgeRemoteAsset | null;
+};
+
+export function createEmptyBadgeRemoteAsset(): BadgeRemoteAsset {
+  return {
+    iconUrl: "",
+    iconFileId: "",
+    iconAssetKind: "image",
+    iconAssetPath: "",
+  };
+}
 
 export function createEmptyBadgeIkSession(): BadgeIkSession {
   return {
@@ -136,12 +168,20 @@ export function createEmptyBadgeIkSession(): BadgeIkSession {
   };
 }
 
+export function createEmptyBadgeAssetSession(): BadgeAssetSession {
+  return {
+    baseline: createEmptyBadgeRemoteAsset(),
+    staged: null,
+  };
+}
+
 export function hasMeaningfulContent(form: FormState) {
   return (
     form.title.trim().length > 0 ||
     form.description.trim().length > 0 ||
     form.category.trim().length > 0 ||
-    form.iconUrl.trim().length > 0
+    form.iconUrl.trim().length > 0 ||
+    form.iconAssetPath.trim().length > 0
   );
 }
 

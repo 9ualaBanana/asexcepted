@@ -9,6 +9,9 @@ export type DedicateAchievementApiBody = {
   icon: string;
   icon_url: AchievementDbWritePayload["icon_url"];
   icon_file_id: AchievementDbWritePayload["icon_file_id"];
+  icon_asset_kind: AchievementDbWritePayload["icon_asset_kind"];
+  icon_asset_path: AchievementDbWritePayload["icon_asset_path"];
+  icon_cc_attribution: AchievementDbWritePayload["icon_cc_attribution"];
   tone: string;
   achieved_at: AchievementDbWritePayload["achieved_at"];
 };
@@ -25,6 +28,9 @@ export function payloadToDedicateApiBody(
     icon: payload.icon ?? "trophy",
     icon_url: payload.icon_url,
     icon_file_id: payload.icon_file_id,
+    icon_asset_kind: payload.icon_asset_kind,
+    icon_asset_path: payload.icon_asset_path,
+    icon_cc_attribution: payload.icon_cc_attribution,
     tone: payload.tone ?? "teal",
     achieved_at: payload.achieved_at,
   };

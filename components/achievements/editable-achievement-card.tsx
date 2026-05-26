@@ -17,13 +17,13 @@ import {
   clearSessionStagedUpload,
   rollbackBadgeUploadSession,
   setSessionStagedUpload,
-} from "@/components/achievements/badge/badge-imagekit-session";
+} from "@/components/achievements/badge/badge-asset-session";
 import {
   achievementBadgeChromeWidth,
   achievementDialogChromeInset,
   achievementDialogIconBtn,
   achievementDialogIconSideSlot,
-  type BadgeIkSession,
+  type BadgeAssetSession,
   type FormState,
   hasMeaningfulContent,
 } from "@/components/achievements/achievement-editor-shared";
@@ -37,8 +37,7 @@ export type EditorCardProps = {
   isSaving: boolean;
   onSubmit: (e: FormEvent) => void;
   onCancel?: () => void;
-  badgeIkSessionRef: RefObject<BadgeIkSession>;
-  baselineIconFileId: string;
+  badgeAssetSessionRef: RefObject<BadgeAssetSession>;
   onClosePanel?: () => void;
   /** Panel edit (not create): top back, bottom save / visibility / delete. */
   showEditChrome?: boolean;
@@ -56,8 +55,7 @@ export function EditableAchievementCard({
   isSaving,
   onSubmit,
   onCancel,
-  badgeIkSessionRef,
-  baselineIconFileId,
+  badgeAssetSessionRef,
   onClosePanel,
   showEditChrome = false,
   onUploadInProgressChange,
@@ -149,7 +147,10 @@ export function EditableAchievementCard({
           <AchievementRoundBadgeEditor
             imageUrl={form.iconUrl}
             iconFileId={form.iconFileId}
-            baselineIconFileId={baselineIconFileId}
+            iconAssetKind={form.iconAssetKind}
+            iconAssetPath={form.iconAssetPath}
+            iconCcAttribution={form.iconCcAttribution}
+            baselineAsset={badgeAssetSessionRef.current.baseline}
             tone={form.tone}
             isLocked={dedicateMode ? true : form.isLocked}
             icon={form.icon}
@@ -159,13 +160,15 @@ export function EditableAchievementCard({
               setForm((prev) => ({ ...prev, isLocked: !prev.isLocked }));
             }}
             onIconChange={(icon) => setForm((prev) => ({ ...prev, icon }))}
-            onRemoteUploadCommit={(url, fileId) => {
-              rollbackBadgeUploadSession(badgeIkSessionRef.current);
-              setSessionStagedUpload(badgeIkSessionRef.current, fileId);
+            onRemoteUploadCommit={(asset) => {
+              rollbackBadgeUploadSession(badgeAssetSessionRef.current);
+              setSessionStagedUpload(badgeAssetSessionRef.current, asset);
               setForm((prev) => ({
                 ...prev,
-                iconUrl: url,
-                iconFileId: fileId,
+                iconUrl: asset.iconUrl,
+                iconFileId: asset.iconFileId,
+                iconAssetKind: asset.iconAssetKind,
+                iconAssetPath: asset.iconAssetPath,
               }));
             }}
             onImageUrlChange={(url) =>
@@ -174,8 +177,17 @@ export function EditableAchievementCard({
             onIconFileIdChange={(fid) =>
               setForm((prev) => ({ ...prev, iconFileId: fid }))
             }
+            onIconAssetKindChange={(kind) =>
+              setForm((prev) => ({ ...prev, iconAssetKind: kind }))
+            }
+            onIconAssetPathChange={(path) =>
+              setForm((prev) => ({ ...prev, iconAssetPath: path }))
+            }
+            onIconCcAttributionChange={(value) =>
+              setForm((prev) => ({ ...prev, iconCcAttribution: value }))
+            }
             onStagedUploadCleared={() => {
-              clearSessionStagedUpload(badgeIkSessionRef.current);
+              clearSessionStagedUpload(badgeAssetSessionRef.current);
             }}
             onUploadInProgressChange={setIsBadgeUploadInProgress}
             disabled={isSaving}

@@ -24,6 +24,9 @@ export type AchievementShareInviteSnapshot = Pick<
   | "icon"
   | "icon_url"
   | "icon_file_id"
+  | "icon_asset_kind"
+  | "icon_asset_path"
+  | "icon_cc_attribution"
   | "tone"
   | "achieved_at"
 >;
@@ -50,6 +53,9 @@ function toShareInviteSnapshot(
     icon: payload.icon ?? "trophy",
     icon_url: payload.icon_url ?? "",
     icon_file_id: payload.icon_file_id ?? null,
+    icon_asset_kind: payload.icon_asset_kind ?? "image",
+    icon_asset_path: payload.icon_asset_path ?? null,
+    icon_cc_attribution: payload.icon_cc_attribution ?? null,
     tone: payload.tone ?? null,
     achieved_at: payload.achieved_at ?? null,
   };
@@ -113,6 +119,9 @@ export async function createAchievementShareInviteFromPayload(args: {
       icon: snapshot.icon,
       icon_url: snapshot.icon_url,
       icon_file_id: snapshot.icon_file_id,
+      icon_asset_kind: snapshot.icon_asset_kind,
+      icon_asset_path: snapshot.icon_asset_path,
+      icon_cc_attribution: snapshot.icon_cc_attribution,
       tone: snapshot.tone,
       achieved_at: snapshot.achieved_at,
       token_hash: tokenHash,
@@ -149,7 +158,7 @@ export async function createAchievementShareInviteFromExistingAchievement(args: 
   const { data, error } = await supabase
     .from("achievements")
     .select(
-      "id,user_id,title,description,category,icon,icon_url,icon_file_id,tone,achieved_at,dedicated_by_user_id",
+      "id,user_id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_cc_attribution,tone,achieved_at,dedicated_by_user_id",
     )
     .eq("id", args.achievementId)
     .eq("user_id", args.senderUserId)
@@ -169,6 +178,9 @@ export async function createAchievementShareInviteFromExistingAchievement(args: 
     | "icon"
     | "icon_url"
     | "icon_file_id"
+    | "icon_asset_kind"
+    | "icon_asset_path"
+    | "icon_cc_attribution"
     | "tone"
     | "achieved_at"
     | "dedicated_by_user_id"
@@ -188,6 +200,9 @@ export async function createAchievementShareInviteFromExistingAchievement(args: 
       icon: achievement.icon,
       icon_url: achievement.icon_url,
       icon_file_id: achievement.icon_file_id,
+      icon_asset_kind: achievement.icon_asset_kind,
+      icon_asset_path: achievement.icon_asset_path,
+      icon_cc_attribution: achievement.icon_cc_attribution,
       tone: achievement.tone,
       achieved_at: achievement.achieved_at,
       is_locked: achievement.icon_url ? true : false,
@@ -284,6 +299,9 @@ export async function claimAchievementShareInvite(args: {
       icon: reservedInvite.icon,
       icon_url: reservedInvite.icon_url,
       icon_file_id: reservedInvite.icon_file_id,
+      icon_asset_kind: reservedInvite.icon_asset_kind,
+      icon_asset_path: reservedInvite.icon_asset_path,
+      icon_cc_attribution: reservedInvite.icon_cc_attribution,
       tone: reservedInvite.tone,
       is_locked: true,
       achieved_at: achievedAt,

@@ -279,11 +279,12 @@ export function useAchievementEditorPipelineController({
       }
       playSavePop();
 
-      const replacedBaselineId = badgeSessionController.commitPanelBadgeSession(updatedAchievement);
-      if (replacedBaselineId) {
-        void badgeSessionController.deleteRemoteFileIdQuietly(
-          replacedBaselineId,
-          "ImageKit delete replaced baseline on achievement save",
+      const replacedBaselineAsset =
+        badgeSessionController.commitPanelBadgeSession(updatedAchievement);
+      if (replacedBaselineAsset) {
+        void badgeSessionController.deleteRemoteAssetQuietly(
+          replacedBaselineAsset,
+          "Badge asset delete replaced baseline on achievement save",
         );
       }
 

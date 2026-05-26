@@ -14,7 +14,7 @@ import {
 import { Check, Loader2, PenLine, Share2, X, type LucideIcon } from "lucide-react";
 
 import type { AchievementTone } from "@/components/achievements/achievement-card";
-import { AchievementDetailMeta } from "@/components/achievements/achievement-detail-meta";
+import { BadgeAttributionPopover } from "@/components/achievements/badge/badge-attribution-popover";
 import { AchievementDetailBadgeInteractive } from "@/components/achievements/badge/achievement-detail-badge-interactive";
 import type { AlphaMaskData } from "@/lib/badge/shape-utils";
 import {
@@ -22,7 +22,8 @@ import {
   achievementDialogChromeInset,
   achievementDialogIconBtn,
   achievementDialogIconSideSlot,
-  type BadgeIkSession,
+  type BadgeAssetSession,
+  formatAchievedAt,
   type FormState,
 } from "@/components/achievements/achievement-editor-shared";
 import { DedicationByline } from "@/components/achievements/dedication/dedication-byline";
@@ -49,17 +50,18 @@ export type AchievementDialogStackProps = {
   createForm: FormState;
   setCreateForm: Dispatch<SetStateAction<FormState>>;
   setCreateUploadInProgress: (inProgress: boolean) => void;
-  createBadgeIkSessionRef: RefObject<BadgeIkSession>;
+  createBadgeAssetSessionRef: RefObject<BadgeAssetSession>;
   onSubmitCreate: (e: FormEvent) => void | Promise<void>;
   onCancelCreate: () => void;
 
   detailMode: "view" | "edit";
   isVisibilityOnlyEdit?: boolean;
+  detailViewSessionKey: number;
   detailAchievement: AchievementRecord | null;
   panelForm: FormState;
   setPanelForm: Dispatch<SetStateAction<FormState>>;
   setPanelUploadInProgress: (inProgress: boolean) => void;
-  panelBadgeIkSessionRef: RefObject<BadgeIkSession>;
+  panelBadgeAssetSessionRef: RefObject<BadgeAssetSession>;
   onSubmitPanelSave: (e: FormEvent) => void | Promise<void>;
   onSubmitPanelVisibilitySave: () => void | Promise<void>;
   onCancelPanelEdit: () => void;
@@ -104,16 +106,17 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     createForm,
     setCreateForm,
     setCreateUploadInProgress,
-    createBadgeIkSessionRef,
+    createBadgeAssetSessionRef,
     onSubmitCreate,
     onCancelCreate,
     detailMode,
     isVisibilityOnlyEdit = false,
+    detailViewSessionKey,
     detailAchievement,
     panelForm,
     setPanelForm,
     setPanelUploadInProgress,
-    panelBadgeIkSessionRef,
+    panelBadgeAssetSessionRef,
     onSubmitPanelSave,
     onSubmitPanelVisibilitySave,
     onCancelPanelEdit,
@@ -270,8 +273,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
               onSubmit={onSubmitCreate}
               onCancel={onCancelCreate}
               onUploadInProgressChange={setCreateUploadInProgress}
-              badgeIkSessionRef={createBadgeIkSessionRef}
-              baselineIconFileId={createBadgeIkSessionRef.current.baselineFileId}
+              badgeAssetSessionRef={createBadgeAssetSessionRef}
               onClosePanel={() => closeDetailPanel()}
               onRequestShare={isDedicatingCreate ? undefined : onShareCreateInvite}
               shareDisabled={shareInviteBusy || !createForm.iconUrl.trim()}
@@ -317,6 +319,9 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       tone={detailTone}
                       FallbackIcon={DetailFallbackIcon}
                       hasIconUrl={Boolean(detailAchievement.icon_url?.trim())}
+                      iconAssetKind={detailAchievement.icon_asset_kind}
+                      iconAssetPath={detailAchievement.icon_asset_path}
+                      viewerStateKey={`${detailAchievement.id}:detail:${detailViewSessionKey}`}
                       lockedUi={detailIsLockedUi}
                       unlocking={detailIsUnlocking}
                       floating={detailFloating}
@@ -340,26 +345,39 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                         ) : null
                       }
                     />
+                    {(detailAchievement.icon_asset_kind === "model_glb" ||
+                      detailAchievement.icon_cc_attribution?.trim()) && (
+                      <BadgeAttributionPopover
+                        value={detailAchievement.icon_cc_attribution ?? ""}
+                        emptyState="No attribution was provided for this 3D badge."
+                      />
+                    )}
                   </div>
                 </div>
               </div>
 
-              <AchievementDetailMeta
-                achievedAt={detailAchievement.achieved_at}
-                category={
-                  detailAchievement.category?.trim() ||
-                  (detailIsLockedUi ? "Locked" : "Uncategorized")
-                }
-                title={
-                  detailAchievement.title?.trim() ||
-                  (detailIsLockedUi ? "Locked" : "Untitled")
-                }
-                description={
-                  detailIsLockedUi
-                    ? detailAchievement.description?.trim() || "This achievement is locked."
-                    : detailAchievement.description?.trim() || "No description yet."
-                }
-              />
+              <p className="mt-8 w-full text-center text-[11px] font-medium uppercase tracking-[0.2em] text-white/45">
+                {detailAchievement.category?.trim() ||
+                  (detailIsLockedUi ? "Locked" : "Uncategorized")}
+              </p>
+              <h2
+                id="achievement-detail-title"
+                className="mt-2 text-center text-xl font-semibold tracking-tight text-white"
+              >
+                {detailAchievement.title?.trim() ||
+                  (detailIsLockedUi ? "Locked" : "Untitled")}
+              </h2>
+              <p className="mt-4 break-words text-center text-sm leading-relaxed text-white/65">
+                {detailIsLockedUi
+                  ? detailAchievement.description?.trim() ||
+                    "This achievement is locked."
+                  : detailAchievement.description?.trim() || "No description yet."}
+              </p>
+              {formatAchievedAt(detailAchievement.achieved_at) ? (
+                <p className="mt-4 text-center text-xs text-white/40">
+                  {formatAchievedAt(detailAchievement.achieved_at)}
+                </p>
+              ) : null}
 
               {readOnly &&
               detailIsDedicated &&
@@ -371,7 +389,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                   senderDisplayName={
                     dedicationSenderDisplayName?.trim() || "Someone"
                   }
-                  className={!detailAchievement.achieved_at ? "mt-6" : undefined}
+                  className={!formatAchievedAt(detailAchievement.achieved_at) ? "mt-6" : undefined}
                 />
               ) : null}
 
@@ -381,7 +399,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                     achievementBadgeChromeWidth,
                     achievementDialogChromeInset,
                     "mt-3 flex min-h-10 flex-col items-stretch gap-2",
-                    !detailAchievement.achieved_at && "mt-6",
+                    !formatAchievedAt(detailAchievement.achieved_at) && "mt-6",
                   )}
                 >
                   <div className="flex min-h-10 items-center">
@@ -470,7 +488,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                     </div>
                   </div>
                 </div>
-              ) : detailAchievement.achieved_at ||
+              ) : formatAchievedAt(detailAchievement.achieved_at) ||
                 (detailIsDedicated && dedicationSenderId) ? null : (
                 <div className="mt-6" aria-hidden />
               )}
@@ -483,8 +501,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
               onSubmit={onSubmitPanelSave}
               onCancel={onCancelPanelEdit}
               onUploadInProgressChange={setPanelUploadInProgress}
-              badgeIkSessionRef={panelBadgeIkSessionRef}
-              baselineIconFileId={panelBadgeIkSessionRef.current.baselineFileId}
+              badgeAssetSessionRef={panelBadgeAssetSessionRef}
               onClosePanel={() => closeDetailPanel()}
               showEditChrome
               onRequestDelete={

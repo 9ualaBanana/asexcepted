@@ -14,6 +14,7 @@ export type DiscardEditIntent = "back" | "close";
 type UiState = {
   overlay: OverlayState;
   detailAchievementId: string | null;
+  detailViewSessionKey: number;
   deleteConfirmId: string | null;
   discardEditIntent: DiscardEditIntent | null;
 };
@@ -37,12 +38,14 @@ function reduceUiState(state: UiState, action: UiAction): UiState {
         ...state,
         overlay: "create",
         detailAchievementId: null,
+        detailViewSessionKey: state.detailViewSessionKey,
       };
     case "open-detail-view":
       return {
         ...state,
         overlay: "detail-view",
         detailAchievementId: action.achievementId,
+        detailViewSessionKey: state.detailViewSessionKey + 1,
       };
     case "enter-detail-edit":
       if (!state.detailAchievementId) return state;
@@ -54,7 +57,11 @@ function reduceUiState(state: UiState, action: UiAction): UiState {
       if (!state.detailAchievementId) {
         return { ...state, overlay: "closed" };
       }
-      return { ...state, overlay: "detail-view" };
+      return {
+        ...state,
+        overlay: "detail-view",
+        detailViewSessionKey: state.detailViewSessionKey + 1,
+      };
     case "close-overlay":
       return {
         ...state,
@@ -79,6 +86,7 @@ export function useAchievementUiStateMachine() {
   const [state, dispatch] = useReducer(reduceUiState, {
     overlay: "closed",
     detailAchievementId: null,
+    detailViewSessionKey: 0,
     deleteConfirmId: null,
     discardEditIntent: null,
   });
@@ -162,6 +170,7 @@ export function useAchievementUiStateMachine() {
       detailMode,
       isVisibilityOnlyEdit,
       detailAchievementId: state.detailAchievementId,
+      detailViewSessionKey: state.detailViewSessionKey,
       deleteConfirmId: state.deleteConfirmId,
       discardEditIntent: state.discardEditIntent,
       achievementOverlayOpen,
@@ -176,6 +185,7 @@ export function useAchievementUiStateMachine() {
       state.deleteConfirmId,
       state.discardEditIntent,
       state.detailAchievementId,
+      state.detailViewSessionKey,
     ],
   );
 }
