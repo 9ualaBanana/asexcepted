@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 
+import { APP_DISPLAY_NAME } from "@/lib/brand";
 import {
   getAchievementShareInviteKind,
   getAchievementShareInvitePresentationByToken,
@@ -89,31 +90,20 @@ export default async function Image({ params }: ImageProps) {
               marginRight: "40px",
             }}
           >
-            <div
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={invite.icon_url}
+              alt=""
+              width="300"
+              height="300"
               style={{
-                width: "280px",
-                height: "280px",
-                borderRadius: "999px",
-                overflow: "hidden",
+                width: "300px",
+                height: "300px",
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "rgba(255,255,255,0.04)",
-                boxShadow:
-                  "inset 0 1px 0 rgba(255,255,255,0.08), 0 16px 40px rgba(0,0,0,0.28)",
+                objectFit: "contain",
+                filter: "drop-shadow(0 18px 36px rgba(0,0,0,0.34))",
               }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={invite.icon_url}
-                alt=""
-                width="280"
-                height="280"
-                style={{
-                  objectFit: "contain",
-                }}
-              />
-            </div>
+            />
           </div>
 
           <div
@@ -148,6 +138,19 @@ export default async function Image({ params }: ImageProps) {
               }}
             >
               {title}
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                marginTop: "8px",
+                fontSize: 18,
+                letterSpacing: "0.16em",
+                textTransform: "uppercase",
+                color: "rgba(245,243,255,0.34)",
+              }}
+            >
+              {APP_DISPLAY_NAME}
             </div>
 
             <div

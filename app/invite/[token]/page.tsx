@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { AchievementBadge3DViewer } from "@/components/achievements/badge/achievement-badge-3d-viewer";
 import { formatAchievedAt } from "@/components/achievements/achievement-editor-shared";
+import { APP_DISPLAY_NAME } from "@/lib/brand";
 import { resolvePublicSiteOrigin } from "@/lib/public-site-origin";
 import {
   achievementShareInviteOgImagePath,
@@ -29,6 +30,7 @@ function buildInviteMetadata(args: {
     description: args.description,
     robots: { index: false, follow: false },
     openGraph: {
+      siteName: APP_DISPLAY_NAME,
       title: args.title,
       description: args.description,
       images: args.imageUrl ? [{ url: args.imageUrl }] : undefined,
@@ -65,7 +67,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       : `${senderDisplayName} shared an achievement waiting in your collection.`);
 
   return buildInviteMetadata({
-    title: `${title} | asexcepted`,
+    title: `${title} | ${APP_DISPLAY_NAME}`,
     description,
     imageUrl: origin
       ? `${origin}${achievementShareInviteOgImagePath(token)}`
@@ -149,7 +151,7 @@ export default async function Page({ params }: PageProps) {
           <div className="mt-5 flex justify-center text-center">
             {pageKind === "showcase" ? (
               <p className="text-xs leading-snug text-white/55">
-                from{" "}
+                by{" "}
                 <Link
                   href={senderCollectionPath}
                   className="font-semibold text-emerald-200/90 underline-offset-2 hover:underline"
