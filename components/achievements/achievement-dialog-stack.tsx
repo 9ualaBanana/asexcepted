@@ -11,7 +11,7 @@ import {
   type RefObject,
   type SetStateAction,
 } from "react";
-import { Check, Link2, Loader2, PenLine, X, type LucideIcon } from "lucide-react";
+import { Check, Loader2, PenLine, Share2, X, type LucideIcon } from "lucide-react";
 
 import type { AchievementTone } from "@/components/achievements/achievement-card";
 import { AchievementDetailBadgeInteractive } from "@/components/achievements/badge/achievement-detail-badge-interactive";
@@ -82,9 +82,9 @@ export type AchievementDialogStackProps = {
   optimisticUnlockedAchievementId: string | null;
 
   isSaving: boolean;
-  embedCopyBusy: boolean;
-  embedCopyHint: string | null;
-  onCopyEmbedLink: () => void;
+  shareInviteBusy: boolean;
+  onShareCreateInvite: () => void;
+  onShareDetailInvite: () => void;
   onRequestDelete: (achievementId: string) => void;
   detailShowsImpressionGlitter: boolean;
   dedicatedBadgeGlitter?: boolean;
@@ -134,9 +134,9 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     onDetailBadgeVisualReady,
     optimisticUnlockedAchievementId,
     isSaving,
-    embedCopyBusy,
-    embedCopyHint,
-    onCopyEmbedLink,
+    shareInviteBusy,
+    onShareCreateInvite,
+    onShareDetailInvite,
     onRequestDelete,
     detailShowsImpressionGlitter,
     dedicatedBadgeGlitter = false,
@@ -273,6 +273,8 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
               badgeIkSessionRef={createBadgeIkSessionRef}
               baselineIconFileId={createBadgeIkSessionRef.current.baselineFileId}
               onClosePanel={() => closeDetailPanel()}
+              onRequestShare={isDedicatingCreate ? undefined : onShareCreateInvite}
+              shareDisabled={shareInviteBusy || !createForm.iconUrl.trim()}
               dedicateMode={isDedicatingCreate}
             />
           ) : showDetailContent ? (
@@ -459,24 +461,20 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                         >
                           <X className="h-4 w-4" aria-hidden />
                         </button>
-                      ) : detailAchievement.icon_url?.trim() ? (
+                      ) : detailAchievement.icon_url?.trim() &&
+                        !detailIsDedicated ? (
                         <button
                           type="button"
-                          aria-label="Copy embed link"
+                          aria-label="Share invite achievement"
                           className={achievementDialogIconBtn}
-                          disabled={isSaving || embedCopyBusy}
-                          onClick={() => void onCopyEmbedLink()}
+                          disabled={isSaving || shareInviteBusy}
+                          onClick={() => void onShareDetailInvite()}
                         >
-                          <Link2 className="h-4 w-4" aria-hidden />
+                          <Share2 className="h-4 w-4" aria-hidden />
                         </button>
                       ) : null}
                     </div>
                   </div>
-                  {embedCopyHint && !isVisibilityOnlyEdit ? (
-                    <p className="text-center text-xs text-white/50" role="status">
-                      {embedCopyHint}
-                    </p>
-                  ) : null}
                 </div>
               ) : formatAchievedAt(detailAchievement.achieved_at) ||
                 (detailIsDedicated && dedicationSenderId) ? null : (

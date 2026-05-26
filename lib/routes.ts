@@ -13,6 +13,7 @@ export const ROUTES = {
   signUpSuccess: "/auth/sign-up-success",
   confirm: "/auth/confirm",
   callback: "/auth/callback",
+  invite: "/invite",
   forgotPassword: "/auth/forgot-password",
   updatePassword: "/auth/update-password",
   authError: "/auth/error",
@@ -50,6 +51,22 @@ export function userCollection(userId: string): string {
   return `/u/${userId}`;
 }
 
+export function achievementShareInvitePath(
+  token: string,
+  opts?: { claim?: boolean; autoAccept?: boolean },
+): string {
+  const base = `${ROUTES.invite}/${encodeURIComponent(token)}`;
+  const params = new URLSearchParams();
+  if (opts?.claim) {
+    params.set("claim", "1");
+  }
+  if (opts?.autoAccept) {
+    params.set("auto", "1");
+  }
+  const query = params.toString();
+  return query ? `${base}?${query}` : base;
+}
+
 export function userAchievementDetail(
   userId: string,
   achievementId: string,
@@ -79,6 +96,6 @@ export function isAuthPath(pathname: string): boolean {
   return pathname.startsWith("/auth/");
 }
 
-export function defaultPostAuthPath(userId: string): string {
+export function defaultPostAuthPath(): string {
   return ROUTES.inspa;
 }

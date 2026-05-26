@@ -95,6 +95,75 @@ export type Database = {
         }
         Relationships: []
       }
+      achievement_share_invites: {
+        Row: {
+          achieved_at: string | null
+          category: string | null
+          claimed_achievement_id: string | null
+          claimed_at: string | null
+          claimed_by_user_id: string | null
+          created_at: string
+          description: string | null
+          expires_at: string | null
+          icon: string
+          icon_file_id: string | null
+          icon_url: string
+          id: string
+          revoked_at: string | null
+          sender_user_id: string
+          source_achievement_id: string | null
+          status: string
+          title: string | null
+          token_hash: string
+          tone: string | null
+          updated_at: string
+        }
+        Insert: {
+          achieved_at?: string | null
+          category?: string | null
+          claimed_achievement_id?: string | null
+          claimed_at?: string | null
+          claimed_by_user_id?: string | null
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          icon?: string
+          icon_file_id?: string | null
+          icon_url: string
+          id?: string
+          revoked_at?: string | null
+          sender_user_id: string
+          source_achievement_id?: string | null
+          status?: string
+          title?: string | null
+          token_hash: string
+          tone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          achieved_at?: string | null
+          category?: string | null
+          claimed_achievement_id?: string | null
+          claimed_at?: string | null
+          claimed_by_user_id?: string | null
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          icon?: string
+          icon_file_id?: string | null
+          icon_url?: string
+          id?: string
+          revoked_at?: string | null
+          sender_user_id?: string
+          source_achievement_id?: string | null
+          status?: string
+          title?: string | null
+          token_hash?: string
+          tone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notes: {
         Row: {
           id: number

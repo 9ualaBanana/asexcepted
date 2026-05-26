@@ -41,7 +41,6 @@ type UseAchievementEditorPipelineControllerArgs = {
   playSavePop: () => void;
   uiActions: AchievementUiStateActions;
   resetUnlockWave: () => void;
-  clearManualEmbedUrl: () => void;
 };
 
 export type AchievementEditorPipelineActions = {
@@ -80,7 +79,6 @@ export function useAchievementEditorPipelineController({
   playSavePop,
   uiActions,
   resetUnlockWave,
-  clearManualEmbedUrl,
 }: UseAchievementEditorPipelineControllerArgs) {
   const cancelPanelEdit = useCallback(() => {
     if (detailMode !== "edit" || !detailAchievement) return false;
@@ -136,6 +134,7 @@ export function useAchievementEditorPipelineController({
     isVisibilityOnlyEdit,
     isCreating,
     setCreateForm,
+    setIsDedicatingCreate,
     setPanelForm,
     uiActions,
   ]);
@@ -179,8 +178,7 @@ export function useAchievementEditorPipelineController({
     if (!closed) return;
     resetUnlockWave();
     setIsSaving(false);
-    clearManualEmbedUrl();
-  }, [clearManualEmbedUrl, closeOverlayFlow, resetUnlockWave, setIsSaving]);
+  }, [closeOverlayFlow, resetUnlockWave, setIsSaving]);
 
   const submitCreate = useCallback(
     async (e: FormEvent) => {

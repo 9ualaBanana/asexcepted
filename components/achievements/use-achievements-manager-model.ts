@@ -20,7 +20,7 @@ import { useAchievementDataController } from "@/components/achievements/use-achi
 import { useAchievementDetailSelectionController } from "@/components/achievements/use-achievement-detail-selection-controller";
 import { useAchievementDetailViewModel } from "@/components/achievements/use-achievement-detail-view-model";
 import { useAchievementEditorPipelineController } from "@/components/achievements/use-achievement-editor-pipeline-controller";
-import { useAchievementEmbedLinkController } from "@/components/achievements/use-achievement-embed-link-controller";
+import { useAchievementShareInviteController } from "@/components/achievements/use-achievement-share-invite-controller";
 import { useAchievementUiStateMachine } from "@/components/achievements/use-achievement-ui-state-machine";
 import { useAchievementUnlockReveal } from "@/components/achievements/use-achievement-unlock-reveal";
 import { useBadgeChunkedPrewarm } from "@/components/achievements/use-badge-chunked-prewarm";
@@ -126,8 +126,10 @@ export function useAchievementsManagerModel({
   const badgeMetrics = useAchievementBadgeMetricsController(detailAchievement, isAdmin);
   const [hideLocked, setHideLocked] = useHideLockedPreference();
   const { visibilityFilter, cycleVisibilityFilter } = useVisibilityFilterPreference();
-  const embedLink = useAchievementEmbedLinkController({
+  const shareInvite = useAchievementShareInviteController({
     detailAchievementId: detailAchievement?.id ?? null,
+    detailTitle: detailAchievement?.title,
+    detailDescription: detailAchievement?.description,
   });
 
   const detailRenderSrc = useMemo(() => {
@@ -189,7 +191,6 @@ export function useAchievementsManagerModel({
     playSavePop,
     uiActions: ui.actions,
     resetUnlockWave,
-    clearManualEmbedUrl: () => embedLink.setManualEmbedUrl(null),
   });
 
   const data = useAchievementDataController({
@@ -204,6 +205,10 @@ export function useAchievementsManagerModel({
     badgeSessionController: badgeSession,
     uiActions: ui.actions,
   });
+  const loadAchievements = data.loadAchievements;
+  const achievementsLoading = data.isLoading;
+  const markDetailOpenStart = badgeMetrics.markDetailOpenStart;
+  const openDetailView = ui.actions.openDetailView;
 
   const collectionAchievementIds = useMemo(
     () => new Set(achievements.map((a) => a.id)),
@@ -256,8 +261,8 @@ export function useAchievementsManagerModel({
     if (pathname !== userCollection(userId)) return;
     if (deepLinkRefetchedForRef.current === deepLinkAchievementId) return;
     deepLinkRefetchedForRef.current = deepLinkAchievementId;
-    void data.loadAchievements();
-  }, [deepLinkAchievementId, data.loadAchievements, pathname, userId]);
+    void loadAchievements();
+  }, [deepLinkAchievementId, loadAchievements, pathname, userId]);
 
   useEffect(() => {
     if (!detailAchievement?.dedicated_by_user_id) {
@@ -285,7 +290,7 @@ export function useAchievementsManagerModel({
       return;
     }
     if (pathname !== userCollection(userId)) return;
-    if (data.isLoading) return;
+    if (achievementsLoading) return;
     const exists = achievements.some((a) => a.id === deepLinkAchievementId);
     if (!exists) return;
     if (
@@ -296,15 +301,15 @@ export function useAchievementsManagerModel({
     }
     if (lastDeepLinkedIdRef.current === deepLinkAchievementId) return;
     lastDeepLinkedIdRef.current = deepLinkAchievementId;
-    badgeMetrics.markDetailOpenStart(deepLinkAchievementId);
-    ui.actions.openDetailView(deepLinkAchievementId);
+    markDetailOpenStart(deepLinkAchievementId);
+    openDetailView(deepLinkAchievementId);
   }, [
     achievements,
-    badgeMetrics.markDetailOpenStart,
-    data.isLoading,
+    achievementsLoading,
     deepLinkAchievementId,
+    markDetailOpenStart,
+    openDetailView,
     pathname,
-    ui.actions.openDetailView,
     userId,
     searchParams,
     collectionAchievementIds,
@@ -338,6 +343,14 @@ export function useAchievementsManagerModel({
     ui.actions,
     userId,
   ]);
+
+  const handleShareCreateInvite = useCallback(() => {
+    void shareInvite.shareDraftAchievement(formToPayload(createForm));
+  }, [createForm, shareInvite]);
+
+  const handleShareDetailInvite = useCallback(() => {
+    void shareInvite.shareExistingAchievement();
+  }, [shareInvite]);
 
   const gridItems = useMemo(() => {
     let visible = achievements;
@@ -446,9 +459,9 @@ export function useAchievementsManagerModel({
     onDetailBadgeVisualReady: badgeMetrics.handleDetailBadgeVisualReady,
     optimisticUnlockedAchievementId,
     isSaving,
-    embedCopyBusy: embedLink.embedCopyBusy,
-    embedCopyHint: embedLink.embedCopyHint,
-    onCopyEmbedLink: embedLink.copyEmbedLink,
+    shareInviteBusy: shareInvite.shareInviteBusy,
+    onShareCreateInvite: handleShareCreateInvite,
+    onShareDetailInvite: handleShareDetailInvite,
     onRequestDelete: ui.actions.requestDelete,
     detailShowsImpressionGlitter,
     dedicatedBadgeGlitter: detailShowsDedicatedGlitter,
@@ -483,7 +496,7 @@ export function useAchievementsManagerModel({
     ui,
     badgeSession,
     badgeMetrics,
-    embedLink,
+    shareInvite,
     detailAchievement,
     detailRenderSrc,
     detailTone,

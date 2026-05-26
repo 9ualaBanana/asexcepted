@@ -6,15 +6,19 @@ import { Button } from "@/components/ui/button";
 import { copyTextToClipboard } from "@/lib/copy-text-to-clipboard";
 
 type AchievementManualEmbedDialogProps = {
-  manualEmbedUrl: string;
+  manualUrl: string;
   onDismiss: () => void;
   onCopied: () => void;
+  title?: string;
+  copyAriaLabel?: string;
 };
 
 export function AchievementManualEmbedDialog({
-  manualEmbedUrl,
+  manualUrl,
   onDismiss,
   onCopied,
+  title = "Copy link",
+  copyAriaLabel = "Copy link",
 }: AchievementManualEmbedDialogProps) {
   return (
     <div
@@ -29,21 +33,21 @@ export function AchievementManualEmbedDialog({
         onClick={(e) => e.stopPropagation()}
       >
         <h2 id="manual-copy-title" className="text-base font-semibold text-white">
-          Copy embed link
+          {title}
         </h2>
         <div className="relative mt-3">
           <input
             readOnly
-            value={manualEmbedUrl}
+            value={manualUrl}
             className="h-10 w-full overflow-hidden rounded-md border border-white/15 bg-black/25 pl-3 pr-11 text-xs text-white/85"
             onFocus={(e) => e.currentTarget.select()}
           />
           <button
             type="button"
-            aria-label="Copy embed link"
+            aria-label={copyAriaLabel}
             className="absolute right-1 top-1 inline-flex h-8 w-8 items-center justify-center rounded-md text-white/75 transition hover:bg-white/10 hover:text-white"
             onClick={() => {
-              void copyTextToClipboard(manualEmbedUrl);
+              void copyTextToClipboard(manualUrl);
               onCopied();
             }}
           >

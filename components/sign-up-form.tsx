@@ -19,7 +19,7 @@ import { useState, type FormEvent } from "react";
 import { OAuthProviderButtons } from "@/components/auth/oauth-provider-buttons";
 import { hasEnabledOAuthProviders } from "@/lib/auth/oauth-providers";
 import { validatePassword } from "@/lib/auth/password-policy";
-import { ROUTES } from "@/lib/routes";
+import { ROUTES, safeRedirectPath } from "@/lib/routes";
 import { useErrorToast } from "@/lib/toast";
 import { completeOnboardingAfterSignup } from "@/lib/welcome/complete-onboarding";
 
@@ -36,6 +36,7 @@ export function SignUpForm({ className, next }: SignUpFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const showOAuth = hasEnabledOAuthProviders();
+  const redirectTo = safeRedirectPath(next);
 
   useErrorToast(error, { id: "sign-up" });
 
@@ -81,10 +82,10 @@ export function SignUpForm({ className, next }: SignUpFormProps) {
             email: data.user.email ?? undefined,
           }),
         }).catch(() => undefined);
-        const destination = await completeOnboardingAfterSignup(
-          data.user.id,
-          supabase,
-        );
+        const destination =
+          next && next.trim().length > 0
+            ? redirectTo
+            : await completeOnboardingAfterSignup(data.user.id, supabase);
         router.push(destination);
         router.refresh();
         return;

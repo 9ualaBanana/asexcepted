@@ -12,4 +12,9 @@ export const ACHIEVEMENT_UI_COPY = {
   embedClipboardPermissionBlocked:
     "Clipboard permission was blocked. Use the manual copy sheet below.",
   embedCopyUnknownError: "Could not copy link.",
+  shareInviteCopied: "Invite link copied.",
+  shareInviteCopyBlockedManual: "Copy was blocked. Use the manual copy sheet below.",
+  shareInviteCreateOnlyCustomImage:
+    "Only achievements with a custom badge image can be shared.",
+  shareInviteUnknownError: "Could not create invite link.",
 } as const;

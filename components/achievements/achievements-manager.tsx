@@ -32,7 +32,7 @@ export function AchievementsManager({
     canDedicate,
     initialDetailAchievementId,
   });
-  const { data, editorPipeline, ui, badgeMetrics, embedLink } = model;
+  const { data, editorPipeline, ui, badgeMetrics, shareInvite } = model;
 
   useErrorToast(model.error, { id: "achievements-manager" });
 
@@ -97,11 +97,13 @@ export function AchievementsManager({
         />
       ) : null}
 
-      {embedLink.manualEmbedUrl ? (
+      {shareInvite.manualShareUrl ? (
         <AchievementManualEmbedDialog
-          manualEmbedUrl={embedLink.manualEmbedUrl}
-          onDismiss={() => embedLink.setManualEmbedUrl(null)}
-          onCopied={embedLink.onManualEmbedCopied}
+          manualUrl={shareInvite.manualShareUrl}
+          title="Copy invite link"
+          copyAriaLabel="Copy invite link"
+          onDismiss={() => shareInvite.setManualShareUrl(null)}
+          onCopied={shareInvite.onManualShareCopied}
         />
       ) : null}
 
