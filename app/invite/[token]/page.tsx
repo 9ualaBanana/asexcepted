@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AchievementBadge3DViewer } from "@/components/achievements/badge/achievement-badge-3d-viewer";
+import { BadgeAttributionPopover } from "@/components/achievements/badge/badge-attribution-popover";
+import { AchievementBadgeModelViewer } from "@/components/achievements/badge/achievement-badge-model-viewer";
 import { formatAchievedAt } from "@/components/achievements/achievement-editor-shared";
+import { isModelBadgeAssetKind } from "@/lib/achievements/badge-assets";
+import { createSignedAchievementBadgeModelUrl } from "@/lib/achievements/badge-assets-server";
 import { resolvePublicSiteOrigin } from "@/lib/public-site-origin";
 import {
   achievementShareInviteOgImagePath,
@@ -105,6 +109,10 @@ export default async function Page({ params }: PageProps) {
   const pageKind = getAchievementShareInviteKind(invite);
   const ownerDetailPath = getAchievementShareInviteOwnerDetailPath(invite);
   const senderCollectionPath = userCollection(invite.sender_user_id);
+  const liveModelUrl =
+    isModelBadgeAssetKind(invite.icon_asset_kind) && invite.icon_asset_path?.trim()
+      ? await createSignedAchievementBadgeModelUrl(invite.icon_asset_path)
+      : null;
 
   if (invite.status !== "pending") {
     return <InviteUnavailableState claimed={invite.status === "claimed"} />;
@@ -115,12 +123,30 @@ export default async function Page({ params }: PageProps) {
       <section className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-xl flex-col items-center justify-center">
         <div className="w-full rounded-[2.25rem] border border-white/10 bg-[rgba(20,18,28,0.9)] px-6 py-8 shadow-[0_24px_80px_rgba(0,0,0,0.36)] backdrop-blur-xl sm:px-8">
           <div className="mx-auto h-[18rem] w-full max-w-[18rem]">
-            <AchievementBadge3DViewer
-              src={invite.icon_url}
-              float
-              motionSeed={invite.id}
-              className="mx-auto"
-            />
+            <div className="relative h-full w-full">
+              {liveModelUrl ? (
+                <AchievementBadgeModelViewer
+                  signedModelUrl={liveModelUrl}
+                  previewSrc={invite.icon_url}
+                  float
+                  motionSeed={invite.id}
+                  className="mx-auto"
+                />
+              ) : (
+                <AchievementBadge3DViewer
+                  src={invite.icon_url}
+                  float
+                  motionSeed={invite.id}
+                  className="mx-auto"
+                />
+              )}
+              {(invite.icon_asset_kind === "model_glb" || invite.icon_cc_attribution?.trim()) && (
+                <BadgeAttributionPopover
+                  value={invite.icon_cc_attribution ?? ""}
+                  emptyState="No attribution was provided for this 3D badge."
+                />
+              )}
+            </div>
           </div>
 
           <div className="mt-6 text-center">

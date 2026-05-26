@@ -14,6 +14,7 @@ import {
 import { Check, Loader2, PenLine, Share2, X, type LucideIcon } from "lucide-react";
 
 import type { AchievementTone } from "@/components/achievements/achievement-card";
+import { BadgeAttributionPopover } from "@/components/achievements/badge/badge-attribution-popover";
 import { AchievementDetailBadgeInteractive } from "@/components/achievements/badge/achievement-detail-badge-interactive";
 import type { AlphaMaskData } from "@/lib/badge/shape-utils";
 import {
@@ -21,7 +22,7 @@ import {
   achievementDialogChromeInset,
   achievementDialogIconBtn,
   achievementDialogIconSideSlot,
-  type BadgeIkSession,
+  type BadgeAssetSession,
   formatAchievedAt,
   type FormState,
 } from "@/components/achievements/achievement-editor-shared";
@@ -49,7 +50,7 @@ export type AchievementDialogStackProps = {
   createForm: FormState;
   setCreateForm: Dispatch<SetStateAction<FormState>>;
   setCreateUploadInProgress: (inProgress: boolean) => void;
-  createBadgeIkSessionRef: RefObject<BadgeIkSession>;
+  createBadgeAssetSessionRef: RefObject<BadgeAssetSession>;
   onSubmitCreate: (e: FormEvent) => void | Promise<void>;
   onCancelCreate: () => void;
 
@@ -59,7 +60,7 @@ export type AchievementDialogStackProps = {
   panelForm: FormState;
   setPanelForm: Dispatch<SetStateAction<FormState>>;
   setPanelUploadInProgress: (inProgress: boolean) => void;
-  panelBadgeIkSessionRef: RefObject<BadgeIkSession>;
+  panelBadgeAssetSessionRef: RefObject<BadgeAssetSession>;
   onSubmitPanelSave: (e: FormEvent) => void | Promise<void>;
   onSubmitPanelVisibilitySave: () => void | Promise<void>;
   onCancelPanelEdit: () => void;
@@ -104,7 +105,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     createForm,
     setCreateForm,
     setCreateUploadInProgress,
-    createBadgeIkSessionRef,
+    createBadgeAssetSessionRef,
     onSubmitCreate,
     onCancelCreate,
     detailMode,
@@ -113,7 +114,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     panelForm,
     setPanelForm,
     setPanelUploadInProgress,
-    panelBadgeIkSessionRef,
+    panelBadgeAssetSessionRef,
     onSubmitPanelSave,
     onSubmitPanelVisibilitySave,
     onCancelPanelEdit,
@@ -270,8 +271,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
               onSubmit={onSubmitCreate}
               onCancel={onCancelCreate}
               onUploadInProgressChange={setCreateUploadInProgress}
-              badgeIkSessionRef={createBadgeIkSessionRef}
-              baselineIconFileId={createBadgeIkSessionRef.current.baselineFileId}
+              badgeAssetSessionRef={createBadgeAssetSessionRef}
               onClosePanel={() => closeDetailPanel()}
               onRequestShare={isDedicatingCreate ? undefined : onShareCreateInvite}
               shareDisabled={shareInviteBusy || !createForm.iconUrl.trim()}
@@ -317,6 +317,8 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       tone={detailTone}
                       FallbackIcon={DetailFallbackIcon}
                       hasIconUrl={Boolean(detailAchievement.icon_url?.trim())}
+                      iconAssetKind={detailAchievement.icon_asset_kind}
+                      iconAssetPath={detailAchievement.icon_asset_path}
                       lockedUi={detailIsLockedUi}
                       unlocking={detailIsUnlocking}
                       floating={detailFloating}
@@ -340,6 +342,13 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                         ) : null
                       }
                     />
+                    {(detailAchievement.icon_asset_kind === "model_glb" ||
+                      detailAchievement.icon_cc_attribution?.trim()) && (
+                      <BadgeAttributionPopover
+                        value={detailAchievement.icon_cc_attribution ?? ""}
+                        emptyState="No attribution was provided for this 3D badge."
+                      />
+                    )}
                   </div>
                 </div>
               </div>
@@ -489,8 +498,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
               onSubmit={onSubmitPanelSave}
               onCancel={onCancelPanelEdit}
               onUploadInProgressChange={setPanelUploadInProgress}
-              badgeIkSessionRef={panelBadgeIkSessionRef}
-              baselineIconFileId={panelBadgeIkSessionRef.current.baselineFileId}
+              badgeAssetSessionRef={panelBadgeAssetSessionRef}
               onClosePanel={() => closeDetailPanel()}
               showEditChrome
               onRequestDelete={

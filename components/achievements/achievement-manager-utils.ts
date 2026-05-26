@@ -1,9 +1,6 @@
 import { getSafeTone } from "@/components/achievements/achievement-card";
 import { unlockRevealLutSteps } from "@/lib/badge/shape-utils";
-import {
-  type FormState,
-  todayDateString,
-} from "@/components/achievements/achievement-editor-shared";
+import { type FormState } from "@/components/achievements/achievement-editor-shared";
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
 
 export const UNLOCK_HOLD_DURATION_MS = 500;
@@ -18,6 +15,9 @@ export function createInitialForm(): FormState {
     icon: "trophy",
     iconUrl: "",
     iconFileId: "",
+    iconAssetKind: "image",
+    iconAssetPath: "",
+    iconCcAttribution: "",
     tone: "teal",
     isLocked: true,
     achievedAt: "",

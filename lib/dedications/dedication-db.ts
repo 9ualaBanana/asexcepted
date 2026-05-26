@@ -6,7 +6,7 @@ import { normalizeAchievement } from "@/components/achievements/achievement-tran
 import type { AchievementDbRow } from "@/components/achievements/achievement-db-schema";
 
 const PENDING_SELECT =
-  "id,title,description,category,icon,icon_url,icon_file_id,tone,is_locked,achieved_at,created_at,visibility,dedicated_by_user_id,dedication_status";
+  "id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_cc_attribution,tone,is_locked,achieved_at,created_at,visibility,dedicated_by_user_id,dedication_status";
 
 export async function listPendingDedications(
   supabase: SupabaseClient,

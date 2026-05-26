@@ -1,0 +1,194 @@
+"use client";
+
+import {
+  ACESFilmicToneMapping,
+  AmbientLight,
+  AnimationMixer,
+  Box3,
+  DirectionalLight,
+  LoopRepeat,
+  PerspectiveCamera,
+  Quaternion,
+  Scene,
+  SRGBColorSpace,
+  Vector3,
+  WebGLRenderer,
+  type KeyframeTrack,
+} from "three";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
+import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
+import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
+
+import {
+  BADGE_MODEL_MAX_FILE_BYTES,
+  isGlbHeader,
+  looksLikeGlbUpload,
+} from "@/lib/achievements/badge-assets";
+
+const PREVIEW_SIZE_PX = 768;
+const LOOP_EPSILON = 0.025;
+const LOOP_QUATERNION_EPSILON_RAD = 0.06;
+const DRACO_DECODER_CDN = "https://www.gstatic.com/draco/versioned/decoders/1.5.7/";
+
+export type PreparedBadgeModelUpload = {
+  previewBlob: Blob;
+};
+
+function createConfiguredGlbLoader() {
+  const loader = new GLTFLoader();
+  const dracoLoader = new DRACOLoader();
+  dracoLoader.setDecoderPath(DRACO_DECODER_CDN);
+  loader.setDRACOLoader(dracoLoader);
+  loader.setMeshoptDecoder(MeshoptDecoder);
+  return { loader, dracoLoader };
+}
+
+async function parseGlbFile(file: File): Promise<GLTF> {
+  if (file.size > BADGE_MODEL_MAX_FILE_BYTES) {
+    throw new Error("3D badge files must be 50 MB or smaller.");
+  }
+  if (!looksLikeGlbUpload(file.name, file.type)) {
+    throw new Error("Only .glb uploads are supported for 3D badges.");
+  }
+
+  const arrayBuffer = await file.arrayBuffer();
+  if (!isGlbHeader(arrayBuffer)) {
+    throw new Error("This file is not a valid GLB asset.");
+  }
+
+  const { loader, dracoLoader } = createConfiguredGlbLoader();
+  try {
+    return await loader.parseAsync(arrayBuffer, window.location.origin + "/");
+  } catch (error) {
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Could not read this GLB file.",
+    );
+  } finally {
+    dracoLoader.dispose();
+  }
+}
+
+function isNumericTrackLoopable(track: KeyframeTrack): boolean {
+  const times = track.times;
+  const values = track.values;
+  if (times.length < 2) return true;
+
+  const stride = values.length / times.length;
+  if (!Number.isFinite(stride) || stride <= 0) return false;
+
+  const first = Array.from(values.slice(0, stride));
+  const last = Array.from(values.slice(values.length - stride));
+
+  if (track.name.endsWith(".quaternion") && stride >= 4) {
+    const qa = new Quaternion(first[0] ?? 0, first[1] ?? 0, first[2] ?? 0, first[3] ?? 1);
+    const qb = new Quaternion(last[0] ?? 0, last[1] ?? 0, last[2] ?? 0, last[3] ?? 1);
+    qa.normalize();
+    qb.normalize();
+
+    const same = qa.angleTo(qb) <= LOOP_QUATERNION_EPSILON_RAD;
+    const qbNegated = new Quaternion(-qb.x, -qb.y, -qb.z, -qb.w);
+    const negated = qa.angleTo(qbNegated) <= LOOP_QUATERNION_EPSILON_RAD;
+    return same || negated;
+  }
+
+  for (let i = 0; i < stride; i += 1) {
+    if (Math.abs((first[i] ?? 0) - (last[i] ?? 0)) > LOOP_EPSILON) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function validateFirstClipLoops(gltf: GLTF): void {
+  const clip = gltf.animations[0];
+  if (!clip) return;
+
+  const isLoopable = clip.tracks.every((track) => isNumericTrackLoopable(track));
+  if (!isLoopable) {
+    throw new Error(
+      "The first animation clip does not loop seamlessly. Please export the GLB with a clean looping clip as clip 0.",
+    );
+  }
+}
+
+async function renderPosterFromGltf(gltf: GLTF): Promise<Blob> {
+  const canvas = document.createElement("canvas");
+  const renderer = new WebGLRenderer({
+    canvas,
+    alpha: true,
+    antialias: true,
+    preserveDrawingBuffer: true,
+  });
+
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(PREVIEW_SIZE_PX, PREVIEW_SIZE_PX, false);
+  renderer.outputColorSpace = SRGBColorSpace;
+  renderer.toneMapping = ACESFilmicToneMapping;
+  renderer.setClearColor(0x000000, 0);
+
+  const scene = new Scene();
+  const ambientLight = new AmbientLight(0xffffff, 1.8);
+  const keyLight = new DirectionalLight(0xffffff, 2.4);
+  keyLight.position.set(6, 8, 10);
+  const fillLight = new DirectionalLight(0xc7d2fe, 1.1);
+  fillLight.position.set(-8, 4, 6);
+  scene.add(ambientLight, keyLight, fillLight);
+
+  const model = cloneSkeleton(gltf.scene);
+  scene.add(model);
+
+  if (gltf.animations[0]) {
+    const mixer = new AnimationMixer(model);
+    const action = mixer.clipAction(gltf.animations[0]);
+    action.setLoop(LoopRepeat, Infinity);
+    action.play();
+    mixer.setTime(0);
+  }
+
+  model.updateMatrixWorld(true);
+  const box = new Box3().setFromObject(model);
+  if (box.isEmpty()) {
+    throw new Error("This GLB does not contain any renderable geometry.");
+  }
+
+  const center = box.getCenter(new Vector3());
+  const size = box.getSize(new Vector3());
+  model.position.sub(center);
+  model.updateMatrixWorld(true);
+
+  const camera = new PerspectiveCamera(34, 1, 0.01, 1000);
+  const maxDim = Math.max(size.x, size.y, size.z) || 1;
+  const distance = maxDim * 2.35;
+  camera.position.set(maxDim * 0.34, Math.max(size.y * 0.22, 0.22), distance);
+  camera.lookAt(0, Math.max(size.y * 0.05, 0), 0);
+  camera.near = Math.max(distance / 200, 0.01);
+  camera.far = distance * 12;
+  camera.updateProjectionMatrix();
+
+  renderer.render(scene, camera);
+
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob((nextBlob) => resolve(nextBlob), "image/png");
+  });
+
+  renderer.dispose();
+
+  if (!blob) {
+    throw new Error("Could not generate a badge preview from this model.");
+  }
+
+  return blob;
+}
+
+export async function prepareBadgeModelUpload(
+  file: File,
+): Promise<PreparedBadgeModelUpload> {
+  const gltf = await parseGlbFile(file);
+  validateFirstClipLoops(gltf);
+  const previewBlob = await renderPosterFromGltf(gltf);
+  return { previewBlob };
+}

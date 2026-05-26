@@ -4,9 +4,11 @@ import type { CSSProperties, ReactNode, RefObject } from "react";
 import type { LucideIcon } from "lucide-react";
 
 import { AchievementBadgeSlot } from "@/components/achievements/badge/achievement-badge-slot";
+import { AchievementBadgeModelViewer } from "@/components/achievements/badge/achievement-badge-model-viewer";
 import { ImpressionGlitterField } from "@/components/achievements/badge/impression-glitter-field";
 import { AchievementFallbackBadge } from "@/components/achievements/badge/achievement-fallback-badge";
 import { AchievementBadge3DViewer } from "@/components/achievements/badge/achievement-badge-3d-viewer";
+import { useSignedBadgeModelUrl } from "@/components/achievements/badge/use-signed-badge-model-url";
 import {
   badgeImageMaskStylePadded,
   circularBadgeMaskStyle,
@@ -25,6 +27,8 @@ export type AchievementDetailBadgeInteractiveProps = {
   tone: AchievementTone;
   FallbackIcon: LucideIcon;
   hasIconUrl: boolean;
+  iconAssetKind?: "image" | "model_glb";
+  iconAssetPath?: string | null;
   lockedUi: boolean;
   unlocking: boolean;
   floating: boolean;
@@ -53,6 +57,8 @@ export function AchievementDetailBadgeInteractive({
   tone,
   FallbackIcon,
   hasIconUrl,
+  iconAssetKind = "image",
+  iconAssetPath = null,
   lockedUi,
   unlocking,
   floating,
@@ -75,6 +81,11 @@ export function AchievementDetailBadgeInteractive({
     dedicatedBadgeGlitter ||
     (IMPRESSION_GLITTER_UI_ENABLED && impressionGlitter);
   const glitterRevealPulse = dedicatedBadgeGlitter ? 0 : impressionGlitterRevealPulse;
+  const isModelAsset = iconAssetKind === "model_glb" && Boolean(iconAssetPath?.trim());
+  const { signedUrl: signedModelUrl } = useSignedBadgeModelUrl(
+    iconAssetPath ?? "",
+    hasIconUrl && isModelAsset && !lockedUi,
+  );
   const glitterMaskStyle = renderSrc
     ? badgeImageMaskStylePadded(renderSrc, 108)
     : paddedBadgeMaskStyle(circularBadgeMaskStyle(), 108);
@@ -98,6 +109,7 @@ export function AchievementDetailBadgeInteractive({
                   e.clientY,
                   e.currentTarget.getBoundingClientRect(),
                   unlockAlphaMaskRef.current,
+                  "filled",
                 )
               ) {
                 return;
@@ -113,28 +125,48 @@ export function AchievementDetailBadgeInteractive({
         {hasIconUrl ? (
           <>
             <div className="relative h-full w-full">
-              <AchievementBadge3DViewer
-                src={renderSrc}
-                className="p-1"
-                float={floating}
-                motionSeed={motionSeed}
-                motionStartCentered={motionStartCentered}
-                onImageDecoded={onImageDecoded}
-                onVisualReady={onVisualReady}
-                impressionGlitter={showGlitter && !lockedUi}
-                impressionGlitterRevealPulse={glitterRevealPulse}
-              />
-            </div>
-            {lockedUi ? (
-              <div className="absolute inset-0 z-[14] pointer-events-none">
+              {lockedUi ? (
                 <RemoteBadgeImage
                   src={renderSrc}
-                  className={cn(
-                    "h-full w-full object-contain p-1 opacity-80 grayscale",
-                    unlocking && "opacity-90",
-                  )}
+                  className="h-full w-full object-contain p-1 opacity-80 grayscale"
                 />
-              </div>
+              ) : isModelAsset && signedModelUrl ? (
+                <AchievementBadgeModelViewer
+                  signedModelUrl={signedModelUrl}
+                  previewSrc={renderSrc}
+                  className="p-1"
+                  float={floating}
+                  motionSeed={motionSeed}
+                  motionStartCentered={motionStartCentered}
+                  onVisualReady={() => {
+                    onImageDecoded?.();
+                    onVisualReady?.();
+                  }}
+                />
+              ) : (
+                <AchievementBadge3DViewer
+                  src={renderSrc}
+                  className="p-1"
+                  float={floating}
+                  motionSeed={motionSeed}
+                  motionStartCentered={motionStartCentered}
+                  onImageDecoded={onImageDecoded}
+                  onVisualReady={onVisualReady}
+                  impressionGlitter={showGlitter && !lockedUi}
+                  impressionGlitterRevealPulse={glitterRevealPulse}
+                />
+              )}
+            </div>
+            {isModelAsset && signedModelUrl && showGlitter && !lockedUi ? (
+              <ImpressionGlitterField
+                active
+                motionSeed={motionSeed}
+                maskStyle={glitterMaskStyle}
+                revealPulse={glitterRevealPulse}
+                variant="detail"
+                overlay
+                className="z-[18]"
+              />
             ) : null}
             {showGlitter && lockedUi ? (
               <ImpressionGlitterField

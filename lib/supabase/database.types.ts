@@ -47,6 +47,9 @@ export type Database = {
           dedication_status: string | null
           description: string | null
           icon: string
+          icon_asset_kind: string
+          icon_asset_path: string | null
+          icon_cc_attribution: string | null
           icon_file_id: string | null
           icon_url: string | null
           id: string
@@ -65,6 +68,9 @@ export type Database = {
           dedication_status?: string | null
           description?: string | null
           icon?: string
+          icon_asset_kind?: string
+          icon_asset_path?: string | null
+          icon_cc_attribution?: string | null
           icon_file_id?: string | null
           icon_url?: string | null
           id?: string
@@ -83,6 +89,9 @@ export type Database = {
           dedication_status?: string | null
           description?: string | null
           icon?: string
+          icon_asset_kind?: string
+          icon_asset_path?: string | null
+          icon_cc_attribution?: string | null
           icon_file_id?: string | null
           icon_url?: string | null
           id?: string
@@ -106,6 +115,9 @@ export type Database = {
           description: string | null
           expires_at: string | null
           icon: string
+          icon_asset_kind: string
+          icon_asset_path: string | null
+          icon_cc_attribution: string | null
           icon_file_id: string | null
           icon_url: string
           id: string
@@ -129,6 +141,9 @@ export type Database = {
           description?: string | null
           expires_at?: string | null
           icon?: string
+          icon_asset_kind?: string
+          icon_asset_path?: string | null
+          icon_cc_attribution?: string | null
           icon_file_id?: string | null
           icon_url: string
           id?: string
@@ -152,6 +167,9 @@ export type Database = {
           description?: string | null
           expires_at?: string | null
           icon?: string
+          icon_asset_kind?: string
+          icon_asset_path?: string | null
+          icon_cc_attribution?: string | null
           icon_file_id?: string | null
           icon_url?: string
           id?: string

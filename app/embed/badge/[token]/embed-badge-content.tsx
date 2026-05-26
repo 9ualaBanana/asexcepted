@@ -2,6 +2,9 @@ import { connection } from "next/server";
 import { notFound } from "next/navigation";
 
 import { AchievementBadge3DViewer } from "@/components/achievements/badge/achievement-badge-3d-viewer";
+import { AchievementBadgeModelViewer } from "@/components/achievements/badge/achievement-badge-model-viewer";
+import { createSignedAchievementBadgeModelUrl } from "@/lib/achievements/badge-assets-server";
+import { isModelBadgeAssetKind } from "@/lib/achievements/badge-assets";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import { verifyEmbedBadgeToken } from "@/lib/embed-badge-token";
 import { createAnonServerClient } from "@/lib/supabase/server-anon";
@@ -28,7 +31,7 @@ export async function EmbedBadgeContent({ params }: Props) {
   const supabase = createAnonServerClient();
   const { data, error } = await supabase
     .from("achievements")
-    .select("icon_url")
+    .select("icon_url,icon_asset_kind,icon_asset_path")
     .eq("id", payload.achievementId)
     .maybeSingle();
 
@@ -37,17 +40,31 @@ export async function EmbedBadgeContent({ params }: Props) {
   }
 
   const src = toOptimizedBadgeRenderSrc(data.icon_url.trim());
+  const liveModelUrl =
+    isModelBadgeAssetKind(data.icon_asset_kind) && data.icon_asset_path?.trim()
+      ? await createSignedAchievementBadgeModelUrl(data.icon_asset_path)
+      : null;
 
   return (
     <div className="flex min-h-dvh min-h-[100dvh] items-center justify-center bg-transparent p-4">
       <EmbedTransparentSurface />
       <div className="h-[min(88vmin,20rem)] w-[min(88vmin,20rem)] max-h-[90dvh] max-w-[90dvw]">
-        <AchievementBadge3DViewer
-          src={src}
-          className="p-1"
-          float
-          motionSeed={payload.achievementId}
-        />
+        {liveModelUrl ? (
+          <AchievementBadgeModelViewer
+            signedModelUrl={liveModelUrl}
+            previewSrc={src}
+            className="p-1"
+            float
+            motionSeed={payload.achievementId}
+          />
+        ) : (
+          <AchievementBadge3DViewer
+            src={src}
+            className="p-1"
+            float
+            motionSeed={payload.achievementId}
+          />
+        )}
       </div>
     </div>
   );

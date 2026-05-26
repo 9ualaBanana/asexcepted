@@ -129,6 +129,7 @@ export function isOpaqueBadgeHit(
   clientY: number,
   rect: DOMRect,
   mask: AlphaMaskData | null,
+  mode: "precise" | "filled" = "precise",
 ) {
   const localX = clientX - rect.left;
   const localY = clientY - rect.top;
@@ -171,6 +172,19 @@ export function isOpaqueBadgeHit(
     0,
     Math.min(mask.height - 1, Math.floor(((localY - drawY) / drawH) * mask.height)),
   );
+
+  if (mode === "filled") {
+    let minOpaqueX = -1;
+    let maxOpaqueX = -1;
+    for (let x = 0; x < mask.width; x += 1) {
+      const alpha = mask.data[(srcY * mask.width + x) * 4 + 3];
+      if (alpha <= OPAQUE_ALPHA_THRESHOLD) continue;
+      if (minOpaqueX === -1) minOpaqueX = x;
+      maxOpaqueX = x;
+    }
+    return minOpaqueX !== -1 && srcX >= minOpaqueX && srcX <= maxOpaqueX;
+  }
+
   const alpha = mask.data[(srcY * mask.width + srcX) * 4 + 3];
   return alpha > OPAQUE_ALPHA_THRESHOLD;
 }

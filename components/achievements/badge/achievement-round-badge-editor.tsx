@@ -1,6 +1,6 @@
 "use client";
 
-import { ImagePlus, Lock, Trash2, Unlock } from "lucide-react";
+import { Box, ImagePlus, Lock, Trash2, Unlock } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -14,15 +14,17 @@ import {
   type AchievementTone,
 } from "@/components/achievements/achievement-card";
 import { AchievementBadgeSlot } from "@/components/achievements/badge/achievement-badge-slot";
+import { BadgeAttributionPopover } from "@/components/achievements/badge/badge-attribution-popover";
 import { AchievementFallbackBadge } from "@/components/achievements/badge/achievement-fallback-badge";
 import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
 import {
-  deleteImageKitFileQuietly,
-  getReplacedImageKitFileId,
-  normalizeImageKitFileId,
-} from "@/components/achievements/badge/badge-imagekit-session";
+  deleteBadgeRemoteAssetQuietly,
+  getReplacedBadgeRemoteAsset,
+} from "@/components/achievements/badge/badge-asset-session";
 import {
+  type BadgeRemoteAsset,
   type AchievementIconKey,
+  type AchievementIconAssetKind,
   iconMap,
 } from "@/components/achievements/achievement-editor-shared";
 import { Button } from "@/components/ui/button";
@@ -30,6 +32,7 @@ import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import { useErrorToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { useBadgeImageUploader } from "@/components/achievements/badge/use-badge-image-uploader";
+import { useBadgeModelUploader } from "@/components/achievements/badge/use-badge-model-uploader";
 
 import "@uppy/core/css/style.min.css";
 
@@ -48,18 +51,23 @@ const chipBtn =
 type AchievementRoundBadgeEditorProps = {
   imageUrl: string;
   iconFileId: string;
-  /** Saved badge file id at edit/create session start (empty when creating). */
-  baselineIconFileId: string;
+  iconAssetKind: AchievementIconAssetKind;
+  iconAssetPath: string;
+  iconCcAttribution: string;
+  baselineAsset: BadgeRemoteAsset;
   tone: AchievementTone;
   isLocked: boolean;
   icon: AchievementIconKey;
   onToneChange: (tone: AchievementTone) => void;
   onToggleLocked: () => void;
   onIconChange: (icon: AchievementIconKey) => void;
-  /** Called after a successful ImageKit upload with the new URL + fileId. */
-  onRemoteUploadCommit: (url: string, fileId: string) => void;
+  /** Called after a successful remote upload with the resolved badge preview + asset metadata. */
+  onRemoteUploadCommit: (asset: BadgeRemoteAsset) => void;
   onImageUrlChange: (url: string) => void;
   onIconFileIdChange: (fileId: string) => void;
+  onIconAssetKindChange: (kind: AchievementIconAssetKind) => void;
+  onIconAssetPathChange: (path: string) => void;
+  onIconCcAttributionChange: (value: string) => void;
   /** Clear staged-upload pointer when the in-progress image is removed locally. */
   onStagedUploadCleared?: () => void;
   /** Signals when remote badge upload is currently in flight. */
@@ -70,7 +78,10 @@ type AchievementRoundBadgeEditorProps = {
 export function AchievementRoundBadgeEditor({
   imageUrl,
   iconFileId,
-  baselineIconFileId,
+  iconAssetKind,
+  iconAssetPath,
+  iconCcAttribution,
+  baselineAsset,
   tone,
   isLocked,
   icon,
@@ -80,12 +91,16 @@ export function AchievementRoundBadgeEditor({
   onRemoteUploadCommit,
   onImageUrlChange,
   onIconFileIdChange,
+  onIconAssetKindChange,
+  onIconAssetPathChange,
+  onIconCcAttributionChange,
   onStagedUploadCleared,
   onUploadInProgressChange,
   disabled = false,
 }: AchievementRoundBadgeEditorProps) {
   const uppyInstanceId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const modelInputRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const tonePickerRef = useRef<HTMLDivElement>(null);
   const iconPickerRef = useRef<HTMLDivElement>(null);
@@ -129,9 +144,14 @@ export function AchievementRoundBadgeEditor({
 
   const trimmed = imageUrl.trim();
   const hasRemote = trimmed.length > 0;
-  const fileIdTrim = normalizeImageKitFileId(iconFileId);
-  const baselineIdTrim = normalizeImageKitFileId(baselineIconFileId);
-  const hasCustomBadge = hasRemote || !!fileIdTrim;
+  const currentAsset: BadgeRemoteAsset = {
+    iconUrl: trimmed,
+    iconFileId: iconFileId.trim(),
+    iconAssetKind,
+    iconAssetPath: iconAssetPath.trim(),
+  };
+  const hasCustomBadge =
+    hasRemote || currentAsset.iconFileId.length > 0 || currentAsset.iconAssetPath.length > 0;
 
   useErrorToast(error, { id: "badge-editor-upload" });
 
@@ -140,7 +160,12 @@ export function AchievementRoundBadgeEditor({
     disabled,
     onUploadSuccess: (url, fileId) => {
       setError(null);
-      onRemoteCommitRef.current(url, fileId);
+      onRemoteCommitRef.current({
+        iconUrl: url,
+        iconFileId: fileId,
+        iconAssetKind: "image",
+        iconAssetPath: "",
+      });
       setMenuOpen(false);
     },
     onUploadError: (message) => setError(message),
@@ -148,7 +173,25 @@ export function AchievementRoundBadgeEditor({
     onUploadInProgressChange,
   });
 
-  const busy = uploadInProgress || isRemoving;
+  const { queueUpload: queueModelUpload, uploadInProgress: modelUploadInProgress } =
+    useBadgeModelUploader({
+      disabled,
+      onUploadSuccess: (asset) => {
+        setError(null);
+        onRemoteCommitRef.current({
+          iconUrl: asset.iconUrl,
+          iconFileId: "",
+          iconAssetKind: asset.iconAssetKind,
+          iconAssetPath: asset.iconAssetPath,
+        });
+        setMenuOpen(false);
+      },
+      onUploadError: (message) => setError(message),
+      onUploadStart: () => setError(null),
+      onUploadInProgressChange,
+    });
+
+  const busy = uploadInProgress || modelUploadInProgress || isRemoving;
 
   useEffect(() => {
     if (!menuOpen && !removeConfirmOpen) return;
@@ -169,9 +212,16 @@ export function AchievementRoundBadgeEditor({
       e.stopPropagation();
       setDragActive(false);
       const f = e.dataTransfer.files?.[0];
-      if (f?.type.startsWith("image/")) queueUpload(f);
+      if (!f) return;
+      if (f.type.startsWith("image/")) {
+        queueUpload(f);
+        return;
+      }
+      if (f.name.toLowerCase().endsWith(".glb")) {
+        void queueModelUpload(f);
+      }
     },
-    [queueUpload],
+    [queueModelUpload, queueUpload],
   );
 
   const onDragOver = useCallback((e: React.DragEvent) => {
@@ -191,14 +241,17 @@ export function AchievementRoundBadgeEditor({
 
   const size = "detail";
 
-  async function confirmRemoveImage() {
+  async function confirmRemoveAsset() {
     setIsRemoving(true);
     setError(null);
     try {
-      const fileIdToDelete = getReplacedImageKitFileId(fileIdTrim, baselineIdTrim);
-      await deleteImageKitFileQuietly(fileIdToDelete, (e) => console.warn(e));
+      const stagedAssetToDelete = getReplacedBadgeRemoteAsset(currentAsset, baselineAsset);
+      await deleteBadgeRemoteAssetQuietly(stagedAssetToDelete, (e) => console.warn(e));
       onImageUrlChange("");
       onIconFileIdChange("");
+      onIconAssetKindChange("image");
+      onIconAssetPathChange("");
+      onIconCcAttributionChange("");
       onStagedUploadCleared?.();
       setRemoveConfirmOpen(false);
       setMenuOpen(false);
@@ -219,6 +272,20 @@ export function AchievementRoundBadgeEditor({
           const f = e.target.files?.[0];
           e.target.value = "";
           if (f) queueUpload(f);
+        }}
+      />
+      <input
+        ref={modelInputRef}
+        type="file"
+        accept=".glb,model/gltf-binary,application/octet-stream"
+        className="sr-only"
+        tabIndex={-1}
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          e.target.value = "";
+          if (f) {
+            void queueModelUpload(f);
+          }
         }}
       />
 
@@ -282,6 +349,15 @@ export function AchievementRoundBadgeEditor({
           </div>
         )}
         </button>
+        {(iconAssetKind === "model_glb" || iconCcAttribution.trim()) && (
+          <BadgeAttributionPopover
+            value={iconCcAttribution}
+            editable
+            onChange={onIconCcAttributionChange}
+            disabled={disabled || busy}
+            emptyState="Add creator credit, license, source link, or any required attribution."
+          />
+        )}
         <div className="group/lock pointer-events-none absolute inset-0 z-30 flex items-center justify-center">
           <button
             type="button"
@@ -318,6 +394,21 @@ export function AchievementRoundBadgeEditor({
             }}
           >
             <ImagePlus className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            disabled={disabled || busy}
+            className={cn(
+              "flex h-10 w-10 items-center justify-center rounded-full border shadow-md transition sm:h-11 sm:w-11",
+              "border-white/20 bg-white/10 text-white hover:bg-white/15",
+            )}
+            aria-label="Choose 3D badge model"
+            onClick={() => {
+              modelInputRef.current?.click();
+              setMenuOpen(false);
+            }}
+          >
+            <Box className="h-5 w-5" />
           </button>
 
           {!hasCustomBadge ? (
@@ -436,11 +527,11 @@ export function AchievementRoundBadgeEditor({
             onClick={(e) => e.stopPropagation()}
           >
             <h2 id={removeTitleId} className="text-lg font-semibold text-white">
-              Remove badge image?
+              Remove badge asset?
             </h2>
             <p className="mt-2 text-sm text-white/55">
               The preview will fall back to your selected icon. The stored image
-              is removed from ImageKit when you save, or immediately if it was
+              or 3D asset is removed when you save, or immediately if it was
               only uploaded during this session.
             </p>
             <div className="mt-6 flex justify-end gap-2">
@@ -457,7 +548,7 @@ export function AchievementRoundBadgeEditor({
                 type="button"
                 variant="destructive"
                 disabled={busy}
-                onClick={() => void confirmRemoveImage()}
+                onClick={() => void confirmRemoveAsset()}
               >
                 {busy ? "Removing…" : "Remove"}
               </Button>
