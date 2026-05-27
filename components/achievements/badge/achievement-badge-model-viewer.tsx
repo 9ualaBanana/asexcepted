@@ -119,8 +119,8 @@ export function AchievementBadgeModelViewer({
 
   useEffect(() => {
     setReady(false);
-    setPreviewVisible(showPreviewOverlay);
-  }, [showPreviewOverlay, signedModelUrl]);
+    setPreviewVisible(true);
+  }, [signedModelUrl]);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -266,9 +266,7 @@ export function AchievementBadgeModelViewer({
       }
       allowAnimationAdvance = true;
       setReady(true);
-      if (showPreviewOverlay) {
-        setPreviewVisible(false);
-      }
+      setPreviewVisible(false);
     };
 
     document.addEventListener("visibilitychange", onVisibilityChange);
@@ -330,9 +328,7 @@ export function AchievementBadgeModelViewer({
 
         if (cachedState) {
           setReady(true);
-          if (showPreviewOverlay) {
-            setPreviewVisible(false);
-          }
+          setPreviewVisible(false);
           allowAnimationAdvance = true;
           onVisualReadyRef.current?.();
         } else {
@@ -345,6 +341,8 @@ export function AchievementBadgeModelViewer({
                 previewFadeTimeout = window.setTimeout(() => {
                   setPreviewVisible(false);
                 }, 90);
+              } else {
+                setPreviewVisible(false);
               }
               animationStartTimeout = window.setTimeout(() => {
                 allowAnimationAdvance = true;
@@ -356,7 +354,9 @@ export function AchievementBadgeModelViewer({
         persistViewState();
       })
       .catch(() => {
-        /* Keep the generated preview visible if model loading fails. */
+        if (cancelled) return;
+        setReady(false);
+        setPreviewVisible(true);
       });
 
     frameId = requestAnimationFrame(animate);
@@ -417,7 +417,7 @@ export function AchievementBadgeModelViewer({
   const viewer = (
     <div className={cn("relative h-full w-full", className)}>
       <div className="relative h-full w-full p-1">
-        {showPreviewOverlay ? (
+        {previewSrc.trim() ? (
           <div
             className={cn(
               "pointer-events-none absolute inset-0 z-10 transition-opacity duration-200",

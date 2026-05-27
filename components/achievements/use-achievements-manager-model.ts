@@ -323,10 +323,12 @@ export function useAchievementsManagerModel({
     if (achievementsLoading) return;
     const exists = achievements.some((a) => a.id === deepLinkAchievementId);
     if (!exists) return;
-    if (
-      searchParams.get("dedication") === "1" &&
-      !collectionAchievementIds.has(deepLinkAchievementId)
-    ) {
+    const dedicationQuery = searchParams.get("dedication") === "1";
+    if (dedicationQuery && !collectionAchievementIds.has(deepLinkAchievementId)) {
+      return;
+    }
+    // Accepted but URL not cleaned yet — avoid detail + dedication dialog both mounting 3D viewers.
+    if (dedicationQuery && collectionAchievementIds.has(deepLinkAchievementId)) {
       return;
     }
     if (lastDeepLinkedIdRef.current === deepLinkAchievementId) return;

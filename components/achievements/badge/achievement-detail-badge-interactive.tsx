@@ -90,11 +90,8 @@ export function AchievementDetailBadgeInteractive({
     !isModelAsset &&
     (dedicatedBadgeGlitter || (IMPRESSION_GLITTER_UI_ENABLED && impressionGlitter));
   const glitterRevealPulse = dedicatedBadgeGlitter ? 0 : impressionGlitterRevealPulse;
-  const { signedUrl: signedModelUrl } = useSignedBadgeModelUrl(
-    iconAssetPath ?? "",
-    hasIconUrl && isModelAsset,
-    onModelUrlReady,
-  );
+  const { signedUrl: signedModelUrl, loading: signedModelLoading } =
+    useSignedBadgeModelUrl(iconAssetPath ?? "", hasIconUrl && isModelAsset, onModelUrlReady);
 
   const modelViewer = signedModelUrl ? (
     <AchievementBadgeModelViewer
@@ -152,8 +149,18 @@ export function AchievementDetailBadgeInteractive({
           <>
             <div className="relative h-full w-full">
               {lockedUi ? (
-                isModelAsset && modelViewer ? (
-                  modelViewer
+                isModelAsset ? (
+                  <>
+                    {(signedModelLoading || !modelViewer) && renderSrc ? (
+                      <RemoteBadgeImage
+                        src={renderSrc}
+                        className="absolute inset-0 h-full w-full object-contain p-1 opacity-80 grayscale"
+                      />
+                    ) : null}
+                    {modelViewer ? (
+                      <div className="relative h-full w-full">{modelViewer}</div>
+                    ) : null}
+                  </>
                 ) : (
                   <RemoteBadgeImage
                     src={renderSrc}
