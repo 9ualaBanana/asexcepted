@@ -30,9 +30,9 @@ import {
 import {
   centerBadgeModelAtOrigin,
   configureBadgeModelLoader,
-  configureBadgeModelRenderer,
+  configureBadgePosterRenderer,
   frameCameraForBadgeModel,
-  prepareBadgeModelMaterials,
+  prepareBadgeModelMaterialsForPoster,
   setupBadgeModelScene,
 } from "@/lib/achievements/badge-model-rendering";
 
@@ -49,8 +49,9 @@ let sharedPosterRenderer: WebGLRenderer | null = null;
 
 function getSharedPosterRenderer(): WebGLRenderer {
   if (sharedPosterRenderer) {
-    configureBadgeModelRenderer(sharedPosterRenderer);
+    configureBadgePosterRenderer(sharedPosterRenderer);
     sharedPosterRenderer.setSize(PREVIEW_SIZE_PX, PREVIEW_SIZE_PX, false);
+    sharedPosterRenderer.setClearColor(0x000000, 0);
     return sharedPosterRenderer;
   }
 
@@ -58,13 +59,14 @@ function getSharedPosterRenderer(): WebGLRenderer {
   sharedPosterRenderer = new WebGLRenderer({
     canvas,
     alpha: true,
+    premultipliedAlpha: false,
     antialias: true,
     preserveDrawingBuffer: true,
     powerPreference: "high-performance",
   });
   sharedPosterRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   sharedPosterRenderer.setSize(PREVIEW_SIZE_PX, PREVIEW_SIZE_PX, false);
-  configureBadgeModelRenderer(sharedPosterRenderer);
+  configureBadgePosterRenderer(sharedPosterRenderer);
   sharedPosterRenderer.setClearColor(0x000000, 0);
   return sharedPosterRenderer;
 }
@@ -190,10 +192,12 @@ async function renderPosterFromGltf(
 ): Promise<Blob> {
   const scene = new Scene();
   setupBadgeModelScene(scene, renderer);
+  configureBadgePosterRenderer(renderer);
+  renderer.setClearColor(0x000000, 0);
 
   const model = cloneSkeleton(gltf.scene);
   centerBadgeModelAtOrigin(model);
-  prepareBadgeModelMaterials(model);
+  prepareBadgeModelMaterialsForPoster(model);
   const orbitRoot = new Group();
   orbitRoot.add(model);
   applyBadgeModelPose(orbitRoot, yaw, pitch);
@@ -211,7 +215,13 @@ async function renderPosterFromGltf(
   const camera = new PerspectiveCamera(34, 1, 0.01, 1000);
   frameCameraForBadgeModel(orbitRoot, camera);
 
-  renderer.render(scene, camera);
+  // Warm up IBL and advance the clip so the capture matches live 3D brightness.
+  const warmupFrames = mixer ? 5 : 2;
+  for (let frame = 0; frame < warmupFrames; frame += 1) {
+    mixer?.update(1 / 30);
+    renderer.render(scene, camera);
+  }
+
   const blob = await canvasToPngBlob(renderer.domElement);
 
   mixer?.stopAllAction();

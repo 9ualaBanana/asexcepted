@@ -160,8 +160,15 @@ export function AchievementDetailBadgeInteractive({
                     onDecoded={onImageDecoded}
                   />
                 ) : null
-              ) : isModelAsset && modelViewer ? (
-                modelViewer
+              ) : isModelAsset ? (
+                modelViewer ??
+                (renderSrc ? (
+                  <RemoteBadgeImage
+                    src={renderSrc}
+                    className="h-full w-full object-contain p-1"
+                    onDecoded={onImageDecoded}
+                  />
+                ) : null)
               ) : (
                 <AchievementBadge3DViewer
                   src={renderSrc}
@@ -171,7 +178,7 @@ export function AchievementDetailBadgeInteractive({
                   motionStartCentered={motionStartCentered}
                   onImageDecoded={onImageDecoded}
                   onVisualReady={onVisualReady}
-                  impressionGlitter={showGlitter && !lockedUi}
+                  impressionGlitter={showGlitter}
                   impressionGlitterRevealPulse={glitterRevealPulse}
                 />
               )}

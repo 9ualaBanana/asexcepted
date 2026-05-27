@@ -28,6 +28,9 @@ export const BADGE_MODEL_DRACO_DECODER_CDN =
 /** Bright showcase exposure (Sketchfab-style viewers default high). */
 export const BADGE_MODEL_TONE_MAPPING_EXPOSURE = 1.75;
 
+/** Poster snapshots use a hotter exposure so transparent PNGs match live 3D brightness. */
+export const BADGE_MODEL_POSTER_TONE_MAPPING_EXPOSURE = 2.15;
+
 /** IBL strength; primary light source for PBR badges. */
 export const BADGE_MODEL_ENVIRONMENT_INTENSITY = 2.35;
 
@@ -62,6 +65,12 @@ export function configureBadgeModelRenderer(renderer: WebGLRenderer): void {
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = BADGE_MODEL_TONE_MAPPING_EXPOSURE;
+}
+
+/** Offscreen poster snapshots (transparent PNG; hotter exposure than live view). */
+export function configureBadgePosterRenderer(renderer: WebGLRenderer): void {
+  configureBadgeModelRenderer(renderer);
+  renderer.toneMappingExposure = BADGE_MODEL_POSTER_TONE_MAPPING_EXPOSURE;
 }
 
 function getColorLuminance(color: Color): number {
@@ -123,6 +132,65 @@ export function prepareBadgeModelMaterials(root: Object3D): void {
     const materials = Array.isArray(object.material) ? object.material : [object.material];
     for (const material of materials) {
       prepareBadgeModelMaterial(material);
+    }
+  });
+}
+
+const POSTER_BRIGHT_COLOR_LUMINANCE_MIN = 0.68;
+const POSTER_BRIGHT_EMISSIVE_INTENSITY = 3.25;
+
+function strengthenBadgeModelMaterialForPoster(material: Material): void {
+  if (material instanceof MeshStandardMaterial) {
+    const colorLum = getColorLuminance(material.color);
+    const emissiveLum = getColorLuminance(material.emissive);
+    if (Math.max(colorLum, emissiveLum) < POSTER_BRIGHT_COLOR_LUMINANCE_MIN) {
+      return;
+    }
+
+    if (colorLum >= POSTER_BRIGHT_COLOR_LUMINANCE_MIN) {
+      material.emissive.copy(material.color);
+    }
+    material.emissiveIntensity = Math.max(
+      material.emissiveIntensity ?? 1,
+      POSTER_BRIGHT_EMISSIVE_INTENSITY,
+    );
+    material.opacity = 1;
+    material.transparent = false;
+    material.depthWrite = true;
+    material.metalness = 0;
+    material.roughness = Math.min(material.roughness ?? 1, 0.18);
+
+    if (material instanceof MeshPhysicalMaterial) {
+      material.transmission = 0;
+      material.thickness = 0;
+    }
+
+    material.needsUpdate = true;
+    return;
+  }
+
+  if (
+    "opacity" in material &&
+    "transparent" in material &&
+    typeof material.opacity === "number"
+  ) {
+    material.opacity = 1;
+    material.transparent = false;
+    material.needsUpdate = true;
+  }
+}
+
+/**
+ * Live-view material prep plus opaque emissive whites for transparent poster PNG export.
+ */
+export function prepareBadgeModelMaterialsForPoster(root: Object3D): void {
+  prepareBadgeModelMaterials(root);
+  root.traverse((object) => {
+    if (!(object instanceof Mesh)) return;
+
+    const materials = Array.isArray(object.material) ? object.material : [object.material];
+    for (const material of materials) {
+      strengthenBadgeModelMaterialForPoster(material);
     }
   });
 }
