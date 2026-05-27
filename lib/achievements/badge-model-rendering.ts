@@ -5,6 +5,7 @@ import {
   DirectionalLight,
   HemisphereLight,
   Mesh,
+  MeshPhysicalMaterial,
   MeshStandardMaterial,
   Object3D,
   PerspectiveCamera,
@@ -72,7 +73,10 @@ function isGlowParticleMaterial(material: MeshStandardMaterial): boolean {
   if (!material.transparent || opacity > GLOW_PARTICLE_OPACITY_MAX) {
     return false;
   }
-  if ((material.transmission ?? 0) > 0.05) {
+  if (
+    material instanceof MeshPhysicalMaterial &&
+    (material.transmission ?? 0) > 0.05
+  ) {
     return false;
   }
   return getColorLuminance(material.color) >= GLOW_PARTICLE_LUMINANCE_MIN;
