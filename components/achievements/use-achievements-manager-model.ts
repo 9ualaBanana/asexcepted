@@ -325,7 +325,22 @@ export function useAchievementsManagerModel({
     if (!canDedicate) return;
     setIsSaving(true);
     setError(null);
-    const payload = formToPayload(createForm);
+
+    let formForDedicate = createForm;
+    try {
+      formForDedicate = await badgeSession.finalizeModelPoseForForm(createForm);
+      setCreateForm(formForDedicate);
+    } catch (finalizeError) {
+      setError(
+        finalizeError instanceof Error
+          ? finalizeError.message
+          : "Could not finalize 3D badge upload.",
+      );
+      setIsSaving(false);
+      return;
+    }
+
+    const payload = formToPayload(formForDedicate);
     const body = payloadToDedicateApiBody(userId, payload);
     const result = await postDedicateAchievement(body);
     if (result.isErr()) {
@@ -346,12 +361,29 @@ export function useAchievementsManagerModel({
     createForm,
     playSavePop,
     setCreateForm,
+    setError,
+    setIsSaving,
     ui.actions,
     userId,
   ]);
 
   const handleShareCreateInvite = useCallback(async () => {
-    const payload = formToPayload(createForm);
+    setError(null);
+
+    let formForShare = createForm;
+    try {
+      formForShare = await badgeSession.finalizeModelPoseForForm(createForm);
+      setCreateForm(formForShare);
+    } catch (finalizeError) {
+      setError(
+        finalizeError instanceof Error
+          ? finalizeError.message
+          : "Could not finalize 3D badge upload.",
+      );
+      return;
+    }
+
+    const payload = formToPayload(formForShare);
     const inviteCreated = await shareInvite.shareDraftAchievement(payload);
     if (!inviteCreated) return;
 
@@ -360,8 +392,10 @@ export function useAchievementsManagerModel({
       iconFileId: payload.icon_file_id,
       iconAssetKind: payload.icon_asset_kind,
       iconAssetPath: payload.icon_asset_path,
+      iconModelYaw: payload.icon_model_yaw,
+      iconModelPitch: payload.icon_model_pitch,
     });
-  }, [badgeSession, createForm, shareInvite]);
+  }, [badgeSession, createForm, setCreateForm, setError, shareInvite]);
 
   const handleShareDetailInvite = useCallback(() => {
     void shareInvite.shareExistingAchievement();

@@ -31,6 +31,9 @@ export const BADGE_MODEL_TONE_MAPPING_EXPOSURE = 1.75;
 /** IBL strength; primary light source for PBR badges. */
 export const BADGE_MODEL_ENVIRONMENT_INTENSITY = 2.35;
 
+/** Opaque poster / OG backdrop (matches app chrome `#14121c`). */
+export const BADGE_MODEL_POSTER_BACKGROUND = 0x14121c;
+
 const BADGE_MODEL_ENV_CACHE_KEY = 2;
 
 /** Particle / halo materials exported with very low opacity. */

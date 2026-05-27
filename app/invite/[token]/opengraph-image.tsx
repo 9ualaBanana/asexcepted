@@ -2,6 +2,10 @@ import { ImageResponse } from "next/og";
 
 import { resolveInviteOgImageTitle } from "@/lib/share-invites/invite-share-title";
 import {
+  fetchInviteOgBadgeImageDataUrl,
+  resolveInviteOgBadgeImageUrl,
+} from "@/lib/share-invites/invite-og-badge-image";
+import {
   getAchievementShareInviteKind,
   getAchievementShareInvitePresentationByToken,
 } from "@/lib/share-invites/server";
@@ -17,31 +21,32 @@ type ImageProps = {
   params: Promise<{ token: string }>;
 };
 
+function OgUnavailableCard({ message }: { message: string }) {
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "#14121c",
+        color: "#f5f3ff",
+        fontSize: 42,
+        fontWeight: 600,
+      }}
+    >
+      {message}
+    </div>
+  );
+}
+
 export default async function Image({ params }: ImageProps) {
   const { token } = await params;
   const result = await getAchievementShareInvitePresentationByToken(token);
 
   if (result.isErr()) {
-    return new ImageResponse(
-      (
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "#14121c",
-            color: "#f5f3ff",
-            fontSize: 42,
-            fontWeight: 600,
-          }}
-        >
-          Shared achievement unavailable
-        </div>
-      ),
-      size,
-    );
+    return new ImageResponse(<OgUnavailableCard message="Shared achievement unavailable" />, size);
   }
 
   const { invite, senderDisplayName: rawSenderName } = result.value;
@@ -53,6 +58,11 @@ export default async function Image({ params }: ImageProps) {
     (pageKind === "showcase"
       ? `${senderDisplayName} shared this from their collection.`
       : `${senderDisplayName} shared this for your collection.`);
+
+  const badgeImageUrl = resolveInviteOgBadgeImageUrl(invite);
+  const badgeImageSrc = badgeImageUrl
+    ? await fetchInviteOgBadgeImageDataUrl(badgeImageUrl)
+    : null;
 
   return new ImageResponse(
     (
@@ -91,20 +101,47 @@ export default async function Image({ params }: ImageProps) {
               marginRight: "40px",
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={invite.icon_url}
-              alt=""
-              width="300"
-              height="300"
+            <div
               style={{
                 width: "300px",
                 height: "300px",
                 display: "flex",
-                objectFit: "contain",
-                filter: "drop-shadow(0 18px 36px rgba(0,0,0,0.34))",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "9999px",
+                background:
+                  "radial-gradient(circle at 35% 28%, rgba(255,255,255,0.14), rgba(20,18,28,0.96) 68%)",
+                boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.08)",
               }}
-            />
+            >
+              {badgeImageSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={badgeImageSrc}
+                  alt=""
+                  width="280"
+                  height="280"
+                  style={{
+                    width: "280px",
+                    height: "280px",
+                    display: "flex",
+                    objectFit: "contain",
+                    filter: "drop-shadow(0 18px 36px rgba(0,0,0,0.34))",
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 96,
+                    lineHeight: 1,
+                    color: "rgba(245,243,255,0.28)",
+                  }}
+                >
+                  ✦
+                </div>
+              )}
+            </div>
           </div>
 
           <div
@@ -184,4 +221,3 @@ export default async function Image({ params }: ImageProps) {
     size,
   );
 }
-

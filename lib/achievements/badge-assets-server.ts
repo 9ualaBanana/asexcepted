@@ -9,6 +9,7 @@ import {
   buildAchievementBadgePreviewPath,
   extractPublicBucketObjectPath,
   isGlbHeader,
+  isModelBadgeAssetKind,
   sanitizeAchievementBadgeAssetPath,
 } from "@/lib/achievements/badge-assets";
 import { getImageKitServerClient, isImageKitServerConfigured } from "@/lib/imagekit/server-client";
@@ -167,4 +168,115 @@ export async function deleteAchievementBadgeRemoteAsset(args: {
 
 export function isAchievementBadgePreviewTooLarge(buffer: ArrayBuffer): boolean {
   return buffer.byteLength > BADGE_PREVIEW_MAX_FILE_BYTES;
+}
+
+export type ClonedBadgeModelAsset = {
+  iconUrl: string;
+  iconAssetPath: string;
+};
+
+/**
+ * Copies a sender's 3D badge GLB + poster into the claimer's storage so claimed
+ * achievements keep working after reload (never store blob: preview URLs).
+ */
+export async function cloneAchievementBadgeModelForClaimer(args: {
+  senderUserId: string;
+  claimerUserId: string;
+  iconAssetPath: string | null;
+}): Promise<ClonedBadgeModelAsset> {
+  const senderModelPath = sanitizeAchievementBadgeAssetPath(args.iconAssetPath);
+  assertUserOwnedBadgeModelPath(args.senderUserId, senderModelPath);
+
+  const supabase = createServiceRoleClient();
+  const { data: modelBlob, error: modelDownloadError } = await supabase.storage
+    .from(ACHIEVEMENT_BADGE_MODEL_BUCKET)
+    .download(senderModelPath);
+
+  if (modelDownloadError || !modelBlob) {
+    throw new Error("Could not copy the shared 3D badge model.");
+  }
+
+  const modelBuffer = await modelBlob.arrayBuffer();
+  if (!isGlbHeader(modelBuffer)) {
+    throw new Error("The shared 3D badge model is invalid.");
+  }
+  if (modelBuffer.byteLength > BADGE_MODEL_MAX_FILE_BYTES) {
+    throw new Error("The shared 3D badge model is too large to claim.");
+  }
+
+  const senderPreviewPath = previewPathForModelPath(args.senderUserId, senderModelPath);
+  const { data: previewBlob, error: previewDownloadError } = await supabase.storage
+    .from(ACHIEVEMENT_BADGE_PREVIEW_BUCKET)
+    .download(senderPreviewPath);
+
+  if (previewDownloadError || !previewBlob) {
+    throw new Error("Could not copy the shared 3D badge preview.");
+  }
+
+  const previewBuffer = await previewBlob.arrayBuffer();
+  if (isAchievementBadgePreviewTooLarge(previewBuffer)) {
+    throw new Error("The shared 3D badge preview is too large to claim.");
+  }
+
+  const assetId = crypto.randomUUID();
+  const claimerModelPath = buildAchievementBadgeModelPath(args.claimerUserId, assetId);
+  const claimerPreviewPath = buildAchievementBadgePreviewPath(args.claimerUserId, assetId);
+
+  const modelUpload = await supabase.storage
+    .from(ACHIEVEMENT_BADGE_MODEL_BUCKET)
+    .upload(claimerModelPath, modelBuffer, {
+      cacheControl: "31536000",
+      contentType: "model/gltf-binary",
+      upsert: false,
+    });
+  if (modelUpload.error) {
+    throw new Error(modelUpload.error.message);
+  }
+
+  const previewUpload = await supabase.storage
+    .from(ACHIEVEMENT_BADGE_PREVIEW_BUCKET)
+    .upload(claimerPreviewPath, previewBuffer, {
+      cacheControl: "31536000",
+      contentType: "image/png",
+      upsert: false,
+    });
+  if (previewUpload.error) {
+    await supabase.storage.from(ACHIEVEMENT_BADGE_MODEL_BUCKET).remove([claimerModelPath]);
+    throw new Error(previewUpload.error.message);
+  }
+
+  const { data: publicUrlData } = supabase.storage
+    .from(ACHIEVEMENT_BADGE_PREVIEW_BUCKET)
+    .getPublicUrl(claimerPreviewPath);
+
+  return {
+    iconUrl: publicUrlData.publicUrl,
+    iconAssetPath: claimerModelPath,
+  };
+}
+
+export async function resolveClaimedBadgeIconFields(args: {
+  senderUserId: string;
+  claimerUserId: string;
+  iconUrl: string | null;
+  iconAssetKind: string | null;
+  iconAssetPath: string | null;
+}): Promise<{ iconUrl: string; iconAssetPath: string | null }> {
+  if (!isModelBadgeAssetKind(args.iconAssetKind)) {
+    return {
+      iconUrl: args.iconUrl?.trim() ?? "",
+      iconAssetPath: sanitizeAchievementBadgeAssetPath(args.iconAssetPath) || null,
+    };
+  }
+
+  const cloned = await cloneAchievementBadgeModelForClaimer({
+    senderUserId: args.senderUserId,
+    claimerUserId: args.claimerUserId,
+    iconAssetPath: args.iconAssetPath,
+  });
+
+  return {
+    iconUrl: cloned.iconUrl,
+    iconAssetPath: cloned.iconAssetPath,
+  };
 }

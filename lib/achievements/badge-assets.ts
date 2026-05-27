@@ -8,6 +8,21 @@ export function isModelBadgeAssetKind(value: string | null | undefined): boolean
   return value === "model_glb";
 }
 
+/** Persisted badge URLs must be fetchable after reload (not session blob/data URLs). */
+export function isPublicHttpImageUrl(url: string | null | undefined): boolean {
+  const trimmed = url?.trim() ?? "";
+  if (!trimmed) return false;
+  if (trimmed.startsWith("blob:") || trimmed.startsWith("data:")) {
+    return false;
+  }
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 /** True when the achievement uses an uploaded GLB (not a flat image badge). */
 export function hasAchievementModelGlbAsset(
   iconAssetKind: string | null | undefined,

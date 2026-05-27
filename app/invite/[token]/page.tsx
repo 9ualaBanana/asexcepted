@@ -9,6 +9,7 @@ import { isModelBadgeAssetKind } from "@/lib/achievements/badge-assets";
 import { createSignedAchievementBadgeModelUrl } from "@/lib/achievements/badge-assets-server";
 import { APP_DISPLAY_NAME } from "@/lib/brand";
 import { resolvePublicSiteOrigin } from "@/lib/public-site-origin";
+import { resolveInviteOgBadgeImageUrl } from "@/lib/share-invites/invite-og-badge-image";
 import { resolveInviteShareTitle } from "@/lib/share-invites/invite-share-title";
 import {
   achievementShareInviteOgImagePath,
@@ -28,8 +29,10 @@ type PageProps = {
 function buildInviteMetadata(args: {
   title: string;
   description: string;
-  imageUrl?: string | null;
+  imageUrls: string[];
 }) {
+  const images = args.imageUrls.map((url) => ({ url }));
+
   return {
     title: args.title,
     description: args.description,
@@ -38,13 +41,13 @@ function buildInviteMetadata(args: {
       title: args.title,
       description: args.description,
       siteName: APP_DISPLAY_NAME,
-      images: args.imageUrl ? [{ url: args.imageUrl }] : undefined,
+      images: images.length > 0 ? images : undefined,
     },
     twitter: {
-      card: args.imageUrl ? "summary_large_image" : "summary",
+      card: images.length > 0 ? "summary_large_image" : "summary",
       title: args.title,
       description: args.description,
-      images: args.imageUrl ? [args.imageUrl] : undefined,
+      images: images.length > 0 ? args.imageUrls : undefined,
     },
   } satisfies Metadata;
 }
@@ -58,6 +61,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return buildInviteMetadata({
       title: "Achievement invite unavailable",
       description: "This shared achievement invite is no longer available.",
+      imageUrls: [],
     });
   }
 
@@ -70,12 +74,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ? `${senderDisplayName} shared an achievement from their collection.`
       : `${senderDisplayName} shared an achievement waiting in your collection.`);
 
+  const imageUrls: string[] = [];
+  if (origin) {
+    imageUrls.push(`${origin}${achievementShareInviteOgImagePath(token)}`);
+  }
+  const badgePreviewUrl = resolveInviteOgBadgeImageUrl(invite);
+  if (badgePreviewUrl && !imageUrls.includes(badgePreviewUrl)) {
+    imageUrls.push(badgePreviewUrl);
+  }
+
   return buildInviteMetadata({
     title: `${title} | ${APP_DISPLAY_NAME}`,
     description,
-    imageUrl: origin
-      ? `${origin}${achievementShareInviteOgImagePath(token)}`
-      : invite.icon_url,
+    imageUrls,
   });
 }
 
@@ -179,7 +190,7 @@ export default async function Page({ params }: PageProps) {
           <div className="mt-5 flex justify-center text-center">
             {pageKind === "showcase" ? (
               <p className="text-xs leading-snug text-white/55">
-                from{" "}
+                by{" "}
                 <Link
                   href={senderCollectionPath}
                   className="font-semibold text-emerald-200/90 underline-offset-2 hover:underline"

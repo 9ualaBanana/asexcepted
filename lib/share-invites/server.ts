@@ -4,6 +4,12 @@ import { err, ok, type Result } from "neverthrow";
 
 import type { AchievementDbWritePayload } from "@/components/achievements/achievement-db-schema";
 import { todayDateString } from "@/components/achievements/achievement-editor-shared";
+import {
+  isModelBadgeAssetKind,
+  isPublicHttpImageUrl,
+  sanitizeAchievementBadgeAssetPath,
+} from "@/lib/achievements/badge-assets";
+import { resolveClaimedBadgeIconFields } from "@/lib/achievements/badge-assets-server";
 import type { Tables } from "@/lib/supabase/database.types";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { fetchPublicUserDisplayName } from "@/lib/user-profile-db";
@@ -72,6 +78,32 @@ export function isAchievementEligibleForShareInvite(
   return Boolean(payload.icon_url?.trim());
 }
 
+function validateShareInviteBadgeSnapshot(
+  snapshot: AchievementShareInviteSnapshot,
+): Result<void, string> {
+  if (!isAchievementEligibleForShareInvite(snapshot)) {
+    return err("Only achievements with a custom badge image can be shared.");
+  }
+
+  if (isModelBadgeAssetKind(snapshot.icon_asset_kind)) {
+    if (!sanitizeAchievementBadgeAssetPath(snapshot.icon_asset_path)) {
+      return err("Finish uploading the 3D badge before sharing this invite.");
+    }
+    if (!isPublicHttpImageUrl(snapshot.icon_url)) {
+      return err(
+        "The 3D badge preview is not saved yet. Wait for upload to finish, then share again.",
+      );
+    }
+    return ok(undefined);
+  }
+
+  if (!isPublicHttpImageUrl(snapshot.icon_url)) {
+    return err("Badge image must finish uploading before you can share an invite.");
+  }
+
+  return ok(undefined);
+}
+
 export function getAchievementShareInviteKind(
   invite: Pick<AchievementShareInviteRow, "share_kind" | "source_achievement_id">,
 ): AchievementSharePageKind {
@@ -104,8 +136,9 @@ export async function createAchievementShareInviteFromPayload(args: {
   >
 > {
   const snapshot = toShareInviteSnapshot(args.payload);
-  if (!isAchievementEligibleForShareInvite(snapshot)) {
-    return err("Only achievements with a custom badge image can be shared.");
+  const snapshotValidation = validateShareInviteBadgeSnapshot(snapshot);
+  if (snapshotValidation.isErr()) {
+    return err(snapshotValidation.error);
   }
 
   const supabase = createServiceRoleClient();
@@ -300,6 +333,28 @@ export async function claimAchievementShareInvite(args: {
   const achievedAt = reservedInvite.achieved_at ?? todayDateString();
   const dedicationStatus = args.autoAccept ? "accepted" : "pending";
 
+  let claimedIconUrl = reservedInvite.icon_url?.trim() ?? "";
+  let claimedIconAssetPath = reservedInvite.icon_asset_path;
+
+  try {
+    const resolvedIcon = await resolveClaimedBadgeIconFields({
+      senderUserId: reservedInvite.sender_user_id,
+      claimerUserId: args.claimerUserId,
+      iconUrl: reservedInvite.icon_url,
+      iconAssetKind: reservedInvite.icon_asset_kind,
+      iconAssetPath: reservedInvite.icon_asset_path,
+    });
+    claimedIconUrl = resolvedIcon.iconUrl;
+    claimedIconAssetPath = resolvedIcon.iconAssetPath;
+  } catch (cloneError) {
+    await releaseShareInviteClaimReservation(reservedInvite.id, supabase);
+    return err(
+      cloneError instanceof Error
+        ? cloneError.message
+        : "Could not copy the shared 3D badge for your collection.",
+    );
+  }
+
   const { data: createdAchievement, error: createError } = await supabase
     .from("achievements")
     .insert({
@@ -308,10 +363,10 @@ export async function claimAchievementShareInvite(args: {
       description: reservedInvite.description,
       category: reservedInvite.category,
       icon: reservedInvite.icon,
-      icon_url: reservedInvite.icon_url,
+      icon_url: claimedIconUrl,
       icon_file_id: reservedInvite.icon_file_id,
       icon_asset_kind: reservedInvite.icon_asset_kind,
-      icon_asset_path: reservedInvite.icon_asset_path,
+      icon_asset_path: claimedIconAssetPath,
       icon_cc_attribution: reservedInvite.icon_cc_attribution,
       icon_model_yaw: reservedInvite.icon_model_yaw ?? 0,
       icon_model_pitch: reservedInvite.icon_model_pitch ?? 0,

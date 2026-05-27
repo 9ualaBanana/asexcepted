@@ -3,6 +3,12 @@ import { z } from "zod";
 
 import { requireAdminUser } from "@/lib/admin";
 import { formatDedicationActivityMessage } from "@/lib/activity-text";
+import {
+  isModelBadgeAssetKind,
+  isPublicHttpImageUrl,
+  sanitizeAchievementBadgeAssetPath,
+} from "@/lib/achievements/badge-assets";
+import { resolveClaimedBadgeIconFields } from "@/lib/achievements/badge-assets-server";
 import { resolveDisplayName, sendPushToUsers } from "@/lib/notifications";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
@@ -49,6 +55,52 @@ export async function POST(request: Request) {
     );
   }
 
+  const iconAssetKind = parsed.data.icon_asset_kind ?? "image";
+  if (isModelBadgeAssetKind(iconAssetKind)) {
+    if (!sanitizeAchievementBadgeAssetPath(parsed.data.icon_asset_path)) {
+      return NextResponse.json(
+        { error: "Finish uploading the 3D badge before dedicating." },
+        { status: 400 },
+      );
+    }
+    if (!isPublicHttpImageUrl(parsed.data.icon_url)) {
+      return NextResponse.json(
+        { error: "The 3D badge preview must be saved before dedicating." },
+        { status: 400 },
+      );
+    }
+  } else if (!isPublicHttpImageUrl(parsed.data.icon_url)) {
+    return NextResponse.json(
+      { error: "Badge image must finish uploading before dedicating." },
+      { status: 400 },
+    );
+  }
+
+  let dedicatedIconUrl = parsed.data.icon_url?.trim() ?? "";
+  let dedicatedIconAssetPath = parsed.data.icon_asset_path ?? null;
+
+  try {
+    const resolvedIcon = await resolveClaimedBadgeIconFields({
+      senderUserId: admin.id,
+      claimerUserId: parsed.data.recipientUserId,
+      iconUrl: parsed.data.icon_url ?? null,
+      iconAssetKind: iconAssetKind,
+      iconAssetPath: parsed.data.icon_asset_path ?? null,
+    });
+    dedicatedIconUrl = resolvedIcon.iconUrl;
+    dedicatedIconAssetPath = resolvedIcon.iconAssetPath;
+  } catch (cloneError) {
+    return NextResponse.json(
+      {
+        error:
+          cloneError instanceof Error
+            ? cloneError.message
+            : "Could not copy the 3D badge for this dedication.",
+      },
+      { status: 500 },
+    );
+  }
+
   const service = createServiceRoleClient();
   const { data: row, error: insertError } = await service
     .from("achievements")
@@ -58,10 +110,10 @@ export async function POST(request: Request) {
       description: parsed.data.description ?? null,
       category: parsed.data.category ?? null,
       icon: parsed.data.icon ?? "trophy",
-      icon_url: parsed.data.icon_url ?? null,
+      icon_url: dedicatedIconUrl,
       icon_file_id: parsed.data.icon_file_id ?? null,
-      icon_asset_kind: parsed.data.icon_asset_kind ?? "image",
-      icon_asset_path: parsed.data.icon_asset_path ?? null,
+      icon_asset_kind: iconAssetKind,
+      icon_asset_path: dedicatedIconAssetPath,
       icon_cc_attribution: parsed.data.icon_cc_attribution ?? null,
       icon_model_yaw: parsed.data.icon_model_yaw ?? 0,
       icon_model_pitch: parsed.data.icon_model_pitch ?? 0,
