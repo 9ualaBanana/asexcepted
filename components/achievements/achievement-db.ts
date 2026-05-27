@@ -7,7 +7,7 @@ import type {
 } from "@/components/achievements/achievement-db-schema";
 import { todayDateString } from "@/components/achievements/achievement-editor-shared";
 import {
-  normalizeAchievement,
+  tryNormalizeAchievement,
   type AchievementRecord,
 } from "@/components/achievements/achievement-transformers";
 import {
@@ -26,11 +26,11 @@ const SELECT_COLUMNS =
   "id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_cc_attribution,icon_model_yaw,icon_model_pitch,tone,is_locked,achieved_at,created_at,visibility,dedicated_by_user_id,dedication_status";
 
 function toAchievementSingleResult(row: AchievementDbRow): AchievementSingleResult {
-  try {
-    return ok(normalizeAchievement(row as AchievementDbRow));
-  } catch {
+  const normalized = tryNormalizeAchievement(row);
+  if (normalized.isErr()) {
     return err("Invalid achievement data received from the server.");
   }
+  return ok(normalized.value);
 }
 
 export async function listAchievements(
@@ -50,21 +50,24 @@ export async function listAchievements(
   }
 
   const rawRows = Array.isArray(data) ? data : [];
-  try {
-    const records = rawRows.map((row) =>
-      normalizeAchievement(row as AchievementDbRow),
-    );
-    if (IMPRESSION_GLITTER_UI_ENABLED) {
-      const countMap = await fetchImpressionCountMap(
-        supabase,
-        records.map((record) => record.id),
-      );
-      return ok(attachImpressionCounts(records, countMap));
+  const records: AchievementRecord[] = [];
+  for (const row of rawRows) {
+    const normalized = tryNormalizeAchievement(row);
+    if (normalized.isOk()) {
+      records.push(normalized.value);
     }
-    return ok(records);
-  } catch {
+  }
+  if (records.length === 0 && rawRows.length > 0) {
     return err("Invalid achievement data received from the server.");
   }
+  if (IMPRESSION_GLITTER_UI_ENABLED) {
+    const countMap = await fetchImpressionCountMap(
+      supabase,
+      records.map((record) => record.id),
+    );
+    return ok(attachImpressionCounts(records, countMap));
+  }
+  return ok(records);
 }
 
 export async function createAchievement(

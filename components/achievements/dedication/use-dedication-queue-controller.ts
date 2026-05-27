@@ -23,7 +23,9 @@ type UseDedicationQueueControllerArgs = {
   collectionAchievementIds: Set<string>;
   onAccepted: (record: AchievementRecord) => void;
   onRejected: (achievementId: string) => void;
-  reloadAchievements: () => Promise<void>;
+  reloadAchievements: (opts?: {
+    silent?: boolean;
+  }) => Promise<AchievementRecord[] | null>;
 };
 
 export function useDedicationQueueController({
@@ -171,37 +173,52 @@ export function useDedicationQueueController({
 
   const handleAccept = useCallback(async () => {
     if (!active) return;
+    const acceptedId = active.id;
     setBusy(true);
+    let acceptedRecord: AchievementRecord | null = null;
+    let acceptError: string | null = null;
     try {
       const response = await fetch("/api/achievements/dedication/accept", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ achievementId: active.id }),
+        body: JSON.stringify({ achievementId: acceptedId }),
       });
       const data = (await response.json().catch(() => null)) as {
         error?: string;
         achievement?: AchievementRecord;
       } | null;
 
-      if (!response.ok || !data?.achievement) {
+      if (response.status === 409) {
+        // Already accepted on the server — collection refresh runs in `finally`.
+      } else if (!response.ok || !data?.achievement) {
         throw new Error(data?.error ?? "Could not accept this dedication.");
+      } else {
+        acceptedRecord = data.achievement;
       }
 
-      onAccepted(data.achievement);
-      advanceQueue(active.id);
-      clearDedicationQuery();
-      await reloadAchievements();
+      if (acceptedRecord) {
+        onAccepted(acceptedRecord);
+      }
     } catch (error) {
-      showErrorToast(
-        error instanceof Error ? error.message : "Could not accept this dedication.",
-        { id: "dedication-accept" },
-      );
+      acceptError =
+        error instanceof Error ? error.message : "Could not accept this dedication.";
+    } finally {
+      const refreshed = await reloadAchievements({ silent: true });
+      void loadQueue();
+      const acceptedInCollection =
+        refreshed?.some((achievement) => achievement.id === acceptedId) ?? false;
+      if (acceptError && !acceptedInCollection) {
+        showErrorToast(acceptError, { id: "dedication-accept" });
+      }
+      advanceQueue(acceptedId);
+      clearDedicationQuery();
+      setBusy(false);
     }
-    setBusy(false);
   }, [
     active,
     advanceQueue,
     clearDedicationQuery,
+    loadQueue,
     onAccepted,
     reloadAchievements,
   ]);

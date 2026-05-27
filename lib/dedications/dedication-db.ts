@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { err, ok, type Result } from "neverthrow";
 
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
-import { tryNormalizeAchievement } from "@/components/achievements/achievement-transformers";
+import { coerceAchievementDbRow } from "@/components/achievements/achievement-transformers";
 import type { AchievementDbRow } from "@/components/achievements/achievement-db-schema";
 
 const PENDING_SELECT =
@@ -25,11 +25,7 @@ export async function listPendingDedications(
 
   const rows: AchievementRecord[] = [];
   for (const row of data ?? []) {
-    const normalized = tryNormalizeAchievement(row as AchievementDbRow);
-    if (normalized.isErr()) {
-      return err(normalized.error);
-    }
-    rows.push(normalized.value);
+    rows.push(coerceAchievementDbRow(row as Record<string, unknown>));
   }
   return ok(rows);
 }
@@ -56,11 +52,7 @@ export async function acceptDedication(
     return err("This dedication is no longer pending or was already accepted.");
   }
 
-  const normalized = tryNormalizeAchievement(data as AchievementDbRow);
-  if (normalized.isErr()) {
-    return err(normalized.error);
-  }
-  return ok(normalized.value);
+  return ok(coerceAchievementDbRow(data as Record<string, unknown>));
 }
 
 export async function rejectDedication(

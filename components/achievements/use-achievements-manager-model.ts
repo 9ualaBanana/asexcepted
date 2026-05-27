@@ -242,7 +242,10 @@ export function useAchievementsManagerModel({
     readOnly,
     collectionAchievementIds,
     onAccepted: (record) => {
-      setAchievements((prev) => sortAchievements([record, ...prev]));
+      setAchievements((prev) => {
+        const rest = prev.filter((achievement) => achievement.id !== record.id);
+        return sortAchievements([record, ...rest]);
+      });
     },
     onRejected: () => undefined,
     reloadAchievements: data.loadAchievements,

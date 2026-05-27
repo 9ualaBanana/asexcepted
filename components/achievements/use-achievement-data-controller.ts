@@ -28,7 +28,9 @@ type UseAchievementDataControllerArgs = {
 };
 
 export type AchievementDataControllerActions = {
-  loadAchievements: () => Promise<void>;
+  loadAchievements: (opts?: {
+    silent?: boolean;
+  }) => Promise<AchievementRecord[] | null>;
   deleteAchievementById: (id: string) => Promise<void>;
 };
 
@@ -47,7 +49,7 @@ export function useAchievementDataController({
   const [isLoading, setIsLoading] = useState(true);
 
   const loadAchievements = useCallback(
-    async (opts?: { silent?: boolean }) => {
+    async (opts?: { silent?: boolean }): Promise<AchievementRecord[] | null> => {
       const silent = opts?.silent ?? false;
       if (!silent) setIsLoading(true);
       setError(null);
@@ -57,11 +59,13 @@ export function useAchievementDataController({
         setError(result.error);
         if (!silent) setAchievements([]);
         if (!silent) setIsLoading(false);
-        return;
+        return null;
       }
 
-      setAchievements(sortAchievements(result.value));
+      const sorted = sortAchievements(result.value);
+      setAchievements(sorted);
       if (!silent) setIsLoading(false);
+      return sorted;
     },
     [setAchievements, setError, supabase, userId],
   );

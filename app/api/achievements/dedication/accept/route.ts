@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { tryNormalizeAchievement } from "@/components/achievements/achievement-transformers";
+import { coerceAchievementDbRow } from "@/components/achievements/achievement-transformers";
 import { notifyDedicationAccepted } from "@/lib/notifications/dedication-accepted";
 import { createClient } from "@/lib/supabase/server";
 
@@ -50,21 +50,20 @@ export async function POST(request: Request) {
     );
   }
 
-  const normalized = tryNormalizeAchievement(data);
-  if (normalized.isErr()) {
+  let achievement;
+  try {
+    achievement = coerceAchievementDbRow(data as Record<string, unknown>);
+  } catch {
     return NextResponse.json(
-      {
-        error:
-          "Could not read this dedication after accepting it. The badge data may be incomplete.",
-      },
+      { error: "Could not read dedication after accepting." },
       { status: 500 },
     );
   }
 
-  await notifyDedicationAccepted({
-    achievementId: normalized.value.id,
+  void notifyDedicationAccepted({
+    achievementId: achievement.id,
     supabase,
-  });
+  }).catch(() => undefined);
 
-  return NextResponse.json({ achievement: normalized.value });
+  return NextResponse.json({ achievement });
 }

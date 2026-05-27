@@ -147,14 +147,58 @@ const formToPayloadSchema = formStateSchema.transform<AchievementDbWritePayload>
   visibility: form.visibility,
 }));
 
+/** Maps a DB row without Zod (avoids false failures on dedicated / 3D badge rows). */
+export function coerceAchievementDbRow(row: Record<string, unknown>): AchievementRecord {
+  const dedicationStatusRaw = row.dedication_status;
+  const dedicationStatus =
+    dedicationStatusRaw === "pending"
+      ? "pending"
+      : dedicationStatusRaw === "accepted" || row.dedicated_by_user_id
+        ? "accepted"
+        : null;
+
+  const iconFileId =
+    typeof row.icon_file_id === "string" ? row.icon_file_id.trim() || null : null;
+
+  return {
+    id: String(row.id ?? ""),
+    title: (row.title as string | null) ?? null,
+    description: (row.description as string | null) ?? null,
+    category: (row.category as string | null) ?? null,
+    icon: getSafeIconKey(row.icon as string | null | undefined),
+    icon_url: (row.icon_url as string | null) ?? null,
+    icon_file_id: iconFileId,
+    icon_asset_kind: getSafeIconAssetKind(row.icon_asset_kind as string | null | undefined),
+    icon_asset_path:
+      typeof row.icon_asset_path === "string" ? row.icon_asset_path.trim() || null : null,
+    icon_cc_attribution:
+      typeof row.icon_cc_attribution === "string"
+        ? row.icon_cc_attribution.trim() || null
+        : null,
+    icon_model_yaw: Number(row.icon_model_yaw) || 0,
+    icon_model_pitch: Number(row.icon_model_pitch) || 0,
+    tone: getSafeTone(row.tone as string | null | undefined),
+    is_locked: Boolean(row.is_locked),
+    achieved_at: (row.achieved_at as string | null) ?? null,
+    created_at: String(row.created_at ?? ""),
+    visibility: getSafeVisibility(row.visibility as string | null | undefined),
+    impression_count: 0,
+    dedicated_by_user_id: (row.dedicated_by_user_id as string | null) ?? null,
+    dedication_status: dedicationStatus,
+  };
+}
+
 export function tryNormalizeAchievement(
   record: unknown,
 ): Result<AchievementRecord, string> {
-  const parsed = normalizeAchievementSchema.safeParse(record);
-  if (!parsed.success) {
-    return err(parsed.error.issues[0]?.message ?? "Invalid achievement row.");
+  if (!record || typeof record !== "object") {
+    return err("Invalid achievement row.");
   }
-  return ok(parsed.data);
+  try {
+    return ok(coerceAchievementDbRow(record as Record<string, unknown>));
+  } catch (error) {
+    return err(error instanceof Error ? error.message : "Invalid achievement row.");
+  }
 }
 
 export function normalizeAchievement(record: AchievementDbRow): AchievementRecord {

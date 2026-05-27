@@ -10,6 +10,17 @@ export async function notifyDedicationAccepted(args: {
   achievementId: string;
   supabase?: SupabaseClient;
 }): Promise<void> {
+  try {
+    await notifyDedicationAcceptedInner(args);
+  } catch {
+    // Push / display-name lookup must never break accept.
+  }
+}
+
+async function notifyDedicationAcceptedInner(args: {
+  achievementId: string;
+  supabase?: SupabaseClient;
+}): Promise<void> {
   const supabase = args.supabase ?? createServiceRoleClient();
   const { data: achievement, error } = await supabase
     .from("achievements")
