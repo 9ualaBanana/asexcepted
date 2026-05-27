@@ -95,53 +95,39 @@ export default async function Image({ params }: ImageProps) {
           <div
             style={{
               width: "320px",
+              height: "100%",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               marginRight: "40px",
             }}
           >
-            <div
-              style={{
-                width: "300px",
-                height: "300px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: "9999px",
-                background:
-                  "radial-gradient(circle at 35% 28%, rgba(255,255,255,0.14), rgba(20,18,28,0.96) 68%)",
-                boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.08)",
-              }}
-            >
-              {badgeImageSrc ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={badgeImageSrc}
-                  alt=""
-                  width="280"
-                  height="280"
-                  style={{
-                    width: "280px",
-                    height: "280px",
-                    display: "flex",
-                    objectFit: "contain",
-                    filter: "drop-shadow(0 18px 36px rgba(0,0,0,0.34))",
-                  }}
-                />
-              ) : (
-                <div
-                  style={{
-                    display: "flex",
-                    fontSize: 96,
-                    lineHeight: 1,
-                    color: "rgba(245,243,255,0.28)",
-                  }}
-                >
-                  ✦
-                </div>
-              )}
-            </div>
+            {badgeImageSrc ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={badgeImageSrc}
+                alt=""
+                width="300"
+                height="300"
+                style={{
+                  width: "300px",
+                  height: "300px",
+                  display: "flex",
+                  objectFit: "contain",
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 96,
+                  lineHeight: 1,
+                  color: "rgba(245,243,255,0.28)",
+                }}
+              >
+                ✦
+              </div>
+            )}
           </div>
 
           <div

@@ -89,6 +89,7 @@ export type AchievementDialogStackProps = {
   isSaving: boolean;
   shareMenuBusy: boolean;
   dedicateShareDisabledReason?: string | null;
+  showDedicateShareOption?: boolean;
   onShareShowcase: () => void;
   onRequestDedicateInviteShare: () => void;
   onEmbedLink: () => void;
@@ -147,6 +148,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     isSaving,
     shareMenuBusy,
     dedicateShareDisabledReason = null,
+    showDedicateShareOption = true,
     onShareShowcase,
     onRequestDedicateInviteShare,
     onEmbedLink,
@@ -492,11 +494,11 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                         >
                           <X className="h-4 w-4" aria-hidden />
                         </button>
-                      ) : detailAchievement.icon_url?.trim() &&
-                        !detailIsDedicated ? (
+                      ) : detailAchievement.icon_url?.trim() ? (
                         <AchievementDetailShareMenu
                           disabled={isSaving}
                           busy={shareMenuBusy}
+                          showDedicateOption={showDedicateShareOption}
                           dedicateDisabledReason={dedicateShareDisabledReason}
                           onShareShowcase={onShareShowcase}
                           onRequestDedicateInvite={onRequestDedicateInviteShare}

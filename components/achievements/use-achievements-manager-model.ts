@@ -22,7 +22,10 @@ import { useAchievementDetailViewModel } from "@/components/achievements/use-ach
 import { useAchievementEditorPipelineController } from "@/components/achievements/use-achievement-editor-pipeline-controller";
 import { useAchievementEmbedLinkController } from "@/components/achievements/use-achievement-embed-link-controller";
 import { useAchievementShareInviteController } from "@/components/achievements/use-achievement-share-invite-controller";
-import { getAchievementShareReadinessError } from "@/lib/share-invites/eligibility";
+import {
+  canDedicateAchievementViaShareInvite,
+  getAchievementShareReadinessError,
+} from "@/lib/share-invites/eligibility";
 import { showErrorToast } from "@/lib/toast";
 import { useAchievementUiStateMachine } from "@/components/achievements/use-achievement-ui-state-machine";
 import { useAchievementUnlockReveal } from "@/components/achievements/use-achievement-unlock-reveal";
@@ -438,10 +441,15 @@ export function useAchievementsManagerModel({
     ui.isVisibilityOnlyEdit,
   ]);
 
-  const dedicateShareDisabledReason = useMemo(
-    () => (detailAchievement ? getAchievementShareReadinessError(detailAchievement) : null),
+  const showDedicateShareOption = useMemo(
+    () => (detailAchievement ? canDedicateAchievementViaShareInvite(detailAchievement) : false),
     [detailAchievement],
   );
+
+  const dedicateShareDisabledReason = useMemo(() => {
+    if (!detailAchievement || !showDedicateShareOption) return null;
+    return getAchievementShareReadinessError(detailAchievement);
+  }, [detailAchievement, showDedicateShareOption]);
 
   const handleConfirmDiscardPanelEdit = useCallback(() => {
     const intent = ui.discardEditIntent;
@@ -495,8 +503,10 @@ export function useAchievementsManagerModel({
     isSaving,
     shareMenuBusy: shareInvite.shareInviteBusy || embedLink.embedCopyBusy,
     dedicateShareDisabledReason,
+    showDedicateShareOption,
     onShareShowcase: shareInvite.shareShowcaseAchievement,
     onRequestDedicateInviteShare: () => {
+      if (!showDedicateShareOption) return;
       if (dedicateShareDisabledReason) {
         showErrorToast(dedicateShareDisabledReason, { id: "achievement-dedicate-not-ready" });
         return;
@@ -572,6 +582,10 @@ export function useAchievementsManagerModel({
     dedicateInviteConfirmOpen,
     setDedicateInviteConfirmOpen,
     handleConfirmDedicateInviteShare: () => {
+      if (!showDedicateShareOption) {
+        setDedicateInviteConfirmOpen(false);
+        return;
+      }
       if (dedicateShareDisabledReason) {
         showErrorToast(dedicateShareDisabledReason, { id: "achievement-dedicate-not-ready" });
         setDedicateInviteConfirmOpen(false);

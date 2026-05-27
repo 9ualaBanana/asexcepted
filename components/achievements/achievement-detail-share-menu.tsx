@@ -15,6 +15,8 @@ import { cn } from "@/lib/utils";
 type AchievementDetailShareMenuProps = {
   disabled?: boolean;
   busy?: boolean;
+  /** When false, Dedicate is hidden (received / claimed dedications). */
+  showDedicateOption?: boolean;
   /** When set, Dedicate is disabled (e.g. 3D badge still uploading). */
   dedicateDisabledReason?: string | null;
   onShareShowcase: () => void;
@@ -25,6 +27,7 @@ type AchievementDetailShareMenuProps = {
 export function AchievementDetailShareMenu({
   disabled = false,
   busy = false,
+  showDedicateOption = true,
   dedicateDisabledReason = null,
   onShareShowcase,
   onRequestDedicateInvite,
@@ -66,17 +69,19 @@ export function AchievementDetailShareMenu({
           <Share2 className="h-4 w-4" aria-hidden />
           {ACHIEVEMENT_UI_COPY.shareMenuShowcase}
         </DropdownMenuItem>
-        <DropdownMenuItem
-          disabled={isDisabled || dedicateBlocked}
-          title={dedicateBlocked ? dedicateDisabledReason ?? undefined : undefined}
-          onSelect={() => {
-            if (dedicateBlocked) return;
-            onRequestDedicateInvite();
-          }}
-        >
-          <Gift className="h-4 w-4" aria-hidden />
-          {ACHIEVEMENT_UI_COPY.shareMenuDedicate}
-        </DropdownMenuItem>
+        {showDedicateOption ? (
+          <DropdownMenuItem
+            disabled={isDisabled || dedicateBlocked}
+            title={dedicateBlocked ? dedicateDisabledReason ?? undefined : undefined}
+            onSelect={() => {
+              if (dedicateBlocked) return;
+              onRequestDedicateInvite();
+            }}
+          >
+            <Gift className="h-4 w-4" aria-hidden />
+            {ACHIEVEMENT_UI_COPY.shareMenuDedicate}
+          </DropdownMenuItem>
+        ) : null}
         <DropdownMenuItem
           disabled={isDisabled}
           onSelect={() => {

@@ -42,6 +42,13 @@ export function validateShareInviteBadgeSnapshot(
   return ok(undefined);
 }
 
+/** Original owner achievements only — not received dedications / claimed invites. */
+export function canDedicateAchievementViaShareInvite(achievement: {
+  dedicated_by_user_id: string | null;
+}): boolean {
+  return !achievement.dedicated_by_user_id;
+}
+
 export function getAchievementShareReadinessError(
   achievement: CollectionAchievementSnapshotSource,
 ): string | null {
