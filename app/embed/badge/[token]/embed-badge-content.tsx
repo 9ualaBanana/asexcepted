@@ -31,7 +31,7 @@ export async function EmbedBadgeContent({ params }: Props) {
   const supabase = createAnonServerClient();
   const { data, error } = await supabase
     .from("achievements")
-    .select("icon_url,icon_asset_kind,icon_asset_path")
+    .select("icon_url,icon_asset_kind,icon_asset_path,icon_model_yaw,icon_model_pitch")
     .eq("id", payload.achievementId)
     .maybeSingle();
 
@@ -56,6 +56,8 @@ export async function EmbedBadgeContent({ params }: Props) {
             className="p-1"
             float
             motionSeed={payload.achievementId}
+            initialYaw={data.icon_model_yaw ?? 0}
+            initialPitch={data.icon_model_pitch ?? 0}
           />
         ) : (
           <AchievementBadge3DViewer

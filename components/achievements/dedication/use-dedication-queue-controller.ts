@@ -5,13 +5,13 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
 import {
-  acceptDedication,
   listPendingDedications,
   rejectDedication,
 } from "@/lib/dedications/dedication-db";
 import { fetchPublicUserDisplayName } from "@/lib/user-profile-db";
 import { createClient } from "@/lib/supabase/client";
 import { userCollection } from "@/lib/routes";
+import { showErrorToast } from "@/lib/toast";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -172,12 +172,30 @@ export function useDedicationQueueController({
   const handleAccept = useCallback(async () => {
     if (!active) return;
     setBusy(true);
-    const result = await acceptDedication(supabase, active.id);
-    if (result.isOk()) {
-      onAccepted(result.value);
+    try {
+      const response = await fetch("/api/achievements/dedication/accept", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ achievementId: active.id }),
+      });
+      const data = (await response.json().catch(() => null)) as {
+        error?: string;
+        achievement?: AchievementRecord;
+      } | null;
+
+      if (!response.ok || !data?.achievement) {
+        throw new Error(data?.error ?? "Could not accept this dedication.");
+      }
+
+      onAccepted(data.achievement);
       advanceQueue(active.id);
       clearDedicationQuery();
       await reloadAchievements();
+    } catch (error) {
+      showErrorToast(
+        error instanceof Error ? error.message : "Could not accept this dedication.",
+        { id: "dedication-accept" },
+      );
     }
     setBusy(false);
   }, [
@@ -186,7 +204,6 @@ export function useDedicationQueueController({
     clearDedicationQuery,
     onAccepted,
     reloadAchievements,
-    supabase,
   ]);
 
   const handleReject = useCallback(async () => {

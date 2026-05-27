@@ -3,6 +3,10 @@
 import { useRef, useState } from "react";
 
 import {
+  clearBadgeModelPoseSessionRef,
+  type BadgeModelUploadStaged,
+} from "@/components/achievements/badge/use-badge-model-uploader";
+import {
   createAchievementBadgeRemoteAsset,
   clearSessionStagedUpload,
   deleteBadgeRemoteAssetQuietly,
@@ -10,11 +14,19 @@ import {
   rollbackBadgeUploadSession,
 } from "@/components/achievements/badge/badge-asset-session";
 import {
+  cycleBadgeModelPoseSession,
+  getSelectedBadgeModelPoseVariant,
+  revokeBadgeModelPoseSession,
+  type BadgeModelPoseSession,
+} from "@/components/achievements/badge/badge-model-pose-session";
+import {
   createEmptyBadgeAssetSession,
   getSafeIconAssetKind,
   type BadgeAssetSession,
+  type FormState,
 } from "@/components/achievements/achievement-editor-shared";
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
+import { finalizeBadgeModelUpload } from "@/lib/badge-asset-client";
 
 type UseAchievementBadgeSessionControllerArgs = {
   isCreating: boolean;
@@ -32,17 +44,92 @@ export function useAchievementBadgeSessionController({
   const [panelUploadInProgress, setPanelUploadInProgress] = useState(false);
   const createBadgeAssetSessionRef = useRef<BadgeAssetSession>(createEmptyBadgeAssetSession());
   const panelBadgeAssetSessionRef = useRef<BadgeAssetSession>(createEmptyBadgeAssetSession());
+  const createModelPoseSessionRef = useRef<BadgeModelPoseSession | null>(null);
+  const panelModelPoseSessionRef = useRef<BadgeModelPoseSession | null>(null);
+
+  const activeModelPoseSessionRef = isCreating
+    ? createModelPoseSessionRef
+    : panelModelPoseSessionRef;
 
   const editorUploadInProgress =
     (isCreating && createUploadInProgress) ||
     (detailMode === "edit" && panelUploadInProgress);
 
+  const clearModelPoseSession = (scope: "create" | "panel" | "active") => {
+    if (scope === "create" || scope === "active") {
+      clearBadgeModelPoseSessionRef(createModelPoseSessionRef);
+    }
+    if (scope === "panel" || scope === "active") {
+      clearBadgeModelPoseSessionRef(panelModelPoseSessionRef);
+    }
+  };
+
+  const setModelPoseSession = (
+    session: BadgeModelPoseSession | null,
+    scope: "create" | "panel",
+  ) => {
+    const targetRef = scope === "create" ? createModelPoseSessionRef : panelModelPoseSessionRef;
+    revokeBadgeModelPoseSession(targetRef.current);
+    targetRef.current = session;
+  };
+
+  const cycleActiveModelPose = (): BadgeModelUploadStaged | null => {
+    const session = activeModelPoseSessionRef.current;
+    if (!session || session.finalized) return null;
+
+    const nextSession = cycleBadgeModelPoseSession(session);
+    activeModelPoseSessionRef.current = nextSession;
+    const selected = getSelectedBadgeModelPoseVariant(nextSession);
+    if (!selected) return null;
+
+    return {
+      modelPath: nextSession.modelPath,
+      poseSession: nextSession,
+      previewUrl: selected.previewUrl,
+      iconModelYaw: selected.yaw,
+      iconModelPitch: selected.pitch,
+    };
+  };
+
+  const isModelPosePickerActive = (): boolean => {
+    const session = activeModelPoseSessionRef.current;
+    return Boolean(session && !session.finalized);
+  };
+
+  const finalizeModelPoseForForm = async (form: FormState): Promise<FormState> => {
+    const session = activeModelPoseSessionRef.current;
+    if (!session || session.finalized) return form;
+
+    const selected = getSelectedBadgeModelPoseVariant(session);
+    if (!selected) return form;
+
+    const uploaded = await finalizeBadgeModelUpload({
+      modelPath: session.modelPath,
+      poster: selected.previewBlob,
+    });
+
+    session.finalized = true;
+    revokeBadgeModelPoseSession(session);
+    activeModelPoseSessionRef.current = null;
+
+    return {
+      ...form,
+      iconUrl: uploaded.iconUrl,
+      iconAssetKind: "model_glb",
+      iconAssetPath: uploaded.iconAssetPath,
+      iconModelYaw: selected.yaw,
+      iconModelPitch: selected.pitch,
+    };
+  };
+
   const beginCreateBadgeSession = () => {
     createBadgeAssetSessionRef.current = createEmptyBadgeAssetSession();
+    clearModelPoseSession("create");
   };
 
   const rollbackCreateBadgeSession = () => {
     rollbackBadgeUploadSession(createBadgeAssetSessionRef.current);
+    clearModelPoseSession("create");
   };
 
   const retainCreateBadgeSession = (asset: {
@@ -50,6 +137,8 @@ export function useAchievementBadgeSessionController({
     iconFileId?: string | null;
     iconAssetKind?: string | null;
     iconAssetPath?: string | null;
+    iconModelYaw?: number | null;
+    iconModelPitch?: number | null;
   }) => {
     createBadgeAssetSessionRef.current = {
       baseline: createAchievementBadgeRemoteAsset({
@@ -57,9 +146,12 @@ export function useAchievementBadgeSessionController({
         iconFileId: asset.iconFileId ?? "",
         iconAssetKind: getSafeIconAssetKind(asset.iconAssetKind),
         iconAssetPath: asset.iconAssetPath ?? "",
+        iconModelYaw: asset.iconModelYaw ?? 0,
+        iconModelPitch: asset.iconModelPitch ?? 0,
       }),
       staged: null,
     };
+    clearModelPoseSession("create");
   };
 
   const beginPanelBadgeSession = (detailAchievement: AchievementRecord) => {
@@ -69,13 +161,17 @@ export function useAchievementBadgeSessionController({
         iconFileId: detailAchievement.icon_file_id ?? "",
         iconAssetKind: detailAchievement.icon_asset_kind,
         iconAssetPath: detailAchievement.icon_asset_path ?? "",
+        iconModelYaw: detailAchievement.icon_model_yaw,
+        iconModelPitch: detailAchievement.icon_model_pitch,
       }),
       staged: null,
     };
+    clearModelPoseSession("panel");
   };
 
   const rollbackPanelBadgeSession = () => {
     rollbackBadgeUploadSession(panelBadgeAssetSessionRef.current);
+    clearModelPoseSession("panel");
   };
 
   const commitPanelBadgeSession = (updatedAchievement: AchievementRecord) => {
@@ -84,6 +180,8 @@ export function useAchievementBadgeSessionController({
       iconFileId: updatedAchievement.icon_file_id ?? "",
       iconAssetKind: updatedAchievement.icon_asset_kind,
       iconAssetPath: updatedAchievement.icon_asset_path ?? "",
+      iconModelYaw: updatedAchievement.icon_model_yaw,
+      iconModelPitch: updatedAchievement.icon_model_pitch,
     });
     const replacedBaselineAsset = getReplacedBadgeRemoteAsset(
       panelBadgeAssetSessionRef.current.baseline,
@@ -94,6 +192,7 @@ export function useAchievementBadgeSessionController({
       staged: panelBadgeAssetSessionRef.current.staged,
     };
     clearSessionStagedUpload(panelBadgeAssetSessionRef.current);
+    clearModelPoseSession("panel");
     return replacedBaselineAsset;
   };
 
@@ -130,6 +229,7 @@ export function useAchievementBadgeSessionController({
     if (detailAchievementId === deletedAchievementId) {
       panelBadgeAssetSessionRef.current = createEmptyBadgeAssetSession();
       setPanelUploadInProgress(false);
+      clearModelPoseSession("panel");
     }
   };
 
@@ -153,6 +253,12 @@ export function useAchievementBadgeSessionController({
     editorUploadInProgress,
     createBadgeAssetSessionRef,
     panelBadgeAssetSessionRef,
+    createModelPoseSessionRef,
+    panelModelPoseSessionRef,
+    setModelPoseSession,
+    cycleActiveModelPose,
+    isModelPosePickerActive,
+    finalizeModelPoseForForm,
     beginCreateBadgeSession,
     rollbackCreateBadgeSession,
     retainCreateBadgeSession,
@@ -161,6 +267,7 @@ export function useAchievementBadgeSessionController({
     commitPanelBadgeSession,
     deleteRemoteAssetQuietly,
     deleteRemoteFilesForAchievement,
+    clearModelPoseSession,
   };
 }
 

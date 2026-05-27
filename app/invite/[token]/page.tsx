@@ -7,7 +7,9 @@ import { AchievementBadgeModelViewer } from "@/components/achievements/badge/ach
 import { formatAchievedAt } from "@/components/achievements/achievement-editor-shared";
 import { isModelBadgeAssetKind } from "@/lib/achievements/badge-assets";
 import { createSignedAchievementBadgeModelUrl } from "@/lib/achievements/badge-assets-server";
+import { APP_DISPLAY_NAME } from "@/lib/brand";
 import { resolvePublicSiteOrigin } from "@/lib/public-site-origin";
+import { resolveInviteShareTitle } from "@/lib/share-invites/invite-share-title";
 import {
   achievementShareInviteOgImagePath,
   userCollection,
@@ -35,6 +37,7 @@ function buildInviteMetadata(args: {
     openGraph: {
       title: args.title,
       description: args.description,
+      siteName: APP_DISPLAY_NAME,
       images: args.imageUrl ? [{ url: args.imageUrl }] : undefined,
     },
     twitter: {
@@ -60,8 +63,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const { invite, senderDisplayName } = result.value;
   const pageKind = getAchievementShareInviteKind(invite);
-  const title =
-    invite.title?.trim() || invite.category?.trim() || "Achievement invite";
+  const title = resolveInviteShareTitle(invite);
   const description =
     invite.description?.trim() ||
     (pageKind === "showcase"
@@ -69,7 +71,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       : `${senderDisplayName} shared an achievement waiting in your collection.`);
 
   return buildInviteMetadata({
-    title: `${title} | asexcepted`,
+    title: `${title} | ${APP_DISPLAY_NAME}`,
     description,
     imageUrl: origin
       ? `${origin}${achievementShareInviteOgImagePath(token)}`
@@ -130,6 +132,8 @@ export default async function Page({ params }: PageProps) {
                   previewSrc={invite.icon_url}
                   float
                   motionSeed={invite.id}
+                  initialYaw={invite.icon_model_yaw ?? 0}
+                  initialPitch={invite.icon_model_pitch ?? 0}
                   className="mx-auto"
                 />
               ) : (

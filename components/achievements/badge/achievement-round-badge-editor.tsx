@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, ImagePlus, Lock, Trash2, Unlock } from "lucide-react";
+import { Box, ImagePlus, Lock, RotateCw, Trash2, Unlock } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -32,7 +32,10 @@ import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import { useErrorToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { useBadgeImageUploader } from "@/components/achievements/badge/use-badge-image-uploader";
-import { useBadgeModelUploader } from "@/components/achievements/badge/use-badge-model-uploader";
+import {
+  useBadgeModelUploader,
+  type BadgeModelUploadStaged,
+} from "@/components/achievements/badge/use-badge-model-uploader";
 
 import "@uppy/core/css/style.min.css";
 
@@ -72,6 +75,9 @@ type AchievementRoundBadgeEditorProps = {
   onStagedUploadCleared?: () => void;
   /** Signals when remote badge upload is currently in flight. */
   onUploadInProgressChange?: (inProgress: boolean) => void;
+  modelPosePickerActive?: boolean;
+  onCycleModelPose?: () => void;
+  onModelUploadStaged?: (staged: BadgeModelUploadStaged) => void;
   disabled?: boolean;
 };
 
@@ -96,6 +102,9 @@ export function AchievementRoundBadgeEditor({
   onIconCcAttributionChange,
   onStagedUploadCleared,
   onUploadInProgressChange,
+  modelPosePickerActive = false,
+  onCycleModelPose,
+  onModelUploadStaged,
   disabled = false,
 }: AchievementRoundBadgeEditorProps) {
   const uppyInstanceId = useId();
@@ -176,14 +185,9 @@ export function AchievementRoundBadgeEditor({
   const { queueUpload: queueModelUpload, uploadInProgress: modelUploadInProgress } =
     useBadgeModelUploader({
       disabled,
-      onUploadSuccess: (asset) => {
+      onUploadSuccess: (staged) => {
         setError(null);
-        onRemoteCommitRef.current({
-          iconUrl: asset.iconUrl,
-          iconFileId: "",
-          iconAssetKind: asset.iconAssetKind,
-          iconAssetPath: asset.iconAssetPath,
-        });
+        onModelUploadStaged?.(staged);
         setMenuOpen(false);
       },
       onUploadError: (message) => setError(message),
@@ -262,6 +266,20 @@ export function AchievementRoundBadgeEditor({
 
   return (
     <div ref={rootRef} className="group/badge relative flex flex-col items-center">
+      {modelPosePickerActive && onCycleModelPose ? (
+        <button
+          type="button"
+          aria-label="Cycle badge starting angle"
+          disabled={disabled || busy}
+          onClick={(event) => {
+            event.stopPropagation();
+            onCycleModelPose();
+          }}
+          className="pointer-events-auto absolute right-3 top-3 z-40 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/10 text-white/25 shadow-md backdrop-blur-sm transition hover:bg-black/20 hover:text-white/45 disabled:pointer-events-none disabled:opacity-50"
+        >
+          <RotateCw className="h-4 w-4" aria-hidden />
+        </button>
+      ) : null}
       <input
         ref={fileInputRef}
         type="file"

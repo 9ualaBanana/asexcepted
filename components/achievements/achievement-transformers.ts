@@ -35,6 +35,8 @@ export type AchievementRecord = {
   icon_asset_kind: AchievementIconAssetKind;
   icon_asset_path: string | null;
   icon_cc_attribution: string | null;
+  icon_model_yaw: number;
+  icon_model_pitch: number;
   tone: AchievementTone;
   is_locked: boolean;
   achieved_at: string | null;
@@ -71,6 +73,8 @@ const normalizeAchievementSchema = achievementDbRowSchema.transform<AchievementR
     icon_asset_kind: getSafeIconAssetKind(record.icon_asset_kind),
     icon_asset_path: record.icon_asset_path?.trim() || null,
     icon_cc_attribution: record.icon_cc_attribution?.trim() || null,
+    icon_model_yaw: Number(record.icon_model_yaw) || 0,
+    icon_model_pitch: Number(record.icon_model_pitch) || 0,
     tone: getSafeTone(record.tone),
     is_locked: Boolean(record.is_locked),
     achieved_at: record.achieved_at,
@@ -99,6 +103,8 @@ const achievementToFormSchema = achievementRecordSchema.transform<FormState>((re
   iconAssetKind: getSafeIconAssetKind(record.icon_asset_kind),
   iconAssetPath: record.icon_asset_path ?? "",
   iconCcAttribution: record.icon_cc_attribution ?? "",
+  iconModelYaw: record.icon_model_yaw ?? 0,
+  iconModelPitch: record.icon_model_pitch ?? 0,
   tone: getSafeTone(record.tone),
   isLocked: Boolean(record.is_locked),
   achievedAt: record.achieved_at ?? "",
@@ -131,6 +137,8 @@ const formToPayloadSchema = formStateSchema.transform<AchievementDbWritePayload>
   icon_asset_kind: form.iconAssetKind,
   icon_asset_path: toNullable(form.iconAssetPath),
   icon_cc_attribution: toNullable(form.iconCcAttribution),
+  icon_model_yaw: form.iconModelYaw,
+  icon_model_pitch: form.iconModelPitch,
   tone: form.tone,
   is_locked: form.isLocked,
   achieved_at: toNullable(form.achievedAt),
@@ -166,6 +174,8 @@ export function isAchievementFormDirty(
     current.icon_asset_kind !== baseline.icon_asset_kind ||
     current.icon_asset_path !== baseline.icon_asset_path ||
     current.icon_cc_attribution !== baseline.icon_cc_attribution ||
+    current.icon_model_yaw !== baseline.icon_model_yaw ||
+    current.icon_model_pitch !== baseline.icon_model_pitch ||
     current.tone !== baseline.tone ||
     current.is_locked !== baseline.is_locked ||
     current.achieved_at !== baseline.achieved_at ||

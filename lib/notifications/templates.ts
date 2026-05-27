@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import {
+  formatDedicationAcceptedActivityMessage,
   formatDedicationActivityMessage,
   formatImpressionActivityMessage,
   formatNewInspirationActivityMessage,
@@ -42,6 +43,13 @@ export type DedicationParams = {
   achievementId: string;
 };
 
+export type DedicationAcceptedParams = {
+  recipientName: string;
+  achievementTitle: string;
+  recipientUserId: string;
+  achievementId: string;
+};
+
 export type TestParams = Record<string, never>;
 
 export type AdminNewSignupParams = {
@@ -54,6 +62,7 @@ export type NotificationParams = {
   new_follower: NewFollowerParams;
   impression: ImpressionParams;
   dedication: DedicationParams;
+  dedication_accepted: DedicationAcceptedParams;
   test: TestParams;
   admin_new_signup: AdminNewSignupParams;
 };
@@ -128,6 +137,18 @@ export function buildNotificationContent<K extends NotificationKind>(
         body: formatDedicationActivityMessage(p.achievementTitle, p.sender),
         url: links.achievementDetail(p.recipientUserId, p.achievementId, true),
         type: "dedication",
+      };
+    }
+    case "dedication_accepted": {
+      const p = params as DedicationAcceptedParams;
+      return {
+        title: "Dedication accepted",
+        body: formatDedicationAcceptedActivityMessage(
+          p.achievementTitle,
+          p.recipientName,
+        ),
+        url: links.achievementDetail(p.recipientUserId, p.achievementId),
+        type: "dedication_accepted",
       };
     }
     case "test":

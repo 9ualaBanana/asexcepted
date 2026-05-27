@@ -199,7 +199,20 @@ export function useAchievementEditorPipelineController({
       setIsSaving(true);
       setError(null);
 
-      const insertPayload = formToPayload(createForm);
+      let formForSave = createForm;
+      try {
+        formForSave = await badgeSessionController.finalizeModelPoseForForm(createForm);
+      } catch (finalizeError) {
+        setError(
+          finalizeError instanceof Error
+            ? finalizeError.message
+            : "Could not finalize 3D badge upload.",
+        );
+        setIsSaving(false);
+        return;
+      }
+
+      const insertPayload = formToPayload(formForSave);
       const result = await createAchievement(supabase, insertPayload);
 
       if (result.isErr()) {
@@ -255,7 +268,20 @@ export function useAchievementEditorPipelineController({
       setIsSaving(true);
       setError(null);
 
-      const updatePayload = formToPayload(panelForm);
+      let formForSave = panelForm;
+      try {
+        formForSave = await badgeSessionController.finalizeModelPoseForForm(panelForm);
+      } catch (finalizeError) {
+        setError(
+          finalizeError instanceof Error
+            ? finalizeError.message
+            : "Could not finalize 3D badge upload.",
+        );
+        setIsSaving(false);
+        return;
+      }
+
+      const updatePayload = formToPayload(formForSave);
       const result = await updateAchievement(supabase, detailAchievementId, updatePayload);
 
       if (result.isErr()) {

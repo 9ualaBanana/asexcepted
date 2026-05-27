@@ -12,6 +12,11 @@ import {
 import { ArrowLeft, Check, Loader2, Share2, Trash2, X } from "lucide-react";
 
 import { AchievementRoundBadgeEditor } from "@/components/achievements/badge/achievement-round-badge-editor";
+import {
+  applyBadgeModelPoseSessionToForm,
+  type BadgeModelUploadStaged,
+} from "@/components/achievements/badge/use-badge-model-uploader";
+import type { AchievementBadgeSessionController } from "@/components/achievements/use-achievement-badge-session-controller";
 import { AchievementVisibilityToggle } from "@/components/achievements/achievement-visibility-toggle";
 import {
   clearSessionStagedUpload,
@@ -47,6 +52,8 @@ export type EditorCardProps = {
   shareDisabled?: boolean;
   /** Admin dedicating to another user: always locked + private. */
   dedicateMode?: boolean;
+  badgeSessionController?: AchievementBadgeSessionController;
+  isCreatingFlow?: boolean;
 };
 
 export function EditableAchievementCard({
@@ -63,6 +70,8 @@ export function EditableAchievementCard({
   onRequestShare,
   shareDisabled = false,
   dedicateMode = false,
+  badgeSessionController,
+  isCreatingFlow = false,
 }: EditorCardProps) {
   const formId = useId();
   const showDialogChrome = Boolean(onClosePanel);
@@ -160,6 +169,12 @@ export function EditableAchievementCard({
               setForm((prev) => ({ ...prev, isLocked: !prev.isLocked }));
             }}
             onIconChange={(icon) => setForm((prev) => ({ ...prev, icon }))}
+            modelPosePickerActive={badgeSessionController?.isModelPosePickerActive() ?? false}
+            onCycleModelPose={() => {
+              const staged = badgeSessionController?.cycleActiveModelPose();
+              if (!staged) return;
+              setForm((prev) => applyBadgeModelPoseSessionToForm(prev, staged));
+            }}
             onRemoteUploadCommit={(asset) => {
               rollbackBadgeUploadSession(badgeAssetSessionRef.current);
               setSessionStagedUpload(badgeAssetSessionRef.current, asset);
@@ -169,7 +184,26 @@ export function EditableAchievementCard({
                 iconFileId: asset.iconFileId,
                 iconAssetKind: asset.iconAssetKind,
                 iconAssetPath: asset.iconAssetPath,
+                iconModelYaw: asset.iconModelYaw ?? prev.iconModelYaw,
+                iconModelPitch: asset.iconModelPitch ?? prev.iconModelPitch,
               }));
+            }}
+            onModelUploadStaged={(staged) => {
+              rollbackBadgeUploadSession(badgeAssetSessionRef.current);
+              badgeSessionController?.setModelPoseSession(
+                staged.poseSession,
+                isCreatingFlow ? "create" : "panel",
+              );
+              const asset = {
+                iconUrl: staged.previewUrl,
+                iconFileId: "",
+                iconAssetKind: "model_glb" as const,
+                iconAssetPath: staged.modelPath,
+                iconModelYaw: staged.iconModelYaw,
+                iconModelPitch: staged.iconModelPitch,
+              };
+              setSessionStagedUpload(badgeAssetSessionRef.current, asset);
+              setForm((prev) => applyBadgeModelPoseSessionToForm(prev, staged));
             }}
             onImageUrlChange={(url) =>
               setForm((prev) => ({ ...prev, iconUrl: url }))

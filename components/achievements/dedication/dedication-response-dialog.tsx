@@ -80,6 +80,10 @@ export function DedicationResponseDialog({
               motionSeed={achievement.id}
               FallbackIcon={FallbackIcon}
               hasIconUrl={Boolean(renderSrc)}
+              iconAssetKind={achievement.icon_asset_kind}
+              iconAssetPath={achievement.icon_asset_path}
+              iconModelYaw={achievement.icon_model_yaw}
+              iconModelPitch={achievement.icon_model_pitch}
               tone={tone}
               lockedUi
               unlocking={false}

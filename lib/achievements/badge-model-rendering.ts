@@ -31,10 +31,13 @@ export function addBadgeModelLights(scene: Scene) {
   scene.add(ambientLight, keyLight, fillLight);
 }
 
-export function frameBadgeModelForCamera(
-  model: Object3D,
-  camera: PerspectiveCamera,
-): { size: Vector3; maxDim: number } {
+export type BadgeModelFrameMetrics = {
+  size: Vector3;
+  maxDim: number;
+};
+
+/** Moves mesh geometry so its bounding-box center sits at the origin (orbit pivot). */
+export function centerBadgeModelAtOrigin(model: Object3D): BadgeModelFrameMetrics {
   model.updateMatrixWorld(true);
   const box = new Box3().setFromObject(model);
   if (box.isEmpty()) {
@@ -48,6 +51,26 @@ export function frameBadgeModelForCamera(
   model.position.sub(center);
   model.updateMatrixWorld(true);
 
+  return { size, maxDim };
+}
+
+/**
+ * Positions the camera to frame `target` without changing `target.position`.
+ * Use after centerBadgeModelAtOrigin on the inner mesh and pose on a parent group at (0,0,0).
+ */
+export function frameCameraForBadgeModel(
+  target: Object3D,
+  camera: PerspectiveCamera,
+): BadgeModelFrameMetrics {
+  target.updateMatrixWorld(true);
+  const box = new Box3().setFromObject(target);
+  if (box.isEmpty()) {
+    throw new Error("This GLB does not contain any renderable geometry.");
+  }
+
+  const size = box.getSize(new Vector3());
+  const maxDim = Math.max(size.x, size.y, size.z) || 1;
+
   const distance = maxDim * 2.35;
   camera.position.set(maxDim * 0.34, Math.max(size.y * 0.22, 0.22), distance);
   camera.near = Math.max(distance / 200, 0.01);
@@ -56,4 +79,14 @@ export function frameBadgeModelForCamera(
   camera.updateProjectionMatrix();
 
   return { size, maxDim };
+}
+
+/** Centers the mesh then frames it (legacy single-node helper). */
+export function frameBadgeModelForCamera(
+  model: Object3D,
+  camera: PerspectiveCamera,
+): BadgeModelFrameMetrics {
+  const metrics = centerBadgeModelAtOrigin(model);
+  frameCameraForBadgeModel(model, camera);
+  return metrics;
 }

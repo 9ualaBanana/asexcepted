@@ -93,13 +93,25 @@ async function completeBadgeModelUpload(
   };
 }
 
+export async function uploadBadgeModelGlbOnly(model: File): Promise<{ modelPath: string }> {
+  const target = await requestBadgeModelUploadTarget();
+  await uploadBadgeModelToSignedUrl(target, model);
+  return { modelPath: target.modelPath };
+}
+
+export async function finalizeBadgeModelUpload(args: {
+  modelPath: string;
+  poster: Blob;
+}): Promise<BadgeModelUploadSuccess> {
+  return completeBadgeModelUpload(args.modelPath, args.poster);
+}
+
 export async function uploadAchievementBadgeModelAsset(
   model: File,
   poster: Blob,
 ): Promise<BadgeModelUploadSuccess> {
-  const target = await requestBadgeModelUploadTarget();
-  await uploadBadgeModelToSignedUrl(target, model);
-  return completeBadgeModelUpload(target.modelPath, poster);
+  const { modelPath } = await uploadBadgeModelGlbOnly(model);
+  return finalizeBadgeModelUpload({ modelPath, poster });
 }
 
 export async function deleteBadgeRemoteAsset(asset: BadgeRemoteAsset): Promise<void> {

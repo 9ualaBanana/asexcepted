@@ -18,6 +18,8 @@ export function createInitialForm(): FormState {
     iconAssetKind: "image",
     iconAssetPath: "",
     iconCcAttribution: "",
+    iconModelYaw: 0,
+    iconModelPitch: 0,
     tone: "teal",
     isLocked: true,
     achievedAt: "",

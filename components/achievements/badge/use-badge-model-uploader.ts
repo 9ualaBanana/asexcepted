@@ -2,18 +2,25 @@
 
 import { useCallback, useState } from "react";
 
+import {
+  revokeBadgeModelPoseSession,
+  type BadgeModelPoseSession,
+} from "@/components/achievements/badge/badge-model-pose-session";
 import { prepareBadgeModelUpload } from "@/components/achievements/badge/badge-model-upload-client";
-import { uploadAchievementBadgeModelAsset } from "@/lib/badge-asset-client";
+import type { FormState } from "@/components/achievements/achievement-editor-shared";
+import { uploadBadgeModelGlbOnly } from "@/lib/badge-asset-client";
 
-type UploadedModelAsset = {
-  iconUrl: string;
-  iconAssetKind: "model_glb";
-  iconAssetPath: string;
+export type BadgeModelUploadStaged = {
+  modelPath: string;
+  poseSession: BadgeModelPoseSession;
+  previewUrl: string;
+  iconModelYaw: number;
+  iconModelPitch: number;
 };
 
 type UseBadgeModelUploaderOptions = {
   disabled: boolean;
-  onUploadSuccess: (asset: UploadedModelAsset) => void;
+  onUploadSuccess: (staged: BadgeModelUploadStaged) => void;
   onUploadError: (message: string) => void;
   onUploadStart?: () => void;
   onUploadInProgressChange?: (inProgress: boolean) => void;
@@ -38,8 +45,26 @@ export function useBadgeModelUploader(options: UseBadgeModelUploaderOptions) {
       options.onUploadStart?.();
       try {
         const prepared = await prepareBadgeModelUpload(file);
-        const uploaded = await uploadAchievementBadgeModelAsset(file, prepared.previewBlob);
-        options.onUploadSuccess(uploaded);
+        const { modelPath } = await uploadBadgeModelGlbOnly(file);
+        const selected = prepared.variants[0];
+        if (!selected) {
+          throw new Error("Could not generate badge preview variants.");
+        }
+
+        const poseSession: BadgeModelPoseSession = {
+          modelPath,
+          variants: prepared.variants,
+          selectedIndex: 0,
+          finalized: false,
+        };
+
+        options.onUploadSuccess({
+          modelPath,
+          poseSession,
+          previewUrl: selected.previewUrl,
+          iconModelYaw: selected.yaw,
+          iconModelPitch: selected.pitch,
+        });
       } catch (error) {
         options.onUploadError(
           error instanceof Error ? error.message : "Could not upload 3D badge asset.",
@@ -55,4 +80,26 @@ export function useBadgeModelUploader(options: UseBadgeModelUploaderOptions) {
     queueUpload,
     uploadInProgress,
   };
+}
+
+export function applyBadgeModelPoseSessionToForm(
+  form: FormState,
+  staged: BadgeModelUploadStaged,
+): FormState {
+  return {
+    ...form,
+    iconUrl: staged.previewUrl,
+    iconFileId: "",
+    iconAssetKind: "model_glb",
+    iconAssetPath: staged.modelPath,
+    iconModelYaw: staged.iconModelYaw,
+    iconModelPitch: staged.iconModelPitch,
+  };
+}
+
+export function clearBadgeModelPoseSessionRef(
+  sessionRef: { current: BadgeModelPoseSession | null },
+): void {
+  revokeBadgeModelPoseSession(sessionRef.current);
+  sessionRef.current = null;
 }

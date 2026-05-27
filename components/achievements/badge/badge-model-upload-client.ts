@@ -7,30 +7,93 @@ import {
   PerspectiveCamera,
   Quaternion,
   SRGBColorSpace,
+  Group,
   Scene,
   WebGLRenderer,
   type KeyframeTrack,
+  type Object3D,
 } from "three";
 import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
 
+import {
+  createBadgeModelPoseVariant,
+  type BadgeModelPoseVariant,
+} from "@/components/achievements/badge/badge-model-pose-session";
 import {
   BADGE_MODEL_MAX_FILE_BYTES,
   isGlbHeader,
   looksLikeGlbUpload,
 } from "@/lib/achievements/badge-assets";
 import {
+  applyBadgeModelPose,
+  BADGE_MODEL_POSE_PRESETS,
+} from "@/lib/achievements/badge-model-poses";
+import {
   addBadgeModelLights,
+  centerBadgeModelAtOrigin,
   configureBadgeModelLoader,
-  frameBadgeModelForCamera,
+  frameCameraForBadgeModel,
 } from "@/lib/achievements/badge-model-rendering";
 
 const PREVIEW_SIZE_PX = 768;
 const LOOP_EPSILON = 0.025;
 const LOOP_QUATERNION_EPSILON_RAD = 0.06;
+
 export type PreparedBadgeModelUpload = {
-  previewBlob: Blob;
+  variants: BadgeModelPoseVariant[];
 };
+
+/** One offscreen WebGL context for all pose poster snapshots (avoids context limit). */
+let sharedPosterRenderer: WebGLRenderer | null = null;
+
+function getSharedPosterRenderer(): WebGLRenderer {
+  if (sharedPosterRenderer) {
+    sharedPosterRenderer.setSize(PREVIEW_SIZE_PX, PREVIEW_SIZE_PX, false);
+    return sharedPosterRenderer;
+  }
+
+  const canvas = document.createElement("canvas");
+  sharedPosterRenderer = new WebGLRenderer({
+    canvas,
+    alpha: true,
+    antialias: true,
+    preserveDrawingBuffer: true,
+    powerPreference: "high-performance",
+  });
+  sharedPosterRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  sharedPosterRenderer.setSize(PREVIEW_SIZE_PX, PREVIEW_SIZE_PX, false);
+  sharedPosterRenderer.outputColorSpace = SRGBColorSpace;
+  sharedPosterRenderer.toneMapping = ACESFilmicToneMapping;
+  sharedPosterRenderer.setClearColor(0x000000, 0);
+  return sharedPosterRenderer;
+}
+
+function disposeMaterial(value: unknown): void {
+  if (!value || typeof value !== "object" || !("dispose" in value)) return;
+  const disposer = (value as { dispose?: () => void }).dispose;
+  if (typeof disposer === "function") {
+    disposer.call(value);
+  }
+}
+
+function disposeObject3D(root: Object3D): void {
+  root.traverse((object) => {
+    const geometry = (object as { geometry?: { dispose?: () => void } }).geometry;
+    if (geometry && typeof geometry.dispose === "function") {
+      geometry.dispose();
+    }
+
+    const material = (object as { material?: unknown }).material;
+    if (material !== undefined) {
+      if (Array.isArray(material)) {
+        material.forEach(disposeMaterial);
+      } else {
+        disposeMaterial(material);
+      }
+    }
+  });
+}
 
 function createConfiguredGlbLoader() {
   const loader = new GLTFLoader();
@@ -109,29 +172,35 @@ function validateFirstClipLoops(gltf: GLTF): void {
   }
 }
 
-async function renderPosterFromGltf(gltf: GLTF): Promise<Blob> {
-  const canvas = document.createElement("canvas");
-  const renderer = new WebGLRenderer({
-    canvas,
-    alpha: true,
-    antialias: true,
-    preserveDrawingBuffer: true,
+async function canvasToPngBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob((nextBlob) => resolve(nextBlob), "image/png");
   });
+  if (!blob) {
+    throw new Error("Could not generate a badge preview from this model.");
+  }
+  return blob;
+}
 
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  renderer.setSize(PREVIEW_SIZE_PX, PREVIEW_SIZE_PX, false);
-  renderer.outputColorSpace = SRGBColorSpace;
-  renderer.toneMapping = ACESFilmicToneMapping;
-  renderer.setClearColor(0x000000, 0);
-
+async function renderPosterFromGltf(
+  gltf: GLTF,
+  yaw: number,
+  pitch: number,
+  renderer: WebGLRenderer,
+): Promise<Blob> {
   const scene = new Scene();
   addBadgeModelLights(scene);
 
   const model = cloneSkeleton(gltf.scene);
-  scene.add(model);
+  centerBadgeModelAtOrigin(model);
+  const orbitRoot = new Group();
+  orbitRoot.add(model);
+  applyBadgeModelPose(orbitRoot, yaw, pitch);
+  scene.add(orbitRoot);
 
+  let mixer: AnimationMixer | null = null;
   if (gltf.animations[0]) {
-    const mixer = new AnimationMixer(model);
+    mixer = new AnimationMixer(model);
     const action = mixer.clipAction(gltf.animations[0]);
     action.setLoop(LoopRepeat, Infinity);
     action.play();
@@ -139,19 +208,14 @@ async function renderPosterFromGltf(gltf: GLTF): Promise<Blob> {
   }
 
   const camera = new PerspectiveCamera(34, 1, 0.01, 1000);
-  frameBadgeModelForCamera(model, camera);
+  frameCameraForBadgeModel(orbitRoot, camera);
 
   renderer.render(scene, camera);
+  const blob = await canvasToPngBlob(renderer.domElement);
 
-  const blob = await new Promise<Blob | null>((resolve) => {
-    canvas.toBlob((nextBlob) => resolve(nextBlob), "image/png");
-  });
-
-  renderer.dispose();
-
-  if (!blob) {
-    throw new Error("Could not generate a badge preview from this model.");
-  }
+  mixer?.stopAllAction();
+  disposeObject3D(orbitRoot);
+  scene.clear();
 
   return blob;
 }
@@ -161,6 +225,19 @@ export async function prepareBadgeModelUpload(
 ): Promise<PreparedBadgeModelUpload> {
   const gltf = await parseGlbFile(file);
   validateFirstClipLoops(gltf);
-  const previewBlob = await renderPosterFromGltf(gltf);
-  return { previewBlob };
+
+  const renderer = getSharedPosterRenderer();
+  const variants: BadgeModelPoseVariant[] = [];
+
+  for (const preset of BADGE_MODEL_POSE_PRESETS) {
+    const previewBlob = await renderPosterFromGltf(
+      gltf,
+      preset.yaw,
+      preset.pitch,
+      renderer,
+    );
+    variants.push(createBadgeModelPoseVariant(preset, previewBlob));
+  }
+
+  return { variants };
 }

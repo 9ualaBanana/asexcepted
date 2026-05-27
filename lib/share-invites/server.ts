@@ -7,6 +7,7 @@ import { todayDateString } from "@/components/achievements/achievement-editor-sh
 import type { Tables } from "@/lib/supabase/database.types";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { fetchPublicUserDisplayName } from "@/lib/user-profile-db";
+import { notifyDedicationAccepted } from "@/lib/notifications/dedication-accepted";
 import { userAchievementDetail } from "@/lib/routes";
 import {
   createAchievementShareInviteToken,
@@ -27,6 +28,8 @@ export type AchievementShareInviteSnapshot = Pick<
   | "icon_asset_kind"
   | "icon_asset_path"
   | "icon_cc_attribution"
+  | "icon_model_yaw"
+  | "icon_model_pitch"
   | "tone"
   | "achieved_at"
 >;
@@ -56,6 +59,8 @@ function toShareInviteSnapshot(
     icon_asset_kind: payload.icon_asset_kind ?? "image",
     icon_asset_path: payload.icon_asset_path ?? null,
     icon_cc_attribution: payload.icon_cc_attribution ?? null,
+    icon_model_yaw: payload.icon_model_yaw ?? 0,
+    icon_model_pitch: payload.icon_model_pitch ?? 0,
     tone: payload.tone ?? null,
     achieved_at: payload.achieved_at ?? null,
   };
@@ -122,6 +127,8 @@ export async function createAchievementShareInviteFromPayload(args: {
       icon_asset_kind: snapshot.icon_asset_kind,
       icon_asset_path: snapshot.icon_asset_path,
       icon_cc_attribution: snapshot.icon_cc_attribution,
+      icon_model_yaw: snapshot.icon_model_yaw,
+      icon_model_pitch: snapshot.icon_model_pitch,
       tone: snapshot.tone,
       achieved_at: snapshot.achieved_at,
       token_hash: tokenHash,
@@ -158,7 +165,7 @@ export async function createAchievementShareInviteFromExistingAchievement(args: 
   const { data, error } = await supabase
     .from("achievements")
     .select(
-      "id,user_id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_cc_attribution,tone,achieved_at,dedicated_by_user_id",
+      "id,user_id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_cc_attribution,icon_model_yaw,icon_model_pitch,tone,achieved_at,dedicated_by_user_id",
     )
     .eq("id", args.achievementId)
     .eq("user_id", args.senderUserId)
@@ -181,6 +188,8 @@ export async function createAchievementShareInviteFromExistingAchievement(args: 
     | "icon_asset_kind"
     | "icon_asset_path"
     | "icon_cc_attribution"
+    | "icon_model_yaw"
+    | "icon_model_pitch"
     | "tone"
     | "achieved_at"
     | "dedicated_by_user_id"
@@ -203,6 +212,8 @@ export async function createAchievementShareInviteFromExistingAchievement(args: 
       icon_asset_kind: achievement.icon_asset_kind,
       icon_asset_path: achievement.icon_asset_path,
       icon_cc_attribution: achievement.icon_cc_attribution,
+      icon_model_yaw: achievement.icon_model_yaw ?? 0,
+      icon_model_pitch: achievement.icon_model_pitch ?? 0,
       tone: achievement.tone,
       achieved_at: achievement.achieved_at,
       is_locked: achievement.icon_url ? true : false,
@@ -302,6 +313,8 @@ export async function claimAchievementShareInvite(args: {
       icon_asset_kind: reservedInvite.icon_asset_kind,
       icon_asset_path: reservedInvite.icon_asset_path,
       icon_cc_attribution: reservedInvite.icon_cc_attribution,
+      icon_model_yaw: reservedInvite.icon_model_yaw ?? 0,
+      icon_model_pitch: reservedInvite.icon_model_pitch ?? 0,
       tone: reservedInvite.tone,
       is_locked: true,
       achieved_at: achievedAt,
@@ -326,6 +339,13 @@ export async function claimAchievementShareInvite(args: {
       claimed_at: claimedAt,
     })
     .eq("id", reservedInvite.id);
+
+  if (args.autoAccept) {
+    await notifyDedicationAccepted({
+      achievementId: createdAchievement.id,
+      supabase,
+    });
+  }
 
   return ok({
     achievementId: createdAchievement.id,

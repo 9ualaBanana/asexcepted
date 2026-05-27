@@ -491,6 +491,7 @@ export function useAchievementsManagerModel({
     },
     dedicationSenderDisplayName: dedicationBySenderName,
     isDedicatingCreate,
+    badgeSessionController: badgeSession,
   };
 
   return {

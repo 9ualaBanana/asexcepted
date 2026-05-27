@@ -15,10 +15,12 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
 
 import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
+import { applyBadgeModelPose } from "@/lib/achievements/badge-model-poses";
 import {
   addBadgeModelLights,
+  centerBadgeModelAtOrigin,
   configureBadgeModelLoader,
-  frameBadgeModelForCamera,
+  frameCameraForBadgeModel,
 } from "@/lib/achievements/badge-model-rendering";
 import { getCachedBadgeMotionStyle } from "@/lib/badge/render-cache";
 import { cn } from "@/lib/utils";
@@ -30,6 +32,8 @@ type AchievementBadgeModelViewerProps = {
   float?: boolean;
   motionSeed?: string;
   motionStartCentered?: boolean;
+  initialYaw?: number;
+  initialPitch?: number;
   onVisualReady?: () => void;
   stateKey?: string;
 };
@@ -44,15 +48,15 @@ const DRAG_PITCH_SENSITIVITY = 0.0054;
 const INERTIA_DAMPING = 0.915;
 const INERTIA_MIN_SPEED = 0.00035;
 
-const badgeModelViewStateCache = new Map<
-  string,
-  {
-    yaw: number;
-    pitch: number;
-    inertiaYaw: number;
-    inertiaPitch: number;
-  }
->();
+type BadgeModelViewState = {
+  yaw: number;
+  pitch: number;
+  inertiaYaw: number;
+  inertiaPitch: number;
+  mixerTime: number;
+};
+
+const badgeModelViewStateCache = new Map<string, BadgeModelViewState>();
 
 let sharedBadgeModelRenderer: WebGLRenderer | null = null;
 
@@ -91,16 +95,20 @@ export function AchievementBadgeModelViewer({
   float = false,
   motionSeed,
   motionStartCentered = false,
+  initialYaw = 0,
+  initialPitch = 0,
   onVisualReady,
   stateKey,
 }: AchievementBadgeModelViewerProps) {
   const mountRef = useRef<HTMLDivElement>(null);
+  const onVisualReadyRef = useRef(onVisualReady);
+  onVisualReadyRef.current = onVisualReady;
   const [ready, setReady] = useState(false);
   const [previewVisible, setPreviewVisible] = useState(true);
-  const viewStateKey = useMemo(
-    () => (stateKey ?? motionSeed ?? signedModelUrl).trim() || signedModelUrl,
-    [motionSeed, signedModelUrl, stateKey],
-  );
+  const viewStateKey = useMemo(() => {
+    const base = (stateKey ?? motionSeed ?? signedModelUrl).trim() || signedModelUrl;
+    return `${base}:${initialYaw.toFixed(4)}:${initialPitch.toFixed(4)}`;
+  }, [initialPitch, initialYaw, motionSeed, signedModelUrl, stateKey]);
 
   useEffect(() => {
     setReady(false);
@@ -125,11 +133,12 @@ export function AchievementBadgeModelViewer({
       : badgeModelViewStateCache.get(viewStateKey);
     let inertiaYaw = cachedState?.inertiaYaw ?? 0;
     let inertiaPitch = cachedState?.inertiaPitch ?? 0;
-    let yaw = cachedState?.yaw ?? 0;
-    let pitch = cachedState?.pitch ?? 0;
-    let allowAnimationAdvance = false;
+    let yaw = motionStartCentered ? initialYaw : (cachedState?.yaw ?? initialYaw);
+    let pitch = motionStartCentered ? initialPitch : (cachedState?.pitch ?? initialPitch);
+    let allowAnimationAdvance = Boolean(cachedState);
     let animationStartTimeout: number | null = null;
     let previewFadeTimeout: number | null = null;
+    let persistedMixerTime = cachedState?.mixerTime ?? 0;
 
     const loader = new GLTFLoader();
     configureGlbLoader(loader);
@@ -147,16 +156,22 @@ export function AchievementBadgeModelViewer({
       camera.updateProjectionMatrix();
     };
 
-    const applyRotation = () => {
-      if (!interactiveRoot) return;
-      interactiveRoot.rotation.x = pitch;
-      interactiveRoot.rotation.y = yaw;
+    const persistViewState = () => {
+      if (mixer) {
+        persistedMixerTime = mixer.time;
+      }
       badgeModelViewStateCache.set(viewStateKey, {
         yaw,
         pitch,
         inertiaYaw,
         inertiaPitch,
+        mixerTime: persistedMixerTime,
       });
+    };
+
+    const applyRotation = () => {
+      if (!interactiveRoot) return;
+      applyBadgeModelPose(interactiveRoot, yaw, pitch);
     };
 
     const beginDrag = (pointerId: number, clientX: number, clientY: number) => {
@@ -216,8 +231,45 @@ export function AchievementBadgeModelViewer({
     mount.appendChild(renderer.domElement);
     handleResize();
 
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        persistViewState();
+        return;
+      }
+      lastFrameTime = performance.now();
+      const restored = badgeModelViewStateCache.get(viewStateKey);
+      if (restored) {
+        persistedMixerTime = restored.mixerTime;
+      }
+      if (mixer) {
+        mixer.setTime(persistedMixerTime);
+      }
+    };
+
+    const onContextLost = (event: Event) => {
+      event.preventDefault();
+      persistViewState();
+    };
+
+    const onContextRestored = () => {
+      lastFrameTime = performance.now();
+      handleResize();
+      if (mixer) {
+        mixer.setTime(persistedMixerTime);
+      }
+      allowAnimationAdvance = true;
+      setReady(true);
+      setPreviewVisible(false);
+    };
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
     const animate = (time: number) => {
       if (cancelled || !renderer) return;
+      if (document.visibilityState === "hidden") {
+        frameId = requestAnimationFrame(animate);
+        return;
+      }
       frameId = requestAnimationFrame(animate);
       const deltaSeconds = Math.min((time - lastFrameTime) / 1000, 0.05);
       lastFrameTime = time;
@@ -244,37 +296,50 @@ export function AchievementBadgeModelViewer({
         if (cancelled) return;
 
         interactiveRoot = new Group();
+        interactiveRoot.position.set(0, 0, 0);
         const model = cloneSkeleton(gltf.scene);
+        centerBadgeModelAtOrigin(model);
         interactiveRoot.add(model);
         scene.add(interactiveRoot);
-        interactiveRoot.updateMatrixWorld(true);
 
-        frameBadgeModelForCamera(model, camera);
+        applyRotation();
+        interactiveRoot.updateMatrixWorld(true);
+        frameCameraForBadgeModel(interactiveRoot, camera);
 
         if (gltf.animations[0]) {
           mixer = new AnimationMixer(model);
           const action = mixer.clipAction(gltf.animations[0]);
-          action.reset();
           action.setLoop(LoopRepeat, Infinity);
+          action.reset();
           action.play();
-          mixer.setTime(0);
+          mixer.setTime(persistedMixerTime);
         }
 
-        applyRotation();
+        renderer.domElement.addEventListener("webglcontextlost", onContextLost);
+        renderer.domElement.addEventListener("webglcontextrestored", onContextRestored);
 
-        requestAnimationFrame(() => {
+        if (cachedState) {
+          setReady(true);
+          setPreviewVisible(false);
+          allowAnimationAdvance = true;
+          onVisualReadyRef.current?.();
+        } else {
           requestAnimationFrame(() => {
-            if (cancelled) return;
-            setReady(true);
-            onVisualReady?.();
-            previewFadeTimeout = window.setTimeout(() => {
-              setPreviewVisible(false);
-            }, 90);
-            animationStartTimeout = window.setTimeout(() => {
-              allowAnimationAdvance = true;
-            }, 140);
+            requestAnimationFrame(() => {
+              if (cancelled) return;
+              setReady(true);
+              onVisualReadyRef.current?.();
+              previewFadeTimeout = window.setTimeout(() => {
+                setPreviewVisible(false);
+              }, 90);
+              animationStartTimeout = window.setTimeout(() => {
+                allowAnimationAdvance = true;
+              }, 140);
+            });
           });
-        });
+        }
+
+        persistViewState();
       })
       .catch(() => {
         /* Keep the generated preview visible if model loading fails. */
@@ -297,13 +362,11 @@ export function AchievementBadgeModelViewer({
       mount.removeEventListener("pointerup", onPointerUp);
       mount.removeEventListener("pointercancel", onPointerUp);
       mount.removeEventListener("pointerleave", onPointerUp);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      renderer?.domElement.removeEventListener("webglcontextlost", onContextLost);
+      renderer?.domElement.removeEventListener("webglcontextrestored", onContextRestored);
+      persistViewState();
       mixer?.stopAllAction();
-      badgeModelViewStateCache.set(viewStateKey, {
-        yaw,
-        pitch,
-        inertiaYaw,
-        inertiaPitch,
-      });
       interactiveRoot?.traverse((object) => {
         const geometry = (object as { geometry?: { dispose?: () => void } }).geometry;
         if (geometry && typeof geometry.dispose === "function") {
@@ -324,7 +387,7 @@ export function AchievementBadgeModelViewer({
         mount.removeChild(renderer.domElement);
       }
     };
-  }, [motionStartCentered, onVisualReady, signedModelUrl, viewStateKey]);
+  }, [signedModelUrl, viewStateKey]);
 
   const floatMotionStyle = useMemo(
     () =>

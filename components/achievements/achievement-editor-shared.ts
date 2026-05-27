@@ -127,6 +127,8 @@ export type FormState = {
   iconAssetKind: AchievementIconAssetKind;
   iconAssetPath: string;
   iconCcAttribution: string;
+  iconModelYaw: number;
+  iconModelPitch: number;
   tone: AchievementTone;
   isLocked: boolean;
   achievedAt: string;
@@ -138,6 +140,8 @@ export type BadgeRemoteAsset = {
   iconFileId: string;
   iconAssetKind: AchievementIconAssetKind;
   iconAssetPath: string;
+  iconModelYaw?: number;
+  iconModelPitch?: number;
 };
 
 export type BadgeIkSession = {
@@ -157,6 +161,8 @@ export function createEmptyBadgeRemoteAsset(): BadgeRemoteAsset {
     iconFileId: "",
     iconAssetKind: "image",
     iconAssetPath: "",
+    iconModelYaw: 0,
+    iconModelPitch: 0,
   };
 }
 

@@ -36,6 +36,8 @@ export function getWelcomeIntroAchievementRecord(): AchievementRecord {
     icon_asset_kind: INTRO_ACHIEVEMENT_SEED.icon_asset_kind,
     icon_asset_path: INTRO_ACHIEVEMENT_SEED.icon_asset_path,
     icon_cc_attribution: INTRO_ACHIEVEMENT_SEED.icon_cc_attribution,
+    icon_model_yaw: 0,
+    icon_model_pitch: 0,
     tone: INTRO_ACHIEVEMENT_SEED.tone,
     is_locked: true,
     achieved_at: INTRO_ACHIEVEMENT_SEED.achieved_at,

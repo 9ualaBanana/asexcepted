@@ -44,7 +44,7 @@ export function BadgeAttributionPopover({
   }, [open]);
 
   return (
-    <div ref={rootRef} className="pointer-events-auto absolute left-3 top-3 z-40">
+    <div ref={rootRef} className="pointer-events-auto absolute bottom-3 left-3 z-40">
       <button
         type="button"
         aria-label="Badge attribution"
@@ -52,7 +52,7 @@ export function BadgeAttributionPopover({
         disabled={disabled}
         onClick={() => setOpen((current) => !current)}
         className={cn(
-          "flex h-9 w-9 items-center justify-center rounded-full border border-white/18 bg-black/35 text-white/80 shadow-lg backdrop-blur-md transition hover:bg-black/45 hover:text-white disabled:pointer-events-none disabled:opacity-50",
+          "flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/10 text-white/25 shadow-md backdrop-blur-sm transition hover:bg-black/20 hover:text-white/45 disabled:pointer-events-none disabled:opacity-50",
           buttonClassName,
         )}
       >
@@ -65,7 +65,7 @@ export function BadgeAttributionPopover({
           aria-modal="false"
           aria-labelledby={titleId}
           className={cn(
-            "absolute left-0 top-11 w-[min(20rem,72vw)] rounded-2xl border border-white/12 bg-[#14121c]/95 p-4 text-left text-white shadow-[0_20px_60px_rgba(0,0,0,0.42)] backdrop-blur-xl",
+            "absolute bottom-11 left-0 w-[min(20rem,72vw)] rounded-2xl border border-white/12 bg-[#14121c]/95 p-4 text-left text-white shadow-[0_20px_60px_rgba(0,0,0,0.42)] backdrop-blur-xl",
             panelClassName,
           )}
         >

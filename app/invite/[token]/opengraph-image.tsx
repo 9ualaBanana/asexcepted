@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 
+import { resolveInviteOgImageTitle } from "@/lib/share-invites/invite-share-title";
 import {
   getAchievementShareInviteKind,
   getAchievementShareInvitePresentationByToken,
@@ -43,9 +44,10 @@ export default async function Image({ params }: ImageProps) {
     );
   }
 
-  const { invite, senderDisplayName } = result.value;
+  const { invite, senderDisplayName: rawSenderName } = result.value;
+  const senderDisplayName = rawSenderName.trim() || "Someone";
   const pageKind = getAchievementShareInviteKind(invite);
-  const title = invite.title?.trim() || "Shared achievement";
+  const title = resolveInviteOgImageTitle(invite);
   const description =
     invite.description?.trim() ||
     (pageKind === "showcase"
@@ -158,10 +160,11 @@ export default async function Image({ params }: ImageProps) {
                 marginTop: "26px",
                 fontSize: 20,
                 alignItems: "center",
+                gap: "0.35em",
               }}
             >
               <span style={{ color: "rgba(245,243,255,0.55)" }}>
-                {pageKind === "showcase" ? "by " : "dedicated by "}
+                {pageKind === "showcase" ? "by" : "dedicated by"}
               </span>
               <span
                 style={{

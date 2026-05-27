@@ -29,6 +29,8 @@ export type AchievementDetailBadgeInteractiveProps = {
   hasIconUrl: boolean;
   iconAssetKind?: "image" | "model_glb";
   iconAssetPath?: string | null;
+  iconModelYaw?: number;
+  iconModelPitch?: number;
   viewerStateKey?: string;
   lockedUi: boolean;
   unlocking: boolean;
@@ -60,6 +62,8 @@ export function AchievementDetailBadgeInteractive({
   hasIconUrl,
   iconAssetKind = "image",
   iconAssetPath = null,
+  iconModelYaw = 0,
+  iconModelPitch = 0,
   viewerStateKey,
   lockedUi,
   unlocking,
@@ -140,6 +144,8 @@ export function AchievementDetailBadgeInteractive({
                   float={floating}
                   motionSeed={motionSeed}
                   motionStartCentered={motionStartCentered}
+                  initialYaw={iconModelYaw}
+                  initialPitch={iconModelPitch}
                   stateKey={viewerStateKey}
                   onVisualReady={() => {
                     onImageDecoded?.();

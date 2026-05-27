@@ -102,3 +102,25 @@ export function formatDedicationActivityMessage(
 ): string {
   return buildDedicationActivityText(achievement, actor).text;
 }
+
+function buildDedicationAcceptedActivityText(
+  achievement: string,
+  recipientName: string,
+): ActivityTextCopy {
+  return {
+    text: `${recipientName} added ${achievement} to their collection`,
+    parts: [
+      { kind: "actor", text: recipientName },
+      { kind: "muted", text: " added " },
+      { kind: "achievement", text: achievement },
+      { kind: "muted", text: " to their collection" },
+    ],
+  };
+}
+
+export function formatDedicationAcceptedActivityMessage(
+  achievement: string,
+  recipientName: string,
+): string {
+  return buildDedicationAcceptedActivityText(achievement, recipientName).text;
+}

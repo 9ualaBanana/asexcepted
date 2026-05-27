@@ -18,6 +18,8 @@ const bodySchema = z.object({
   icon_asset_kind: z.enum(["image", "model_glb"]).optional(),
   icon_asset_path: z.string().nullable().optional(),
   icon_cc_attribution: z.string().nullable().optional(),
+  icon_model_yaw: z.number().optional(),
+  icon_model_pitch: z.number().optional(),
   tone: z.string().optional(),
   achieved_at: z.string().nullable().optional(),
 });
@@ -61,6 +63,8 @@ export async function POST(request: Request) {
       icon_asset_kind: parsed.data.icon_asset_kind ?? "image",
       icon_asset_path: parsed.data.icon_asset_path ?? null,
       icon_cc_attribution: parsed.data.icon_cc_attribution ?? null,
+      icon_model_yaw: parsed.data.icon_model_yaw ?? 0,
+      icon_model_pitch: parsed.data.icon_model_pitch ?? 0,
       tone: parsed.data.tone ?? "teal",
       is_locked: true,
       achieved_at: parsed.data.achieved_at ?? null,

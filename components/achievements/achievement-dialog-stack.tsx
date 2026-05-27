@@ -37,6 +37,7 @@ import {
 import { ImpressionBurst } from "@/components/achievements/badge/impression-burst";
 import { submitImpression } from "@/components/achievements/use-impression-on-badge";
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
+import type { AchievementBadgeSessionController } from "@/components/achievements/use-achievement-badge-session-controller";
 import { useDoubleActivate } from "@/lib/hooks/use-double-activate";
 import { getTutorial, TUTORIAL_IDS, useTutorial, useTutorialToast } from "@/lib/tutorials";
 import { cn } from "@/lib/utils";
@@ -95,6 +96,7 @@ export type AchievementDialogStackProps = {
   onImpressionRecorded: (added: boolean, hadImpressionsBefore: boolean) => void;
   dedicationSenderDisplayName?: string | null;
   isDedicatingCreate?: boolean;
+  badgeSessionController: AchievementBadgeSessionController;
 };
 
 export function AchievementDialogStack(props: AchievementDialogStackProps) {
@@ -148,6 +150,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     onImpressionRecorded,
     dedicationSenderDisplayName,
     isDedicatingCreate = false,
+    badgeSessionController,
   } = props;
 
   const detailIsDedicated =
@@ -278,6 +281,8 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
               onRequestShare={isDedicatingCreate ? undefined : onShareCreateInvite}
               shareDisabled={shareInviteBusy || !createForm.iconUrl.trim()}
               dedicateMode={isDedicatingCreate}
+              badgeSessionController={badgeSessionController}
+              isCreatingFlow
             />
           ) : showDetailContent ? (
             <div className="no-tap-highlight flex w-full flex-col items-center pt-1">
@@ -321,6 +326,8 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       hasIconUrl={Boolean(detailAchievement.icon_url?.trim())}
                       iconAssetKind={detailAchievement.icon_asset_kind}
                       iconAssetPath={detailAchievement.icon_asset_path}
+                      iconModelYaw={detailAchievement.icon_model_yaw}
+                      iconModelPitch={detailAchievement.icon_model_pitch}
                       viewerStateKey={`${detailAchievement.id}:detail:${detailViewSessionKey}`}
                       lockedUi={detailIsLockedUi}
                       unlocking={detailIsUnlocking}
@@ -509,6 +516,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                   ? () => onRequestDelete(detailAchievement.id)
                   : undefined
               }
+              badgeSessionController={badgeSessionController}
             />
           ) : null}
         </div>

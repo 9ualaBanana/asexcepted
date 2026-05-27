@@ -51,6 +51,8 @@ export type Database = {
           icon_asset_path: string | null
           icon_cc_attribution: string | null
           icon_file_id: string | null
+          icon_model_pitch: number
+          icon_model_yaw: number
           icon_url: string | null
           id: string
           is_locked: boolean
@@ -72,6 +74,8 @@ export type Database = {
           icon_asset_path?: string | null
           icon_cc_attribution?: string | null
           icon_file_id?: string | null
+          icon_model_pitch?: number
+          icon_model_yaw?: number
           icon_url?: string | null
           id?: string
           is_locked?: boolean
@@ -93,6 +97,8 @@ export type Database = {
           icon_asset_path?: string | null
           icon_cc_attribution?: string | null
           icon_file_id?: string | null
+          icon_model_pitch?: number
+          icon_model_yaw?: number
           icon_url?: string | null
           id?: string
           is_locked?: boolean
@@ -119,6 +125,8 @@ export type Database = {
           icon_asset_path: string | null
           icon_cc_attribution: string | null
           icon_file_id: string | null
+          icon_model_pitch: number
+          icon_model_yaw: number
           icon_url: string
           id: string
           revoked_at: string | null
@@ -145,6 +153,8 @@ export type Database = {
           icon_asset_path?: string | null
           icon_cc_attribution?: string | null
           icon_file_id?: string | null
+          icon_model_pitch?: number
+          icon_model_yaw?: number
           icon_url: string
           id?: string
           revoked_at?: string | null
@@ -171,6 +181,8 @@ export type Database = {
           icon_asset_path?: string | null
           icon_cc_attribution?: string | null
           icon_file_id?: string | null
+          icon_model_pitch?: number
+          icon_model_yaw?: number
           icon_url?: string
           id?: string
           revoked_at?: string | null
