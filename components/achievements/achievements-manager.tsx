@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { AchievementBadgeDebugOverlay } from "@/components/achievements/achievement-badge-debug-overlay";
 import { AchievementDeleteConfirmDialog } from "@/components/achievements/achievement-delete-confirm-dialog";
 import { AchievementDiscardEditConfirmDialog } from "@/components/achievements/achievement-discard-edit-confirm-dialog";
@@ -10,6 +12,7 @@ import { DedicationResponseDialog } from "@/components/achievements/dedication/d
 import { DedicateInviteConfirmDialog } from "@/components/achievements/dedication/dedicate-invite-confirm-dialog";
 import { DedicationSenderConfirmDialog } from "@/components/achievements/dedication/dedication-sender-confirm-dialog";
 import { useAchievementsManagerModel } from "@/components/achievements/use-achievements-manager-model";
+import { resetBodyScrollLock } from "@/lib/dom/body-scroll-lock";
 import { useErrorToast } from "@/lib/toast";
 export type AchievementsManagerProps = {
   userId: string;
@@ -36,6 +39,17 @@ export function AchievementsManager({
   const { data, editorPipeline, ui, badgeMetrics, shareInvite } = model;
 
   useErrorToast(model.error, { id: "achievements-manager" });
+
+  const dedicationAchievement = model.dedicationQueue.dedicationAchievement;
+  const dedicationDialogOpen = Boolean(
+    model.dedicationQueue.dedicationDialogOpen && dedicationAchievement,
+  );
+
+  useEffect(() => {
+    if (!model.achievementOverlayOpen && !dedicationDialogOpen) {
+      resetBodyScrollLock();
+    }
+  }, [dedicationDialogOpen, model.achievementOverlayOpen]);
 
   return (
     <div className="space-y-1">
@@ -145,10 +159,9 @@ export function AchievementsManager({
         />
       ) : null}
 
-      {model.dedicationQueue.dedicationDialogOpen &&
-      model.dedicationQueue.dedicationAchievement ? (
+      {dedicationDialogOpen && dedicationAchievement ? (
         <DedicationResponseDialog
-          achievement={model.dedicationQueue.dedicationAchievement}
+          achievement={dedicationAchievement}
           senderDisplayName={model.dedicationQueue.dedicationSenderName}
           isBusy={model.dedicationQueue.dedicationBusy}
           onDismiss={model.dedicationQueue.dismissDedicationDialog}

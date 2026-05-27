@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Check, X } from "lucide-react";
 
@@ -13,6 +13,7 @@ import {
 } from "@/components/achievements/achievement-editor-shared";
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
+import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
 import { cn } from "@/lib/utils";
 
 type DedicationResponseDialogProps = {
@@ -40,13 +41,7 @@ export function DedicationResponseDialog({
     return src ? toOptimizedBadgeRenderSrc(src) : "";
   }, [achievement.icon_url]);
 
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, []);
+  useBodyScrollLock();
 
   if (typeof document === "undefined") {
     return null;

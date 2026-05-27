@@ -40,6 +40,7 @@ import { submitImpression } from "@/components/achievements/use-impression-on-ba
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
 import type { AchievementBadgeSessionController } from "@/components/achievements/use-achievement-badge-session-controller";
 import { useDoubleActivate } from "@/lib/hooks/use-double-activate";
+import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
 import { getTutorial, TUTORIAL_IDS, useTutorial, useTutorialToast } from "@/lib/tutorials";
 import { cn } from "@/lib/utils";
 
@@ -246,13 +247,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
       detailIsLockedUi,
   });
 
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, []);
+  useBodyScrollLock();
 
   if (typeof document === "undefined") {
     return null;
