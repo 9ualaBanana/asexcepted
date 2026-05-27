@@ -16,7 +16,7 @@ type AchievementDetailShareMenuProps = {
   disabled?: boolean;
   busy?: boolean;
   onShareShowcase: () => void;
-  onDedicateInvite: () => void;
+  onRequestDedicateInvite: () => void;
   onEmbed: () => void;
 };
 
@@ -24,7 +24,7 @@ export function AchievementDetailShareMenu({
   disabled = false,
   busy = false,
   onShareShowcase,
-  onDedicateInvite,
+  onRequestDedicateInvite,
   onEmbed,
 }: AchievementDetailShareMenuProps) {
   const isDisabled = disabled || busy;
@@ -65,7 +65,7 @@ export function AchievementDetailShareMenu({
         <DropdownMenuItem
           disabled={isDisabled}
           onSelect={() => {
-            onDedicateInvite();
+            onRequestDedicateInvite();
           }}
         >
           <Gift className="h-4 w-4" aria-hidden />

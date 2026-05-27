@@ -113,6 +113,7 @@ export type Database = {
       achievement_share_invites: {
         Row: {
           achieved_at: string | null
+          badge_assets_pinned_at: string | null
           category: string | null
           claimed_achievement_id: string | null
           claimed_at: string | null
@@ -141,6 +142,7 @@ export type Database = {
         }
         Insert: {
           achieved_at?: string | null
+          badge_assets_pinned_at?: string | null
           category?: string | null
           claimed_achievement_id?: string | null
           claimed_at?: string | null
@@ -169,6 +171,7 @@ export type Database = {
         }
         Update: {
           achieved_at?: string | null
+          badge_assets_pinned_at?: string | null
           category?: string | null
           claimed_achievement_id?: string | null
           claimed_at?: string | null

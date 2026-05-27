@@ -7,6 +7,7 @@ import { AchievementDialogStack } from "@/components/achievements/achievement-di
 import { AchievementGrid } from "@/components/achievements/achievement-grid";
 import { AchievementManualEmbedDialog } from "@/components/achievements/achievement-manual-embed-dialog";
 import { DedicationResponseDialog } from "@/components/achievements/dedication/dedication-response-dialog";
+import { DedicateInviteConfirmDialog } from "@/components/achievements/dedication/dedicate-invite-confirm-dialog";
 import { DedicationSenderConfirmDialog } from "@/components/achievements/dedication/dedication-sender-confirm-dialog";
 import { useAchievementsManagerModel } from "@/components/achievements/use-achievements-manager-model";
 import { useErrorToast } from "@/lib/toast";
@@ -124,6 +125,15 @@ export function AchievementsManager({
           detailOpenToVisualReadyMs={badgeMetrics.detailOpenToVisualReadyMs}
           detailOpenToModelUrlReadyMs={badgeMetrics.detailOpenToModelUrlReadyMs}
           detailOpenToModelVisualReadyMs={badgeMetrics.detailOpenToModelVisualReadyMs}
+        />
+      ) : null}
+
+      {model.dedicateInviteConfirmOpen ? (
+        <DedicateInviteConfirmDialog
+          achievementTitle={model.detailAchievement?.title}
+          isBusy={model.shareInvite.shareInviteBusy}
+          onDismiss={() => model.setDedicateInviteConfirmOpen(false)}
+          onConfirm={model.handleConfirmDedicateInviteShare}
         />
       ) : null}
 

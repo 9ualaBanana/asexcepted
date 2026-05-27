@@ -7,9 +7,12 @@ import {
   BADGE_PREVIEW_MAX_FILE_BYTES,
   buildAchievementBadgeModelPath,
   buildAchievementBadgePreviewPath,
+  buildShareInviteBadgeModelPath,
+  buildShareInviteBadgePreviewPath,
   extractPublicBucketObjectPath,
   isGlbHeader,
   isModelBadgeAssetKind,
+  isShareInviteBadgeModelPath,
   sanitizeAchievementBadgeAssetPath,
 } from "@/lib/achievements/badge-assets";
 import { getImageKitServerClient, isImageKitServerConfigured } from "@/lib/imagekit/server-client";
@@ -175,59 +178,83 @@ export type ClonedBadgeModelAsset = {
   iconAssetPath: string;
 };
 
-/**
- * Copies a sender's 3D badge GLB + poster into the claimer's storage so claimed
- * achievements keep working after reload (never store blob: preview URLs).
- */
-export async function cloneAchievementBadgeModelForClaimer(args: {
-  senderUserId: string;
-  claimerUserId: string;
-  iconAssetPath: string | null;
-}): Promise<ClonedBadgeModelAsset> {
-  const senderModelPath = sanitizeAchievementBadgeAssetPath(args.iconAssetPath);
-  assertUserOwnedBadgeModelPath(args.senderUserId, senderModelPath);
+type BadgeModelBundle = {
+  modelBuffer: ArrayBuffer;
+  previewBuffer: ArrayBuffer;
+};
+
+function resolveSourcePreviewPath(
+  modelPath: string,
+  ownerUserId: string,
+): string {
+  if (isShareInviteBadgeModelPath(modelPath)) {
+    return buildShareInviteBadgePreviewPath(modelPath.split("/")[1] ?? "");
+  }
+  return previewPathForModelPath(ownerUserId, modelPath);
+}
+
+async function downloadBadgeModelBundle(args: {
+  modelPath: string;
+  ownerUserId: string;
+}): Promise<BadgeModelBundle> {
+  const sourceModelPath = sanitizeAchievementBadgeAssetPath(args.modelPath);
+  if (!sourceModelPath) {
+    throw new Error("Missing badge model asset path.");
+  }
+
+  if (!isShareInviteBadgeModelPath(sourceModelPath)) {
+    assertUserOwnedBadgeModelPath(args.ownerUserId, sourceModelPath);
+  }
 
   const supabase = createServiceRoleClient();
   const { data: modelBlob, error: modelDownloadError } = await supabase.storage
     .from(ACHIEVEMENT_BADGE_MODEL_BUCKET)
-    .download(senderModelPath);
+    .download(sourceModelPath);
 
   if (modelDownloadError || !modelBlob) {
-    throw new Error("Could not copy the shared 3D badge model.");
+    throw new Error("Could not read the badge model.");
   }
 
   const modelBuffer = await modelBlob.arrayBuffer();
   if (!isGlbHeader(modelBuffer)) {
-    throw new Error("The shared 3D badge model is invalid.");
+    throw new Error("The badge model is invalid.");
   }
   if (modelBuffer.byteLength > BADGE_MODEL_MAX_FILE_BYTES) {
-    throw new Error("The shared 3D badge model is too large to claim.");
+    throw new Error("The badge model is too large.");
   }
 
-  const senderPreviewPath = previewPathForModelPath(args.senderUserId, senderModelPath);
+  const previewPath = resolveSourcePreviewPath(sourceModelPath, args.ownerUserId);
   const { data: previewBlob, error: previewDownloadError } = await supabase.storage
     .from(ACHIEVEMENT_BADGE_PREVIEW_BUCKET)
-    .download(senderPreviewPath);
+    .download(previewPath);
 
   if (previewDownloadError || !previewBlob) {
-    throw new Error("Could not copy the shared 3D badge preview.");
+    throw new Error("Could not read the badge preview.");
   }
 
   const previewBuffer = await previewBlob.arrayBuffer();
   if (isAchievementBadgePreviewTooLarge(previewBuffer)) {
-    throw new Error("The shared 3D badge preview is too large to claim.");
+    throw new Error("The badge preview is too large.");
   }
 
-  const assetId = crypto.randomUUID();
-  const claimerModelPath = buildAchievementBadgeModelPath(args.claimerUserId, assetId);
-  const claimerPreviewPath = buildAchievementBadgePreviewPath(args.claimerUserId, assetId);
+  return { modelBuffer, previewBuffer };
+}
+
+async function uploadBadgeModelBundle(args: {
+  modelPath: string;
+  previewPath: string;
+  modelBuffer: ArrayBuffer;
+  previewBuffer: ArrayBuffer;
+  upsert: boolean;
+}): Promise<ClonedBadgeModelAsset> {
+  const supabase = createServiceRoleClient();
 
   const modelUpload = await supabase.storage
     .from(ACHIEVEMENT_BADGE_MODEL_BUCKET)
-    .upload(claimerModelPath, modelBuffer, {
+    .upload(args.modelPath, args.modelBuffer, {
       cacheControl: "31536000",
       contentType: "model/gltf-binary",
-      upsert: false,
+      upsert: args.upsert,
     });
   if (modelUpload.error) {
     throw new Error(modelUpload.error.message);
@@ -235,24 +262,81 @@ export async function cloneAchievementBadgeModelForClaimer(args: {
 
   const previewUpload = await supabase.storage
     .from(ACHIEVEMENT_BADGE_PREVIEW_BUCKET)
-    .upload(claimerPreviewPath, previewBuffer, {
+    .upload(args.previewPath, args.previewBuffer, {
       cacheControl: "31536000",
       contentType: "image/png",
-      upsert: false,
+      upsert: args.upsert,
     });
   if (previewUpload.error) {
-    await supabase.storage.from(ACHIEVEMENT_BADGE_MODEL_BUCKET).remove([claimerModelPath]);
+    await supabase.storage.from(ACHIEVEMENT_BADGE_MODEL_BUCKET).remove([args.modelPath]);
     throw new Error(previewUpload.error.message);
   }
 
   const { data: publicUrlData } = supabase.storage
     .from(ACHIEVEMENT_BADGE_PREVIEW_BUCKET)
-    .getPublicUrl(claimerPreviewPath);
+    .getPublicUrl(args.previewPath);
 
   return {
     iconUrl: publicUrlData.publicUrl,
-    iconAssetPath: claimerModelPath,
+    iconAssetPath: args.modelPath,
   };
+}
+
+/**
+ * Pins 3D badge files on the invite snapshot so links keep working if the sender
+ * removes the achievement from their collection.
+ */
+export async function pinBadgeAssetsForShareInvite(args: {
+  inviteId: string;
+  senderUserId: string;
+  iconAssetPath: string | null;
+}): Promise<ClonedBadgeModelAsset | null> {
+  const sourceModelPath = sanitizeAchievementBadgeAssetPath(args.iconAssetPath);
+  if (!sourceModelPath) {
+    return null;
+  }
+
+  const bundle = await downloadBadgeModelBundle({
+    modelPath: sourceModelPath,
+    ownerUserId: args.senderUserId,
+  });
+
+  return uploadBadgeModelBundle({
+    modelPath: buildShareInviteBadgeModelPath(args.inviteId),
+    previewPath: buildShareInviteBadgePreviewPath(args.inviteId),
+    modelBuffer: bundle.modelBuffer,
+    previewBuffer: bundle.previewBuffer,
+    upsert: true,
+  });
+}
+
+/**
+ * Copies a badge GLB + poster into the claimer's storage so claimed achievements
+ * keep working after reload (never store blob: preview URLs).
+ */
+export async function cloneAchievementBadgeModelForClaimer(args: {
+  senderUserId: string;
+  claimerUserId: string;
+  iconAssetPath: string | null;
+}): Promise<ClonedBadgeModelAsset> {
+  const sourceModelPath = sanitizeAchievementBadgeAssetPath(args.iconAssetPath);
+  if (!sourceModelPath) {
+    throw new Error("Missing badge model asset path.");
+  }
+
+  const bundle = await downloadBadgeModelBundle({
+    modelPath: sourceModelPath,
+    ownerUserId: args.senderUserId,
+  });
+
+  const assetId = crypto.randomUUID();
+  return uploadBadgeModelBundle({
+    modelPath: buildAchievementBadgeModelPath(args.claimerUserId, assetId),
+    previewPath: buildAchievementBadgePreviewPath(args.claimerUserId, assetId),
+    modelBuffer: bundle.modelBuffer,
+    previewBuffer: bundle.previewBuffer,
+    upsert: false,
+  });
 }
 
 export async function resolveClaimedBadgeIconFields(args: {

@@ -40,12 +40,15 @@ type UseAchievementShareInviteControllerArgs = {
   detailAchievementId: string | null;
   detailTitle?: string | null;
   detailDescription?: string | null;
+  /** Called after a dedicate invite is created (sender copy removed server-side). */
+  onDedicateInviteShared?: () => void;
 };
 
 export function useAchievementShareInviteController({
   detailAchievementId,
   detailTitle,
   detailDescription,
+  onDedicateInviteShared,
 }: UseAchievementShareInviteControllerArgs) {
   const [shareInviteBusy, setShareInviteBusy] = useState(false);
   const [manualShareUrl, setManualShareUrl] = useState<string | null>(null);
@@ -92,6 +95,10 @@ export function useAchievementShareInviteController({
         if (nativeShare === "fallback") {
           await finishWithClipboardFallback(shareUrl);
         }
+
+        if (intent === "dedicate") {
+          onDedicateInviteShared?.();
+        }
       } catch (error) {
         showErrorToast(
           error instanceof Error ? error.message : ACHIEVEMENT_UI_COPY.shareInviteUnknownError,
@@ -101,7 +108,13 @@ export function useAchievementShareInviteController({
         setShareInviteBusy(false);
       }
     },
-    [detailAchievementId, detailDescription, detailTitle, finishWithClipboardFallback],
+    [
+      detailAchievementId,
+      detailDescription,
+      detailTitle,
+      finishWithClipboardFallback,
+      onDedicateInviteShared,
+    ],
   );
 
   const shareShowcaseAchievement = useCallback(() => {

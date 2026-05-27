@@ -89,7 +89,7 @@ export type AchievementDialogStackProps = {
   isSaving: boolean;
   shareMenuBusy: boolean;
   onShareShowcase: () => void;
-  onShareDedicateInvite: () => void;
+  onRequestDedicateInviteShare: () => void;
   onEmbedLink: () => void;
   onRequestDelete: (achievementId: string) => void;
   detailShowsImpressionGlitter: boolean;
@@ -146,7 +146,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     isSaving,
     shareMenuBusy,
     onShareShowcase,
-    onShareDedicateInvite,
+    onRequestDedicateInviteShare,
     onEmbedLink,
     onRequestDelete,
     detailShowsImpressionGlitter,
@@ -496,7 +496,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                           disabled={isSaving}
                           busy={shareMenuBusy}
                           onShareShowcase={onShareShowcase}
-                          onDedicateInvite={onShareDedicateInvite}
+                          onRequestDedicateInvite={onRequestDedicateInviteShare}
                           onEmbed={onEmbedLink}
                         />
                       ) : null}

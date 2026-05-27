@@ -13,6 +13,7 @@ import { resolveInviteOgBadgeImageUrl } from "@/lib/share-invites/invite-og-badg
 import { resolveInviteShareTitle } from "@/lib/share-invites/invite-share-title";
 import {
   achievementShareInviteOgImagePath,
+  achievementShareInvitePath,
   userCollection,
 } from "@/lib/routes";
 import { getAchievementShareInvitePresentationByToken } from "@/lib/share-invites/server";
@@ -29,25 +30,38 @@ type PageProps = {
 function buildInviteMetadata(args: {
   title: string;
   description: string;
-  imageUrls: string[];
+  pageUrl?: string;
+  ogImageUrl?: string;
 }) {
-  const images = args.imageUrls.map((url) => ({ url }));
+  const ogImage = args.ogImageUrl
+    ? [
+        {
+          url: args.ogImageUrl,
+          width: 1200,
+          height: 630,
+          type: "image/png" as const,
+          alt: args.title,
+        },
+      ]
+    : undefined;
 
   return {
     title: args.title,
     description: args.description,
     robots: { index: false, follow: false },
     openGraph: {
+      type: "website",
       title: args.title,
       description: args.description,
       siteName: APP_DISPLAY_NAME,
-      images: images.length > 0 ? images : undefined,
+      url: args.pageUrl,
+      images: ogImage,
     },
     twitter: {
-      card: images.length > 0 ? "summary_large_image" : "summary",
+      card: ogImage ? ("summary_large_image" as const) : "summary",
       title: args.title,
       description: args.description,
-      images: images.length > 0 ? args.imageUrls : undefined,
+      images: args.ogImageUrl ? [args.ogImageUrl] : undefined,
     },
   } satisfies Metadata;
 }
@@ -61,7 +75,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return buildInviteMetadata({
       title: "Achievement invite unavailable",
       description: "This shared achievement invite is no longer available.",
-      imageUrls: [],
     });
   }
 
@@ -74,19 +87,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ? `${senderDisplayName} shared an achievement from their collection.`
       : `${senderDisplayName} shared an achievement waiting in your collection.`);
 
-  const imageUrls: string[] = [];
-  if (origin) {
-    imageUrls.push(`${origin}${achievementShareInviteOgImagePath(token)}`);
-  }
-  const badgePreviewUrl = resolveInviteOgBadgeImageUrl(invite);
-  if (badgePreviewUrl && !imageUrls.includes(badgePreviewUrl)) {
-    imageUrls.push(badgePreviewUrl);
-  }
+  const pageUrl = origin ? `${origin}${achievementShareInvitePath(token)}` : undefined;
+  const ogImageUrl = origin
+    ? `${origin}${achievementShareInviteOgImagePath(token)}`
+    : resolveInviteOgBadgeImageUrl(invite) ?? undefined;
 
   return buildInviteMetadata({
     title: `${title} | ${APP_DISPLAY_NAME}`,
     description,
-    imageUrls,
+    pageUrl,
+    ogImageUrl,
   });
 }
 

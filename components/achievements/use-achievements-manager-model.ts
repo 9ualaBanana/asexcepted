@@ -82,6 +82,7 @@ export function useAchievementsManagerModel({
   const [optimisticImpressionGlitter, setOptimisticImpressionGlitter] = useState(false);
   const [isDedicatingCreate, setIsDedicatingCreate] = useState(false);
   const [dedicationSenderConfirmOpen, setDedicationSenderConfirmOpen] = useState(false);
+  const [dedicateInviteConfirmOpen, setDedicateInviteConfirmOpen] = useState(false);
   const [dedicationBySenderName, setDedicationBySenderName] = useState<string | null>(null);
 
   const ui = useAchievementUiStateMachine();
@@ -133,15 +134,6 @@ export function useAchievementsManagerModel({
   const badgeMetrics = useAchievementBadgeMetricsController(detailAchievement, isAdmin);
   const [hideLocked, setHideLocked] = useHideLockedPreference();
   const { visibilityFilter, cycleVisibilityFilter } = useVisibilityFilterPreference();
-  const shareInvite = useAchievementShareInviteController({
-    detailAchievementId: detailAchievement?.id ?? null,
-    detailTitle: detailAchievement?.title,
-    detailDescription: detailAchievement?.description,
-  });
-  const embedLink = useAchievementEmbedLinkController({
-    detailAchievementId: detailAchievement?.id ?? null,
-  });
-
   const detailRenderSrc = useMemo(() => {
     const src = detailAchievement?.icon_url?.trim() ?? "";
     if (!src) return "";
@@ -216,6 +208,20 @@ export function useAchievementsManagerModel({
     uiActions: ui.actions,
   });
   const loadAchievements = data.loadAchievements;
+  const shareInvite = useAchievementShareInviteController({
+    detailAchievementId: detailAchievement?.id ?? null,
+    detailTitle: detailAchievement?.title,
+    detailDescription: detailAchievement?.description,
+    onDedicateInviteShared: () => {
+      if (ui.detailAchievementId) {
+        ui.actions.closeOverlay();
+      }
+      void loadAchievements({ silent: true });
+    },
+  });
+  const embedLink = useAchievementEmbedLinkController({
+    detailAchievementId: detailAchievement?.id ?? null,
+  });
   const achievementsLoading = data.isLoading;
   const markDetailOpenStart = badgeMetrics.markDetailOpenStart;
   const openDetailView = ui.actions.openDetailView;
@@ -482,7 +488,7 @@ export function useAchievementsManagerModel({
     isSaving,
     shareMenuBusy: shareInvite.shareInviteBusy || embedLink.embedCopyBusy,
     onShareShowcase: shareInvite.shareShowcaseAchievement,
-    onShareDedicateInvite: shareInvite.shareDedicationInvite,
+    onRequestDedicateInviteShare: () => setDedicateInviteConfirmOpen(true),
     onEmbedLink: () => void embedLink.copyEmbedLink(),
     onRequestDelete: ui.actions.requestDelete,
     detailShowsImpressionGlitter,
@@ -549,5 +555,11 @@ export function useAchievementsManagerModel({
     dedicationSenderConfirmOpen,
     setDedicationSenderConfirmOpen,
     handleConfirmDedicate,
+    dedicateInviteConfirmOpen,
+    setDedicateInviteConfirmOpen,
+    handleConfirmDedicateInviteShare: () => {
+      setDedicateInviteConfirmOpen(false);
+      shareInvite.shareDedicationInvite();
+    },
   };
 }

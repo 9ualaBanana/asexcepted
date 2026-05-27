@@ -42,6 +42,19 @@ export function buildAchievementBadgePreviewPath(userId: string, assetId: string
   return `${userId}/${assetId}/poster.png`;
 }
 
+/** Invite-scoped badge assets (survive sender deleting their collection copy). */
+export function buildShareInviteBadgeModelPath(inviteId: string): string {
+  return `invites/${inviteId}/badge.glb`;
+}
+
+export function buildShareInviteBadgePreviewPath(inviteId: string): string {
+  return `invites/${inviteId}/poster.png`;
+}
+
+export function isShareInviteBadgeModelPath(path: string): boolean {
+  return /^invites\/[^/]+\/badge\.glb$/.test(path);
+}
+
 export function sanitizeAchievementBadgeAssetPath(
   value: string | null | undefined,
 ): string {
