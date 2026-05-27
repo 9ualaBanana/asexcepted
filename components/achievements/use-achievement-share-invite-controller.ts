@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { ACHIEVEMENT_UI_COPY } from "@/components/achievements/achievement-ui-copy";
 import { copyTextToClipboard } from "@/lib/copy-text-to-clipboard";
@@ -52,6 +52,7 @@ export function useAchievementShareInviteController({
 }: UseAchievementShareInviteControllerArgs) {
   const [shareInviteBusy, setShareInviteBusy] = useState(false);
   const [manualShareUrl, setManualShareUrl] = useState<string | null>(null);
+  const dedicateRequestInFlightRef = useRef(false);
 
   const finishWithClipboardFallback = useCallback(async (shareUrl: string) => {
     const copied = await copyTextToClipboard(shareUrl);
@@ -71,6 +72,10 @@ export function useAchievementShareInviteController({
   const shareExistingAchievement = useCallback(
     async (intent: AchievementShareInviteIntent) => {
       if (!detailAchievementId) return;
+      if (intent === "dedicate") {
+        if (dedicateRequestInFlightRef.current) return;
+        dedicateRequestInFlightRef.current = true;
+      }
 
       setShareInviteBusy(true);
       try {
@@ -105,6 +110,9 @@ export function useAchievementShareInviteController({
           { id: "achievement-share-invite-existing" },
         );
       } finally {
+        if (intent === "dedicate") {
+          dedicateRequestInFlightRef.current = false;
+        }
         setShareInviteBusy(false);
       }
     },

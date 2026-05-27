@@ -4,11 +4,9 @@ import { err, ok, type Result } from "neverthrow";
 
 import type { AchievementDbWritePayload } from "@/components/achievements/achievement-db-schema";
 import { todayDateString } from "@/components/achievements/achievement-editor-shared";
-import {
-  isModelBadgeAssetKind,
-  isPublicHttpImageUrl,
-  sanitizeAchievementBadgeAssetPath,
-} from "@/lib/achievements/badge-assets";
+import { isModelBadgeAssetKind, isShareInviteBadgeModelPath } from "@/lib/achievements/badge-assets";
+import { validateShareInviteBadgeSnapshot } from "@/lib/share-invites/eligibility";
+import { deleteShareInviteRollback } from "@/lib/share-invites/invite-rollback";
 import {
   pinBadgeAssetsForShareInvite,
   resolveClaimedBadgeIconFields,
@@ -28,6 +26,9 @@ import {
   createAchievementShareInviteToken,
   hashAchievementShareInviteToken,
 } from "@/lib/share-invites/token";
+import { formatSupabaseSingleRowError } from "@/lib/supabase/postgrest-errors";
+
+export { isAchievementEligibleForShareInvite } from "@/lib/share-invites/eligibility";
 
 export type { AchievementShareInviteSnapshot };
 
@@ -51,38 +52,6 @@ export type ClaimAchievementShareInviteSuccess = {
   achievementId: string;
   redirectPath: string;
 };
-
-export function isAchievementEligibleForShareInvite(
-  payload: Pick<AchievementDbWritePayload, "icon_url">,
-) {
-  return Boolean(payload.icon_url?.trim());
-}
-
-function validateShareInviteBadgeSnapshot(
-  snapshot: AchievementShareInviteSnapshot,
-): Result<void, string> {
-  if (!isAchievementEligibleForShareInvite(snapshot)) {
-    return err("Only achievements with a custom badge image can be shared.");
-  }
-
-  if (isModelBadgeAssetKind(snapshot.icon_asset_kind)) {
-    if (!sanitizeAchievementBadgeAssetPath(snapshot.icon_asset_path)) {
-      return err("Finish uploading the 3D badge before sharing this invite.");
-    }
-    if (!isPublicHttpImageUrl(snapshot.icon_url)) {
-      return err(
-        "The 3D badge preview is not saved yet. Wait for upload to finish, then share again.",
-      );
-    }
-    return ok(undefined);
-  }
-
-  if (!isPublicHttpImageUrl(snapshot.icon_url)) {
-    return err("Badge image must finish uploading before you can share an invite.");
-  }
-
-  return ok(undefined);
-}
 
 export function getAchievementShareInviteKind(
   invite: Pick<AchievementShareInviteRow, "share_kind" | "source_achievement_id">,
@@ -122,14 +91,25 @@ async function finalizeInviteBadgeAssetsOnRow(args: {
     }
 
     const pinnedAt = new Date().toISOString();
-    const { error: pinUpdateError } = await args.supabase
+    const pinnedFields = {
+      icon_url: pinned.iconUrl,
+      icon_asset_path: pinned.iconAssetPath,
+    };
+    let { error: pinUpdateError } = await args.supabase
       .from("achievement_share_invites")
-      .update({
-        icon_url: pinned.iconUrl,
-        icon_asset_path: pinned.iconAssetPath,
-        badge_assets_pinned_at: pinnedAt,
-      })
+      .update({ ...pinnedFields, badge_assets_pinned_at: pinnedAt })
       .eq("id", args.inviteId);
+
+    if (
+      pinUpdateError &&
+      (pinUpdateError.message.includes("badge_assets_pinned_at") ||
+        pinUpdateError.code === "PGRST204")
+    ) {
+      ({ error: pinUpdateError } = await args.supabase
+        .from("achievement_share_invites")
+        .update(pinnedFields)
+        .eq("id", args.inviteId));
+    }
 
     if (pinUpdateError) {
       return err(pinUpdateError.message);
@@ -196,10 +176,15 @@ async function insertShareInviteWithSnapshot(args: {
       status: "pending",
     })
     .select("id")
-    .single();
+    .maybeSingle();
 
   if (error) {
-    return err(error.message);
+    return err(
+      formatSupabaseSingleRowError(error, "Could not create the share invite. Try again."),
+    );
+  }
+  if (!data?.id) {
+    return err("Could not create the share invite. Try again.");
   }
 
   const finalized = await finalizeInviteBadgeAssetsOnRow({
@@ -209,6 +194,7 @@ async function insertShareInviteWithSnapshot(args: {
     snapshot: args.snapshot,
   });
   if (finalized.isErr()) {
+    await deleteShareInviteRollback(data.id, supabase);
     return err(finalized.error);
   }
 
@@ -280,10 +266,20 @@ export async function createAchievementShareInviteFromExistingAchievement(args: 
     .select(COLLECTION_ACHIEVEMENT_SNAPSHOT_SELECT)
     .eq("id", args.achievementId)
     .eq("user_id", args.senderUserId)
-    .single();
+    .maybeSingle();
 
   if (error) {
-    return err(error.message);
+    return err(
+      formatSupabaseSingleRowError(
+        error,
+        "This achievement is not in your collection. It may have already been dedicated.",
+      ),
+    );
+  }
+  if (!data) {
+    return err(
+      "This achievement is not in your collection. It may have already been dedicated.",
+    );
   }
 
   const achievement = data as Pick<AchievementRow, "id" | "dedicated_by_user_id"> &
@@ -313,6 +309,39 @@ export async function createAchievementShareInviteFromExistingAchievement(args: 
 
   if (inviteResult.isErr()) {
     return inviteResult;
+  }
+
+  const { data: achievementStillOwned, error: verifyError } = await supabase
+    .from("achievements")
+    .select("id")
+    .eq("id", achievement.id)
+    .eq("user_id", args.senderUserId)
+    .maybeSingle();
+
+  if (verifyError) {
+    await deleteShareInviteRollback(inviteResult.value.inviteId, supabase);
+    return err(
+      formatSupabaseSingleRowError(
+        verifyError,
+        "Could not verify your achievement before completing the dedicate link.",
+      ),
+    );
+  }
+  if (!achievementStillOwned) {
+    await deleteShareInviteRollback(inviteResult.value.inviteId, supabase);
+    return err(
+      "This achievement is no longer in your collection. It may have already been dedicated.",
+    );
+  }
+
+  if (isModelBadgeAssetKind(inviteResult.value.snapshot.icon_asset_kind)) {
+    const pinnedPath = inviteResult.value.snapshot.icon_asset_path;
+    if (!pinnedPath || !isShareInviteBadgeModelPath(pinnedPath)) {
+      await deleteShareInviteRollback(inviteResult.value.inviteId, supabase);
+      return err(
+        "The 3D badge could not be prepared for this invite. Wait for the model to finish uploading, then try again.",
+      );
+    }
   }
 
   const removed = await removeSenderAchievementRowOnly(
@@ -442,11 +471,17 @@ export async function claimAchievementShareInvite(args: {
       }),
     )
     .select("id")
-    .single();
+    .maybeSingle();
 
-  if (createError || !createdAchievement?.id) {
+  if (createError) {
     await releaseShareInviteClaimReservation(reservedInvite.id, supabase);
-    return err(createError?.message ?? "Could not claim this invite.");
+    return err(
+      formatSupabaseSingleRowError(createError, "Could not claim this invite."),
+    );
+  }
+  if (!createdAchievement?.id) {
+    await releaseShareInviteClaimReservation(reservedInvite.id, supabase);
+    return err("Could not claim this invite.");
   }
 
   await supabase

@@ -15,6 +15,8 @@ import { cn } from "@/lib/utils";
 type AchievementDetailShareMenuProps = {
   disabled?: boolean;
   busy?: boolean;
+  /** When set, Dedicate is disabled (e.g. 3D badge still uploading). */
+  dedicateDisabledReason?: string | null;
   onShareShowcase: () => void;
   onRequestDedicateInvite: () => void;
   onEmbed: () => void;
@@ -23,11 +25,13 @@ type AchievementDetailShareMenuProps = {
 export function AchievementDetailShareMenu({
   disabled = false,
   busy = false,
+  dedicateDisabledReason = null,
   onShareShowcase,
   onRequestDedicateInvite,
   onEmbed,
 }: AchievementDetailShareMenuProps) {
   const isDisabled = disabled || busy;
+  const dedicateBlocked = Boolean(dedicateDisabledReason?.trim());
 
   return (
     <DropdownMenu modal={false}>
@@ -63,8 +67,10 @@ export function AchievementDetailShareMenu({
           {ACHIEVEMENT_UI_COPY.shareMenuShowcase}
         </DropdownMenuItem>
         <DropdownMenuItem
-          disabled={isDisabled}
+          disabled={isDisabled || dedicateBlocked}
+          title={dedicateBlocked ? dedicateDisabledReason ?? undefined : undefined}
           onSelect={() => {
+            if (dedicateBlocked) return;
             onRequestDedicateInvite();
           }}
         >

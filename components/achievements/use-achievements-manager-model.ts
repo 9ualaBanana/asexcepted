@@ -22,6 +22,8 @@ import { useAchievementDetailViewModel } from "@/components/achievements/use-ach
 import { useAchievementEditorPipelineController } from "@/components/achievements/use-achievement-editor-pipeline-controller";
 import { useAchievementEmbedLinkController } from "@/components/achievements/use-achievement-embed-link-controller";
 import { useAchievementShareInviteController } from "@/components/achievements/use-achievement-share-invite-controller";
+import { getAchievementShareReadinessError } from "@/lib/share-invites/eligibility";
+import { showErrorToast } from "@/lib/toast";
 import { useAchievementUiStateMachine } from "@/components/achievements/use-achievement-ui-state-machine";
 import { useAchievementUnlockReveal } from "@/components/achievements/use-achievement-unlock-reveal";
 import { useBadgeChunkedPrewarm } from "@/components/achievements/use-badge-chunked-prewarm";
@@ -436,6 +438,11 @@ export function useAchievementsManagerModel({
     ui.isVisibilityOnlyEdit,
   ]);
 
+  const dedicateShareDisabledReason = useMemo(
+    () => (detailAchievement ? getAchievementShareReadinessError(detailAchievement) : null),
+    [detailAchievement],
+  );
+
   const handleConfirmDiscardPanelEdit = useCallback(() => {
     const intent = ui.discardEditIntent;
     ui.actions.clearDiscardEdit();
@@ -487,8 +494,15 @@ export function useAchievementsManagerModel({
     optimisticUnlockedAchievementId,
     isSaving,
     shareMenuBusy: shareInvite.shareInviteBusy || embedLink.embedCopyBusy,
+    dedicateShareDisabledReason,
     onShareShowcase: shareInvite.shareShowcaseAchievement,
-    onRequestDedicateInviteShare: () => setDedicateInviteConfirmOpen(true),
+    onRequestDedicateInviteShare: () => {
+      if (dedicateShareDisabledReason) {
+        showErrorToast(dedicateShareDisabledReason, { id: "achievement-dedicate-not-ready" });
+        return;
+      }
+      setDedicateInviteConfirmOpen(true);
+    },
     onEmbedLink: () => void embedLink.copyEmbedLink(),
     onRequestDelete: ui.actions.requestDelete,
     detailShowsImpressionGlitter,
@@ -558,6 +572,11 @@ export function useAchievementsManagerModel({
     dedicateInviteConfirmOpen,
     setDedicateInviteConfirmOpen,
     handleConfirmDedicateInviteShare: () => {
+      if (dedicateShareDisabledReason) {
+        showErrorToast(dedicateShareDisabledReason, { id: "achievement-dedicate-not-ready" });
+        setDedicateInviteConfirmOpen(false);
+        return;
+      }
       setDedicateInviteConfirmOpen(false);
       shareInvite.shareDedicationInvite();
     },
