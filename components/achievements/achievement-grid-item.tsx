@@ -133,7 +133,7 @@ type AchievementGridItemProps = {
   tone: AchievementTone;
   isLocked: boolean;
   hasImpressions: boolean;
-  isDedicated: boolean;
+  showDedicatedGlitter: boolean;
   onClick: () => void;
 };
 
@@ -146,7 +146,7 @@ export function AchievementGridItem({
   tone,
   isLocked,
   hasImpressions,
-  isDedicated,
+  showDedicatedGlitter,
   onClick,
 }: AchievementGridItemProps) {
   const displayTitle = title?.trim() || (isLocked ? "Locked" : "Untitled");
@@ -190,7 +190,7 @@ export function AchievementGridItem({
                 />
               )}
             </div>
-            {isDedicated && displaySrc ? (
+            {showDedicatedGlitter && displaySrc ? (
               <ImpressionGlitterField
                 active
                 motionSeed={id}

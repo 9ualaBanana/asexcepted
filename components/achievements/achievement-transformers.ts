@@ -18,7 +18,7 @@ import {
   toNullable,
 } from "@/components/achievements/achievement-editor-shared";
 import { normalizeImageKitFileId } from "@/components/achievements/badge/badge-imagekit-session";
-import { showsDedicatedBadgeAura } from "@/lib/achievements/dedication-utils";
+import { showsDedicatedBadgeEffect } from "@/lib/achievements/dedication-utils";
 import type {
   AchievementDbRow,
   AchievementDbWritePayload,
@@ -56,7 +56,8 @@ export type AchievementGridViewModel = {
   tone: AchievementTone;
   isLocked: boolean;
   hasImpressions: boolean;
-  isDedicated: boolean;
+  /** Dedicated particle glitter (image badges only). */
+  showDedicatedGlitter: boolean;
 };
 
 const achievementDbRowSchema = z.custom<AchievementDbRow>();
@@ -121,7 +122,7 @@ const achievementToGridItemSchema = achievementRecordSchema.transform<Achievemen
     tone: getSafeTone(record.tone),
     isLocked: record.is_locked,
     hasImpressions: record.impression_count > 0,
-    isDedicated: showsDedicatedBadgeAura(record),
+    showDedicatedGlitter: showsDedicatedBadgeEffect(record),
   }),
 );
 

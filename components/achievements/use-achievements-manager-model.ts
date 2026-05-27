@@ -42,8 +42,7 @@ import {
 } from "@/lib/achievements/dedication-utils";
 import { userCollection } from "@/lib/routes";
 import { IMPRESSION_GLITTER_UI_ENABLED } from "@/lib/achievements/impression-glitter-feature";
-import { hasAchievementModelGlbAsset } from "@/lib/achievements/badge-assets";
-import { showsDedicatedBadgeAura } from "@/lib/achievements/dedication-utils";
+import { showsDedicatedBadgeEffect } from "@/lib/achievements/dedication-utils";
 import { useDedicationQueueController } from "@/components/achievements/dedication/use-dedication-queue-controller";
 import {
   achievementToForm,
@@ -115,12 +114,7 @@ export function useAchievementsManagerModel({
     );
 
   const detailShowsDedicatedGlitter = Boolean(
-    detailAchievement &&
-      showsDedicatedBadgeAura(detailAchievement) &&
-      !hasAchievementModelGlbAsset(
-        detailAchievement.icon_asset_kind,
-        detailAchievement.icon_asset_path,
-      ),
+    detailAchievement && showsDedicatedBadgeEffect(detailAchievement),
   );
 
   const bumpDetailImpressionCount = useCallback(() => {
@@ -156,10 +150,12 @@ export function useAchievementsManagerModel({
     cancelUnlockHold,
     startUnlockHold,
     resetUnlockWave,
+    refreshUnlockAlphaMask,
   } = useAchievementUnlockReveal({
     readOnly,
     detailAchievement,
     detailRenderSrc,
+    detailViewSessionKey: ui.detailViewSessionKey,
     isSaving,
     setIsSaving,
     setError,
@@ -230,6 +226,11 @@ export function useAchievementsManagerModel({
   const achievementsLoading = data.isLoading;
   const markDetailOpenStart = badgeMetrics.markDetailOpenStart;
   const openDetailView = ui.actions.openDetailView;
+
+  const handleDetailBadgeImageDecoded = useCallback(() => {
+    badgeMetrics.handleDetailBadgeImageDecoded();
+    refreshUnlockAlphaMask();
+  }, [badgeMetrics, refreshUnlockAlphaMask]);
 
   const collectionAchievementIds = useMemo(
     () => new Set(achievements.map((a) => a.id)),
@@ -304,6 +305,11 @@ export function useAchievementsManagerModel({
     if (!canEditDedicatedVisibility(detailAchievement)) return;
     setPanelForm(achievementToForm(detailAchievement));
   }, [detailAchievement, ui.isVisibilityOnlyEdit, setPanelForm]);
+
+  useEffect(() => {
+    resetUnlockWave();
+    setIsSaving(false);
+  }, [pathname, userId, resetUnlockWave]);
 
   useEffect(() => {
     if (!deepLinkAchievementId) {
@@ -496,7 +502,7 @@ export function useAchievementsManagerModel({
     unlockAlphaMaskRef,
     startUnlockHold,
     cancelUnlockHold,
-    onDetailBadgeImageDecoded: badgeMetrics.handleDetailBadgeImageDecoded,
+    onDetailBadgeImageDecoded: handleDetailBadgeImageDecoded,
     onDetailBadgeModelUrlReady: badgeMetrics.handleDetailBadgeModelUrlReady,
     onDetailBadgeVisualReady: badgeMetrics.handleDetailBadgeVisualReady,
     optimisticUnlockedAchievementId,

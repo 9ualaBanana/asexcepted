@@ -1,5 +1,6 @@
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
 import type { FormState } from "@/components/achievements/achievement-editor-shared";
+import { hasAchievementModelGlbAsset } from "@/lib/achievements/badge-assets";
 
 /** Sender-dedicated row (pending or accepted). */
 export function isDedicatedAchievement(
@@ -28,6 +29,22 @@ export function showsDedicatedBadgeAura(
   if (!achievement.dedicated_by_user_id) return false;
   if (achievement.dedication_status === "pending") return false;
   return true;
+}
+
+/** Grid/feed particle glitter — image badges only (not 3D model_glb). */
+export function showsDedicatedBadgeEffect(
+  achievement: Pick<
+    AchievementRecord,
+    | "dedicated_by_user_id"
+    | "dedication_status"
+    | "icon_asset_kind"
+    | "icon_asset_path"
+  >,
+): boolean {
+  return (
+    showsDedicatedBadgeAura(achievement) &&
+    !hasAchievementModelGlbAsset(achievement.icon_asset_kind, achievement.icon_asset_path)
+  );
 }
 
 export function isDedicatedVisibilityDirty(

@@ -17,7 +17,7 @@ import {
   estimateUnlockRevealCompletionProgress,
   type AlphaMaskData,
 } from "@/lib/badge/shape-utils";
-import { getCachedAlphaMaskData } from "@/lib/badge/render-cache";
+import { ensureBadgeAlphaMaskData } from "@/lib/badge/render-cache";
 import { type createClient } from "@/lib/supabase/client";
 
 type SupabaseClient = ReturnType<typeof createClient>;
@@ -26,6 +26,8 @@ type UseAchievementUnlockRevealArgs = {
   readOnly: boolean;
   detailAchievement: AchievementRecord | null;
   detailRenderSrc: string;
+  /** Bumps when detail overlay reopens so alpha-mask load can retry. */
+  detailViewSessionKey: number;
   isSaving: boolean;
   setIsSaving: Dispatch<SetStateAction<boolean>>;
   setError: Dispatch<SetStateAction<string | null>>;
@@ -37,6 +39,7 @@ export function useAchievementUnlockReveal({
   readOnly,
   detailAchievement,
   detailRenderSrc,
+  detailViewSessionKey,
   isSaving,
   setIsSaving,
   setError,
@@ -96,26 +99,41 @@ export function useAchievementUnlockReveal({
     unlockRevealProgressRef.current = unlockRevealProgress;
   }, [unlockRevealProgress]);
 
-  useEffect(() => {
+  const applyUnlockAlphaMask = useCallback((maskData: AlphaMaskData | null) => {
+    unlockAlphaMaskRef.current = maskData;
+    unlockRevealCompleteProgressRef.current = maskData
+      ? estimateUnlockRevealCompletionProgress(maskData)
+      : 1;
+  }, []);
+
+  const refreshUnlockAlphaMask = useCallback(() => {
     const src = detailRenderSrc;
+    if (readOnly || !detailIsLockedUi || !src) return;
+
+    void ensureBadgeAlphaMaskData(src).then(applyUnlockAlphaMask);
+  }, [applyUnlockAlphaMask, detailIsLockedUi, detailRenderSrc, readOnly]);
+
+  useEffect(() => {
     unlockAlphaMaskRef.current = null;
     unlockRevealCompleteProgressRef.current = 1;
     if (readOnly || !detailIsLockedUi) return;
-    if (!src) return;
+    if (!detailRenderSrc) return;
 
     let cancelled = false;
-    const loader = getCachedAlphaMaskData(src);
-    void loader.then((maskData: AlphaMaskData | null) => {
+    void ensureBadgeAlphaMaskData(detailRenderSrc).then((maskData) => {
       if (cancelled) return;
-      unlockAlphaMaskRef.current = maskData;
-      unlockRevealCompleteProgressRef.current = maskData
-        ? estimateUnlockRevealCompletionProgress(maskData)
-        : 1;
+      applyUnlockAlphaMask(maskData);
     });
     return () => {
       cancelled = true;
     };
-  }, [detailRenderSrc, detailIsLockedUi, readOnly]);
+  }, [
+    applyUnlockAlphaMask,
+    detailIsLockedUi,
+    detailRenderSrc,
+    detailViewSessionKey,
+    readOnly,
+  ]);
 
   const cancelUnlockHold = useCallback(() => {
     unlockHoldPressedRef.current = false;
@@ -334,5 +352,6 @@ export function useAchievementUnlockReveal({
     cancelUnlockHold,
     startUnlockHold,
     resetUnlockWave,
+    refreshUnlockAlphaMask,
   };
 }

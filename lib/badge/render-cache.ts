@@ -23,7 +23,6 @@ const decodeReady = new LRUCache<string, Promise<void>>({
 });
 const alphaMaskReady = new LRUCache<string, Promise<AlphaMaskData | null>>({
   max: 300,
-  memoMethod: loadAlphaMaskDataFromImage,
 });
 const maskStyleCache = new LRUCache<string, CSSProperties>({
   max: 300,
@@ -63,7 +62,24 @@ export function getCachedBadgeMotionStyle(
 }
 
 export function getCachedAlphaMaskData(src: string): Promise<AlphaMaskData | null> {
-  return alphaMaskReady.memo(src);
+  const cached = alphaMaskReady.get(src);
+  if (cached) return cached;
+
+  const promise = loadAlphaMaskDataFromImage(src).then((mask) => {
+    if (!mask) {
+      alphaMaskReady.delete(src);
+    }
+    return mask;
+  });
+  alphaMaskReady.set(src, promise);
+  return promise;
+}
+
+/** Decode badge pixels first, then build the unlock hit-test mask (safe after auto-claim / fresh URLs). */
+export async function ensureBadgeAlphaMaskData(src: string): Promise<AlphaMaskData | null> {
+  if (!src.trim()) return null;
+  await ensureBadgeImageDecoded(src);
+  return getCachedAlphaMaskData(src);
 }
 
 export function prewarmBadgeRenderCache(
@@ -77,7 +93,7 @@ export function prewarmBadgeRenderCache(
   void ensureBadgeImageDecoded(src);
   void getCachedBadgeMaskStyle(src);
   if (options?.includeAlphaMaskData) {
-    void getCachedAlphaMaskData(src);
+    void ensureBadgeAlphaMaskData(src);
   }
   if (options?.motionSeed) {
     void getCachedBadgeMotionStyle(options.motionSeed, options.startCentered);

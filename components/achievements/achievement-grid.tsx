@@ -18,7 +18,7 @@ type AchievementGridEntry = {
   tone: AchievementTone;
   isLocked: boolean;
   hasImpressions: boolean;
-  isDedicated: boolean;
+  showDedicatedGlitter: boolean;
 };
 
 type AchievementGridProps = {
@@ -87,7 +87,7 @@ function AchievementGridInner({
               tone={achievement.tone}
               isLocked={achievement.isLocked}
               hasImpressions={achievement.hasImpressions}
-              isDedicated={achievement.isDedicated}
+              showDedicatedGlitter={achievement.showDedicatedGlitter}
               onClick={() => onSelectAchievement(achievement.id)}
             />
           ))}

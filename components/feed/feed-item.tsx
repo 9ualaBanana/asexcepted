@@ -8,6 +8,7 @@ import { getSafeTone } from "@/components/achievements/achievement-card";
 import { getSafeIcon } from "@/components/achievements/achievement-editor-shared";
 import { FeedActivityText } from "@/components/feed/feed-activity-text";
 import { ProfileAvatarSlot } from "@/components/profile/profile-avatar-slot";
+import { isModelBadgeAssetKind } from "@/lib/achievements/badge-assets";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import { formatFeedEventTimestamp } from "@/lib/feed/format-feed-event-time";
 import {
@@ -33,6 +34,10 @@ export function FeedItem({ row }: FeedItemProps) {
   const FallbackIcon = getSafeIcon(row.icon);
   const isImpression = row.event_type === "impression";
   const isDedication = row.event_type === "dedication";
+  const showDedicatedGlitter =
+    row.is_dedicated &&
+    !isModelBadgeAssetKind(row.icon_asset_kind) &&
+    Boolean(row.icon_url?.trim());
   const eventTimeLabel = formatFeedEventTimestamp(row.event_at);
   const badgeSrc = row.icon_url?.trim()
     ? toOptimizedBadgeRenderSrc(row.icon_url.trim())
@@ -75,7 +80,7 @@ export function FeedItem({ row }: FeedItemProps) {
                   size="grid"
                 />
               )}
-              {isDedication && badgeSrc ? (
+              {showDedicatedGlitter && badgeSrc ? (
                 <DedicatedBadgeGlitter
                   renderSrc={badgeSrc}
                   motionSeed={row.achievement_id}

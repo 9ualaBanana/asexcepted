@@ -17,6 +17,7 @@ export type FeedRow = {
   icon: string;
   icon_url: string | null;
   icon_file_id: string | null;
+  icon_asset_kind: string;
   tone: string;
   achieved_at: string | null;
   created_at: string;
@@ -70,6 +71,7 @@ function normalizeFeedRow(raw: Record<string, unknown>): FeedRow | null {
     icon: String(raw.icon ?? "trophy"),
     icon_url: (raw.icon_url as string | null) ?? null,
     icon_file_id: (raw.icon_file_id as string | null) ?? null,
+    icon_asset_kind: String(raw.icon_asset_kind ?? "image"),
     tone: String(raw.tone ?? "teal"),
     achieved_at: (raw.achieved_at as string | null) ?? null,
     created_at: String(raw.created_at),
