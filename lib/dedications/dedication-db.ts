@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { err, ok, type Result } from "neverthrow";
 
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
-import { normalizeAchievement } from "@/components/achievements/achievement-transformers";
+import { tryNormalizeAchievement } from "@/components/achievements/achievement-transformers";
 import type { AchievementDbRow } from "@/components/achievements/achievement-db-schema";
 
 const PENDING_SELECT =
@@ -23,14 +23,15 @@ export async function listPendingDedications(
     return err(error.message);
   }
 
-  try {
-    const rows = (data ?? []).map((row) =>
-      normalizeAchievement(row as AchievementDbRow),
-    );
-    return ok(rows);
-  } catch {
-    return err("Invalid dedication data received from the server.");
+  const rows: AchievementRecord[] = [];
+  for (const row of data ?? []) {
+    const normalized = tryNormalizeAchievement(row as AchievementDbRow);
+    if (normalized.isErr()) {
+      return err(normalized.error);
+    }
+    rows.push(normalized.value);
   }
+  return ok(rows);
 }
 
 export async function acceptDedication(
@@ -46,17 +47,20 @@ export async function acceptDedication(
     .eq("id", achievementId)
     .eq("dedication_status", "pending")
     .select(PENDING_SELECT)
-    .single();
+    .maybeSingle();
 
   if (error) {
     return err(error.message);
   }
-
-  try {
-    return ok(normalizeAchievement(data as AchievementDbRow));
-  } catch {
-    return err("Invalid dedication data received from the server.");
+  if (!data) {
+    return err("This dedication is no longer pending or was already accepted.");
   }
+
+  const normalized = tryNormalizeAchievement(data as AchievementDbRow);
+  if (normalized.isErr()) {
+    return err(normalized.error);
+  }
+  return ok(normalized.value);
 }
 
 export async function rejectDedication(

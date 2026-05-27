@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { err, ok, type Result } from "neverthrow";
 import type { LucideIcon } from "lucide-react";
 
 import {
@@ -146,8 +147,22 @@ const formToPayloadSchema = formStateSchema.transform<AchievementDbWritePayload>
   visibility: form.visibility,
 }));
 
+export function tryNormalizeAchievement(
+  record: unknown,
+): Result<AchievementRecord, string> {
+  const parsed = normalizeAchievementSchema.safeParse(record);
+  if (!parsed.success) {
+    return err(parsed.error.issues[0]?.message ?? "Invalid achievement row.");
+  }
+  return ok(parsed.data);
+}
+
 export function normalizeAchievement(record: AchievementDbRow): AchievementRecord {
-  return normalizeAchievementSchema.parse(record);
+  const result = tryNormalizeAchievement(record);
+  if (result.isErr()) {
+    throw new Error(result.error);
+  }
+  return result.value;
 }
 
 export function achievementToForm(record: AchievementRecord): FormState {

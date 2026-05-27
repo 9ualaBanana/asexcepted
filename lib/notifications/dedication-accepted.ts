@@ -30,16 +30,20 @@ export async function notifyDedicationAccepted(args: {
   const recipientName = await resolveDisplayName(supabase, recipientUserId);
   const achievementTitle = achievement.title?.trim() || "an achievement";
 
-  await sendPushToUsers({
-    supabase,
-    userIds: [dedicatorUserId],
-    kind: "dedication_accepted",
-    params: {
-      recipientName,
-      achievementTitle,
-      recipientUserId,
-      achievementId: achievement.id,
-    },
-    excludeUserIds: [recipientUserId],
-  });
+  try {
+    await sendPushToUsers({
+      supabase,
+      userIds: [dedicatorUserId],
+      kind: "dedication_accepted",
+      params: {
+        recipientName,
+        achievementTitle,
+        recipientUserId,
+        achievementId: achievement.id,
+      },
+      excludeUserIds: [recipientUserId],
+    });
+  } catch {
+    // Push is best-effort; acceptance must succeed without FCM configured.
+  }
 }
