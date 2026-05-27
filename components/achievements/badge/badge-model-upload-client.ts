@@ -1,12 +1,10 @@
 "use client";
 
 import {
-  ACESFilmicToneMapping,
   AnimationMixer,
   LoopRepeat,
   PerspectiveCamera,
   Quaternion,
-  SRGBColorSpace,
   Group,
   Scene,
   WebGLRenderer,
@@ -30,10 +28,11 @@ import {
   BADGE_MODEL_POSE_PRESETS,
 } from "@/lib/achievements/badge-model-poses";
 import {
-  addBadgeModelLights,
   centerBadgeModelAtOrigin,
   configureBadgeModelLoader,
+  configureBadgeModelRenderer,
   frameCameraForBadgeModel,
+  setupBadgeModelScene,
 } from "@/lib/achievements/badge-model-rendering";
 
 const PREVIEW_SIZE_PX = 768;
@@ -63,8 +62,7 @@ function getSharedPosterRenderer(): WebGLRenderer {
   });
   sharedPosterRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   sharedPosterRenderer.setSize(PREVIEW_SIZE_PX, PREVIEW_SIZE_PX, false);
-  sharedPosterRenderer.outputColorSpace = SRGBColorSpace;
-  sharedPosterRenderer.toneMapping = ACESFilmicToneMapping;
+  configureBadgeModelRenderer(sharedPosterRenderer);
   sharedPosterRenderer.setClearColor(0x000000, 0);
   return sharedPosterRenderer;
 }
@@ -189,7 +187,7 @@ async function renderPosterFromGltf(
   renderer: WebGLRenderer,
 ): Promise<Blob> {
   const scene = new Scene();
-  addBadgeModelLights(scene);
+  setupBadgeModelScene(scene, renderer);
 
   const model = cloneSkeleton(gltf.scene);
   centerBadgeModelAtOrigin(model);

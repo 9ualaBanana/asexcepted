@@ -81,6 +81,7 @@ export type AchievementDialogStackProps = {
   startUnlockHold: () => void;
   cancelUnlockHold: () => void;
   onDetailBadgeImageDecoded: () => void;
+  onDetailBadgeModelUrlReady: () => void;
   onDetailBadgeVisualReady: () => void;
   optimisticUnlockedAchievementId: string | null;
 
@@ -97,6 +98,7 @@ export type AchievementDialogStackProps = {
   dedicationSenderDisplayName?: string | null;
   isDedicatingCreate?: boolean;
   badgeSessionController: AchievementBadgeSessionController;
+
 };
 
 export function AchievementDialogStack(props: AchievementDialogStackProps) {
@@ -136,6 +138,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     startUnlockHold,
     cancelUnlockHold,
     onDetailBadgeImageDecoded,
+    onDetailBadgeModelUrlReady,
     onDetailBadgeVisualReady,
     optimisticUnlockedAchievementId,
     isSaving,
@@ -176,14 +179,19 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
 
   useTutorialToast({
     tutorial: unlockHoldTutorialDefinition,
-    active: !readOnly && detailIsLockedUi && unlockHoldTutorial.active,
+    active:
+      unlockHoldTutorial.active &&
+      !readOnly &&
+      detailIsLockedUi &&
+      !detailIsUnlocking &&
+      detailMode === "view" &&
+      detailAchievement != null,
     onDismiss: unlockHoldTutorial.dismiss,
   });
 
   const handleUnlockPointerDown = useCallback(() => {
-    unlockHoldTutorial.dismiss();
     startUnlockHold();
-  }, [startUnlockHold, unlockHoldTutorial]);
+  }, [startUnlockHold]);
 
   const handleLeaveImpression = useCallback(() => {
     if (
@@ -342,6 +350,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       onUnlockPointerDown={handleUnlockPointerDown}
                       onUnlockPointerEnd={cancelUnlockHold}
                       onImageDecoded={onDetailBadgeImageDecoded}
+                      onModelUrlReady={onDetailBadgeModelUrlReady}
                       onVisualReady={onDetailBadgeVisualReady}
                       impressionGlitter={detailShowsImpressionGlitter}
                       dedicatedBadgeGlitter={dedicatedBadgeGlitter}

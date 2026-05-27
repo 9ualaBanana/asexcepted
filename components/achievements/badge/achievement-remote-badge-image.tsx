@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ensureBadgeImageDecoded } from "@/lib/badge/render-cache";
 import { cn } from "@/lib/utils";
@@ -9,17 +9,24 @@ import { cn } from "@/lib/utils";
 export function RemoteBadgeImage({
   src,
   className,
+  onDecoded,
 }: {
   src: string;
   className?: string;
+  onDecoded?: () => void;
 }) {
   const [ready, setReady] = useState(false);
+  const onDecodedRef = useRef(onDecoded);
+  onDecodedRef.current = onDecoded;
 
   useEffect(() => {
     let cancelled = false;
     setReady(false);
     void ensureBadgeImageDecoded(src).then(() => {
-      if (!cancelled) setReady(true);
+      if (!cancelled) {
+        setReady(true);
+        onDecodedRef.current?.();
+      }
     });
     return () => {
       cancelled = true;

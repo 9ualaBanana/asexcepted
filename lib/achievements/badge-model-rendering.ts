@@ -1,18 +1,31 @@
 import {
+  ACESFilmicToneMapping,
   AmbientLight,
   Box3,
   DirectionalLight,
   Object3D,
   PerspectiveCamera,
+  PMREMGenerator,
   Scene,
+  SRGBColorSpace,
+  type Texture,
   Vector3,
+  type WebGLRenderer,
 } from "three";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 
 export const BADGE_MODEL_DRACO_DECODER_CDN =
   "https://www.gstatic.com/draco/versioned/decoders/1.5.7/";
+
+/** Slightly above 1.0 so PBR albedo reads closer to authored / showcase viewers. */
+export const BADGE_MODEL_TONE_MAPPING_EXPOSURE = 1.2;
+
+export const BADGE_MODEL_ENVIRONMENT_INTENSITY = 1;
+
+let sharedBadgeEnvironmentMap: Texture | null = null;
 
 export function configureBadgeModelLoader(loader: GLTFLoader) {
   const dracoLoader = new DRACOLoader();
@@ -22,13 +35,39 @@ export function configureBadgeModelLoader(loader: GLTFLoader) {
   return dracoLoader;
 }
 
+export function configureBadgeModelRenderer(renderer: WebGLRenderer): void {
+  renderer.outputColorSpace = SRGBColorSpace;
+  renderer.toneMapping = ACESFilmicToneMapping;
+  renderer.toneMappingExposure = BADGE_MODEL_TONE_MAPPING_EXPOSURE;
+}
+
+export function getSharedBadgeModelEnvironment(renderer: WebGLRenderer): Texture {
+  if (sharedBadgeEnvironmentMap) {
+    return sharedBadgeEnvironmentMap;
+  }
+
+  const pmremGenerator = new PMREMGenerator(renderer);
+  const roomEnvironment = new RoomEnvironment();
+  sharedBadgeEnvironmentMap = pmremGenerator.fromScene(roomEnvironment, 0.04).texture;
+  pmremGenerator.dispose();
+  return sharedBadgeEnvironmentMap;
+}
+
+export function setupBadgeModelScene(scene: Scene, renderer: WebGLRenderer): void {
+  scene.environment = getSharedBadgeModelEnvironment(renderer);
+  scene.environmentIntensity = BADGE_MODEL_ENVIRONMENT_INTENSITY;
+  addBadgeModelLights(scene);
+}
+
 export function addBadgeModelLights(scene: Scene) {
-  const ambientLight = new AmbientLight(0xffffff, 1.8);
-  const keyLight = new DirectionalLight(0xffffff, 2.4);
+  const ambientLight = new AmbientLight(0xffffff, 0.55);
+  const keyLight = new DirectionalLight(0xffffff, 2.8);
   keyLight.position.set(6, 8, 10);
-  const fillLight = new DirectionalLight(0xc7d2fe, 1.1);
+  const fillLight = new DirectionalLight(0xc7d2fe, 1.4);
   fillLight.position.set(-8, 4, 6);
-  scene.add(ambientLight, keyLight, fillLight);
+  const rimLight = new DirectionalLight(0xfff4e6, 0.9);
+  rimLight.position.set(0, 2, -8);
+  scene.add(ambientLight, keyLight, fillLight, rimLight);
 }
 
 export type BadgeModelFrameMetrics = {

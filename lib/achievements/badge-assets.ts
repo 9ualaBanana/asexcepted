@@ -8,6 +8,17 @@ export function isModelBadgeAssetKind(value: string | null | undefined): boolean
   return value === "model_glb";
 }
 
+/** True when the achievement uses an uploaded GLB (not a flat image badge). */
+export function hasAchievementModelGlbAsset(
+  iconAssetKind: string | null | undefined,
+  iconAssetPath: string | null | undefined,
+): boolean {
+  return (
+    isModelBadgeAssetKind(iconAssetKind) &&
+    Boolean(sanitizeAchievementBadgeAssetPath(iconAssetPath))
+  );
+}
+
 export function buildAchievementBadgeModelPath(userId: string, assetId: string): string {
   return `${userId}/${assetId}/badge.glb`;
 }

@@ -44,6 +44,7 @@ export type AchievementDetailBadgeInteractiveProps = {
   onUnlockPointerDown?: () => void;
   onUnlockPointerEnd?: () => void;
   onImageDecoded?: () => void;
+  onModelUrlReady?: () => void;
   onVisualReady?: () => void;
   impressionOverlay?: ReactNode;
   impressionGlitter?: boolean;
@@ -77,20 +78,22 @@ export function AchievementDetailBadgeInteractive({
   onUnlockPointerDown,
   onUnlockPointerEnd,
   onImageDecoded,
+  onModelUrlReady,
   onVisualReady,
   impressionOverlay,
   impressionGlitter = false,
   impressionGlitterRevealPulse = 0,
   dedicatedBadgeGlitter = false,
 }: AchievementDetailBadgeInteractiveProps) {
-  const showGlitter =
-    dedicatedBadgeGlitter ||
-    (IMPRESSION_GLITTER_UI_ENABLED && impressionGlitter);
-  const glitterRevealPulse = dedicatedBadgeGlitter ? 0 : impressionGlitterRevealPulse;
   const isModelAsset = iconAssetKind === "model_glb" && Boolean(iconAssetPath?.trim());
+  const showGlitter =
+    !isModelAsset &&
+    (dedicatedBadgeGlitter || (IMPRESSION_GLITTER_UI_ENABLED && impressionGlitter));
+  const glitterRevealPulse = dedicatedBadgeGlitter ? 0 : impressionGlitterRevealPulse;
   const { signedUrl: signedModelUrl } = useSignedBadgeModelUrl(
     iconAssetPath ?? "",
     hasIconUrl && isModelAsset && !lockedUi,
+    onModelUrlReady,
   );
   const glitterMaskStyle = renderSrc
     ? badgeImageMaskStylePadded(renderSrc, 108)
@@ -147,10 +150,8 @@ export function AchievementDetailBadgeInteractive({
                   initialYaw={iconModelYaw}
                   initialPitch={iconModelPitch}
                   stateKey={viewerStateKey}
-                  onVisualReady={() => {
-                    onImageDecoded?.();
-                    onVisualReady?.();
-                  }}
+                  onPreviewDecoded={onImageDecoded}
+                  onVisualReady={onVisualReady}
                 />
               ) : (
                 <AchievementBadge3DViewer

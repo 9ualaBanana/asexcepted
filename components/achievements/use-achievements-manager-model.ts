@@ -36,6 +36,7 @@ import {
 } from "@/lib/achievements/dedication-utils";
 import { userCollection } from "@/lib/routes";
 import { IMPRESSION_GLITTER_UI_ENABLED } from "@/lib/achievements/impression-glitter-feature";
+import { hasAchievementModelGlbAsset } from "@/lib/achievements/badge-assets";
 import { showsDedicatedBadgeAura } from "@/lib/achievements/dedication-utils";
 import { useDedicationQueueController } from "@/components/achievements/dedication/use-dedication-queue-controller";
 import {
@@ -107,7 +108,12 @@ export function useAchievementsManagerModel({
     );
 
   const detailShowsDedicatedGlitter = Boolean(
-    detailAchievement && showsDedicatedBadgeAura(detailAchievement),
+    detailAchievement &&
+      showsDedicatedBadgeAura(detailAchievement) &&
+      !hasAchievementModelGlbAsset(
+        detailAchievement.icon_asset_kind,
+        detailAchievement.icon_asset_path,
+      ),
   );
 
   const bumpDetailImpressionCount = useCallback(() => {
@@ -466,6 +472,7 @@ export function useAchievementsManagerModel({
     startUnlockHold,
     cancelUnlockHold,
     onDetailBadgeImageDecoded: badgeMetrics.handleDetailBadgeImageDecoded,
+    onDetailBadgeModelUrlReady: badgeMetrics.handleDetailBadgeModelUrlReady,
     onDetailBadgeVisualReady: badgeMetrics.handleDetailBadgeVisualReady,
     optimisticUnlockedAchievementId,
     isSaving,

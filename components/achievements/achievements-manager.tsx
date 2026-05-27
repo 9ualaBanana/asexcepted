@@ -109,8 +109,11 @@ export function AchievementsManager({
 
       {badgeMetrics.badgeDebugOverlay ? (
         <AchievementBadgeDebugOverlay
+          detailIsModelBadge={badgeMetrics.detailIsModelBadge}
           detailOpenToImageDecodedMs={badgeMetrics.detailOpenToImageDecodedMs}
           detailOpenToVisualReadyMs={badgeMetrics.detailOpenToVisualReadyMs}
+          detailOpenToModelUrlReadyMs={badgeMetrics.detailOpenToModelUrlReadyMs}
+          detailOpenToModelVisualReadyMs={badgeMetrics.detailOpenToModelVisualReadyMs}
         />
       ) : null}
 

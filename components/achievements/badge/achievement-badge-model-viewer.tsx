@@ -2,12 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ACESFilmicToneMapping,
   AnimationMixer,
   Group,
   LoopRepeat,
   PerspectiveCamera,
-  SRGBColorSpace,
   Scene,
   WebGLRenderer,
 } from "three";
@@ -17,10 +15,11 @@ import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.j
 import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
 import { applyBadgeModelPose } from "@/lib/achievements/badge-model-poses";
 import {
-  addBadgeModelLights,
   centerBadgeModelAtOrigin,
   configureBadgeModelLoader,
+  configureBadgeModelRenderer,
   frameCameraForBadgeModel,
+  setupBadgeModelScene,
 } from "@/lib/achievements/badge-model-rendering";
 import { getCachedBadgeMotionStyle } from "@/lib/badge/render-cache";
 import { cn } from "@/lib/utils";
@@ -35,6 +34,7 @@ type AchievementBadgeModelViewerProps = {
   initialYaw?: number;
   initialPitch?: number;
   onVisualReady?: () => void;
+  onPreviewDecoded?: () => void;
   stateKey?: string;
 };
 
@@ -71,8 +71,7 @@ function getSharedBadgeModelRenderer(): WebGLRenderer {
     powerPreference: "high-performance",
   });
   sharedBadgeModelRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  sharedBadgeModelRenderer.outputColorSpace = SRGBColorSpace;
-  sharedBadgeModelRenderer.toneMapping = ACESFilmicToneMapping;
+  configureBadgeModelRenderer(sharedBadgeModelRenderer);
   sharedBadgeModelRenderer.setClearColor(0x000000, 0);
   sharedBadgeModelRenderer.domElement.style.width = "100%";
   sharedBadgeModelRenderer.domElement.style.height = "100%";
@@ -98,11 +97,14 @@ export function AchievementBadgeModelViewer({
   initialYaw = 0,
   initialPitch = 0,
   onVisualReady,
+  onPreviewDecoded,
   stateKey,
 }: AchievementBadgeModelViewerProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const onVisualReadyRef = useRef(onVisualReady);
   onVisualReadyRef.current = onVisualReady;
+  const onPreviewDecodedRef = useRef(onPreviewDecoded);
+  onPreviewDecodedRef.current = onPreviewDecoded;
   const [ready, setReady] = useState(false);
   const [previewVisible, setPreviewVisible] = useState(true);
   const viewStateKey = useMemo(() => {
@@ -145,7 +147,8 @@ export function AchievementBadgeModelViewer({
 
     const scene = new Scene();
     const camera = new PerspectiveCamera(34, 1, 0.01, 1000);
-    addBadgeModelLights(scene);
+    renderer = getSharedBadgeModelRenderer();
+    setupBadgeModelScene(scene, renderer);
 
     const handleResize = () => {
       if (!renderer) return;
@@ -224,7 +227,6 @@ export function AchievementBadgeModelViewer({
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(mount);
 
-    renderer = getSharedBadgeModelRenderer();
     if (renderer.domElement.parentNode && renderer.domElement.parentNode !== mount) {
       renderer.domElement.parentNode.removeChild(renderer.domElement);
     }
@@ -409,7 +411,11 @@ export function AchievementBadgeModelViewer({
             previewVisible ? "opacity-100" : "opacity-0",
           )}
         >
-          <RemoteBadgeImage src={previewSrc} className="h-full w-full object-contain" />
+          <RemoteBadgeImage
+            src={previewSrc}
+            className="h-full w-full object-contain"
+            onDecoded={() => onPreviewDecodedRef.current?.()}
+          />
         </div>
         <div
           ref={mountRef}

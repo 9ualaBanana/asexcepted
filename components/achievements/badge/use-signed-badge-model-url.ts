@@ -1,13 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { fetchSignedBadgeModelUrl } from "@/lib/badge-asset-client";
 
-export function useSignedBadgeModelUrl(assetPath: string, enabled = true) {
+export function useSignedBadgeModelUrl(
+  assetPath: string,
+  enabled = true,
+  onUrlReady?: () => void,
+) {
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const onUrlReadyRef = useRef(onUrlReady);
+  onUrlReadyRef.current = onUrlReady;
 
   useEffect(() => {
     const trimmedPath = assetPath.trim();
@@ -27,6 +33,7 @@ export function useSignedBadgeModelUrl(assetPath: string, enabled = true) {
         if (!cancelled) {
           setSignedUrl(url);
           setLoading(false);
+          onUrlReadyRef.current?.();
         }
       })
       .catch((nextError) => {
