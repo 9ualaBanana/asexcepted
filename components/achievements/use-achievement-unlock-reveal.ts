@@ -33,6 +33,10 @@ type UseAchievementUnlockRevealArgs = {
   setError: Dispatch<SetStateAction<string | null>>;
   setAchievements: Dispatch<SetStateAction<AchievementRecord[]>>;
   supabase: SupabaseClient;
+  /** Fired once after the user's first press-and-hold unlock reveal (before persist). */
+  onFirstUnlockComplete?: () => void;
+  /** Undo {@link onFirstUnlockComplete} when the unlock API call fails. */
+  onFirstUnlockReverted?: () => void;
 };
 
 export function useAchievementUnlockReveal({
@@ -45,7 +49,17 @@ export function useAchievementUnlockReveal({
   setError,
   setAchievements,
   supabase,
+  onFirstUnlockComplete,
+  onFirstUnlockReverted,
 }: UseAchievementUnlockRevealArgs) {
+  const onFirstUnlockCompleteRef = useRef(onFirstUnlockComplete);
+  const onFirstUnlockRevertedRef = useRef(onFirstUnlockReverted);
+  useEffect(() => {
+    onFirstUnlockCompleteRef.current = onFirstUnlockComplete;
+  }, [onFirstUnlockComplete]);
+  useEffect(() => {
+    onFirstUnlockRevertedRef.current = onFirstUnlockReverted;
+  }, [onFirstUnlockReverted]);
   const [isUnlockHolding, setIsUnlockHolding] = useState(false);
   const [unlockingAchievementId, setUnlockingAchievementId] = useState<string | null>(null);
   const [optimisticUnlockedAchievementId, setOptimisticUnlockedAchievementId] = useState<string | null>(null);
@@ -167,6 +181,11 @@ export function useAchievementUnlockReveal({
     if (readOnly) return;
     if (!detailAchievement || !detailAchievement.is_locked || isSaving) return;
     const targetId = detailAchievement.id;
+    let hadUnlockedBefore = false;
+    setAchievements((prev) => {
+      hadUnlockedBefore = prev.some((achievement) => !achievement.is_locked);
+      return prev;
+    });
 
     const animateReveal = (
       targetProgress: number,
@@ -255,8 +274,15 @@ export function useAchievementUnlockReveal({
     playUnlockEaseOutSound();
     setIsSaving(false);
 
+    if (!hadUnlockedBefore) {
+      onFirstUnlockCompleteRef.current?.();
+    }
+
     const unlockResult = await unlockAchievement(supabase, targetId);
     if (unlockResult.isErr()) {
+      if (!hadUnlockedBefore) {
+        onFirstUnlockRevertedRef.current?.();
+      }
       setError(unlockResult.error);
       setAchievements((prev) =>
         sortAchievements(

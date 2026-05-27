@@ -10,6 +10,7 @@ import {
 import { type FormState } from "@/components/achievements/achievement-editor-shared";
 import type { AchievementDialogStackProps } from "@/components/achievements/achievement-dialog-stack";
 import {
+  achievementHasCustomBadge,
   achievementToGridItem,
   isAchievementFormDirty,
   type AchievementRecord,
@@ -43,6 +44,8 @@ import {
 import { userCollection } from "@/lib/routes";
 import { IMPRESSION_GLITTER_UI_ENABLED } from "@/lib/achievements/impression-glitter-feature";
 import { showsDedicatedBadgeEffect } from "@/lib/achievements/dedication-utils";
+import { markTutorialCompleted } from "@/lib/tutorials/completed-store";
+import { TUTORIAL_IDS } from "@/lib/tutorials/registry";
 import { useDedicationQueueController } from "@/components/achievements/dedication/use-dedication-queue-controller";
 import {
   achievementToForm,
@@ -139,6 +142,17 @@ export function useAchievementsManagerModel({
     return toOptimizedBadgeRenderSrc(src);
   }, [detailAchievement?.icon_url]);
 
+  const [showBadgeSpinAfterFirstUnlock, setShowBadgeSpinAfterFirstUnlock] =
+    useState(false);
+
+  const handleFirstUnlockComplete = useCallback(() => {
+    if (detailAchievement && achievementHasCustomBadge(detailAchievement)) {
+      setShowBadgeSpinAfterFirstUnlock(true);
+      return;
+    }
+    markTutorialCompleted(TUTORIAL_IDS.badgeSpin);
+  }, [detailAchievement]);
+
   const {
     playSavePop,
     detailIsUnlocking,
@@ -161,6 +175,10 @@ export function useAchievementsManagerModel({
     setError,
     setAchievements,
     supabase,
+    onFirstUnlockComplete: handleFirstUnlockComplete,
+    onFirstUnlockReverted: () => {
+      setShowBadgeSpinAfterFirstUnlock(false);
+    },
   });
 
   const { DetailFallbackIcon, detailTone, detailMaskStyle } = useAchievementDetailViewModel({
@@ -442,6 +460,7 @@ export function useAchievementsManagerModel({
         return;
       }
     }
+    setShowBadgeSpinAfterFirstUnlock(false);
     editorPipeline.actions.closeDetailPanel();
   }, [
     detailAchievement,
@@ -545,6 +564,8 @@ export function useAchievementsManagerModel({
     dedicationSenderDisplayName: dedicationBySenderName,
     isDedicatingCreate,
     badgeSessionController: badgeSession,
+    showBadgeSpinAfterFirstUnlock,
+    setShowBadgeSpinAfterFirstUnlock,
   };
 
   return {

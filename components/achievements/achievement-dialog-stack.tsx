@@ -37,7 +37,10 @@ import {
 } from "@/lib/achievements/dedication-utils";
 import { ImpressionBurst } from "@/components/achievements/badge/impression-burst";
 import { submitImpression } from "@/components/achievements/use-impression-on-badge";
-import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
+import {
+  achievementHasCustomBadge,
+  type AchievementRecord,
+} from "@/components/achievements/achievement-transformers";
 import type { AchievementBadgeSessionController } from "@/components/achievements/use-achievement-badge-session-controller";
 import { useDoubleActivate } from "@/lib/hooks/use-double-activate";
 import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
@@ -103,7 +106,8 @@ export type AchievementDialogStackProps = {
   dedicationSenderDisplayName?: string | null;
   isDedicatingCreate?: boolean;
   badgeSessionController: AchievementBadgeSessionController;
-
+  showBadgeSpinAfterFirstUnlock?: boolean;
+  setShowBadgeSpinAfterFirstUnlock?: (show: boolean) => void;
 };
 
 export function AchievementDialogStack(props: AchievementDialogStackProps) {
@@ -162,6 +166,8 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     dedicationSenderDisplayName,
     isDedicatingCreate = false,
     badgeSessionController,
+    showBadgeSpinAfterFirstUnlock = false,
+    setShowBadgeSpinAfterFirstUnlock,
   } = props;
 
   const detailIsDedicated =
@@ -175,8 +181,12 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
 
   const impressionTutorial = useTutorial(TUTORIAL_IDS.impressionDoubleTap);
   const unlockHoldTutorial = useTutorial(TUTORIAL_IDS.unlockHold);
+  const badgeSpinTutorial = useTutorial(TUTORIAL_IDS.badgeSpin);
   const impressionTutorialDefinition = getTutorial(TUTORIAL_IDS.impressionDoubleTap);
   const unlockHoldTutorialDefinition = getTutorial(TUTORIAL_IDS.unlockHold);
+  const badgeSpinTutorialDefinition = getTutorial(TUTORIAL_IDS.badgeSpin);
+  const detailHasCustomBadge =
+    detailAchievement != null && achievementHasCustomBadge(detailAchievement);
   const [impressionBurstPulse, setImpressionBurstPulse] = useState(0);
 
   useTutorialToast({
@@ -195,6 +205,25 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
       detailMode === "view" &&
       detailAchievement != null,
     onDismiss: unlockHoldTutorial.dismiss,
+  });
+
+  const dismissBadgeSpinTutorial = useCallback(() => {
+    badgeSpinTutorial.dismiss();
+    setShowBadgeSpinAfterFirstUnlock?.(false);
+  }, [badgeSpinTutorial, setShowBadgeSpinAfterFirstUnlock]);
+
+  useTutorialToast({
+    tutorial: badgeSpinTutorialDefinition,
+    active:
+      badgeSpinTutorial.active &&
+      showBadgeSpinAfterFirstUnlock &&
+      detailHasCustomBadge &&
+      !readOnly &&
+      !detailIsLockedUi &&
+      !detailIsUnlocking &&
+      detailMode === "view" &&
+      detailAchievement != null,
+    onDismiss: dismissBadgeSpinTutorial,
   });
 
   const handleUnlockPointerDown = useCallback(() => {

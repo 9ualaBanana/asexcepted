@@ -48,6 +48,13 @@ export type AchievementRecord = {
   dedication_status: "pending" | "accepted" | null;
 };
 
+/** True when the row has uploaded badge art (not the default Lucide fallback). */
+export function achievementHasCustomBadge(
+  achievement: Pick<AchievementRecord, "icon_url">,
+): boolean {
+  return Boolean(achievement.icon_url?.trim());
+}
+
 export type AchievementGridViewModel = {
   id: string;
   title: string | null;
