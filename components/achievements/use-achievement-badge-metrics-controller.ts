@@ -59,6 +59,7 @@ export function useAchievementBadgeMetricsController(
     if (!detailAchievement?.id) return;
     if (detailPerfMeasuredForIdRef.current !== detailAchievement.id) return;
     if (detailOpenStartedAtRef.current == null) return;
+    if (detailImageDecodedMsRef.current != null) return;
 
     const elapsed = elapsedSinceDetailOpen();
     if (elapsed == null) return;

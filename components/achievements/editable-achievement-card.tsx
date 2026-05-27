@@ -368,7 +368,17 @@ export function EditableAchievementCard({
               )}
             </button>
           </div>
-          <div className="min-w-0 flex-1" aria-hidden />
+          <div className="flex min-w-0 flex-1 justify-center">
+            {dedicateMode ? null : (
+              <AchievementVisibilityToggle
+                visibility={form.visibility}
+                disabled={closeDisabled}
+                onToggle={(visibility) =>
+                  setForm((prev) => ({ ...prev, visibility }))
+                }
+              />
+            )}
+          </div>
           <div className={cn(achievementDialogIconSideSlot, "justify-end")} aria-hidden />
         </div>
       ) : (

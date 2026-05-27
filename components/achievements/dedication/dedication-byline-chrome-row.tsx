@@ -14,7 +14,8 @@ const chromeSideSpacer = (
 
 type DedicationBylineChromeRowProps = {
   senderUserId: string;
-  senderDisplayName: string;
+  senderDisplayName?: string | null;
+  senderNameLoading?: boolean;
   startSlot?: ReactNode;
   endSlot?: ReactNode;
   className?: string;
@@ -27,6 +28,7 @@ type DedicationBylineChromeRowProps = {
 export function DedicationBylineChromeRow({
   senderUserId,
   senderDisplayName,
+  senderNameLoading = false,
   startSlot,
   endSlot,
   className,
@@ -47,6 +49,7 @@ export function DedicationBylineChromeRow({
         <DedicationByline
           senderUserId={senderUserId}
           senderDisplayName={senderDisplayName}
+          senderNameLoading={senderNameLoading}
           className="mt-0 px-1"
         />
       </div>

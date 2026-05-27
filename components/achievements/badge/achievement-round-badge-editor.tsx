@@ -392,12 +392,12 @@ export function AchievementRoundBadgeEditor({
             {isLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
           </button>
         </div>
-      </AchievementBadgeSlot>
-      {menuOpen && !removeConfirmOpen ? (
-        <div
-          className="mt-2 flex max-w-[min(100%,22rem)] flex-wrap items-center justify-center gap-2 sm:gap-2.5"
-          onClick={(e) => e.stopPropagation()}
-        >
+        {menuOpen && !removeConfirmOpen ? (
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-40 flex justify-center bg-gradient-to-t from-[#14121c]/96 via-[#14121c]/72 to-transparent px-2 pb-2.5 pt-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="pointer-events-auto flex max-w-full flex-wrap items-center justify-center gap-2 sm:gap-2.5">
           <button
             type="button"
             disabled={disabled || busy}
@@ -446,7 +446,7 @@ export function AchievementRoundBadgeEditor({
                   }}
                 />
                 {toneMenuOpen ? (
-                  <div className="absolute left-1/2 top-10 z-40 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-nowrap items-center gap-1.5 overflow-x-auto rounded-2xl border bg-background/95 p-2 shadow-lg backdrop-blur-sm [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:top-11 sm:gap-2">
+                  <div className="absolute bottom-full left-1/2 z-50 mb-2 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-nowrap items-center gap-1.5 overflow-x-auto rounded-2xl border bg-background/95 p-2 shadow-lg backdrop-blur-sm [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:gap-2">
                     {EDITOR_TONE_OPTIONS.map((toneKey) => (
                       <button
                         key={toneKey}
@@ -484,7 +484,7 @@ export function AchievementRoundBadgeEditor({
                   <FallbackIcon className="h-4 w-4" />
                 </button>
                 {iconMenuOpen ? (
-                  <div className="absolute left-1/2 top-11 z-40 grid w-64 max-w-[calc(100vw-2rem)] -translate-x-1/2 grid-cols-6 gap-1.5 rounded-2xl border bg-background/95 p-2 shadow-lg backdrop-blur-sm sm:top-12 sm:gap-2">
+                  <div className="absolute bottom-full left-1/2 z-50 mb-2 grid w-64 max-w-[calc(100vw-2rem)] -translate-x-1/2 grid-cols-6 gap-1.5 rounded-2xl border bg-background/95 p-2 shadow-lg backdrop-blur-sm sm:gap-2">
                     {(Object.keys(iconMap) as AchievementIconKey[]).map((iconKey) => {
                       const OptionIcon = iconMap[iconKey];
                       return (
@@ -529,8 +529,10 @@ export function AchievementRoundBadgeEditor({
               <Trash2 className="h-5 w-5" />
             </button>
           )}
-        </div>
-      ) : null}
+            </div>
+          </div>
+        ) : null}
+      </AchievementBadgeSlot>
 
       {removeConfirmOpen ? (
         <div

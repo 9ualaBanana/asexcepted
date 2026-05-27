@@ -6,6 +6,7 @@ import { AppNavigationProvider } from "@/components/navigation/app-navigation-pr
 import { AppToaster } from "@/components/toasts/app-toaster";
 import { LiveUpdateProvider } from "@/lib/live-updates";
 import { PwaInit } from "@/components/pwa/pwa-init";
+import { ScreenOrientationLock } from "@/components/pwa/screen-orientation-lock";
 import { PushRegistration } from "@/components/push/push-registration";
 import { StartupSplash } from "@/components/pwa/startup-splash";
 import { APP_DESCRIPTION, APP_DISPLAY_NAME } from "@/lib/brand";
@@ -76,6 +77,7 @@ export default function RootLayout({
             <LiveUpdateProvider>
               <StartupSplash />
               <PwaInit />
+              <ScreenOrientationLock />
               <PushRegistration />
               <AppToaster />
               {children}

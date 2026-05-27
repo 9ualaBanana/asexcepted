@@ -90,7 +90,10 @@ export function useAchievementsManagerModel({
   const [isDedicatingCreate, setIsDedicatingCreate] = useState(false);
   const [dedicationSenderConfirmOpen, setDedicationSenderConfirmOpen] = useState(false);
   const [dedicateInviteConfirmOpen, setDedicateInviteConfirmOpen] = useState(false);
-  const [dedicationBySenderName, setDedicationBySenderName] = useState<string | null>(null);
+  const [dedicationBySenderName, setDedicationBySenderName] = useState<string | null>(
+    null,
+  );
+  const [dedicationSenderNameLoading, setDedicationSenderNameLoading] = useState(false);
 
   const ui = useAchievementUiStateMachine();
   const badgeSession = useAchievementBadgeSessionController({
@@ -248,7 +251,7 @@ export function useAchievementsManagerModel({
   const handleDetailBadgeImageDecoded = useCallback(() => {
     badgeMetrics.handleDetailBadgeImageDecoded();
     refreshUnlockAlphaMask();
-  }, [badgeMetrics, refreshUnlockAlphaMask]);
+  }, [badgeMetrics.handleDetailBadgeImageDecoded, refreshUnlockAlphaMask]);
 
   const collectionAchievementIds = useMemo(
     () => new Set(achievements.map((a) => a.id)),
@@ -308,17 +311,25 @@ export function useAchievementsManagerModel({
   }, [deepLinkAchievementId, loadAchievements, pathname, userId]);
 
   useEffect(() => {
-    if (!detailAchievement?.dedicated_by_user_id) {
+    const senderId = detailAchievement?.dedicated_by_user_id;
+    if (!senderId) {
       setDedicationBySenderName(null);
+      setDedicationSenderNameLoading(false);
       return;
     }
-    void fetchPublicUserDisplayName(supabase, detailAchievement.dedicated_by_user_id).then(
-      (result) => {
-        if (result.isOk() && result.value) {
-          setDedicationBySenderName(result.value);
-        }
-      },
-    );
+    setDedicationBySenderName(null);
+    setDedicationSenderNameLoading(true);
+    let cancelled = false;
+    void fetchPublicUserDisplayName(supabase, senderId).then((result) => {
+      if (cancelled) return;
+      setDedicationSenderNameLoading(false);
+      if (result.isOk() && result.value) {
+        setDedicationBySenderName(result.value);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [detailAchievement?.dedicated_by_user_id, supabase]);
 
   useEffect(() => {
@@ -562,6 +573,7 @@ export function useAchievementsManagerModel({
       }
     },
     dedicationSenderDisplayName: dedicationBySenderName,
+    dedicationSenderNameLoading,
     isDedicatingCreate,
     badgeSessionController: badgeSession,
     showBadgeSpinAfterFirstUnlock,

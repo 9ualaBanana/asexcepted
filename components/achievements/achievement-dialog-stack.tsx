@@ -104,6 +104,7 @@ export type AchievementDialogStackProps = {
   onImpressionGlitterReveal: () => void;
   onImpressionRecorded: (added: boolean, hadImpressionsBefore: boolean) => void;
   dedicationSenderDisplayName?: string | null;
+  dedicationSenderNameLoading?: boolean;
   isDedicatingCreate?: boolean;
   badgeSessionController: AchievementBadgeSessionController;
   showBadgeSpinAfterFirstUnlock?: boolean;
@@ -164,6 +165,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     onImpressionGlitterReveal,
     onImpressionRecorded,
     dedicationSenderDisplayName,
+    dedicationSenderNameLoading = false,
     isDedicatingCreate = false,
     badgeSessionController,
     showBadgeSpinAfterFirstUnlock = false,
@@ -431,9 +433,8 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
               !isVisibilityOnlyEdit ? (
                 <DedicationBylineChromeRow
                   senderUserId={dedicationSenderId}
-                  senderDisplayName={
-                    dedicationSenderDisplayName?.trim() || "Someone"
-                  }
+                  senderDisplayName={dedicationSenderDisplayName}
+                  senderNameLoading={dedicationSenderNameLoading}
                   className={!formatAchievedAt(detailAchievement.achieved_at) ? "mt-6" : undefined}
                 />
               ) : null}
@@ -498,9 +499,8 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                         dedicationSenderId ? (
                         <DedicationByline
                           senderUserId={dedicationSenderId}
-                          senderDisplayName={
-                            dedicationSenderDisplayName?.trim() || "Someone"
-                          }
+                          senderDisplayName={dedicationSenderDisplayName}
+                          senderNameLoading={dedicationSenderNameLoading}
                           className="mt-0 px-1"
                         />
                       ) : null}
@@ -509,15 +509,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       className={cn(achievementDialogIconSideSlot, "justify-end")}
                     >
                       {isVisibilityOnlyEdit ? (
-                        <button
-                          type="button"
-                          aria-label="Cancel editing visibility"
-                          className={achievementDialogIconBtn}
-                          disabled={isSaving}
-                          onClick={onCancelPanelEdit}
-                        >
-                          <X className="h-4 w-4" aria-hidden />
-                        </button>
+                        <span className="inline-flex h-10 w-10 shrink-0" aria-hidden />
                       ) : detailAchievement.icon_url?.trim() ? (
                         <AchievementDetailShareMenu
                           disabled={isSaving}
