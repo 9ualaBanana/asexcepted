@@ -86,29 +86,33 @@ export function AchievementDetailBadgeInteractive({
   dedicatedBadgeGlitter = false,
 }: AchievementDetailBadgeInteractiveProps) {
   const isModelAsset = iconAssetKind === "model_glb" && Boolean(iconAssetPath?.trim());
+  const loadInteractiveModel = isModelAsset && !lockedUi;
   const showGlitter =
     !isModelAsset &&
     (dedicatedBadgeGlitter || (IMPRESSION_GLITTER_UI_ENABLED && impressionGlitter));
   const glitterRevealPulse = dedicatedBadgeGlitter ? 0 : impressionGlitterRevealPulse;
-  const { signedUrl: signedModelUrl, loading: signedModelLoading } =
-    useSignedBadgeModelUrl(iconAssetPath ?? "", hasIconUrl && isModelAsset, onModelUrlReady);
+  const { signedUrl: signedModelUrl } = useSignedBadgeModelUrl(
+    iconAssetPath ?? "",
+    hasIconUrl && loadInteractiveModel,
+    onModelUrlReady,
+  );
 
-  const modelViewer = signedModelUrl ? (
-    <AchievementBadgeModelViewer
-      signedModelUrl={signedModelUrl}
-      previewSrc={renderSrc}
-      className={cn("p-1", lockedUi && "pointer-events-none opacity-80 grayscale")}
-      float={floating && !lockedUi}
-      motionSeed={motionSeed}
-      motionStartCentered={motionStartCentered}
-      initialYaw={iconModelYaw}
-      initialPitch={iconModelPitch}
-      stateKey={viewerStateKey}
-      showPreviewOverlay={!lockedUi}
-      onPreviewDecoded={onImageDecoded}
-      onVisualReady={onVisualReady}
-    />
-  ) : null;
+  const modelViewer =
+    loadInteractiveModel && signedModelUrl ? (
+      <AchievementBadgeModelViewer
+        signedModelUrl={signedModelUrl}
+        previewSrc={renderSrc}
+        className="p-1"
+        float={floating}
+        motionSeed={motionSeed}
+        motionStartCentered={motionStartCentered}
+        initialYaw={iconModelYaw}
+        initialPitch={iconModelPitch}
+        stateKey={viewerStateKey}
+        onPreviewDecoded={onImageDecoded}
+        onVisualReady={onVisualReady}
+      />
+    ) : null;
   const glitterMaskStyle = renderSrc
     ? badgeImageMaskStylePadded(renderSrc, 108)
     : paddedBadgeMaskStyle(circularBadgeMaskStyle(), 108);
@@ -149,24 +153,13 @@ export function AchievementDetailBadgeInteractive({
           <>
             <div className="relative h-full w-full">
               {lockedUi ? (
-                isModelAsset ? (
-                  <>
-                    {(signedModelLoading || !modelViewer) && renderSrc ? (
-                      <RemoteBadgeImage
-                        src={renderSrc}
-                        className="absolute inset-0 h-full w-full object-contain p-1 opacity-80 grayscale"
-                      />
-                    ) : null}
-                    {modelViewer ? (
-                      <div className="relative h-full w-full">{modelViewer}</div>
-                    ) : null}
-                  </>
-                ) : (
+                renderSrc ? (
                   <RemoteBadgeImage
                     src={renderSrc}
                     className="h-full w-full object-contain p-1 opacity-80 grayscale"
+                    onDecoded={onImageDecoded}
                   />
-                )
+                ) : null
               ) : isModelAsset && modelViewer ? (
                 modelViewer
               ) : (
