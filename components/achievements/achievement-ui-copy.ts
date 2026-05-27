@@ -17,4 +17,7 @@ export const ACHIEVEMENT_UI_COPY = {
   shareInviteCreateOnlyCustomImage:
     "Only achievements with a custom badge image can be shared.",
   shareInviteUnknownError: "Could not create invite link.",
+  shareMenuShowcase: "Share",
+  shareMenuDedicate: "Dedicate",
+  shareMenuEmbed: "Embed",
 } as const;

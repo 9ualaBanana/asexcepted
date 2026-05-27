@@ -31,6 +31,7 @@ const createShareInviteBodySchema = z.discriminatedUnion("mode", [
   z.object({
     mode: z.literal("existing"),
     achievementId: z.string().uuid(),
+    intent: z.enum(["showcase", "dedicate"]).default("showcase"),
   }),
   z.object({
     mode: z.literal("draft"),
@@ -58,6 +59,7 @@ export async function POST(request: Request) {
       ? await createAchievementShareInviteFromExistingAchievement({
           senderUserId: user.id,
           achievementId: body.data.achievementId,
+          intent: body.data.intent,
         })
       : await createAchievementShareInviteFromPayload({
           senderUserId: user.id,

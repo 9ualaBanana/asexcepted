@@ -2,10 +2,13 @@ import { err, ok, type Result } from "neverthrow";
 
 import type { AchievementDbWritePayload } from "@/components/achievements/achievement-db-schema";
 
+export type AchievementShareInviteIntent = "showcase" | "dedicate";
+
 type CreateShareInviteBody =
   | {
       mode: "existing";
       achievementId: string;
+      intent: AchievementShareInviteIntent;
     }
   | {
       mode: "draft";

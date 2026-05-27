@@ -97,13 +97,23 @@ export function AchievementsManager({
         />
       ) : null}
 
-      {shareInvite.manualShareUrl ? (
+      {model.shareInvite.manualShareUrl ? (
         <AchievementManualEmbedDialog
-          manualUrl={shareInvite.manualShareUrl}
+          manualUrl={model.shareInvite.manualShareUrl}
           title="Copy invite link"
           copyAriaLabel="Copy invite link"
-          onDismiss={() => shareInvite.setManualShareUrl(null)}
-          onCopied={shareInvite.onManualShareCopied}
+          onDismiss={() => model.shareInvite.setManualShareUrl(null)}
+          onCopied={model.shareInvite.onManualShareCopied}
+        />
+      ) : null}
+
+      {model.embedLink.manualEmbedUrl ? (
+        <AchievementManualEmbedDialog
+          manualUrl={model.embedLink.manualEmbedUrl}
+          title="Copy embed link"
+          copyAriaLabel="Copy embed link"
+          onDismiss={() => model.embedLink.setManualEmbedUrl(null)}
+          onCopied={model.embedLink.onManualEmbedCopied}
         />
       ) : null}
 

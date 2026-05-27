@@ -3,9 +3,11 @@
 import { useCallback, useState } from "react";
 
 import { ACHIEVEMENT_UI_COPY } from "@/components/achievements/achievement-ui-copy";
-import type { AchievementDbWritePayload } from "@/components/achievements/achievement-db-schema";
 import { copyTextToClipboard } from "@/lib/copy-text-to-clipboard";
-import { postCreateAchievementShareInvite } from "@/lib/share-invites/share-invite-api";
+import {
+  postCreateAchievementShareInvite,
+  type AchievementShareInviteIntent,
+} from "@/lib/share-invites/share-invite-api";
 import { showErrorToast, toast } from "@/lib/toast";
 
 type NativeShareAttemptResult = "shared" | "cancelled" | "fallback";
@@ -63,69 +65,28 @@ export function useAchievementShareInviteController({
     });
   }, []);
 
-  const shareExistingAchievement = useCallback(async () => {
-    if (!detailAchievementId) return;
-
-    setShareInviteBusy(true);
-    try {
-      const inviteResult = await postCreateAchievementShareInvite({
-        mode: "existing",
-        achievementId: detailAchievementId,
-      });
-
-      if (inviteResult.isErr()) {
-        showErrorToast(inviteResult.error, { id: "achievement-share-invite-create" });
-        return;
-      }
-
-      const shareUrl = inviteResult.value.shareUrl;
-      const nativeShare = await tryNativeShare({
-        shareUrl,
-        title: detailTitle,
-        text: detailDescription,
-      });
-
-      if (nativeShare === "fallback") {
-        await finishWithClipboardFallback(shareUrl);
-      }
-    } catch (error) {
-      showErrorToast(
-        error instanceof Error ? error.message : ACHIEVEMENT_UI_COPY.shareInviteUnknownError,
-        { id: "achievement-share-invite-existing" },
-      );
-    } finally {
-      setShareInviteBusy(false);
-    }
-  }, [detailAchievementId, detailDescription, detailTitle, finishWithClipboardFallback]);
-
-  const shareDraftAchievement = useCallback(
-    async (payload: AchievementDbWritePayload): Promise<boolean> => {
-      if (!payload.icon_url?.trim()) {
-        showErrorToast(ACHIEVEMENT_UI_COPY.shareInviteCreateOnlyCustomImage, {
-          id: "achievement-share-invite-custom-image-only",
-        });
-        return false;
-      }
+  const shareExistingAchievement = useCallback(
+    async (intent: AchievementShareInviteIntent) => {
+      if (!detailAchievementId) return;
 
       setShareInviteBusy(true);
-      let inviteCreated = false;
       try {
         const inviteResult = await postCreateAchievementShareInvite({
-          mode: "draft",
-          payload,
+          mode: "existing",
+          achievementId: detailAchievementId,
+          intent,
         });
 
         if (inviteResult.isErr()) {
-          showErrorToast(inviteResult.error, { id: "achievement-share-invite-draft" });
-          return false;
+          showErrorToast(inviteResult.error, { id: "achievement-share-invite-create" });
+          return;
         }
 
-        inviteCreated = true;
         const shareUrl = inviteResult.value.shareUrl;
         const nativeShare = await tryNativeShare({
           shareUrl,
-          title: payload.title,
-          text: payload.description,
+          title: detailTitle,
+          text: detailDescription,
         });
 
         if (nativeShare === "fallback") {
@@ -134,17 +95,22 @@ export function useAchievementShareInviteController({
       } catch (error) {
         showErrorToast(
           error instanceof Error ? error.message : ACHIEVEMENT_UI_COPY.shareInviteUnknownError,
-          { id: "achievement-share-invite-draft-unknown" },
+          { id: "achievement-share-invite-existing" },
         );
-        return inviteCreated;
       } finally {
         setShareInviteBusy(false);
       }
-
-      return inviteCreated;
     },
-    [finishWithClipboardFallback],
+    [detailAchievementId, detailDescription, detailTitle, finishWithClipboardFallback],
   );
+
+  const shareShowcaseAchievement = useCallback(() => {
+    void shareExistingAchievement("showcase");
+  }, [shareExistingAchievement]);
+
+  const shareDedicationInvite = useCallback(() => {
+    void shareExistingAchievement("dedicate");
+  }, [shareExistingAchievement]);
 
   const onManualShareCopied = useCallback(() => {
     setManualShareUrl(null);
@@ -157,9 +123,8 @@ export function useAchievementShareInviteController({
     shareInviteBusy,
     manualShareUrl,
     setManualShareUrl,
-    shareExistingAchievement,
-    shareDraftAchievement,
+    shareShowcaseAchievement,
+    shareDedicationInvite,
     onManualShareCopied,
   };
 }
-

@@ -47,6 +47,9 @@ export type AchievementShareInvitePresentation = {
 
 export type AchievementSharePageKind = "invite" | "showcase";
 
+/** How an existing achievement is shared via invite link. */
+export type AchievementShareInviteIntent = "showcase" | "dedicate";
+
 export type ClaimAchievementShareInviteSuccess = {
   achievementId: string;
   redirectPath: string;
@@ -184,6 +187,7 @@ export async function createAchievementShareInviteFromPayload(args: {
 export async function createAchievementShareInviteFromExistingAchievement(args: {
   senderUserId: string;
   achievementId: string;
+  intent: AchievementShareInviteIntent;
 }): Promise<
   Result<
     {
@@ -234,7 +238,7 @@ export async function createAchievementShareInviteFromExistingAchievement(args: 
 
   return createAchievementShareInviteFromPayload({
     senderUserId: args.senderUserId,
-    sourceAchievementId: achievement.id,
+    sourceAchievementId: args.intent === "showcase" ? achievement.id : null,
     payload: {
       title: achievement.title,
       description: achievement.description,

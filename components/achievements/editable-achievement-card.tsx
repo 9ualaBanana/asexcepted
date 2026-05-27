@@ -9,7 +9,7 @@ import {
   type RefObject,
   type SetStateAction,
 } from "react";
-import { ArrowLeft, Check, Loader2, Share2, Trash2, X } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Trash2, X } from "lucide-react";
 
 import { AchievementRoundBadgeEditor } from "@/components/achievements/badge/achievement-round-badge-editor";
 import {
@@ -48,8 +48,6 @@ export type EditorCardProps = {
   showEditChrome?: boolean;
   onUploadInProgressChange?: (inProgress: boolean) => void;
   onRequestDelete?: () => void;
-  onRequestShare?: () => void;
-  shareDisabled?: boolean;
   /** Admin dedicating to another user: always locked + private. */
   dedicateMode?: boolean;
   badgeSessionController?: AchievementBadgeSessionController;
@@ -67,8 +65,6 @@ export function EditableAchievementCard({
   showEditChrome = false,
   onUploadInProgressChange,
   onRequestDelete,
-  onRequestShare,
-  shareDisabled = false,
   dedicateMode = false,
   badgeSessionController,
   isCreatingFlow = false,
@@ -373,19 +369,7 @@ export function EditableAchievementCard({
             </button>
           </div>
           <div className="min-w-0 flex-1" aria-hidden />
-          <div className={cn(achievementDialogIconSideSlot, "justify-end")}>
-            {onRequestShare ? (
-              <button
-                type="button"
-                aria-label="Share invite achievement"
-                className={achievementDialogIconBtn}
-                disabled={closeDisabled || shareDisabled}
-                onClick={() => onRequestShare()}
-              >
-                <Share2 className="h-4 w-4" aria-hidden />
-              </button>
-            ) : null}
-          </div>
+          <div className={cn(achievementDialogIconSideSlot, "justify-end")} aria-hidden />
         </div>
       ) : (
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">

@@ -20,6 +20,7 @@ import { useAchievementDataController } from "@/components/achievements/use-achi
 import { useAchievementDetailSelectionController } from "@/components/achievements/use-achievement-detail-selection-controller";
 import { useAchievementDetailViewModel } from "@/components/achievements/use-achievement-detail-view-model";
 import { useAchievementEditorPipelineController } from "@/components/achievements/use-achievement-editor-pipeline-controller";
+import { useAchievementEmbedLinkController } from "@/components/achievements/use-achievement-embed-link-controller";
 import { useAchievementShareInviteController } from "@/components/achievements/use-achievement-share-invite-controller";
 import { useAchievementUiStateMachine } from "@/components/achievements/use-achievement-ui-state-machine";
 import { useAchievementUnlockReveal } from "@/components/achievements/use-achievement-unlock-reveal";
@@ -136,6 +137,9 @@ export function useAchievementsManagerModel({
     detailAchievementId: detailAchievement?.id ?? null,
     detailTitle: detailAchievement?.title,
     detailDescription: detailAchievement?.description,
+  });
+  const embedLink = useAchievementEmbedLinkController({
+    detailAchievementId: detailAchievement?.id ?? null,
   });
 
   const detailRenderSrc = useMemo(() => {
@@ -367,40 +371,6 @@ export function useAchievementsManagerModel({
     userId,
   ]);
 
-  const handleShareCreateInvite = useCallback(async () => {
-    setError(null);
-
-    let formForShare = createForm;
-    try {
-      formForShare = await badgeSession.finalizeModelPoseForForm(createForm);
-      setCreateForm(formForShare);
-    } catch (finalizeError) {
-      setError(
-        finalizeError instanceof Error
-          ? finalizeError.message
-          : "Could not finalize 3D badge upload.",
-      );
-      return;
-    }
-
-    const payload = formToPayload(formForShare);
-    const inviteCreated = await shareInvite.shareDraftAchievement(payload);
-    if (!inviteCreated) return;
-
-    badgeSession.retainCreateBadgeSession({
-      iconUrl: payload.icon_url,
-      iconFileId: payload.icon_file_id,
-      iconAssetKind: payload.icon_asset_kind,
-      iconAssetPath: payload.icon_asset_path,
-      iconModelYaw: payload.icon_model_yaw,
-      iconModelPitch: payload.icon_model_pitch,
-    });
-  }, [badgeSession, createForm, setCreateForm, setError, shareInvite]);
-
-  const handleShareDetailInvite = useCallback(() => {
-    void shareInvite.shareExistingAchievement();
-  }, [shareInvite]);
-
   const gridItems = useMemo(() => {
     let visible = achievements;
     if (hideLocked) {
@@ -510,9 +480,10 @@ export function useAchievementsManagerModel({
     onDetailBadgeVisualReady: badgeMetrics.handleDetailBadgeVisualReady,
     optimisticUnlockedAchievementId,
     isSaving,
-    shareInviteBusy: shareInvite.shareInviteBusy,
-    onShareCreateInvite: handleShareCreateInvite,
-    onShareDetailInvite: handleShareDetailInvite,
+    shareMenuBusy: shareInvite.shareInviteBusy || embedLink.embedCopyBusy,
+    onShareShowcase: shareInvite.shareShowcaseAchievement,
+    onShareDedicateInvite: shareInvite.shareDedicationInvite,
+    onEmbedLink: () => void embedLink.copyEmbedLink(),
     onRequestDelete: ui.actions.requestDelete,
     detailShowsImpressionGlitter,
     dedicatedBadgeGlitter: detailShowsDedicatedGlitter,
@@ -549,6 +520,7 @@ export function useAchievementsManagerModel({
     badgeSession,
     badgeMetrics,
     shareInvite,
+    embedLink,
     detailAchievement,
     detailRenderSrc,
     detailTone,

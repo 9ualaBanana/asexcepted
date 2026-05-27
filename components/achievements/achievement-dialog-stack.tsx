@@ -11,7 +11,7 @@ import {
   type RefObject,
   type SetStateAction,
 } from "react";
-import { Check, Loader2, PenLine, Share2, X, type LucideIcon } from "lucide-react";
+import { Check, Loader2, PenLine, X, type LucideIcon } from "lucide-react";
 
 import type { AchievementTone } from "@/components/achievements/achievement-card";
 import { BadgeAttributionPopover } from "@/components/achievements/badge/badge-attribution-popover";
@@ -28,6 +28,7 @@ import {
 } from "@/components/achievements/achievement-editor-shared";
 import { DedicationByline } from "@/components/achievements/dedication/dedication-byline";
 import { DedicationBylineChromeRow } from "@/components/achievements/dedication/dedication-byline-chrome-row";
+import { AchievementDetailShareMenu } from "@/components/achievements/achievement-detail-share-menu";
 import { EditableAchievementCard } from "@/components/achievements/editable-achievement-card";
 import { AchievementVisibilityToggle } from "@/components/achievements/achievement-visibility-toggle";
 import {
@@ -86,9 +87,10 @@ export type AchievementDialogStackProps = {
   optimisticUnlockedAchievementId: string | null;
 
   isSaving: boolean;
-  shareInviteBusy: boolean;
-  onShareCreateInvite: () => void;
-  onShareDetailInvite: () => void;
+  shareMenuBusy: boolean;
+  onShareShowcase: () => void;
+  onShareDedicateInvite: () => void;
+  onEmbedLink: () => void;
   onRequestDelete: (achievementId: string) => void;
   detailShowsImpressionGlitter: boolean;
   dedicatedBadgeGlitter?: boolean;
@@ -142,9 +144,10 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     onDetailBadgeVisualReady,
     optimisticUnlockedAchievementId,
     isSaving,
-    shareInviteBusy,
-    onShareCreateInvite,
-    onShareDetailInvite,
+    shareMenuBusy,
+    onShareShowcase,
+    onShareDedicateInvite,
+    onEmbedLink,
     onRequestDelete,
     detailShowsImpressionGlitter,
     dedicatedBadgeGlitter = false,
@@ -286,8 +289,6 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
               onUploadInProgressChange={setCreateUploadInProgress}
               badgeAssetSessionRef={createBadgeAssetSessionRef}
               onClosePanel={() => closeDetailPanel()}
-              onRequestShare={isDedicatingCreate ? undefined : onShareCreateInvite}
-              shareDisabled={shareInviteBusy || !createForm.iconUrl.trim()}
               dedicateMode={isDedicatingCreate}
               badgeSessionController={badgeSessionController}
               isCreatingFlow
@@ -491,15 +492,13 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                         </button>
                       ) : detailAchievement.icon_url?.trim() &&
                         !detailIsDedicated ? (
-                        <button
-                          type="button"
-                          aria-label="Share invite achievement"
-                          className={achievementDialogIconBtn}
-                          disabled={isSaving || shareInviteBusy}
-                          onClick={() => void onShareDetailInvite()}
-                        >
-                          <Share2 className="h-4 w-4" aria-hidden />
-                        </button>
+                        <AchievementDetailShareMenu
+                          disabled={isSaving}
+                          busy={shareMenuBusy}
+                          onShareShowcase={onShareShowcase}
+                          onDedicateInvite={onShareDedicateInvite}
+                          onEmbed={onEmbedLink}
+                        />
                       ) : null}
                     </div>
                   </div>
