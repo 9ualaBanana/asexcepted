@@ -5,6 +5,7 @@ import type { Database } from "@/lib/supabase/database.types";
 
 export type FollowRelationshipResult = Result<boolean, string>;
 export type FollowMutationResult = Result<void, string>;
+export type FollowCountResult = Result<number, string>;
 export type PublicUserDisplayNameResult = Result<string, string>;
 export type AuthUserExistsResult = Result<boolean, string>;
 
@@ -76,6 +77,21 @@ export async function removeProfileFollow(
     return err(error.message);
   }
   return ok(undefined);
+}
+
+export async function countProfileFollowsForFollower(
+  supabase: SupabaseClient<Database>,
+  followerId: string,
+): Promise<FollowCountResult> {
+  const { count, error } = await supabase
+    .from("profile_follow")
+    .select("*", { count: "exact", head: true })
+    .eq("follower_id", followerId);
+
+  if (error) {
+    return err(error.message);
+  }
+  return ok(count ?? 0);
 }
 
 /**

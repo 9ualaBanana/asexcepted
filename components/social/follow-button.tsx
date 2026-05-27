@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import {
+  countProfileFollowsForFollower,
   createProfileFollow,
   isUserFollowingProfile,
   removeProfileFollow,
@@ -14,9 +15,15 @@ import { useErrorToast } from "@/lib/toast";
 type FollowButtonProps = {
   targetUserId: string;
   initialFollowing: boolean;
+  /** Called after the user's first-ever follow (any profile). */
+  onFirstFollow?: () => void;
 };
 
-export function FollowButton({ targetUserId, initialFollowing }: FollowButtonProps) {
+export function FollowButton({
+  targetUserId,
+  initialFollowing,
+  onFirstFollow,
+}: FollowButtonProps) {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const [following, setFollowing] = useState(initialFollowing);
@@ -66,6 +73,10 @@ export function FollowButton({ targetUserId, initialFollowing }: FollowButtonPro
         return;
       }
       setFollowing(true);
+      const countResult = await countProfileFollowsForFollower(supabase, uid);
+      if (countResult.isOk() && countResult.value === 1) {
+        onFirstFollow?.();
+      }
       void fetch("/api/push/notify-new-follower", {
         method: "POST",
         headers: { "content-type": "application/json" },

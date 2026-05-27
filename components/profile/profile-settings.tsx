@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { AdminProfileTools } from "@/components/admin/admin-profile-tools";
 import { normalizeImageKitFileId } from "@/components/achievements/badge/badge-imagekit-session";
+import { ProfileNotificationsSection } from "@/components/profile/profile-notifications-section";
 import { ProfileAvatarSlot } from "@/components/profile/profile-avatar-slot";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -222,7 +223,7 @@ export function ProfileSettings({
         if (registerResult !== "registered") {
           const messages: Record<string, string> = {
             "permission-denied":
-              "Enable notifications for this site in your browser (iOS: Settings → Safari → Notifications, or reinstall the PWA).",
+              "Could not enable notifications. If you use iPhone, open the app from your home screen, then try again in Profile.",
             unsupported: "This browser does not support web push on this device.",
             misconfigured: "Firebase or VAPID configuration is missing.",
             "not-authenticated": "Sign in again to enable push.",
@@ -322,25 +323,12 @@ export function ProfileSettings({
         </label>
       </div>
 
-      <div className="space-y-2 rounded-lg border border-border/60 bg-muted/20 p-3">
-        <Label htmlFor="profile-notifications-enabled">Notifications</Label>
-        <label
-          htmlFor="profile-notifications-enabled"
-          className="flex cursor-pointer items-center justify-between gap-3"
-        >
-          <p className="text-xs text-muted-foreground">
-            Receive push notifications on this device when you enable them here.
-          </p>
-          <input
-            id="profile-notifications-enabled"
-            type="checkbox"
-            checked={pushEnabled}
-            disabled={pushBusy || pushStatusLoading}
-            onChange={(e) => void handlePushToggle(e.target.checked)}
-            className="h-4 w-4 shrink-0 accent-foreground disabled:opacity-50"
-          />
-        </label>
-      </div>
+      <ProfileNotificationsSection
+        pushEnabled={pushEnabled}
+        pushBusy={pushBusy}
+        pushStatusLoading={pushStatusLoading}
+        onToggle={(next) => void handlePushToggle(next)}
+      />
 
       {isAdmin ? (
         <AdminProfileTools onError={setError} onPushHint={setPushHint} />

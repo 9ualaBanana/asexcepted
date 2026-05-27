@@ -2,6 +2,7 @@ export const TUTORIAL_IDS = {
   impressionDoubleTap: "impression_double_tap",
   unlockHold: "unlock_hold",
   badgeSpin: "badge_spin",
+  pwaInstall: "pwa_install",
 } as const;
 
 export type TutorialId = (typeof TUTORIAL_IDS)[keyof typeof TUTORIAL_IDS];
@@ -23,6 +24,11 @@ export const TUTORIAL_REGISTRY: Record<TutorialId, TutorialDefinition> = {
   [TUTORIAL_IDS.badgeSpin]: {
     id: TUTORIAL_IDS.badgeSpin,
     message: "Drag the badge to spin it.",
+  },
+  [TUTORIAL_IDS.pwaInstall]: {
+    id: TUTORIAL_IDS.pwaInstall,
+    message:
+      "Add the app to your home screen to receive push notifications about achievements from people you follow.",
   },
 };
 

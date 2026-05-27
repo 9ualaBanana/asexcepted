@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 
 import { TutorialToast } from "@/components/tutorials/tutorial-toast";
 import { toast } from "@/lib/toast";
@@ -10,12 +10,14 @@ type UseTutorialToastArgs = {
   tutorial: TutorialDefinition;
   active: boolean;
   onDismiss: () => void;
+  render?: (args: { visible: boolean; onDismiss: () => void }) => ReactNode;
 };
 
 export function useTutorialToast({
   tutorial,
   active,
   onDismiss,
+  render,
 }: UseTutorialToastArgs) {
   useEffect(() => {
     const id = `tutorial:${tutorial.id}`;
@@ -25,16 +27,24 @@ export function useTutorialToast({
       return;
     }
 
+    const dismiss = () => {
+      toast.dismiss(id);
+      onDismiss();
+    };
+
     toast.custom(
       (t) => (
-        <TutorialToast
-          message={tutorial.message}
-          visible={t.visible}
-          onDismiss={() => {
-            toast.dismiss(id);
-            onDismiss();
-          }}
-        />
+        <>
+          {render ? (
+            render({ visible: t.visible, onDismiss: dismiss })
+          ) : (
+            <TutorialToast
+              message={tutorial.message}
+              visible={t.visible}
+              onDismiss={dismiss}
+            />
+          )}
+        </>
       ),
       {
         id,
@@ -46,5 +56,5 @@ export function useTutorialToast({
     return () => {
       toast.dismiss(id);
     };
-  }, [active, onDismiss, tutorial]);
+  }, [active, onDismiss, render, tutorial]);
 }
