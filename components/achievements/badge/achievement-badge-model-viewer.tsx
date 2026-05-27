@@ -19,6 +19,7 @@ import {
   configureBadgeModelLoader,
   configureBadgeModelRenderer,
   frameCameraForBadgeModel,
+  prepareBadgeModelMaterials,
   setupBadgeModelScene,
 } from "@/lib/achievements/badge-model-rendering";
 import { getCachedBadgeMotionStyle } from "@/lib/badge/render-cache";
@@ -62,6 +63,7 @@ let sharedBadgeModelRenderer: WebGLRenderer | null = null;
 
 function getSharedBadgeModelRenderer(): WebGLRenderer {
   if (sharedBadgeModelRenderer) {
+    configureBadgeModelRenderer(sharedBadgeModelRenderer);
     return sharedBadgeModelRenderer;
   }
 
@@ -301,6 +303,7 @@ export function AchievementBadgeModelViewer({
         interactiveRoot.position.set(0, 0, 0);
         const model = cloneSkeleton(gltf.scene);
         centerBadgeModelAtOrigin(model);
+        prepareBadgeModelMaterials(model);
         interactiveRoot.add(model);
         scene.add(interactiveRoot);
 

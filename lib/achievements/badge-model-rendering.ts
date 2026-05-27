@@ -1,14 +1,17 @@
 import {
   ACESFilmicToneMapping,
-  AmbientLight,
   Box3,
+  Color,
   DirectionalLight,
+  HemisphereLight,
   Mesh,
+  MeshStandardMaterial,
   Object3D,
   PerspectiveCamera,
   PMREMGenerator,
   Scene,
   SRGBColorSpace,
+  type Material,
   type Texture,
   Vector3,
   type WebGLRenderer,
@@ -21,12 +24,21 @@ import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.j
 export const BADGE_MODEL_DRACO_DECODER_CDN =
   "https://www.gstatic.com/draco/versioned/decoders/1.5.7/";
 
-/** Slightly above 1.0 so PBR albedo reads closer to authored / showcase viewers. */
-export const BADGE_MODEL_TONE_MAPPING_EXPOSURE = 1.2;
+/** Bright showcase exposure (Sketchfab-style viewers default high). */
+export const BADGE_MODEL_TONE_MAPPING_EXPOSURE = 1.75;
 
-export const BADGE_MODEL_ENVIRONMENT_INTENSITY = 1;
+/** IBL strength; primary light source for PBR badges. */
+export const BADGE_MODEL_ENVIRONMENT_INTENSITY = 2.35;
+
+const BADGE_MODEL_ENV_CACHE_KEY = 2;
+
+/** Particle / halo materials exported with very low opacity. */
+const GLOW_PARTICLE_OPACITY_MAX = 0.22;
+const GLOW_PARTICLE_LUMINANCE_MIN = 0.82;
+const GLOW_EMISSIVE_INTENSITY_CAP = 10;
 
 let sharedBadgeEnvironmentMap: Texture | null = null;
+let sharedBadgeEnvironmentCacheKey = 0;
 
 /** AABB center is far outside its own extent (e.g. many dots on a large spherical shell). */
 const SHELL_PIVOT_OFFSET_RATIO = 8;
@@ -51,10 +63,74 @@ export function configureBadgeModelRenderer(renderer: WebGLRenderer): void {
   renderer.toneMappingExposure = BADGE_MODEL_TONE_MAPPING_EXPOSURE;
 }
 
+function getColorLuminance(color: Color): number {
+  return color.r * 0.2126 + color.g * 0.7152 + color.b * 0.0722;
+}
+
+function isGlowParticleMaterial(material: MeshStandardMaterial): boolean {
+  const opacity = material.opacity ?? 1;
+  if (!material.transparent || opacity > GLOW_PARTICLE_OPACITY_MAX) {
+    return false;
+  }
+  if ((material.transmission ?? 0) > 0.05) {
+    return false;
+  }
+  return getColorLuminance(material.color) >= GLOW_PARTICLE_LUMINANCE_MIN;
+}
+
+function prepareBadgeModelMaterial(material: Material): void {
+  if (!(material instanceof MeshStandardMaterial)) {
+    return;
+  }
+
+  material.envMapIntensity = Math.max(material.envMapIntensity ?? 1, 2.25);
+  material.needsUpdate = true;
+
+  if (isGlowParticleMaterial(material)) {
+    const opacity = Math.max(material.opacity ?? 1, 0.01);
+    material.emissive.copy(material.color);
+    material.emissiveIntensity = Math.min(GLOW_EMISSIVE_INTENSITY_CAP, 1.8 / opacity);
+    material.opacity = 1;
+    material.transparent = false;
+    material.depthWrite = true;
+    material.roughness = Math.min(material.roughness ?? 1, 0.28);
+    material.metalness = 0;
+    return;
+  }
+
+  if (material.transparent && (material.opacity ?? 1) < 0.92) {
+    material.opacity = Math.min(1, (material.opacity ?? 1) * 3.5);
+    material.depthWrite = (material.opacity ?? 1) >= 0.98;
+  }
+
+  if (getColorLuminance(material.emissive) > 0.01) {
+    material.emissiveIntensity = Math.max(material.emissiveIntensity ?? 1, 1.75);
+  }
+}
+
+/**
+ * Tunes imported glTF materials for our showcase viewer (closer to Sketchfab defaults).
+ * Very faint white particles become bright emissive dots; other PBR gets stronger IBL response.
+ */
+export function prepareBadgeModelMaterials(root: Object3D): void {
+  root.traverse((object) => {
+    if (!(object instanceof Mesh)) return;
+
+    const materials = Array.isArray(object.material) ? object.material : [object.material];
+    for (const material of materials) {
+      prepareBadgeModelMaterial(material);
+    }
+  });
+}
+
 export function getSharedBadgeModelEnvironment(renderer: WebGLRenderer): Texture {
-  if (sharedBadgeEnvironmentMap) {
+  if (sharedBadgeEnvironmentMap && sharedBadgeEnvironmentCacheKey === BADGE_MODEL_ENV_CACHE_KEY) {
     return sharedBadgeEnvironmentMap;
   }
+
+  sharedBadgeEnvironmentMap?.dispose();
+  sharedBadgeEnvironmentMap = null;
+  sharedBadgeEnvironmentCacheKey = BADGE_MODEL_ENV_CACHE_KEY;
 
   const pmremGenerator = new PMREMGenerator(renderer);
   const roomEnvironment = new RoomEnvironment();
@@ -64,20 +140,20 @@ export function getSharedBadgeModelEnvironment(renderer: WebGLRenderer): Texture
 }
 
 export function setupBadgeModelScene(scene: Scene, renderer: WebGLRenderer): void {
+  configureBadgeModelRenderer(renderer);
   scene.environment = getSharedBadgeModelEnvironment(renderer);
   scene.environmentIntensity = BADGE_MODEL_ENVIRONMENT_INTENSITY;
   addBadgeModelLights(scene);
 }
 
+/** IBL-forward rig similar to Sketchfab (environment does most of the work). */
 export function addBadgeModelLights(scene: Scene) {
-  const ambientLight = new AmbientLight(0xffffff, 0.55);
-  const keyLight = new DirectionalLight(0xffffff, 2.8);
-  keyLight.position.set(6, 8, 10);
-  const fillLight = new DirectionalLight(0xc7d2fe, 1.4);
-  fillLight.position.set(-8, 4, 6);
-  const rimLight = new DirectionalLight(0xfff4e6, 0.9);
-  rimLight.position.set(0, 2, -8);
-  scene.add(ambientLight, keyLight, fillLight, rimLight);
+  const hemi = new HemisphereLight(0xffffff, 0x45455a, 0.85);
+  const keyLight = new DirectionalLight(0xffffff, 1.45);
+  keyLight.position.set(5, 8, 9);
+  const rimLight = new DirectionalLight(0xfff6eb, 0.95);
+  rimLight.position.set(-7, 3, -7);
+  scene.add(hemi, keyLight, rimLight);
 }
 
 export type BadgeModelFrameMetrics = {

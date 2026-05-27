@@ -32,6 +32,7 @@ import {
   configureBadgeModelLoader,
   configureBadgeModelRenderer,
   frameCameraForBadgeModel,
+  prepareBadgeModelMaterials,
   setupBadgeModelScene,
 } from "@/lib/achievements/badge-model-rendering";
 
@@ -48,6 +49,7 @@ let sharedPosterRenderer: WebGLRenderer | null = null;
 
 function getSharedPosterRenderer(): WebGLRenderer {
   if (sharedPosterRenderer) {
+    configureBadgeModelRenderer(sharedPosterRenderer);
     sharedPosterRenderer.setSize(PREVIEW_SIZE_PX, PREVIEW_SIZE_PX, false);
     return sharedPosterRenderer;
   }
@@ -191,6 +193,7 @@ async function renderPosterFromGltf(
 
   const model = cloneSkeleton(gltf.scene);
   centerBadgeModelAtOrigin(model);
+  prepareBadgeModelMaterials(model);
   const orbitRoot = new Group();
   orbitRoot.add(model);
   applyBadgeModelPose(orbitRoot, yaw, pitch);
