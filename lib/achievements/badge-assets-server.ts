@@ -3,49 +3,107 @@ import "server-only";
 import {
   ACHIEVEMENT_BADGE_MODEL_BUCKET,
   ACHIEVEMENT_BADGE_PREVIEW_BUCKET,
+  BADGE_MODEL_MAX_FILE_BYTES,
   BADGE_PREVIEW_MAX_FILE_BYTES,
   buildAchievementBadgeModelPath,
   buildAchievementBadgePreviewPath,
   extractPublicBucketObjectPath,
+  isGlbHeader,
   sanitizeAchievementBadgeAssetPath,
 } from "@/lib/achievements/badge-assets";
 import { getImageKitServerClient, isImageKitServerConfigured } from "@/lib/imagekit/server-client";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 
-type UploadAchievementBadgeModelAssetArgs = {
+export type AchievementBadgeModelUploadTarget = {
+  modelPath: string;
+  token: string;
+};
+
+function assertUserOwnedBadgeModelPath(userId: string, modelPath: string): void {
+  const normalized = sanitizeAchievementBadgeAssetPath(modelPath);
+  if (!normalized.startsWith(`${userId}/`)) {
+    throw new Error("Invalid badge model path.");
+  }
+  if (!/^[^/]+\/[^/]+\/badge\.glb$/.test(normalized)) {
+    throw new Error("Invalid badge model path.");
+  }
+}
+
+function previewPathForModelPath(userId: string, modelPath: string): string {
+  const assetId = modelPath.split("/")[1];
+  if (!assetId) {
+    throw new Error("Invalid badge model path.");
+  }
+  return buildAchievementBadgePreviewPath(userId, assetId);
+}
+
+export async function createAchievementBadgeModelUploadTarget(
+  userId: string,
+): Promise<AchievementBadgeModelUploadTarget> {
+  const supabase = createServiceRoleClient();
+  const assetId = crypto.randomUUID();
+  const modelPath = buildAchievementBadgeModelPath(userId, assetId);
+
+  const { data, error } = await supabase.storage
+    .from(ACHIEVEMENT_BADGE_MODEL_BUCKET)
+    .createSignedUploadUrl(modelPath);
+
+  if (error || !data?.token) {
+    throw new Error(error?.message ?? "Could not create badge model upload URL.");
+  }
+
+  return {
+    modelPath,
+    token: data.token,
+  };
+}
+
+type CompleteAchievementBadgeModelUploadArgs = {
   userId: string;
-  modelBuffer: ArrayBuffer;
+  modelPath: string;
   previewBuffer: ArrayBuffer;
 };
 
-export async function uploadAchievementBadgeModelAsset(args: UploadAchievementBadgeModelAssetArgs) {
-  const supabase = createServiceRoleClient();
-  const assetId = crypto.randomUUID();
-  const modelPath = buildAchievementBadgeModelPath(args.userId, assetId);
-  const previewPath = buildAchievementBadgePreviewPath(args.userId, assetId);
+export async function completeAchievementBadgeModelUpload(
+  args: CompleteAchievementBadgeModelUploadArgs,
+) {
+  const modelPath = sanitizeAchievementBadgeAssetPath(args.modelPath);
+  assertUserOwnedBadgeModelPath(args.userId, modelPath);
 
-  const modelUpload = await supabase.storage
-    .from(ACHIEVEMENT_BADGE_MODEL_BUCKET)
-    .upload(modelPath, args.modelBuffer, {
-      cacheControl: "3600",
-      contentType: "model/gltf-binary",
-      upsert: false,
-    });
-
-  if (modelUpload.error) {
-    throw new Error(modelUpload.error.message);
+  if (isAchievementBadgePreviewTooLarge(args.previewBuffer)) {
+    throw new Error("The generated badge preview is too large.");
   }
 
+  const supabase = createServiceRoleClient();
+  const { data: modelBlob, error: modelDownloadError } = await supabase.storage
+    .from(ACHIEVEMENT_BADGE_MODEL_BUCKET)
+    .download(modelPath);
+
+  if (modelDownloadError || !modelBlob) {
+    throw new Error("Badge model was not uploaded. Try uploading again.");
+  }
+
+  const modelBuffer = await modelBlob.arrayBuffer();
+  if (!isGlbHeader(modelBuffer)) {
+    await supabase.storage.from(ACHIEVEMENT_BADGE_MODEL_BUCKET).remove([modelPath]);
+    throw new Error("This file is not a valid GLB asset.");
+  }
+
+  if (modelBuffer.byteLength > BADGE_MODEL_MAX_FILE_BYTES) {
+    await supabase.storage.from(ACHIEVEMENT_BADGE_MODEL_BUCKET).remove([modelPath]);
+    throw new Error("3D badge files must be 50 MB or smaller.");
+  }
+
+  const previewPath = previewPathForModelPath(args.userId, modelPath);
   const previewUpload = await supabase.storage
     .from(ACHIEVEMENT_BADGE_PREVIEW_BUCKET)
     .upload(previewPath, args.previewBuffer, {
       cacheControl: "31536000",
       contentType: "image/png",
-      upsert: false,
+      upsert: true,
     });
 
   if (previewUpload.error) {
-    await supabase.storage.from(ACHIEVEMENT_BADGE_MODEL_BUCKET).remove([modelPath]);
     throw new Error(previewUpload.error.message);
   }
 
