@@ -37,6 +37,8 @@ type AchievementBadgeModelViewerProps = {
   onVisualReady?: () => void;
   onPreviewDecoded?: () => void;
   stateKey?: string;
+  /** When false, skips the flat poster overlay (e.g. locked detail with opaque legacy posters). */
+  showPreviewOverlay?: boolean;
 };
 
 function configureGlbLoader(loader: GLTFLoader) {
@@ -101,6 +103,7 @@ export function AchievementBadgeModelViewer({
   onVisualReady,
   onPreviewDecoded,
   stateKey,
+  showPreviewOverlay = true,
 }: AchievementBadgeModelViewerProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const onVisualReadyRef = useRef(onVisualReady);
@@ -116,8 +119,8 @@ export function AchievementBadgeModelViewer({
 
   useEffect(() => {
     setReady(false);
-    setPreviewVisible(true);
-  }, [signedModelUrl]);
+    setPreviewVisible(showPreviewOverlay);
+  }, [showPreviewOverlay, signedModelUrl]);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -263,7 +266,9 @@ export function AchievementBadgeModelViewer({
       }
       allowAnimationAdvance = true;
       setReady(true);
-      setPreviewVisible(false);
+      if (showPreviewOverlay) {
+        setPreviewVisible(false);
+      }
     };
 
     document.addEventListener("visibilitychange", onVisibilityChange);
@@ -325,7 +330,9 @@ export function AchievementBadgeModelViewer({
 
         if (cachedState) {
           setReady(true);
-          setPreviewVisible(false);
+          if (showPreviewOverlay) {
+            setPreviewVisible(false);
+          }
           allowAnimationAdvance = true;
           onVisualReadyRef.current?.();
         } else {
@@ -334,9 +341,11 @@ export function AchievementBadgeModelViewer({
               if (cancelled) return;
               setReady(true);
               onVisualReadyRef.current?.();
-              previewFadeTimeout = window.setTimeout(() => {
-                setPreviewVisible(false);
-              }, 90);
+              if (showPreviewOverlay) {
+                previewFadeTimeout = window.setTimeout(() => {
+                  setPreviewVisible(false);
+                }, 90);
+              }
               animationStartTimeout = window.setTimeout(() => {
                 allowAnimationAdvance = true;
               }, 140);
@@ -392,7 +401,7 @@ export function AchievementBadgeModelViewer({
         mount.removeChild(renderer.domElement);
       }
     };
-  }, [signedModelUrl, viewStateKey]);
+  }, [showPreviewOverlay, signedModelUrl, viewStateKey]);
 
   const floatMotionStyle = useMemo(
     () =>
@@ -408,18 +417,20 @@ export function AchievementBadgeModelViewer({
   const viewer = (
     <div className={cn("relative h-full w-full", className)}>
       <div className="relative h-full w-full p-1">
-        <div
-          className={cn(
-            "pointer-events-none absolute inset-0 z-10 transition-opacity duration-200",
-            previewVisible ? "opacity-100" : "opacity-0",
-          )}
-        >
-          <RemoteBadgeImage
-            src={previewSrc}
-            className="h-full w-full object-contain"
-            onDecoded={() => onPreviewDecodedRef.current?.()}
-          />
-        </div>
+        {showPreviewOverlay ? (
+          <div
+            className={cn(
+              "pointer-events-none absolute inset-0 z-10 transition-opacity duration-200",
+              previewVisible ? "opacity-100" : "opacity-0",
+            )}
+          >
+            <RemoteBadgeImage
+              src={previewSrc}
+              className="h-full w-full object-contain"
+              onDecoded={() => onPreviewDecodedRef.current?.()}
+            />
+          </div>
+        ) : null}
         <div
           ref={mountRef}
           className={cn(

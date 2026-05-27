@@ -28,7 +28,6 @@ import {
   BADGE_MODEL_POSE_PRESETS,
 } from "@/lib/achievements/badge-model-poses";
 import {
-  BADGE_MODEL_POSTER_BACKGROUND,
   centerBadgeModelAtOrigin,
   configureBadgeModelLoader,
   configureBadgeModelRenderer,
@@ -66,7 +65,7 @@ function getSharedPosterRenderer(): WebGLRenderer {
   sharedPosterRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   sharedPosterRenderer.setSize(PREVIEW_SIZE_PX, PREVIEW_SIZE_PX, false);
   configureBadgeModelRenderer(sharedPosterRenderer);
-  sharedPosterRenderer.setClearColor(BADGE_MODEL_POSTER_BACKGROUND, 1);
+  sharedPosterRenderer.setClearColor(0x000000, 0);
   return sharedPosterRenderer;
 }
 
