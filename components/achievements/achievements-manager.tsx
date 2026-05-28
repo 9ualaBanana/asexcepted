@@ -86,7 +86,7 @@ export function AchievementsManager({
         canDedicate={model.canDedicate}
         items={model.gridItems}
         onAddAchievement={editorPipeline.actions.startCreateFlow}
-        onDedicateAchievement={editorPipeline.actions.startDedicateFlow}
+        onAddDedicatedAchievement={editorPipeline.actions.startDedicateFlow}
         onSelectAchievement={(achievementId) => {
           badgeMetrics.markDetailOpenStart(achievementId);
           ui.actions.openDetailView(achievementId);

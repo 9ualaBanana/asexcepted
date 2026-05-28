@@ -3,7 +3,6 @@
 import { createPortal } from "react-dom";
 import {
   useCallback,
-  useEffect,
   useState,
   type CSSProperties,
   type Dispatch,
@@ -76,7 +75,6 @@ export type AchievementDialogStackProps = {
 
   detailIsUnlocking: boolean;
   detailIsLockedUi: boolean;
-  detailFloating: boolean;
   detailRenderSrc: string;
   detailTone: AchievementTone;
   DetailFallbackIcon: LucideIcon;
@@ -93,6 +91,7 @@ export type AchievementDialogStackProps = {
   isSaving: boolean;
   shareMenuBusy: boolean;
   dedicateShareDisabledReason?: string | null;
+  showcaseShareDisabledReason?: string | null;
   showDedicateShareOption?: boolean;
   onShareShowcase: () => void;
   onRequestDedicateInviteShare: () => void;
@@ -138,7 +137,6 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     onRequestPanelVisibilityEdit,
     detailIsUnlocking,
     detailIsLockedUi,
-    detailFloating,
     detailRenderSrc,
     detailTone,
     DetailFallbackIcon,
@@ -154,6 +152,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     isSaving,
     shareMenuBusy,
     dedicateShareDisabledReason = null,
+    showcaseShareDisabledReason = null,
     showDedicateShareOption = true,
     onShareShowcase,
     onRequestDedicateInviteShare,
@@ -372,7 +371,6 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       viewerStateKey={`${detailAchievement.id}:detail:${detailViewSessionKey}`}
                       lockedUi={detailIsLockedUi}
                       unlocking={detailIsUnlocking}
-                      floating={detailFloating}
                       motionStartCentered={
                         optimisticUnlockedAchievementId === detailAchievement.id
                       }
@@ -426,19 +424,6 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                 <p className="mt-4 text-center text-xs text-white/40">
                   {formatAchievedAt(detailAchievement.achieved_at)}
                 </p>
-              ) : null}
-
-              {readOnly &&
-              detailIsDedicated &&
-              dedicationSenderId &&
-              detailMode === "view" &&
-              !isVisibilityOnlyEdit ? (
-                <DedicationBylineChromeRow
-                  senderUserId={dedicationSenderId}
-                  senderDisplayName={dedicationSenderDisplayName}
-                  senderNameLoading={dedicationSenderNameLoading}
-                  className={!formatAchievedAt(detailAchievement.achieved_at) ? "mt-6" : undefined}
-                />
               ) : null}
 
               {!readOnly ? (
@@ -518,6 +503,8 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                           busy={shareMenuBusy}
                           showDedicateOption={showDedicateShareOption}
                           dedicateDisabledReason={dedicateShareDisabledReason}
+                          showcaseDisabledReason={showcaseShareDisabledReason}
+                          showEmbedOption
                           onShareShowcase={onShareShowcase}
                           onRequestDedicateInvite={onRequestDedicateInviteShare}
                           onEmbed={onEmbedLink}
@@ -526,10 +513,54 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                     </div>
                   </div>
                 </div>
-              ) : formatAchievedAt(detailAchievement.achieved_at) ||
-                (detailIsDedicated && dedicationSenderId) ? null : (
-                <div className="mt-6" aria-hidden />
-              )}
+              ) : detailMode === "view" && !isVisibilityOnlyEdit ? (
+                detailIsDedicated && dedicationSenderId ? (
+                  <DedicationBylineChromeRow
+                    senderUserId={dedicationSenderId}
+                    senderDisplayName={dedicationSenderDisplayName}
+                    senderNameLoading={dedicationSenderNameLoading}
+                    className={
+                      !formatAchievedAt(detailAchievement.achieved_at) ? "mt-6" : undefined
+                    }
+                    endSlot={
+                      detailAchievement.icon_url?.trim() ? (
+                        <AchievementDetailShareMenu
+                          disabled={isSaving}
+                          busy={shareMenuBusy}
+                          showDedicateOption={false}
+                          showEmbedOption={false}
+                          showcaseDisabledReason={showcaseShareDisabledReason}
+                          onShareShowcase={onShareShowcase}
+                          onRequestDedicateInvite={onRequestDedicateInviteShare}
+                          onEmbed={onEmbedLink}
+                        />
+                      ) : undefined
+                    }
+                  />
+                ) : detailAchievement.icon_url?.trim() ? (
+                  <div
+                    className={cn(
+                      achievementBadgeChromeWidth,
+                      achievementDialogChromeInset,
+                      "mt-3 flex min-h-10 items-center justify-end",
+                      !formatAchievedAt(detailAchievement.achieved_at) && "mt-6",
+                    )}
+                  >
+                    <AchievementDetailShareMenu
+                      disabled={isSaving}
+                      busy={shareMenuBusy}
+                      showDedicateOption={false}
+                      showEmbedOption={false}
+                      showcaseDisabledReason={showcaseShareDisabledReason}
+                      onShareShowcase={onShareShowcase}
+                      onRequestDedicateInvite={onRequestDedicateInviteShare}
+                      onEmbed={onEmbedLink}
+                    />
+                  </div>
+                ) : !formatAchievedAt(detailAchievement.achieved_at) ? (
+                  <div className="mt-6" aria-hidden />
+                ) : null
+              ) : null}
             </div>
           ) : detailMode === "edit" && detailAchievement ? (
             <EditableAchievementCard

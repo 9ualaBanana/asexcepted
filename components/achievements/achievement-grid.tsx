@@ -27,7 +27,7 @@ type AchievementGridProps = {
   canDedicate?: boolean;
   items: AchievementGridEntry[];
   onAddAchievement: () => void;
-  onDedicateAchievement?: () => void;
+  onAddDedicatedAchievement?: () => void;
   onSelectAchievement: (id: string) => void;
 };
 
@@ -57,7 +57,7 @@ function AchievementGridInner({
   canDedicate = false,
   items,
   onAddAchievement,
-  onDedicateAchievement,
+  onAddDedicatedAchievement,
   onSelectAchievement,
 }: Omit<AchievementGridProps, "isLoading">) {
   return (
@@ -72,8 +72,8 @@ function AchievementGridInner({
           {!readOnly ? (
             <AchievementGridItemAdd onClick={onAddAchievement} />
           ) : null}
-          {canDedicate && onDedicateAchievement ? (
-            <AchievementGridItemDedicate onClick={onDedicateAchievement} />
+          {canDedicate && onAddDedicatedAchievement ? (
+            <AchievementGridItemDedicate onClick={onAddDedicatedAchievement} />
           ) : null}
 
           {items.map((achievement) => (
@@ -112,7 +112,7 @@ export function AchievementGrid({
   canDedicate,
   items,
   onAddAchievement,
-  onDedicateAchievement,
+  onAddDedicatedAchievement,
   onSelectAchievement,
 }: AchievementGridProps) {
   if (isLoading) return <AchievementGridFallback />;
@@ -122,7 +122,7 @@ export function AchievementGrid({
       canDedicate={canDedicate}
       items={items}
       onAddAchievement={onAddAchievement}
-      onDedicateAchievement={onDedicateAchievement}
+      onAddDedicatedAchievement={onAddDedicatedAchievement}
       onSelectAchievement={onSelectAchievement}
     />
   );

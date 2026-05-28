@@ -36,11 +36,14 @@ type AchievementShareInviteRow = Tables<"achievement_share_invites">;
 type AchievementRow = Tables<"achievements">;
 
 const COLLECTION_ACHIEVEMENT_SNAPSHOT_SELECT =
-  "id,user_id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_cc_attribution,icon_model_yaw,icon_model_pitch,tone,achieved_at,dedicated_by_user_id" as const;
+  "id,user_id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_cc_attribution,icon_model_yaw,icon_model_pitch,tone,achieved_at,visibility,dedicated_by_user_id" as const;
 
 export type AchievementShareInvitePresentation = {
   invite: AchievementShareInviteRow;
   senderDisplayName: string;
+  /** Collection owner when `source_achievement_id` is set (may differ from sharer). */
+  collectionOwnerUserId: string | null;
+  collectionOwnerDisplayName: string | null;
 };
 
 export type AchievementSharePageKind = "invite" | "showcase";
@@ -60,20 +63,21 @@ export function getAchievementShareInviteKind(
 }
 
 export function getAchievementShareInviteOwnerDetailPath(
-  invite: Pick<AchievementShareInviteRow, "sender_user_id" | "source_achievement_id">,
+  invite: Pick<AchievementShareInviteRow, "source_achievement_id">,
+  collectionOwnerUserId: string,
 ) {
   const sourceAchievementId = invite.source_achievement_id?.trim();
   if (!sourceAchievementId) {
     return null;
   }
 
-  return userAchievementDetail(invite.sender_user_id, sourceAchievementId);
+  return userAchievementDetail(collectionOwnerUserId, sourceAchievementId);
 }
 
 async function finalizeInviteBadgeAssetsOnRow(args: {
   supabase: ReturnType<typeof createServiceRoleClient>;
   inviteId: string;
-  senderUserId: string;
+  badgeAssetOwnerUserId: string;
   snapshot: AchievementShareInviteSnapshot;
 }): Promise<Result<AchievementShareInviteSnapshot, string>> {
   if (!isModelBadgeAssetKind(args.snapshot.icon_asset_kind)) {
@@ -83,7 +87,7 @@ async function finalizeInviteBadgeAssetsOnRow(args: {
   try {
     const pinned = await pinBadgeAssetsForShareInvite({
       inviteId: args.inviteId,
-      senderUserId: args.senderUserId,
+      senderUserId: args.badgeAssetOwnerUserId,
       iconAssetPath: args.snapshot.icon_asset_path,
     });
     if (!pinned) {
@@ -134,6 +138,7 @@ async function insertShareInviteWithSnapshot(args: {
   snapshot: AchievementShareInviteSnapshot;
   sourceAchievementId: string | null;
   shareKind: AchievementSharePageKind;
+  badgeAssetOwnerUserId?: string;
 }): Promise<
   Result<
     {
@@ -190,7 +195,7 @@ async function insertShareInviteWithSnapshot(args: {
   const finalized = await finalizeInviteBadgeAssetsOnRow({
     supabase,
     inviteId: data.id,
-    senderUserId: args.senderUserId,
+    badgeAssetOwnerUserId: args.badgeAssetOwnerUserId ?? args.senderUserId,
     snapshot: args.snapshot,
   });
   if (finalized.isErr()) {
@@ -265,31 +270,39 @@ export async function createAchievementShareInviteFromExistingAchievement(args: 
     .from("achievements")
     .select(COLLECTION_ACHIEVEMENT_SNAPSHOT_SELECT)
     .eq("id", args.achievementId)
-    .eq("user_id", args.senderUserId)
     .maybeSingle();
 
   if (error) {
     return err(
-      formatSupabaseSingleRowError(
-        error,
-        "This achievement is not in your collection. It may have already been dedicated.",
-      ),
+      formatSupabaseSingleRowError(error, "This achievement could not be found."),
     );
   }
   if (!data) {
-    return err(
-      "This achievement is not in your collection. It may have already been dedicated.",
-    );
+    return err("This achievement could not be found.");
   }
 
-  const achievement = data as Pick<AchievementRow, "id" | "dedicated_by_user_id"> &
+  const achievement = data as Pick<
+    AchievementRow,
+    "id" | "user_id" | "visibility" | "dedicated_by_user_id"
+  > &
     Parameters<typeof shareInviteSnapshotFromAchievementRow>[0];
 
-  if (achievement.dedicated_by_user_id) {
+  const collectionOwnerId = achievement.user_id;
+  const isCollectionOwner = collectionOwnerId === args.senderUserId;
+
+  if (!isCollectionOwner) {
+    if (args.intent !== "showcase") {
+      return err("You can only dedicate achievements from your own collection.");
+    }
+    if (achievement.visibility !== "public") {
+      return err("Only public achievements can be shared as showcase.");
+    }
+  } else if (achievement.dedicated_by_user_id) {
     return err("Dedicated achievements cannot be re-shared.");
   }
 
   const snapshot = shareInviteSnapshotFromAchievementRow(achievement);
+  const badgeAssetOwnerUserId = collectionOwnerId;
 
   if (args.intent === "showcase") {
     return insertShareInviteWithSnapshot({
@@ -297,6 +310,7 @@ export async function createAchievementShareInviteFromExistingAchievement(args: 
       snapshot,
       sourceAchievementId: achievement.id,
       shareKind: "showcase",
+      badgeAssetOwnerUserId,
     });
   }
 
@@ -305,6 +319,7 @@ export async function createAchievementShareInviteFromExistingAchievement(args: 
     snapshot,
     sourceAchievementId: null,
     shareKind: "invite",
+    badgeAssetOwnerUserId,
   });
 
   if (inviteResult.isErr()) {
@@ -376,10 +391,34 @@ export async function getAchievementShareInvitePresentationByToken(
     return err("not-found");
   }
 
-  const nameResult = await fetchPublicUserDisplayName(supabase, data.sender_user_id);
+  const senderNameResult = await fetchPublicUserDisplayName(supabase, data.sender_user_id);
+  const senderDisplayName = senderNameResult.isOk() ? senderNameResult.value : "Someone";
+
+  let collectionOwnerUserId: string | null = null;
+  let collectionOwnerDisplayName: string | null = null;
+  const sourceAchievementId = data.source_achievement_id?.trim();
+  if (sourceAchievementId) {
+    const { data: sourceRow, error: sourceError } = await supabase
+      .from("achievements")
+      .select("user_id")
+      .eq("id", sourceAchievementId)
+      .maybeSingle();
+
+    if (!sourceError && sourceRow?.user_id) {
+      collectionOwnerUserId = sourceRow.user_id;
+      const ownerNameResult = await fetchPublicUserDisplayName(
+        supabase,
+        collectionOwnerUserId,
+      );
+      collectionOwnerDisplayName = ownerNameResult.isOk() ? ownerNameResult.value : "Someone";
+    }
+  }
+
   return ok({
     invite: data,
-    senderDisplayName: nameResult.isOk() ? nameResult.value : "Someone",
+    senderDisplayName,
+    collectionOwnerUserId,
+    collectionOwnerDisplayName,
   });
 }
 

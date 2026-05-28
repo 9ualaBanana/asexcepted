@@ -78,13 +78,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     });
   }
 
-  const { invite, senderDisplayName } = result.value;
+  const { invite, senderDisplayName, collectionOwnerDisplayName } = result.value;
   const pageKind = getAchievementShareInviteKind(invite);
   const title = resolveInviteShareTitle(invite);
+  const showcaseOwnerName = collectionOwnerDisplayName ?? senderDisplayName;
   const description =
     invite.description?.trim() ||
     (pageKind === "showcase"
-      ? `${senderDisplayName} shared an achievement from their collection.`
+      ? `An achievement from ${showcaseOwnerName}'s collection.`
       : `${senderDisplayName} shared an achievement waiting in your collection.`);
 
   const pageUrl = origin ? `${origin}${achievementShareInvitePath(token)}` : undefined;
@@ -128,10 +129,20 @@ export default async function Page({ params }: PageProps) {
     return <InviteUnavailableState claimed={false} />;
   }
 
-  const { invite, senderDisplayName } = result.value;
+  const {
+    invite,
+    senderDisplayName,
+    collectionOwnerUserId,
+    collectionOwnerDisplayName,
+  } = result.value;
   const pageKind = getAchievementShareInviteKind(invite);
-  const ownerDetailPath = getAchievementShareInviteOwnerDetailPath(invite);
-  const senderCollectionPath = userCollection(invite.sender_user_id);
+  const collectionOwnerId = collectionOwnerUserId ?? invite.sender_user_id;
+  const collectionOwnerName = collectionOwnerDisplayName ?? senderDisplayName;
+  const ownerDetailPath = getAchievementShareInviteOwnerDetailPath(
+    invite,
+    collectionOwnerId,
+  );
+  const collectionOwnerPath = userCollection(collectionOwnerId);
   const liveModelUrl =
     isModelBadgeAssetKind(invite.icon_asset_kind) && invite.icon_asset_path?.trim()
       ? await createSignedAchievementBadgeModelUrl(invite.icon_asset_path)
@@ -202,17 +213,17 @@ export default async function Page({ params }: PageProps) {
               <p className="text-xs leading-snug text-white/55">
                 by{" "}
                 <Link
-                  href={senderCollectionPath}
+                  href={collectionOwnerPath}
                   className="font-semibold text-emerald-200/90 underline-offset-2 hover:underline"
                 >
-                  {senderDisplayName}
+                  {collectionOwnerName}
                 </Link>
               </p>
             ) : (
               <p className="text-xs leading-snug text-white/55">
                 dedicated by{" "}
                 <Link
-                  href={senderCollectionPath}
+                  href={userCollection(invite.sender_user_id)}
                   className="font-semibold text-amber-200/95 underline-offset-2 hover:underline"
                 >
                   {senderDisplayName}

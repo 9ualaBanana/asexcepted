@@ -49,7 +49,6 @@ export function WelcomeAchievementShowcase() {
         hasIconUrl
         lockedUi={false}
         unlocking={false}
-        floating
         detailMaskStyle={detailMaskStyle}
         unlockRevealClipPath={EMPTY_CLIP}
         unlockAlphaMaskRef={unlockAlphaMaskRef}

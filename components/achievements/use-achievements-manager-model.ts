@@ -487,10 +487,17 @@ export function useAchievementsManagerModel({
     [detailAchievement],
   );
 
-  const dedicateShareDisabledReason = useMemo(() => {
-    if (!detailAchievement || !showDedicateShareOption) return null;
+  const shareReadinessError = useMemo(() => {
+    if (!detailAchievement) return null;
     return getAchievementShareReadinessError(detailAchievement);
-  }, [detailAchievement, showDedicateShareOption]);
+  }, [detailAchievement]);
+
+  const dedicateShareDisabledReason = useMemo(() => {
+    if (!showDedicateShareOption) return null;
+    return shareReadinessError;
+  }, [shareReadinessError, showDedicateShareOption]);
+
+  const showcaseShareDisabledReason = shareReadinessError;
 
   const handleConfirmDiscardPanelEdit = useCallback(() => {
     const intent = ui.discardEditIntent;
@@ -528,7 +535,6 @@ export function useAchievementsManagerModel({
     onRequestPanelVisibilityEdit: editorPipeline.actions.startPanelVisibilityEditFlow,
     detailIsUnlocking,
     detailIsLockedUi,
-    detailFloating,
     detailRenderSrc,
     detailTone,
     DetailFallbackIcon,
@@ -545,7 +551,14 @@ export function useAchievementsManagerModel({
     shareMenuBusy: shareInvite.shareInviteBusy || embedLink.embedCopyBusy,
     dedicateShareDisabledReason,
     showDedicateShareOption,
-    onShareShowcase: shareInvite.shareShowcaseAchievement,
+    showcaseShareDisabledReason,
+    onShareShowcase: () => {
+      if (showcaseShareDisabledReason) {
+        showErrorToast(showcaseShareDisabledReason, { id: "achievement-showcase-not-ready" });
+        return;
+      }
+      shareInvite.shareShowcaseAchievement();
+    },
     onRequestDedicateInviteShare: () => {
       if (!showDedicateShareOption) return;
       if (dedicateShareDisabledReason) {

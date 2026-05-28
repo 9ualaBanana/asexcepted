@@ -36,7 +36,7 @@ export type AchievementDetailBadgeInteractiveProps = {
   viewerStateKey?: string;
   lockedUi: boolean;
   unlocking: boolean;
-  floating: boolean;
+  floating?: boolean;
   motionStartCentered?: boolean;
   detailMaskStyle: CSSProperties | null;
   unlockRevealClipPath: string;
@@ -72,7 +72,7 @@ export function AchievementDetailBadgeInteractive({
   viewerStateKey,
   lockedUi,
   unlocking,
-  floating,
+  floating = true,
   motionStartCentered = false,
   detailMaskStyle,
   unlockRevealClipPath,

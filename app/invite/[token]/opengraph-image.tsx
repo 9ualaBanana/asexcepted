@@ -49,14 +49,19 @@ export default async function Image({ params }: ImageProps) {
     return new ImageResponse(<OgUnavailableCard message="Shared achievement unavailable" />, size);
   }
 
-  const { invite, senderDisplayName: rawSenderName } = result.value;
+  const {
+    invite,
+    senderDisplayName: rawSenderName,
+    collectionOwnerDisplayName: rawOwnerName,
+  } = result.value;
   const senderDisplayName = rawSenderName.trim() || "Someone";
+  const collectionOwnerName = rawOwnerName?.trim() || senderDisplayName;
   const pageKind = getAchievementShareInviteKind(invite);
   const title = resolveInviteOgImageTitle(invite);
   const description =
     invite.description?.trim() ||
     (pageKind === "showcase"
-      ? `${senderDisplayName} shared this from their collection.`
+      ? `An achievement from ${collectionOwnerName}'s collection.`
       : `${senderDisplayName} shared this for your collection.`);
 
   const badgeImageUrl = resolveInviteOgBadgeImageUrl(invite);
@@ -197,7 +202,7 @@ export default async function Image({ params }: ImageProps) {
                       : "rgba(253,230,138,0.92)",
                 }}
               >
-                {senderDisplayName}
+                {pageKind === "showcase" ? collectionOwnerName : senderDisplayName}
               </span>
             </div>
           </div>

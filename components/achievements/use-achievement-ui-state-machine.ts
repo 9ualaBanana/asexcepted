@@ -7,7 +7,7 @@ type OverlayState =
   | "create"
   | "detail-view"
   | "detail-edit"
-  | "detail-visibility-edit";
+  | "dedicated-detail-edit";
 
 export type DiscardEditIntent = "back" | "close";
 
@@ -23,7 +23,7 @@ type UiAction =
   | { type: "open-create" }
   | { type: "open-detail-view"; achievementId: string }
   | { type: "enter-detail-edit" }
-  | { type: "enter-detail-visibility-edit" }
+  | { type: "enter-dedicated-detail-edit" }
   | { type: "exit-detail-edit" }
   | { type: "close-overlay" }
   | { type: "request-delete"; achievementId: string }
@@ -50,9 +50,9 @@ function reduceUiState(state: UiState, action: UiAction): UiState {
     case "enter-detail-edit":
       if (!state.detailAchievementId) return state;
       return { ...state, overlay: "detail-edit" };
-    case "enter-detail-visibility-edit":
+    case "enter-dedicated-detail-edit":
       if (!state.detailAchievementId) return state;
-      return { ...state, overlay: "detail-visibility-edit" };
+      return { ...state, overlay: "dedicated-detail-edit" };
     case "exit-detail-edit":
       if (!state.detailAchievementId) {
         return { ...state, overlay: "closed" };
@@ -92,7 +92,7 @@ export function useAchievementUiStateMachine() {
   });
 
   const isCreating = state.overlay === "create";
-  const isVisibilityOnlyEdit = state.overlay === "detail-visibility-edit";
+  const isVisibilityOnlyEdit = state.overlay === "dedicated-detail-edit";
   const detailMode: "view" | "edit" =
     state.overlay === "detail-edit" || isVisibilityOnlyEdit ? "edit" : "view";
   const achievementOverlayOpen = state.overlay !== "closed";
@@ -110,7 +110,7 @@ export function useAchievementUiStateMachine() {
   }, []);
 
   const enterDetailVisibilityEdit = useCallback(() => {
-    dispatch({ type: "enter-detail-visibility-edit" });
+    dispatch({ type: "enter-dedicated-detail-edit" });
   }, []);
 
   const exitDetailEdit = useCallback(() => {

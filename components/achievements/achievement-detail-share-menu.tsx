@@ -19,6 +19,10 @@ type AchievementDetailShareMenuProps = {
   showDedicateOption?: boolean;
   /** When set, Dedicate is disabled (e.g. 3D badge still uploading). */
   dedicateDisabledReason?: string | null;
+  /** When false, embed copy is hidden (e.g. viewing someone else's achievement). */
+  showEmbedOption?: boolean;
+  /** When set, showcase share is disabled (e.g. badge still uploading). */
+  showcaseDisabledReason?: string | null;
   onShareShowcase: () => void;
   onRequestDedicateInvite: () => void;
   onEmbed: () => void;
@@ -29,12 +33,15 @@ export function AchievementDetailShareMenu({
   busy = false,
   showDedicateOption = true,
   dedicateDisabledReason = null,
+  showEmbedOption = true,
+  showcaseDisabledReason = null,
   onShareShowcase,
   onRequestDedicateInvite,
   onEmbed,
 }: AchievementDetailShareMenuProps) {
   const isDisabled = disabled || busy;
   const dedicateBlocked = Boolean(dedicateDisabledReason?.trim());
+  const showcaseBlocked = Boolean(showcaseDisabledReason?.trim());
 
   return (
     <DropdownMenu modal={false}>
@@ -61,8 +68,10 @@ export function AchievementDetailShareMenu({
         onCloseAutoFocus={(event) => event.preventDefault()}
       >
         <DropdownMenuItem
-          disabled={isDisabled}
+          disabled={isDisabled || showcaseBlocked}
+          title={showcaseBlocked ? showcaseDisabledReason ?? undefined : undefined}
           onSelect={() => {
+            if (showcaseBlocked) return;
             onShareShowcase();
           }}
         >
@@ -82,15 +91,17 @@ export function AchievementDetailShareMenu({
             {ACHIEVEMENT_UI_COPY.shareMenuDedicate}
           </DropdownMenuItem>
         ) : null}
-        <DropdownMenuItem
-          disabled={isDisabled}
-          onSelect={() => {
-            onEmbed();
-          }}
-        >
-          <Code2 className="h-4 w-4" aria-hidden />
-          {ACHIEVEMENT_UI_COPY.shareMenuEmbed}
-        </DropdownMenuItem>
+        {showEmbedOption ? (
+          <DropdownMenuItem
+            disabled={isDisabled}
+            onSelect={() => {
+              onEmbed();
+            }}
+          >
+            <Code2 className="h-4 w-4" aria-hidden />
+            {ACHIEVEMENT_UI_COPY.shareMenuEmbed}
+          </DropdownMenuItem>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );
