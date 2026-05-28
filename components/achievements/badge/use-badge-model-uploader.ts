@@ -46,24 +46,20 @@ export function useBadgeModelUploader(options: UseBadgeModelUploaderOptions) {
       try {
         const prepared = await prepareBadgeModelUpload(file);
         const { modelPath } = await uploadBadgeModelGlbOnly(file);
-        const selected = prepared.variants[0];
-        if (!selected) {
-          throw new Error("Could not generate badge preview variants.");
-        }
 
         const poseSession: BadgeModelPoseSession = {
           modelPath,
-          variants: prepared.variants,
-          selectedIndex: 0,
+          initialPreviewUrl: prepared.initialPreviewUrl,
+          createPreviewBlob: prepared.createPreviewBlob,
           finalized: false,
         };
 
         options.onUploadSuccess({
           modelPath,
           poseSession,
-          previewUrl: selected.previewUrl,
-          iconModelYaw: selected.yaw,
-          iconModelPitch: selected.pitch,
+          previewUrl: prepared.initialPreviewUrl,
+          iconModelYaw: prepared.initialYaw,
+          iconModelPitch: prepared.initialPitch,
         });
       } catch (error) {
         options.onUploadError(

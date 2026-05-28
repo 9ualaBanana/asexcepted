@@ -129,6 +129,8 @@ export type FormState = {
   iconCcAttribution: string;
   iconModelYaw: number;
   iconModelPitch: number;
+  iconModelAnimationPlay: boolean;
+  iconModelAnimationSpeed: number;
   tone: AchievementTone;
   isLocked: boolean;
   achievedAt: string;

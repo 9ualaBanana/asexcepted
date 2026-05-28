@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, ImagePlus, Lock, RotateCw, Trash2, Unlock } from "lucide-react";
+import { Box, ImagePlus, Lock, Pause, Play, Trash2, Unlock } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -36,6 +36,8 @@ import {
   useBadgeModelUploader,
   type BadgeModelUploadStaged,
 } from "@/components/achievements/badge/use-badge-model-uploader";
+import { useSignedBadgeModelUrl } from "@/components/achievements/badge/use-signed-badge-model-url";
+import { AchievementBadgeModelViewer } from "@/components/achievements/badge/achievement-badge-model-viewer";
 
 import "@uppy/core/css/style.min.css";
 
@@ -57,6 +59,8 @@ type AchievementRoundBadgeEditorProps = {
   iconAssetKind: AchievementIconAssetKind;
   iconAssetPath: string;
   iconCcAttribution: string;
+  iconModelYaw: number;
+  iconModelPitch: number;
   baselineAsset: BadgeRemoteAsset;
   tone: AchievementTone;
   isLocked: boolean;
@@ -71,12 +75,16 @@ type AchievementRoundBadgeEditorProps = {
   onIconAssetKindChange: (kind: AchievementIconAssetKind) => void;
   onIconAssetPathChange: (path: string) => void;
   onIconCcAttributionChange: (value: string) => void;
+  iconModelAnimationPlay: boolean;
+  iconModelAnimationSpeed: number;
+  onIconModelAnimationPlayChange: (value: boolean) => void;
+  onIconModelAnimationSpeedChange: (value: number) => void;
+  onModelPoseChange: (yaw: number, pitch: number) => void;
+  allowModelRotation?: boolean;
   /** Clear staged-upload pointer when the in-progress image is removed locally. */
   onStagedUploadCleared?: () => void;
   /** Signals when remote badge upload is currently in flight. */
   onUploadInProgressChange?: (inProgress: boolean) => void;
-  modelPosePickerActive?: boolean;
-  onCycleModelPose?: () => void;
   onModelUploadStaged?: (staged: BadgeModelUploadStaged) => void;
   disabled?: boolean;
 };
@@ -87,6 +95,8 @@ export function AchievementRoundBadgeEditor({
   iconAssetKind,
   iconAssetPath,
   iconCcAttribution,
+  iconModelYaw,
+  iconModelPitch,
   baselineAsset,
   tone,
   isLocked,
@@ -100,10 +110,14 @@ export function AchievementRoundBadgeEditor({
   onIconAssetKindChange,
   onIconAssetPathChange,
   onIconCcAttributionChange,
+  iconModelAnimationPlay,
+  iconModelAnimationSpeed,
+  onIconModelAnimationPlayChange,
+  onIconModelAnimationSpeedChange,
+  onModelPoseChange,
+  allowModelRotation = true,
   onStagedUploadCleared,
   onUploadInProgressChange,
-  modelPosePickerActive = false,
-  onCycleModelPose,
   onModelUploadStaged,
   disabled = false,
 }: AchievementRoundBadgeEditorProps) {
@@ -121,6 +135,7 @@ export function AchievementRoundBadgeEditor({
   const [dragActive, setDragActive] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasModelAnimation, setHasModelAnimation] = useState(false);
 
   const removeTitleId = useId();
   const FallbackIcon = iconMap[icon];
@@ -161,6 +176,18 @@ export function AchievementRoundBadgeEditor({
   };
   const hasCustomBadge =
     hasRemote || currentAsset.iconFileId.length > 0 || currentAsset.iconAssetPath.length > 0;
+  const isModelAsset = iconAssetKind === "model_glb" && currentAsset.iconAssetPath.length > 0;
+
+  const { signedUrl: editorSignedModelUrl } = useSignedBadgeModelUrl(
+    currentAsset.iconAssetPath,
+    isModelAsset,
+  );
+
+  useEffect(() => {
+    if (!isModelAsset) {
+      setHasModelAnimation(false);
+    }
+  }, [isModelAsset]);
 
   useErrorToast(error, { id: "badge-editor-upload" });
 
@@ -266,19 +293,40 @@ export function AchievementRoundBadgeEditor({
 
   return (
     <div ref={rootRef} className="group/badge relative flex flex-col items-center">
-      {modelPosePickerActive && onCycleModelPose ? (
+      {isModelAsset ? (
         <button
           type="button"
-          aria-label="Cycle badge starting angle"
-          disabled={disabled || busy}
+          aria-label={iconModelAnimationPlay ? "Pause model animation" : "Play model animation"}
+          disabled={disabled || busy || !hasModelAnimation}
           onClick={(event) => {
             event.stopPropagation();
-            onCycleModelPose();
+            onIconModelAnimationPlayChange(!iconModelAnimationPlay);
           }}
-          className="pointer-events-auto absolute right-3 top-3 z-40 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/10 text-white/25 shadow-md backdrop-blur-sm transition hover:bg-black/20 hover:text-white/45 disabled:pointer-events-none disabled:opacity-50"
+          className="pointer-events-auto absolute left-3 top-3 z-40 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/10 text-white/25 shadow-md backdrop-blur-sm transition hover:bg-black/20 hover:text-white/45 disabled:pointer-events-none disabled:opacity-50"
         >
-          <RotateCw className="h-4 w-4" aria-hidden />
+          {iconModelAnimationPlay ? <Pause className="h-4 w-4" aria-hidden /> : <Play className="h-4 w-4" aria-hidden />}
         </button>
+      ) : null}
+      {isModelAsset && iconModelAnimationPlay && hasModelAnimation ? (
+        <div className="pointer-events-none absolute left-12 right-12 top-3 z-40 flex items-center">
+          <input
+            type="range"
+            min={0.1}
+            max={2}
+            step={0.05}
+            value={iconModelAnimationSpeed}
+            disabled={disabled || busy}
+            aria-label="Animation speed"
+            className="pointer-events-auto h-1.5 w-full cursor-pointer appearance-none rounded-full bg-white/25 accent-white disabled:cursor-not-allowed disabled:opacity-40"
+            onChange={(event) => {
+              const value = Number(event.target.value);
+              if (!Number.isFinite(value)) return;
+              onIconModelAnimationSpeedChange(Math.min(2, Math.max(0.1, value)));
+            }}
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
+          />
+        </div>
       ) : null}
       <input
         ref={fileInputRef}
@@ -343,14 +391,32 @@ export function AchievementRoundBadgeEditor({
           </div>
         ) : null}
         {hasRemote ? (
-          <RemoteBadgeImage
-            src={toOptimizedBadgeRenderSrc(trimmed)}
-            className={cn(
-              "p-1 transition-all duration-500 ease-out",
-              "h-full w-full object-contain drop-shadow-lg",
-              busy && "scale-[0.96] blur-[3.5px] opacity-[0.72]",
-            )}
-          />
+          isModelAsset && editorSignedModelUrl ? (
+            <AchievementBadgeModelViewer
+              signedModelUrl={editorSignedModelUrl}
+              previewSrc={toOptimizedBadgeRenderSrc(trimmed)}
+              className={cn("p-1", busy && "scale-[0.96] blur-[3.5px] opacity-[0.72]")}
+              float={false}
+              motionSeed={currentAsset.iconAssetPath || trimmed}
+              initialYaw={iconModelYaw}
+              initialPitch={iconModelPitch}
+              playAnimation={iconModelAnimationPlay}
+              animationSpeed={iconModelAnimationSpeed}
+              onHasAnimationChange={setHasModelAnimation}
+              onPoseChange={onModelPoseChange}
+              allowInertia={false}
+              interactive={allowModelRotation}
+            />
+          ) : (
+            <RemoteBadgeImage
+              src={toOptimizedBadgeRenderSrc(trimmed)}
+              className={cn(
+                "p-1 transition-all duration-500 ease-out",
+                "h-full w-full object-contain drop-shadow-lg",
+                busy && "scale-[0.96] blur-[3.5px] opacity-[0.72]",
+              )}
+            />
+          )
         ) : (
           <div
             className={cn(

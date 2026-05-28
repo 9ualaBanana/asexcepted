@@ -38,6 +38,8 @@ export function getWelcomeIntroAchievementRecord(): AchievementRecord {
     icon_cc_attribution: INTRO_ACHIEVEMENT_SEED.icon_cc_attribution,
     icon_model_yaw: 0,
     icon_model_pitch: 0,
+    icon_model_animation_play: true,
+    icon_model_animation_speed: 1,
     tone: INTRO_ACHIEVEMENT_SEED.tone,
     is_locked: true,
     achieved_at: INTRO_ACHIEVEMENT_SEED.achieved_at,

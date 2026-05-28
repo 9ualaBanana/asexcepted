@@ -79,6 +79,8 @@ export function DedicationResponseDialog({
               iconAssetPath={achievement.icon_asset_path}
               iconModelYaw={achievement.icon_model_yaw}
               iconModelPitch={achievement.icon_model_pitch}
+              iconModelAnimationPlay={achievement.icon_model_animation_play}
+              iconModelAnimationSpeed={achievement.icon_model_animation_speed}
               tone={tone}
               lockedUi
               unlocking={false}

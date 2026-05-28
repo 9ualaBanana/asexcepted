@@ -31,6 +31,8 @@ export type AchievementDetailBadgeInteractiveProps = {
   iconAssetPath?: string | null;
   iconModelYaw?: number;
   iconModelPitch?: number;
+  iconModelAnimationPlay?: boolean;
+  iconModelAnimationSpeed?: number;
   viewerStateKey?: string;
   lockedUi: boolean;
   unlocking: boolean;
@@ -65,6 +67,8 @@ export function AchievementDetailBadgeInteractive({
   iconAssetPath = null,
   iconModelYaw = 0,
   iconModelPitch = 0,
+  iconModelAnimationPlay = true,
+  iconModelAnimationSpeed = 1,
   viewerStateKey,
   lockedUi,
   unlocking,
@@ -108,6 +112,8 @@ export function AchievementDetailBadgeInteractive({
         motionStartCentered={motionStartCentered}
         initialYaw={iconModelYaw}
         initialPitch={iconModelPitch}
+        playAnimation={iconModelAnimationPlay}
+        animationSpeed={iconModelAnimationSpeed}
         stateKey={viewerStateKey}
         onPreviewDecoded={onImageDecoded}
         onVisualReady={onVisualReady}

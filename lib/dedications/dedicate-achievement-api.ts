@@ -14,6 +14,8 @@ export type DedicateAchievementApiBody = {
   icon_cc_attribution: AchievementDbWritePayload["icon_cc_attribution"];
   icon_model_yaw: AchievementDbWritePayload["icon_model_yaw"];
   icon_model_pitch: AchievementDbWritePayload["icon_model_pitch"];
+  icon_model_animation_play: AchievementDbWritePayload["icon_model_animation_play"];
+  icon_model_animation_speed: AchievementDbWritePayload["icon_model_animation_speed"];
   tone: string;
   achieved_at: AchievementDbWritePayload["achieved_at"];
 };
@@ -35,6 +37,8 @@ export function payloadToDedicateApiBody(
     icon_cc_attribution: payload.icon_cc_attribution,
     icon_model_yaw: payload.icon_model_yaw,
     icon_model_pitch: payload.icon_model_pitch,
+    icon_model_animation_play: payload.icon_model_animation_play,
+    icon_model_animation_speed: payload.icon_model_animation_speed,
     tone: payload.tone ?? "teal",
     achieved_at: payload.achieved_at,
   };

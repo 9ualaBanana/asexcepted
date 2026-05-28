@@ -26,6 +26,8 @@ const bodySchema = z.object({
   icon_cc_attribution: z.string().nullable().optional(),
   icon_model_yaw: z.number().optional(),
   icon_model_pitch: z.number().optional(),
+  icon_model_animation_play: z.boolean().optional(),
+  icon_model_animation_speed: z.number().optional(),
   tone: z.string().optional(),
   achieved_at: z.string().nullable().optional(),
 });
@@ -117,6 +119,11 @@ export async function POST(request: Request) {
       icon_cc_attribution: parsed.data.icon_cc_attribution ?? null,
       icon_model_yaw: parsed.data.icon_model_yaw ?? 0,
       icon_model_pitch: parsed.data.icon_model_pitch ?? 0,
+      icon_model_animation_play: parsed.data.icon_model_animation_play ?? true,
+      icon_model_animation_speed: Math.min(
+        2,
+        Math.max(0.1, parsed.data.icon_model_animation_speed ?? 1),
+      ),
       tone: parsed.data.tone ?? "teal",
       is_locked: true,
       achieved_at: parsed.data.achieved_at ?? null,

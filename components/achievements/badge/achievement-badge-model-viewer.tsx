@@ -39,6 +39,12 @@ type AchievementBadgeModelViewerProps = {
   stateKey?: string;
   /** When false, skips the flat poster overlay (e.g. locked detail with opaque legacy posters). */
   showPreviewOverlay?: boolean;
+  playAnimation?: boolean;
+  animationSpeed?: number;
+  onHasAnimationChange?: (hasAnimation: boolean) => void;
+  onPoseChange?: (yaw: number, pitch: number) => void;
+  allowInertia?: boolean;
+  interactive?: boolean;
 };
 
 function configureGlbLoader(loader: GLTFLoader) {
@@ -104,12 +110,22 @@ export function AchievementBadgeModelViewer({
   onPreviewDecoded,
   stateKey,
   showPreviewOverlay = true,
+  playAnimation = true,
+  animationSpeed = 1,
+  onHasAnimationChange,
+  onPoseChange,
+  allowInertia = true,
+  interactive = true,
 }: AchievementBadgeModelViewerProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const onVisualReadyRef = useRef(onVisualReady);
   onVisualReadyRef.current = onVisualReady;
   const onPreviewDecodedRef = useRef(onPreviewDecoded);
   onPreviewDecodedRef.current = onPreviewDecoded;
+  const onHasAnimationChangeRef = useRef(onHasAnimationChange);
+  onHasAnimationChangeRef.current = onHasAnimationChange;
+  const onPoseChangeRef = useRef(onPoseChange);
+  onPoseChangeRef.current = onPoseChange;
   const [ready, setReady] = useState(false);
   const [previewVisible, setPreviewVisible] = useState(true);
   const viewStateKey = useMemo(() => {
@@ -196,15 +212,27 @@ export function AchievementBadgeModelViewer({
       const dy = clientY - lastY;
       lastX = clientX;
       lastY = clientY;
-      inertiaYaw = dx * DRAG_YAW_SENSITIVITY;
-      inertiaPitch = dy * DRAG_PITCH_SENSITIVITY;
-      yaw += inertiaYaw;
-      pitch = Math.max(-MAX_PITCH_RAD, Math.min(MAX_PITCH_RAD, pitch + inertiaPitch));
+      const dragYaw = dx * DRAG_YAW_SENSITIVITY;
+      const dragPitch = dy * DRAG_PITCH_SENSITIVITY;
+      if (allowInertia) {
+        inertiaYaw = dragYaw;
+        inertiaPitch = dragPitch;
+      } else {
+        inertiaYaw = 0;
+        inertiaPitch = 0;
+      }
+      yaw += dragYaw;
+      pitch = Math.max(-MAX_PITCH_RAD, Math.min(MAX_PITCH_RAD, pitch + dragPitch));
       applyRotation();
     };
 
     const endDrag = () => {
       dragPointerId = null;
+      if (!allowInertia) {
+        inertiaYaw = 0;
+        inertiaPitch = 0;
+      }
+      onPoseChangeRef.current?.(yaw, pitch);
     };
 
     const onPointerDown = (event: PointerEvent) => {
@@ -223,11 +251,13 @@ export function AchievementBadgeModelViewer({
       endDrag();
     };
 
-    mount.addEventListener("pointerdown", onPointerDown);
-    mount.addEventListener("pointermove", onPointerMove);
-    mount.addEventListener("pointerup", onPointerUp);
-    mount.addEventListener("pointercancel", onPointerUp);
-    mount.addEventListener("pointerleave", onPointerUp);
+    if (interactive) {
+      mount.addEventListener("pointerdown", onPointerDown);
+      mount.addEventListener("pointermove", onPointerMove);
+      mount.addEventListener("pointerup", onPointerUp);
+      mount.addEventListener("pointercancel", onPointerUp);
+      mount.addEventListener("pointerleave", onPointerUp);
+    }
 
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(mount);
@@ -281,7 +311,7 @@ export function AchievementBadgeModelViewer({
       const deltaSeconds = Math.min((time - lastFrameTime) / 1000, 0.05);
       lastFrameTime = time;
 
-      if (dragPointerId == null && interactiveRoot) {
+      if (allowInertia && dragPointerId == null && interactiveRoot) {
         inertiaYaw *= INERTIA_DAMPING;
         inertiaPitch *= INERTIA_DAMPING;
         if (Math.abs(inertiaYaw) + Math.abs(inertiaPitch) >= INERTIA_MIN_SPEED) {
@@ -291,8 +321,10 @@ export function AchievementBadgeModelViewer({
         }
       }
 
-      if (allowAnimationAdvance) {
-        mixer?.update(deltaSeconds);
+      if (allowAnimationAdvance && playAnimation) {
+        const speed = Number.isFinite(animationSpeed) ? animationSpeed : 1;
+        const clampedSpeed = Math.min(2, Math.max(0.1, speed));
+        mixer?.update(deltaSeconds * clampedSpeed);
       }
       renderer.render(scene, camera);
     };
@@ -314,9 +346,12 @@ export function AchievementBadgeModelViewer({
         interactiveRoot.updateMatrixWorld(true);
         frameCameraForBadgeModel(interactiveRoot, camera);
 
-        if (gltf.animations[0]) {
+        const firstClip = gltf.animations[0];
+        const hasAnimation = Boolean(firstClip);
+        onHasAnimationChangeRef.current?.(hasAnimation);
+        if (firstClip) {
           mixer = new AnimationMixer(model);
-          const action = mixer.clipAction(gltf.animations[0]);
+          const action = mixer.clipAction(firstClip);
           action.setLoop(LoopRepeat, Infinity);
           action.reset();
           action.play();
@@ -357,6 +392,7 @@ export function AchievementBadgeModelViewer({
         if (cancelled) return;
         setReady(false);
         setPreviewVisible(true);
+        onHasAnimationChangeRef.current?.(false);
       });
 
     frameId = requestAnimationFrame(animate);
@@ -371,11 +407,13 @@ export function AchievementBadgeModelViewer({
         window.clearTimeout(previewFadeTimeout);
       }
       resizeObserver.disconnect();
-      mount.removeEventListener("pointerdown", onPointerDown);
-      mount.removeEventListener("pointermove", onPointerMove);
-      mount.removeEventListener("pointerup", onPointerUp);
-      mount.removeEventListener("pointercancel", onPointerUp);
-      mount.removeEventListener("pointerleave", onPointerUp);
+      if (interactive) {
+        mount.removeEventListener("pointerdown", onPointerDown);
+        mount.removeEventListener("pointermove", onPointerMove);
+        mount.removeEventListener("pointerup", onPointerUp);
+        mount.removeEventListener("pointercancel", onPointerUp);
+        mount.removeEventListener("pointerleave", onPointerUp);
+      }
       document.removeEventListener("visibilitychange", onVisibilityChange);
       renderer?.domElement.removeEventListener("webglcontextlost", onContextLost);
       renderer?.domElement.removeEventListener("webglcontextrestored", onContextRestored);
@@ -401,7 +439,7 @@ export function AchievementBadgeModelViewer({
         mount.removeChild(renderer.domElement);
       }
     };
-  }, [showPreviewOverlay, signedModelUrl, viewStateKey]);
+  }, [allowInertia, animationSpeed, interactive, playAnimation, showPreviewOverlay, signedModelUrl, viewStateKey]);
 
   const floatMotionStyle = useMemo(
     () =>
@@ -435,6 +473,7 @@ export function AchievementBadgeModelViewer({
           ref={mountRef}
           className={cn(
             "h-full w-full touch-none transition-opacity duration-300",
+            !interactive && "cursor-default",
             !ready && "opacity-0",
           )}
         />

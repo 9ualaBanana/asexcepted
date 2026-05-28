@@ -4,20 +4,14 @@ import {
   AnimationMixer,
   LoopRepeat,
   PerspectiveCamera,
-  Quaternion,
   Group,
   Scene,
   WebGLRenderer,
-  type KeyframeTrack,
   type Object3D,
 } from "three";
 import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
 
-import {
-  createBadgeModelPoseVariant,
-  type BadgeModelPoseVariant,
-} from "@/components/achievements/badge/badge-model-pose-session";
 import {
   BADGE_MODEL_MAX_FILE_BYTES,
   isGlbHeader,
@@ -37,11 +31,13 @@ import {
 } from "@/lib/achievements/badge-model-rendering";
 
 const PREVIEW_SIZE_PX = 768;
-const LOOP_EPSILON = 0.025;
-const LOOP_QUATERNION_EPSILON_RAD = 0.06;
 
 export type PreparedBadgeModelUpload = {
-  variants: BadgeModelPoseVariant[];
+  initialPreviewBlob: Blob;
+  initialPreviewUrl: string;
+  initialYaw: number;
+  initialPitch: number;
+  createPreviewBlob: (yaw: number, pitch: number) => Promise<Blob>;
 };
 
 /** One offscreen WebGL context for all pose poster snapshots (avoids context limit). */
@@ -130,50 +126,6 @@ async function parseGlbFile(file: File): Promise<GLTF> {
   }
 }
 
-function isNumericTrackLoopable(track: KeyframeTrack): boolean {
-  const times = track.times;
-  const values = track.values;
-  if (times.length < 2) return true;
-
-  const stride = values.length / times.length;
-  if (!Number.isFinite(stride) || stride <= 0) return false;
-
-  const first = Array.from(values.slice(0, stride));
-  const last = Array.from(values.slice(values.length - stride));
-
-  if (track.name.endsWith(".quaternion") && stride >= 4) {
-    const qa = new Quaternion(first[0] ?? 0, first[1] ?? 0, first[2] ?? 0, first[3] ?? 1);
-    const qb = new Quaternion(last[0] ?? 0, last[1] ?? 0, last[2] ?? 0, last[3] ?? 1);
-    qa.normalize();
-    qb.normalize();
-
-    const same = qa.angleTo(qb) <= LOOP_QUATERNION_EPSILON_RAD;
-    const qbNegated = new Quaternion(-qb.x, -qb.y, -qb.z, -qb.w);
-    const negated = qa.angleTo(qbNegated) <= LOOP_QUATERNION_EPSILON_RAD;
-    return same || negated;
-  }
-
-  for (let i = 0; i < stride; i += 1) {
-    if (Math.abs((first[i] ?? 0) - (last[i] ?? 0)) > LOOP_EPSILON) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function validateFirstClipLoops(gltf: GLTF): void {
-  const clip = gltf.animations[0];
-  if (!clip) return;
-
-  const isLoopable = clip.tracks.every((track) => isNumericTrackLoopable(track));
-  if (!isLoopable) {
-    throw new Error(
-      "The first animation clip does not loop seamlessly. Please export the GLB with a clean looping clip as clip 0.",
-    );
-  }
-}
-
 async function canvasToPngBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   const blob = await new Promise<Blob | null>((resolve) => {
     canvas.toBlob((nextBlob) => resolve(nextBlob), "image/png");
@@ -235,20 +187,39 @@ export async function prepareBadgeModelUpload(
   file: File,
 ): Promise<PreparedBadgeModelUpload> {
   const gltf = await parseGlbFile(file);
-  validateFirstClipLoops(gltf);
 
   const renderer = getSharedPosterRenderer();
-  const variants: BadgeModelPoseVariant[] = [];
+  const preset = BADGE_MODEL_POSE_PRESETS[0];
+  const initialYaw = preset?.yaw ?? 0;
+  const initialPitch = preset?.pitch ?? 0;
+  const initialPreviewBlob = await renderPosterFromGltf(
+    gltf,
+    initialYaw,
+    initialPitch,
+    renderer,
+  );
+  const initialPreviewUrl = URL.createObjectURL(initialPreviewBlob);
 
-  for (const preset of BADGE_MODEL_POSE_PRESETS) {
-    const previewBlob = await renderPosterFromGltf(
-      gltf,
-      preset.yaw,
-      preset.pitch,
-      renderer,
-    );
-    variants.push(createBadgeModelPoseVariant(preset, previewBlob));
+  return {
+    initialPreviewBlob,
+    initialPreviewUrl,
+    initialYaw,
+    initialPitch,
+    createPreviewBlob: (yaw, pitch) => renderPosterFromGltf(gltf, yaw, pitch, renderer),
+  };
+}
+
+export async function renderBadgeModelPosterFromSignedUrl(args: {
+  signedModelUrl: string;
+  yaw: number;
+  pitch: number;
+}): Promise<Blob> {
+  const { loader, dracoLoader } = createConfiguredGlbLoader();
+  try {
+    const gltf = await loader.loadAsync(args.signedModelUrl);
+    const renderer = getSharedPosterRenderer();
+    return await renderPosterFromGltf(gltf, args.yaw, args.pitch, renderer);
+  } finally {
+    dracoLoader.dispose();
   }
-
-  return { variants };
 }

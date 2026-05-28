@@ -4,7 +4,6 @@ import { useRef, useState } from "react";
 
 import {
   clearBadgeModelPoseSessionRef,
-  type BadgeModelUploadStaged,
 } from "@/components/achievements/badge/use-badge-model-uploader";
 import {
   createAchievementBadgeRemoteAsset,
@@ -14,8 +13,6 @@ import {
   rollbackBadgeUploadSession,
 } from "@/components/achievements/badge/badge-asset-session";
 import {
-  cycleBadgeModelPoseSession,
-  getSelectedBadgeModelPoseVariant,
   revokeBadgeModelPoseSession,
   type BadgeModelPoseSession,
 } from "@/components/achievements/badge/badge-model-pose-session";
@@ -73,25 +70,7 @@ export function useAchievementBadgeSessionController({
     targetRef.current = session;
   };
 
-  const cycleActiveModelPose = (): BadgeModelUploadStaged | null => {
-    const session = activeModelPoseSessionRef.current;
-    if (!session || session.finalized) return null;
-
-    const nextSession = cycleBadgeModelPoseSession(session);
-    activeModelPoseSessionRef.current = nextSession;
-    const selected = getSelectedBadgeModelPoseVariant(nextSession);
-    if (!selected) return null;
-
-    return {
-      modelPath: nextSession.modelPath,
-      poseSession: nextSession,
-      previewUrl: selected.previewUrl,
-      iconModelYaw: selected.yaw,
-      iconModelPitch: selected.pitch,
-    };
-  };
-
-  const isModelPosePickerActive = (): boolean => {
+  const hasModelPoseSession = (): boolean => {
     const session = activeModelPoseSessionRef.current;
     return Boolean(session && !session.finalized);
   };
@@ -99,13 +78,11 @@ export function useAchievementBadgeSessionController({
   const finalizeModelPoseForForm = async (form: FormState): Promise<FormState> => {
     const session = activeModelPoseSessionRef.current;
     if (!session || session.finalized) return form;
-
-    const selected = getSelectedBadgeModelPoseVariant(session);
-    if (!selected) return form;
+    const snapshot = await session.createPreviewBlob(form.iconModelYaw, form.iconModelPitch);
 
     const uploaded = await finalizeBadgeModelUpload({
-      modelPath: session.modelPath,
-      poster: selected.previewBlob,
+      modelPath: form.iconAssetPath.trim(),
+      poster: snapshot,
     });
 
     session.finalized = true;
@@ -117,8 +94,6 @@ export function useAchievementBadgeSessionController({
       iconUrl: uploaded.iconUrl,
       iconAssetKind: "model_glb",
       iconAssetPath: uploaded.iconAssetPath,
-      iconModelYaw: selected.yaw,
-      iconModelPitch: selected.pitch,
     };
   };
 
@@ -256,8 +231,7 @@ export function useAchievementBadgeSessionController({
     createModelPoseSessionRef,
     panelModelPoseSessionRef,
     setModelPoseSession,
-    cycleActiveModelPose,
-    isModelPosePickerActive,
+    hasModelPoseSession,
     finalizeModelPoseForForm,
     beginCreateBadgeSession,
     rollbackCreateBadgeSession,

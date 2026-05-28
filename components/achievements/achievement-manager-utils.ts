@@ -20,6 +20,8 @@ export function createInitialForm(): FormState {
     iconCcAttribution: "",
     iconModelYaw: 0,
     iconModelPitch: 0,
+    iconModelAnimationPlay: true,
+    iconModelAnimationSpeed: 1,
     tone: "teal",
     isLocked: true,
     achievedAt: "",

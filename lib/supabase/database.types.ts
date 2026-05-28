@@ -53,6 +53,8 @@ export type Database = {
           icon_file_id: string | null
           icon_model_pitch: number
           icon_model_yaw: number
+          icon_model_animation_play: boolean
+          icon_model_animation_speed: number
           icon_url: string | null
           id: string
           is_locked: boolean
@@ -76,6 +78,8 @@ export type Database = {
           icon_file_id?: string | null
           icon_model_pitch?: number
           icon_model_yaw?: number
+          icon_model_animation_play?: boolean
+          icon_model_animation_speed?: number
           icon_url?: string | null
           id?: string
           is_locked?: boolean
@@ -99,6 +103,8 @@ export type Database = {
           icon_file_id?: string | null
           icon_model_pitch?: number
           icon_model_yaw?: number
+          icon_model_animation_play?: boolean
+          icon_model_animation_speed?: number
           icon_url?: string | null
           id?: string
           is_locked?: boolean

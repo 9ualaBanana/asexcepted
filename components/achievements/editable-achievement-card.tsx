@@ -155,6 +155,8 @@ export function EditableAchievementCard({
             iconAssetKind={form.iconAssetKind}
             iconAssetPath={form.iconAssetPath}
             iconCcAttribution={form.iconCcAttribution}
+            iconModelYaw={form.iconModelYaw}
+            iconModelPitch={form.iconModelPitch}
             baselineAsset={badgeAssetSessionRef.current.baseline}
             tone={form.tone}
             isLocked={dedicateMode ? true : form.isLocked}
@@ -165,12 +167,22 @@ export function EditableAchievementCard({
               setForm((prev) => ({ ...prev, isLocked: !prev.isLocked }));
             }}
             onIconChange={(icon) => setForm((prev) => ({ ...prev, icon }))}
-            modelPosePickerActive={badgeSessionController?.isModelPosePickerActive() ?? false}
-            onCycleModelPose={() => {
-              const staged = badgeSessionController?.cycleActiveModelPose();
-              if (!staged) return;
-              setForm((prev) => applyBadgeModelPoseSessionToForm(prev, staged));
-            }}
+            iconModelAnimationPlay={form.iconModelAnimationPlay}
+            iconModelAnimationSpeed={form.iconModelAnimationSpeed}
+            onIconModelAnimationPlayChange={(value) =>
+              setForm((prev) => ({ ...prev, iconModelAnimationPlay: value }))
+            }
+            onIconModelAnimationSpeedChange={(value) =>
+              setForm((prev) => ({ ...prev, iconModelAnimationSpeed: value }))
+            }
+            onModelPoseChange={(yaw, pitch) =>
+              setForm((prev) => ({
+                ...prev,
+                iconModelYaw: yaw,
+                iconModelPitch: pitch,
+              }))
+            }
+            allowModelRotation={isCreatingFlow}
             onRemoteUploadCommit={(asset) => {
               rollbackBadgeUploadSession(badgeAssetSessionRef.current);
               setSessionStagedUpload(badgeAssetSessionRef.current, asset);

@@ -26,18 +26,18 @@ export const BADGE_MODEL_DRACO_DECODER_CDN =
   "https://www.gstatic.com/draco/versioned/decoders/1.5.7/";
 
 /** Bright showcase exposure (Sketchfab-style viewers default high). */
-export const BADGE_MODEL_TONE_MAPPING_EXPOSURE = 1.75;
+export const BADGE_MODEL_TONE_MAPPING_EXPOSURE = 2.05;
 
 /** Poster snapshots use a hotter exposure so transparent PNGs match live 3D brightness. */
-export const BADGE_MODEL_POSTER_TONE_MAPPING_EXPOSURE = 2.15;
+export const BADGE_MODEL_POSTER_TONE_MAPPING_EXPOSURE = 2.25;
 
 /** IBL strength; primary light source for PBR badges. */
-export const BADGE_MODEL_ENVIRONMENT_INTENSITY = 2.35;
+export const BADGE_MODEL_ENVIRONMENT_INTENSITY = 2.7;
 
 const BADGE_MODEL_ENV_CACHE_KEY = 2;
 
 /** Particle / halo materials exported with very low opacity. */
-const GLOW_PARTICLE_OPACITY_MAX = 0.22;
+const GLOW_PARTICLE_OPACITY_MAX = 0.08;
 const GLOW_PARTICLE_LUMINANCE_MIN = 0.82;
 const GLOW_EMISSIVE_INTENSITY_CAP = 10;
 
@@ -102,12 +102,12 @@ function prepareBadgeModelMaterial(material: Material): void {
   if (isGlowParticleMaterial(material)) {
     const opacity = Math.max(material.opacity ?? 1, 0.01);
     material.emissive.copy(material.color);
-    material.emissiveIntensity = Math.min(GLOW_EMISSIVE_INTENSITY_CAP, 1.8 / opacity);
-    material.opacity = 1;
-    material.transparent = false;
+    material.emissiveIntensity = Math.min(GLOW_EMISSIVE_INTENSITY_CAP, 1.25 / opacity);
+    material.opacity = Math.max(0.18, opacity * 2.2);
+    material.transparent = material.opacity < 0.98;
     material.depthWrite = true;
-    material.roughness = Math.min(material.roughness ?? 1, 0.28);
-    material.metalness = 0;
+    material.roughness = Math.min(material.roughness ?? 1, 0.22);
+    material.metalness = Math.min(material.metalness ?? 0, 0.1);
     return;
   }
 
@@ -137,7 +137,7 @@ export function prepareBadgeModelMaterials(root: Object3D): void {
 }
 
 const POSTER_BRIGHT_COLOR_LUMINANCE_MIN = 0.68;
-const POSTER_BRIGHT_EMISSIVE_INTENSITY = 3.25;
+const POSTER_BRIGHT_EMISSIVE_INTENSITY = 2.4;
 
 function strengthenBadgeModelMaterialForPoster(material: Material): void {
   if (material instanceof MeshStandardMaterial) {
@@ -154,11 +154,11 @@ function strengthenBadgeModelMaterialForPoster(material: Material): void {
       material.emissiveIntensity ?? 1,
       POSTER_BRIGHT_EMISSIVE_INTENSITY,
     );
-    material.opacity = 1;
-    material.transparent = false;
+    material.opacity = Math.max(material.opacity ?? 1, 0.92);
+    material.transparent = (material.opacity ?? 1) < 0.98;
     material.depthWrite = true;
-    material.metalness = 0;
-    material.roughness = Math.min(material.roughness ?? 1, 0.18);
+    material.metalness = Math.min(material.metalness ?? 0, 0.12);
+    material.roughness = Math.min(material.roughness ?? 1, 0.16);
 
     if (material instanceof MeshPhysicalMaterial) {
       material.transmission = 0;
@@ -220,10 +220,10 @@ export function setupBadgeModelScene(scene: Scene, renderer: WebGLRenderer): voi
 
 /** IBL-forward rig similar to Sketchfab (environment does most of the work). */
 export function addBadgeModelLights(scene: Scene) {
-  const hemi = new HemisphereLight(0xffffff, 0x45455a, 0.85);
-  const keyLight = new DirectionalLight(0xffffff, 1.45);
+  const hemi = new HemisphereLight(0xbfd5ff, 0x2f2a66, 1.05);
+  const keyLight = new DirectionalLight(0xffffff, 1.95);
   keyLight.position.set(5, 8, 9);
-  const rimLight = new DirectionalLight(0xfff6eb, 0.95);
+  const rimLight = new DirectionalLight(0xd56dff, 1.45);
   rimLight.position.set(-7, 3, -7);
   scene.add(hemi, keyLight, rimLight);
 }
