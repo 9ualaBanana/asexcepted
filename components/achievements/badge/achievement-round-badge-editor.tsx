@@ -296,7 +296,11 @@ export function AchievementRoundBadgeEditor({
       {isModelAsset ? (
         <button
           type="button"
-          aria-label={iconModelAnimationPlay ? "Pause model animation" : "Play model animation"}
+          aria-label={
+            iconModelAnimationPlay
+              ? "Pause and reset model animation"
+              : "Play model animation from start"
+          }
           disabled={disabled || busy || !hasModelAnimation}
           onClick={(event) => {
             event.stopPropagation();

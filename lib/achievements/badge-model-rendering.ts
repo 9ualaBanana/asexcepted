@@ -1,48 +1,28 @@
-import {
-  ACESFilmicToneMapping,
-  Box3,
-  Color,
-  DirectionalLight,
-  HemisphereLight,
-  Mesh,
-  MeshPhysicalMaterial,
-  MeshStandardMaterial,
-  Object3D,
-  PerspectiveCamera,
-  PMREMGenerator,
-  Scene,
-  SRGBColorSpace,
-  type Material,
-  type Texture,
-  Vector3,
-  type WebGLRenderer,
-} from "three";
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
-import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
+import { Box3, Mesh, Object3D, PerspectiveCamera, Vector3 } from "three";
 
-export const BADGE_MODEL_DRACO_DECODER_CDN =
-  "https://www.gstatic.com/draco/versioned/decoders/1.5.7/";
+export {
+  BADGE_MODEL_ENVIRONMENT_INTENSITY,
+  BADGE_MODEL_TONE_MAPPING_EXPOSURE,
+  configureBadgeModelRenderer,
+} from "@/lib/achievements/badge-model-viewer-pipeline";
 
-/** Bright showcase exposure (Sketchfab-style viewers default high). */
-export const BADGE_MODEL_TONE_MAPPING_EXPOSURE = 2.05;
+export {
+  BADGE_MODEL_DRACO_DECODER_CDN,
+  configureBadgeModelLoader,
+} from "@/lib/achievements/badge-gltf-loader";
 
-/** Poster snapshots use a hotter exposure so transparent PNGs match live 3D brightness. */
-export const BADGE_MODEL_POSTER_TONE_MAPPING_EXPOSURE = 2.25;
+import { configureBadgeModelRenderer as configureBadgeModelRendererImpl } from "@/lib/achievements/badge-model-viewer-pipeline";
+import type { WebGLRenderer } from "three";
 
-/** IBL strength; primary light source for PBR badges. */
-export const BADGE_MODEL_ENVIRONMENT_INTENSITY = 2.7;
+/** @deprecated Poster and live share configureBadgeModelRenderer. */
+export function configureBadgePosterRenderer(renderer: WebGLRenderer): void {
+  configureBadgeModelRendererImpl(renderer);
+}
 
-const BADGE_MODEL_ENV_CACHE_KEY = 2;
-
-/** Particle / halo materials exported with very low opacity. */
-const GLOW_PARTICLE_OPACITY_MAX = 0.08;
-const GLOW_PARTICLE_LUMINANCE_MIN = 0.82;
-const GLOW_EMISSIVE_INTENSITY_CAP = 10;
-
-let sharedBadgeEnvironmentMap: Texture | null = null;
-let sharedBadgeEnvironmentCacheKey = 0;
+export type BadgeModelFrameMetrics = {
+  size: Vector3;
+  maxDim: number;
+};
 
 /** AABB center is far outside its own extent (e.g. many dots on a large spherical shell). */
 const SHELL_PIVOT_OFFSET_RATIO = 8;
@@ -52,186 +32,6 @@ const SHELL_MAX_RADIUS_CV = 0.06;
 const SHELL_MIN_MEAN_RADIUS_RATIO = 2;
 
 const _sampleVertex = new Vector3();
-
-export function configureBadgeModelLoader(loader: GLTFLoader) {
-  const dracoLoader = new DRACOLoader();
-  dracoLoader.setDecoderPath(BADGE_MODEL_DRACO_DECODER_CDN);
-  loader.setDRACOLoader(dracoLoader);
-  loader.setMeshoptDecoder(MeshoptDecoder);
-  return dracoLoader;
-}
-
-export function configureBadgeModelRenderer(renderer: WebGLRenderer): void {
-  renderer.outputColorSpace = SRGBColorSpace;
-  renderer.toneMapping = ACESFilmicToneMapping;
-  renderer.toneMappingExposure = BADGE_MODEL_TONE_MAPPING_EXPOSURE;
-}
-
-/** Offscreen poster snapshots (transparent PNG; hotter exposure than live view). */
-export function configureBadgePosterRenderer(renderer: WebGLRenderer): void {
-  configureBadgeModelRenderer(renderer);
-  renderer.toneMappingExposure = BADGE_MODEL_POSTER_TONE_MAPPING_EXPOSURE;
-}
-
-function getColorLuminance(color: Color): number {
-  return color.r * 0.2126 + color.g * 0.7152 + color.b * 0.0722;
-}
-
-function isGlowParticleMaterial(material: MeshStandardMaterial): boolean {
-  const opacity = material.opacity ?? 1;
-  if (!material.transparent || opacity > GLOW_PARTICLE_OPACITY_MAX) {
-    return false;
-  }
-  if (
-    material instanceof MeshPhysicalMaterial &&
-    (material.transmission ?? 0) > 0.05
-  ) {
-    return false;
-  }
-  return getColorLuminance(material.color) >= GLOW_PARTICLE_LUMINANCE_MIN;
-}
-
-function prepareBadgeModelMaterial(material: Material): void {
-  if (!(material instanceof MeshStandardMaterial)) {
-    return;
-  }
-
-  material.envMapIntensity = Math.max(material.envMapIntensity ?? 1, 2.25);
-  material.needsUpdate = true;
-
-  if (isGlowParticleMaterial(material)) {
-    const opacity = Math.max(material.opacity ?? 1, 0.01);
-    material.emissive.copy(material.color);
-    material.emissiveIntensity = Math.min(GLOW_EMISSIVE_INTENSITY_CAP, 1.25 / opacity);
-    material.opacity = Math.max(0.18, opacity * 2.2);
-    material.transparent = material.opacity < 0.98;
-    material.depthWrite = true;
-    material.roughness = Math.min(material.roughness ?? 1, 0.22);
-    material.metalness = Math.min(material.metalness ?? 0, 0.1);
-    return;
-  }
-
-  if (material.transparent && (material.opacity ?? 1) < 0.92) {
-    material.opacity = Math.min(1, (material.opacity ?? 1) * 3.5);
-    material.depthWrite = (material.opacity ?? 1) >= 0.98;
-  }
-
-  if (getColorLuminance(material.emissive) > 0.01) {
-    material.emissiveIntensity = Math.max(material.emissiveIntensity ?? 1, 1.75);
-  }
-}
-
-/**
- * Tunes imported glTF materials for our showcase viewer (closer to Sketchfab defaults).
- * Very faint white particles become bright emissive dots; other PBR gets stronger IBL response.
- */
-export function prepareBadgeModelMaterials(root: Object3D): void {
-  root.traverse((object) => {
-    if (!(object instanceof Mesh)) return;
-
-    const materials = Array.isArray(object.material) ? object.material : [object.material];
-    for (const material of materials) {
-      prepareBadgeModelMaterial(material);
-    }
-  });
-}
-
-const POSTER_BRIGHT_COLOR_LUMINANCE_MIN = 0.68;
-const POSTER_BRIGHT_EMISSIVE_INTENSITY = 2.4;
-
-function strengthenBadgeModelMaterialForPoster(material: Material): void {
-  if (material instanceof MeshStandardMaterial) {
-    const colorLum = getColorLuminance(material.color);
-    const emissiveLum = getColorLuminance(material.emissive);
-    if (Math.max(colorLum, emissiveLum) < POSTER_BRIGHT_COLOR_LUMINANCE_MIN) {
-      return;
-    }
-
-    if (colorLum >= POSTER_BRIGHT_COLOR_LUMINANCE_MIN) {
-      material.emissive.copy(material.color);
-    }
-    material.emissiveIntensity = Math.max(
-      material.emissiveIntensity ?? 1,
-      POSTER_BRIGHT_EMISSIVE_INTENSITY,
-    );
-    material.opacity = Math.max(material.opacity ?? 1, 0.92);
-    material.transparent = (material.opacity ?? 1) < 0.98;
-    material.depthWrite = true;
-    material.metalness = Math.min(material.metalness ?? 0, 0.12);
-    material.roughness = Math.min(material.roughness ?? 1, 0.16);
-
-    if (material instanceof MeshPhysicalMaterial) {
-      material.transmission = 0;
-      material.thickness = 0;
-    }
-
-    material.needsUpdate = true;
-    return;
-  }
-
-  if (
-    "opacity" in material &&
-    "transparent" in material &&
-    typeof material.opacity === "number"
-  ) {
-    material.opacity = 1;
-    material.transparent = false;
-    material.needsUpdate = true;
-  }
-}
-
-/**
- * Live-view material prep plus opaque emissive whites for transparent poster PNG export.
- */
-export function prepareBadgeModelMaterialsForPoster(root: Object3D): void {
-  prepareBadgeModelMaterials(root);
-  root.traverse((object) => {
-    if (!(object instanceof Mesh)) return;
-
-    const materials = Array.isArray(object.material) ? object.material : [object.material];
-    for (const material of materials) {
-      strengthenBadgeModelMaterialForPoster(material);
-    }
-  });
-}
-
-export function getSharedBadgeModelEnvironment(renderer: WebGLRenderer): Texture {
-  if (sharedBadgeEnvironmentMap && sharedBadgeEnvironmentCacheKey === BADGE_MODEL_ENV_CACHE_KEY) {
-    return sharedBadgeEnvironmentMap;
-  }
-
-  sharedBadgeEnvironmentMap?.dispose();
-  sharedBadgeEnvironmentMap = null;
-  sharedBadgeEnvironmentCacheKey = BADGE_MODEL_ENV_CACHE_KEY;
-
-  const pmremGenerator = new PMREMGenerator(renderer);
-  const roomEnvironment = new RoomEnvironment();
-  sharedBadgeEnvironmentMap = pmremGenerator.fromScene(roomEnvironment, 0.04).texture;
-  pmremGenerator.dispose();
-  return sharedBadgeEnvironmentMap;
-}
-
-export function setupBadgeModelScene(scene: Scene, renderer: WebGLRenderer): void {
-  configureBadgeModelRenderer(renderer);
-  scene.environment = getSharedBadgeModelEnvironment(renderer);
-  scene.environmentIntensity = BADGE_MODEL_ENVIRONMENT_INTENSITY;
-  addBadgeModelLights(scene);
-}
-
-/** IBL-forward rig similar to Sketchfab (environment does most of the work). */
-export function addBadgeModelLights(scene: Scene) {
-  const hemi = new HemisphereLight(0xbfd5ff, 0x2f2a66, 1.05);
-  const keyLight = new DirectionalLight(0xffffff, 1.95);
-  keyLight.position.set(5, 8, 9);
-  const rimLight = new DirectionalLight(0xd56dff, 1.45);
-  rimLight.position.set(-7, 3, -7);
-  scene.add(hemi, keyLight, rimLight);
-}
-
-export type BadgeModelFrameMetrics = {
-  size: Vector3;
-  maxDim: number;
-};
 
 type RadiusStats = {
   mean: number;
@@ -342,8 +142,6 @@ function analyzeBadgeModelGeometry(model: Object3D): BadgeModelGeometryAnalysis 
 
 /**
  * Moves the model so the orbit pivot sits at the origin.
- * Uses the AABB center for typical meshes; keeps world origin for large spherical
- * shells whose local cluster AABB sits on the surface (e.g. dotted spheres).
  */
 export function centerBadgeModelAtOrigin(model: Object3D): BadgeModelFrameMetrics {
   const analysis = analyzeBadgeModelGeometry(model);
@@ -355,7 +153,6 @@ export function centerBadgeModelAtOrigin(model: Object3D): BadgeModelFrameMetric
 
 /**
  * Positions the camera to frame `target` without changing `target.position`.
- * Use after centerBadgeModelAtOrigin on the inner mesh and pose on a parent group at (0,0,0).
  */
 export function frameCameraForBadgeModel(
   target: Object3D,

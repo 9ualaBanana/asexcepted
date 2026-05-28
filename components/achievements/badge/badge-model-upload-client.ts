@@ -1,34 +1,21 @@
 "use client";
 
-import {
-  AnimationMixer,
-  LoopRepeat,
-  PerspectiveCamera,
-  Group,
-  Scene,
-  WebGLRenderer,
-  type Object3D,
-} from "three";
-import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
+import { Scene, type Object3D, WebGLRenderer } from "three";
+import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 import {
-  BADGE_MODEL_MAX_FILE_BYTES,
   isGlbHeader,
   looksLikeGlbUpload,
+  BADGE_MODEL_MAX_FILE_BYTES,
 } from "@/lib/achievements/badge-assets";
+import { createConfiguredBadgeGltfLoader } from "@/lib/achievements/badge-gltf-loader";
+import { BADGE_MODEL_POSE_PRESETS } from "@/lib/achievements/badge-model-poses";
 import {
-  applyBadgeModelPose,
-  BADGE_MODEL_POSE_PRESETS,
-} from "@/lib/achievements/badge-model-poses";
-import {
-  centerBadgeModelAtOrigin,
-  configureBadgeModelLoader,
-  configureBadgePosterRenderer,
-  frameCameraForBadgeModel,
-  prepareBadgeModelMaterialsForPoster,
-  setupBadgeModelScene,
-} from "@/lib/achievements/badge-model-rendering";
+  applyBadgeModelEnvironment,
+  buildBadgeModelSceneGraph,
+  configureBadgeModelRenderer,
+  renderBadgeModelFrame,
+} from "@/lib/achievements/badge-model-viewer-pipeline";
 
 const PREVIEW_SIZE_PX = 768;
 
@@ -45,7 +32,7 @@ let sharedPosterRenderer: WebGLRenderer | null = null;
 
 function getSharedPosterRenderer(): WebGLRenderer {
   if (sharedPosterRenderer) {
-    configureBadgePosterRenderer(sharedPosterRenderer);
+    configureBadgeModelRenderer(sharedPosterRenderer);
     sharedPosterRenderer.setSize(PREVIEW_SIZE_PX, PREVIEW_SIZE_PX, false);
     sharedPosterRenderer.setClearColor(0x000000, 0);
     return sharedPosterRenderer;
@@ -62,14 +49,14 @@ function getSharedPosterRenderer(): WebGLRenderer {
   });
   sharedPosterRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   sharedPosterRenderer.setSize(PREVIEW_SIZE_PX, PREVIEW_SIZE_PX, false);
-  configureBadgePosterRenderer(sharedPosterRenderer);
+  configureBadgeModelRenderer(sharedPosterRenderer);
   sharedPosterRenderer.setClearColor(0x000000, 0);
   return sharedPosterRenderer;
 }
 
 function disposeMaterial(value: unknown): void {
   if (!value || typeof value !== "object" || !("dispose" in value)) return;
-  const disposer = (value as { dispose?: () => void }).dispose;
+  const disposer = value.dispose;
   if (typeof disposer === "function") {
     disposer.call(value);
   }
@@ -93,12 +80,6 @@ function disposeObject3D(root: Object3D): void {
   });
 }
 
-function createConfiguredGlbLoader() {
-  const loader = new GLTFLoader();
-  const dracoLoader = configureBadgeModelLoader(loader);
-  return { loader, dracoLoader };
-}
-
 async function parseGlbFile(file: File): Promise<GLTF> {
   if (file.size > BADGE_MODEL_MAX_FILE_BYTES) {
     throw new Error("3D badge files must be 50 MB or smaller.");
@@ -112,14 +93,12 @@ async function parseGlbFile(file: File): Promise<GLTF> {
     throw new Error("This file is not a valid GLB asset.");
   }
 
-  const { loader, dracoLoader } = createConfiguredGlbLoader();
+  const { loader, dracoLoader } = createConfiguredBadgeGltfLoader();
   try {
     return await loader.parseAsync(arrayBuffer, window.location.origin + "/");
   } catch (error) {
     throw new Error(
-      error instanceof Error
-        ? error.message
-        : "Could not read this GLB file.",
+      error instanceof Error ? error.message : "Could not read this GLB file.",
     );
   } finally {
     dracoLoader.dispose();
@@ -143,35 +122,15 @@ async function renderPosterFromGltf(
   renderer: WebGLRenderer,
 ): Promise<Blob> {
   const scene = new Scene();
-  setupBadgeModelScene(scene, renderer);
-  configureBadgePosterRenderer(renderer);
+  await applyBadgeModelEnvironment(scene, renderer);
   renderer.setClearColor(0x000000, 0);
 
-  const model = cloneSkeleton(gltf.scene);
-  centerBadgeModelAtOrigin(model);
-  prepareBadgeModelMaterialsForPoster(model);
-  const orbitRoot = new Group();
-  orbitRoot.add(model);
-  applyBadgeModelPose(orbitRoot, yaw, pitch);
+  const { orbitRoot, camera, mixer } = buildBadgeModelSceneGraph(gltf, yaw, pitch);
   scene.add(orbitRoot);
 
-  let mixer: AnimationMixer | null = null;
-  if (gltf.animations[0]) {
-    mixer = new AnimationMixer(model);
-    const action = mixer.clipAction(gltf.animations[0]);
-    action.setLoop(LoopRepeat, Infinity);
-    action.play();
-    mixer.setTime(0);
-  }
-
-  const camera = new PerspectiveCamera(34, 1, 0.01, 1000);
-  frameCameraForBadgeModel(orbitRoot, camera);
-
-  // Warm up IBL and advance the clip so the capture matches live 3D brightness.
-  const warmupFrames = mixer ? 5 : 2;
+  const warmupFrames = mixer ? 3 : 2;
   for (let frame = 0; frame < warmupFrames; frame += 1) {
-    mixer?.update(1 / 30);
-    renderer.render(scene, camera);
+    renderBadgeModelFrame(renderer, scene, camera, mixer, 1 / 30);
   }
 
   const blob = await canvasToPngBlob(renderer.domElement);
@@ -214,7 +173,7 @@ export async function renderBadgeModelPosterFromSignedUrl(args: {
   yaw: number;
   pitch: number;
 }): Promise<Blob> {
-  const { loader, dracoLoader } = createConfiguredGlbLoader();
+  const { loader, dracoLoader } = createConfiguredBadgeGltfLoader();
   try {
     const gltf = await loader.loadAsync(args.signedModelUrl);
     const renderer = getSharedPosterRenderer();

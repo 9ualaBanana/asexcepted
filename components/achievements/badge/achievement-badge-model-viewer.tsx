@@ -1,31 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  AnimationMixer,
-  Group,
-  LoopRepeat,
-  PerspectiveCamera,
-  Scene,
-  WebGLRenderer,
-} from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
-import { applyBadgeModelPose } from "@/lib/achievements/badge-model-poses";
-import {
-  centerBadgeModelAtOrigin,
-  configureBadgeModelLoader,
-  configureBadgeModelRenderer,
-  frameCameraForBadgeModel,
-  prepareBadgeModelMaterials,
-  setupBadgeModelScene,
-} from "@/lib/achievements/badge-model-rendering";
+import { BadgeModelCanvas } from "@/components/achievements/badge/r3f/badge-model-canvas";
 import { getCachedBadgeMotionStyle } from "@/lib/badge/render-cache";
 import { cn } from "@/lib/utils";
 
-type AchievementBadgeModelViewerProps = {
+export type AchievementBadgeModelViewerProps = {
   signedModelUrl: string;
   previewSrc: string;
   className?: string;
@@ -37,7 +19,6 @@ type AchievementBadgeModelViewerProps = {
   onVisualReady?: () => void;
   onPreviewDecoded?: () => void;
   stateKey?: string;
-  /** When false, skips the flat poster overlay (e.g. locked detail with opaque legacy posters). */
   showPreviewOverlay?: boolean;
   playAnimation?: boolean;
   animationSpeed?: number;
@@ -46,56 +27,6 @@ type AchievementBadgeModelViewerProps = {
   allowInertia?: boolean;
   interactive?: boolean;
 };
-
-function configureGlbLoader(loader: GLTFLoader) {
-  configureBadgeModelLoader(loader);
-}
-
-const MAX_PITCH_RAD = Math.PI / 2.2;
-const DRAG_YAW_SENSITIVITY = 0.0072;
-const DRAG_PITCH_SENSITIVITY = 0.0054;
-const INERTIA_DAMPING = 0.915;
-const INERTIA_MIN_SPEED = 0.00035;
-
-type BadgeModelViewState = {
-  yaw: number;
-  pitch: number;
-  inertiaYaw: number;
-  inertiaPitch: number;
-  mixerTime: number;
-};
-
-const badgeModelViewStateCache = new Map<string, BadgeModelViewState>();
-
-let sharedBadgeModelRenderer: WebGLRenderer | null = null;
-
-function getSharedBadgeModelRenderer(): WebGLRenderer {
-  if (sharedBadgeModelRenderer) {
-    configureBadgeModelRenderer(sharedBadgeModelRenderer);
-    return sharedBadgeModelRenderer;
-  }
-
-  sharedBadgeModelRenderer = new WebGLRenderer({
-    alpha: true,
-    antialias: true,
-    powerPreference: "high-performance",
-  });
-  sharedBadgeModelRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  configureBadgeModelRenderer(sharedBadgeModelRenderer);
-  sharedBadgeModelRenderer.setClearColor(0x000000, 0);
-  sharedBadgeModelRenderer.domElement.style.width = "100%";
-  sharedBadgeModelRenderer.domElement.style.height = "100%";
-  sharedBadgeModelRenderer.domElement.style.display = "block";
-  return sharedBadgeModelRenderer;
-}
-
-function disposeMaterial(value: unknown) {
-  if (!value || typeof value !== "object" || !("dispose" in value)) return;
-  const disposer = value.dispose;
-  if (typeof disposer === "function") {
-    disposer.call(value);
-  }
-}
 
 export function AchievementBadgeModelViewer({
   signedModelUrl,
@@ -117,7 +48,6 @@ export function AchievementBadgeModelViewer({
   allowInertia = true,
   interactive = true,
 }: AchievementBadgeModelViewerProps) {
-  const mountRef = useRef<HTMLDivElement>(null);
   const onVisualReadyRef = useRef(onVisualReady);
   onVisualReadyRef.current = onVisualReady;
   const onPreviewDecodedRef = useRef(onPreviewDecoded);
@@ -126,320 +56,37 @@ export function AchievementBadgeModelViewer({
   onHasAnimationChangeRef.current = onHasAnimationChange;
   const onPoseChangeRef = useRef(onPoseChange);
   onPoseChangeRef.current = onPoseChange;
+
   const [ready, setReady] = useState(false);
   const [previewVisible, setPreviewVisible] = useState(true);
+
+  /** Stable per asset — pose lives in view-state cache, not in this key. */
   const viewStateKey = useMemo(() => {
-    const base = (stateKey ?? motionSeed ?? signedModelUrl).trim() || signedModelUrl;
-    return `${base}:${initialYaw.toFixed(4)}:${initialPitch.toFixed(4)}`;
-  }, [initialPitch, initialYaw, motionSeed, signedModelUrl, stateKey]);
+    return (stateKey ?? motionSeed ?? signedModelUrl).trim() || signedModelUrl;
+  }, [motionSeed, signedModelUrl, stateKey]);
 
   useEffect(() => {
     setReady(false);
     setPreviewVisible(true);
   }, [signedModelUrl]);
 
-  useEffect(() => {
-    const mount = mountRef.current;
-    if (!mount) return;
-
-    let cancelled = false;
-    let frameId = 0;
-    let renderer: WebGLRenderer | null = null;
-    let mixer: AnimationMixer | null = null;
-    let lastFrameTime = performance.now();
-    let interactiveRoot: Group | null = null;
-    let dragPointerId: number | null = null;
-    let lastX = 0;
-    let lastY = 0;
-    const cachedState = motionStartCentered
-      ? undefined
-      : badgeModelViewStateCache.get(viewStateKey);
-    let inertiaYaw = cachedState?.inertiaYaw ?? 0;
-    let inertiaPitch = cachedState?.inertiaPitch ?? 0;
-    let yaw = motionStartCentered ? initialYaw : (cachedState?.yaw ?? initialYaw);
-    let pitch = motionStartCentered ? initialPitch : (cachedState?.pitch ?? initialPitch);
-    let allowAnimationAdvance = Boolean(cachedState);
-    let animationStartTimeout: number | null = null;
-    let previewFadeTimeout: number | null = null;
-    let persistedMixerTime = cachedState?.mixerTime ?? 0;
-
-    const loader = new GLTFLoader();
-    configureGlbLoader(loader);
-
-    const scene = new Scene();
-    const camera = new PerspectiveCamera(34, 1, 0.01, 1000);
-    renderer = getSharedBadgeModelRenderer();
-    setupBadgeModelScene(scene, renderer);
-
-    const handleResize = () => {
-      if (!renderer) return;
-      const width = Math.max(mount.clientWidth, 1);
-      const height = Math.max(mount.clientHeight, 1);
-      renderer.setSize(width, height, false);
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-    };
-
-    const persistViewState = () => {
-      if (mixer) {
-        persistedMixerTime = mixer.time;
-      }
-      badgeModelViewStateCache.set(viewStateKey, {
-        yaw,
-        pitch,
-        inertiaYaw,
-        inertiaPitch,
-        mixerTime: persistedMixerTime,
-      });
-    };
-
-    const applyRotation = () => {
-      if (!interactiveRoot) return;
-      applyBadgeModelPose(interactiveRoot, yaw, pitch);
-    };
-
-    const beginDrag = (pointerId: number, clientX: number, clientY: number) => {
-      dragPointerId = pointerId;
-      lastX = clientX;
-      lastY = clientY;
-      inertiaYaw = 0;
-      inertiaPitch = 0;
-    };
-
-    const updateDrag = (clientX: number, clientY: number) => {
-      if (dragPointerId == null) return;
-      const dx = clientX - lastX;
-      const dy = clientY - lastY;
-      lastX = clientX;
-      lastY = clientY;
-      const dragYaw = dx * DRAG_YAW_SENSITIVITY;
-      const dragPitch = dy * DRAG_PITCH_SENSITIVITY;
-      if (allowInertia) {
-        inertiaYaw = dragYaw;
-        inertiaPitch = dragPitch;
-      } else {
-        inertiaYaw = 0;
-        inertiaPitch = 0;
-      }
-      yaw += dragYaw;
-      pitch = Math.max(-MAX_PITCH_RAD, Math.min(MAX_PITCH_RAD, pitch + dragPitch));
-      applyRotation();
-    };
-
-    const endDrag = () => {
-      dragPointerId = null;
-      if (!allowInertia) {
-        inertiaYaw = 0;
-        inertiaPitch = 0;
-      }
-      onPoseChangeRef.current?.(yaw, pitch);
-    };
-
-    const onPointerDown = (event: PointerEvent) => {
-      mount.setPointerCapture(event.pointerId);
-      beginDrag(event.pointerId, event.clientX, event.clientY);
-    };
-    const onPointerMove = (event: PointerEvent) => {
-      if (dragPointerId !== event.pointerId) return;
-      updateDrag(event.clientX, event.clientY);
-    };
-    const onPointerUp = (event: PointerEvent) => {
-      if (dragPointerId !== event.pointerId) return;
-      if (mount.hasPointerCapture(event.pointerId)) {
-        mount.releasePointerCapture(event.pointerId);
-      }
-      endDrag();
-    };
-
-    if (interactive) {
-      mount.addEventListener("pointerdown", onPointerDown);
-      mount.addEventListener("pointermove", onPointerMove);
-      mount.addEventListener("pointerup", onPointerUp);
-      mount.addEventListener("pointercancel", onPointerUp);
-      mount.addEventListener("pointerleave", onPointerUp);
-    }
-
-    const resizeObserver = new ResizeObserver(handleResize);
-    resizeObserver.observe(mount);
-
-    if (renderer.domElement.parentNode && renderer.domElement.parentNode !== mount) {
-      renderer.domElement.parentNode.removeChild(renderer.domElement);
-    }
-    mount.appendChild(renderer.domElement);
-    handleResize();
-
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        persistViewState();
-        return;
-      }
-      lastFrameTime = performance.now();
-      const restored = badgeModelViewStateCache.get(viewStateKey);
-      if (restored) {
-        persistedMixerTime = restored.mixerTime;
-      }
-      if (mixer) {
-        mixer.setTime(persistedMixerTime);
-      }
-    };
-
-    const onContextLost = (event: Event) => {
-      event.preventDefault();
-      persistViewState();
-    };
-
-    const onContextRestored = () => {
-      lastFrameTime = performance.now();
-      handleResize();
-      if (mixer) {
-        mixer.setTime(persistedMixerTime);
-      }
-      allowAnimationAdvance = true;
-      setReady(true);
+  const handleVisualReady = useCallback(() => {
+    setReady(true);
+    onVisualReadyRef.current?.();
+    if (showPreviewOverlay) {
+      window.setTimeout(() => {
+        setPreviewVisible(false);
+      }, 90);
+    } else {
       setPreviewVisible(false);
-    };
+    }
+  }, [showPreviewOverlay]);
 
-    document.addEventListener("visibilitychange", onVisibilityChange);
-
-    const animate = (time: number) => {
-      if (cancelled || !renderer) return;
-      if (document.visibilityState === "hidden") {
-        frameId = requestAnimationFrame(animate);
-        return;
-      }
-      frameId = requestAnimationFrame(animate);
-      const deltaSeconds = Math.min((time - lastFrameTime) / 1000, 0.05);
-      lastFrameTime = time;
-
-      if (allowInertia && dragPointerId == null && interactiveRoot) {
-        inertiaYaw *= INERTIA_DAMPING;
-        inertiaPitch *= INERTIA_DAMPING;
-        if (Math.abs(inertiaYaw) + Math.abs(inertiaPitch) >= INERTIA_MIN_SPEED) {
-          yaw += inertiaYaw;
-          pitch = Math.max(-MAX_PITCH_RAD, Math.min(MAX_PITCH_RAD, pitch + inertiaPitch));
-          applyRotation();
-        }
-      }
-
-      if (allowAnimationAdvance && playAnimation) {
-        const speed = Number.isFinite(animationSpeed) ? animationSpeed : 1;
-        const clampedSpeed = Math.min(2, Math.max(0.1, speed));
-        mixer?.update(deltaSeconds * clampedSpeed);
-      }
-      renderer.render(scene, camera);
-    };
-
-    void loader
-      .loadAsync(signedModelUrl)
-      .then((gltf) => {
-        if (cancelled) return;
-
-        interactiveRoot = new Group();
-        interactiveRoot.position.set(0, 0, 0);
-        const model = cloneSkeleton(gltf.scene);
-        centerBadgeModelAtOrigin(model);
-        prepareBadgeModelMaterials(model);
-        interactiveRoot.add(model);
-        scene.add(interactiveRoot);
-
-        applyRotation();
-        interactiveRoot.updateMatrixWorld(true);
-        frameCameraForBadgeModel(interactiveRoot, camera);
-
-        const firstClip = gltf.animations[0];
-        const hasAnimation = Boolean(firstClip);
-        onHasAnimationChangeRef.current?.(hasAnimation);
-        if (firstClip) {
-          mixer = new AnimationMixer(model);
-          const action = mixer.clipAction(firstClip);
-          action.setLoop(LoopRepeat, Infinity);
-          action.reset();
-          action.play();
-          mixer.setTime(persistedMixerTime);
-        }
-
-        renderer.domElement.addEventListener("webglcontextlost", onContextLost);
-        renderer.domElement.addEventListener("webglcontextrestored", onContextRestored);
-
-        if (cachedState) {
-          setReady(true);
-          setPreviewVisible(false);
-          allowAnimationAdvance = true;
-          onVisualReadyRef.current?.();
-        } else {
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              if (cancelled) return;
-              setReady(true);
-              onVisualReadyRef.current?.();
-              if (showPreviewOverlay) {
-                previewFadeTimeout = window.setTimeout(() => {
-                  setPreviewVisible(false);
-                }, 90);
-              } else {
-                setPreviewVisible(false);
-              }
-              animationStartTimeout = window.setTimeout(() => {
-                allowAnimationAdvance = true;
-              }, 140);
-            });
-          });
-        }
-
-        persistViewState();
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setReady(false);
-        setPreviewVisible(true);
-        onHasAnimationChangeRef.current?.(false);
-      });
-
-    frameId = requestAnimationFrame(animate);
-
-    return () => {
-      cancelled = true;
-      cancelAnimationFrame(frameId);
-      if (animationStartTimeout !== null) {
-        window.clearTimeout(animationStartTimeout);
-      }
-      if (previewFadeTimeout !== null) {
-        window.clearTimeout(previewFadeTimeout);
-      }
-      resizeObserver.disconnect();
-      if (interactive) {
-        mount.removeEventListener("pointerdown", onPointerDown);
-        mount.removeEventListener("pointermove", onPointerMove);
-        mount.removeEventListener("pointerup", onPointerUp);
-        mount.removeEventListener("pointercancel", onPointerUp);
-        mount.removeEventListener("pointerleave", onPointerUp);
-      }
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      renderer?.domElement.removeEventListener("webglcontextlost", onContextLost);
-      renderer?.domElement.removeEventListener("webglcontextrestored", onContextRestored);
-      persistViewState();
-      mixer?.stopAllAction();
-      interactiveRoot?.traverse((object) => {
-        const geometry = (object as { geometry?: { dispose?: () => void } }).geometry;
-        if (geometry && typeof geometry.dispose === "function") {
-          geometry.dispose();
-        }
-
-        const material = (object as { material?: unknown }).material;
-        if (material !== undefined) {
-          if (Array.isArray(material)) {
-            material.forEach(disposeMaterial);
-          } else {
-            disposeMaterial(material);
-          }
-        }
-      });
-      scene.clear();
-      if (renderer?.domElement.parentNode === mount) {
-        mount.removeChild(renderer.domElement);
-      }
-    };
-  }, [allowInertia, animationSpeed, interactive, playAnimation, showPreviewOverlay, signedModelUrl, viewStateKey]);
+  const handleLoadError = useCallback(() => {
+    setReady(false);
+    setPreviewVisible(true);
+    onHasAnimationChangeRef.current?.(false);
+  }, []);
 
   const floatMotionStyle = useMemo(
     () =>
@@ -470,13 +117,29 @@ export function AchievementBadgeModelViewer({
           </div>
         ) : null}
         <div
-          ref={mountRef}
           className={cn(
             "h-full w-full touch-none transition-opacity duration-300",
             !interactive && "cursor-default",
             !ready && "opacity-0",
           )}
-        />
+        >
+          <BadgeModelCanvas
+            className="h-full w-full"
+            signedModelUrl={signedModelUrl}
+            viewStateKey={viewStateKey}
+            initialYaw={initialYaw}
+            initialPitch={initialPitch}
+            motionStartCentered={motionStartCentered}
+            playAnimation={playAnimation}
+            animationSpeed={animationSpeed}
+            interactive={interactive}
+            allowInertia={allowInertia}
+            onPoseChange={(yaw, pitch) => onPoseChangeRef.current?.(yaw, pitch)}
+            onHasAnimationChange={(has) => onHasAnimationChangeRef.current?.(has)}
+            onVisualReady={handleVisualReady}
+            onLoadError={handleLoadError}
+          />
+        </div>
       </div>
     </div>
   );
