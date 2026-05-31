@@ -14,7 +14,6 @@ import {
   attachImpressionCounts,
   fetchImpressionCountMap,
 } from "@/lib/achievements/impression-counts";
-import { IMPRESSION_GLITTER_UI_ENABLED } from "@/lib/achievements/impression-glitter-feature";
 
 export type { AchievementDbRow, AchievementDbWritePayload } from "@/components/achievements/achievement-db-schema";
 
@@ -60,7 +59,7 @@ export async function listAchievements(
   if (records.length === 0 && rawRows.length > 0) {
     return err("Invalid achievement data received from the server.");
   }
-  if (IMPRESSION_GLITTER_UI_ENABLED) {
+  if (process.env.NEXT_PUBLIC_IMPRESSION_GLITTER_UI_ENABLED === "true") {
     const countMap = await fetchImpressionCountMap(
       supabase,
       records.map((record) => record.id),

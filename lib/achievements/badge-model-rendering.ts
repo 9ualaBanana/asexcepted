@@ -11,25 +11,20 @@ export {
   configureBadgeModelLoader,
 } from "@/lib/achievements/badge-gltf-loader";
 
-import { configureBadgeModelRenderer as configureBadgeModelRendererImpl } from "@/lib/achievements/badge-model-viewer-pipeline";
-import type { WebGLRenderer } from "three";
-
-/** @deprecated Poster and live share configureBadgeModelRenderer. */
-export function configureBadgePosterRenderer(renderer: WebGLRenderer): void {
-  configureBadgeModelRendererImpl(renderer);
-}
-
 export type BadgeModelFrameMetrics = {
   size: Vector3;
   maxDim: number;
 };
 
-/** AABB center is far outside its own extent (e.g. many dots on a large spherical shell). */
-const SHELL_PIVOT_OFFSET_RATIO = 8;
-/** Vertex distances from the shell center are nearly uniform. */
-const SHELL_MAX_RADIUS_CV = 0.06;
-/** Shell radius is clearly larger than the tight local cluster AABB. */
-const SHELL_MIN_MEAN_RADIUS_RATIO = 2;
+const SHELL_PIVOT_OFFSET_RATIO = Number(
+  process.env.NEXT_PUBLIC_BADGE_MODEL_SHELL_PIVOT_OFFSET_RATIO,
+);
+const SHELL_MAX_RADIUS_CV = Number(
+  process.env.NEXT_PUBLIC_BADGE_MODEL_SHELL_MAX_RADIUS_CV,
+);
+const SHELL_MIN_MEAN_RADIUS_RATIO = Number(
+  process.env.NEXT_PUBLIC_BADGE_MODEL_SHELL_MIN_MEAN_RADIUS_RATIO,
+);
 
 const _sampleVertex = new Vector3();
 

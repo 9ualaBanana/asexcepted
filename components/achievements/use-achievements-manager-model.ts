@@ -42,7 +42,6 @@ import {
   isDedicatedVisibilityDirty,
 } from "@/lib/achievements/dedication-utils";
 import { userCollection } from "@/lib/routes";
-import { IMPRESSION_GLITTER_UI_ENABLED } from "@/lib/achievements/impression-glitter-feature";
 import { showsDedicatedBadgeEffect } from "@/lib/achievements/dedication-utils";
 import { markTutorialCompleted } from "@/lib/tutorials/completed-store";
 import { TUTORIAL_IDS } from "@/lib/tutorials/registry";
@@ -112,7 +111,7 @@ export function useAchievementsManagerModel({
   }, [detailAchievement?.id]);
 
   const detailShowsImpressionGlitter =
-    IMPRESSION_GLITTER_UI_ENABLED &&
+    process.env.NEXT_PUBLIC_IMPRESSION_GLITTER_UI_ENABLED === "true" &&
     Boolean(
       detailAchievement &&
         ((detailAchievement.impression_count ?? 0) > 0 ||

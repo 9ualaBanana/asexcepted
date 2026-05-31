@@ -3,8 +3,12 @@ import { unlockRevealLutSteps } from "@/lib/badge/shape-utils";
 import { type FormState } from "@/components/achievements/achievement-editor-shared";
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
 
-export const UNLOCK_HOLD_DURATION_MS = 500;
-export const UNLOCK_REVEAL_DURATION_MS = 5000;
+export const UNLOCK_HOLD_DURATION_MS = Number(
+  process.env.NEXT_PUBLIC_UNLOCK_HOLD_DURATION_MS,
+);
+export const UNLOCK_REVEAL_DURATION_MS = Number(
+  process.env.NEXT_PUBLIC_UNLOCK_REVEAL_DURATION_MS,
+);
 export const UNLOCK_REVEAL_LUT_STEPS = unlockRevealLutSteps();
 
 export function createInitialForm(): FormState {

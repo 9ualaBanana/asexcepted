@@ -16,7 +16,6 @@ import {
   circularBadgeMaskStyle,
   paddedBadgeMaskStyle,
 } from "@/lib/achievements/badge-mask-style";
-import { IMPRESSION_GLITTER_UI_ENABLED } from "@/lib/achievements/impression-glitter-feature";
 import { isOpaqueBadgeHit, type AlphaMaskData } from "@/lib/badge/shape-utils";
 import { cn } from "@/lib/utils";
 
@@ -91,7 +90,8 @@ export function DetailBadgeInteractive({
   const isModelAsset = iconAssetKind === "model_glb" && Boolean(iconAssetPath?.trim());
   const showGlitter =
     dedicatedBadgeGlitter ||
-    (IMPRESSION_GLITTER_UI_ENABLED && impressionGlitter);
+    (process.env.NEXT_PUBLIC_IMPRESSION_GLITTER_UI_ENABLED === "true" &&
+      impressionGlitter);
   const glitterRevealPulse = dedicatedBadgeGlitter ? 0 : impressionGlitterRevealPulse;
   const glitterMaskStyle = renderSrc
     ? badgeImageMaskStylePadded(renderSrc, 108)
