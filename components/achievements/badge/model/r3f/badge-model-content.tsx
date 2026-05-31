@@ -12,13 +12,13 @@ import {
 import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
 
-import { createConfiguredBadgeGltfLoader } from "@/lib/achievements/badge-gltf-loader";
+import { createConfiguredBadgeGltfLoader } from "@/lib/achievements/badge/badge-gltf-loader";
 import {
   centerBadgeModelAtOrigin,
   frameCameraForBadgeModel,
-} from "@/lib/achievements/badge-model-rendering";
-import { BADGE_MODEL_CAMERA_FOV } from "@/lib/achievements/badge-model-viewer-pipeline";
-import { badgeModelViewStateCache } from "@/lib/achievements/badge-model-view-state";
+} from "@/lib/achievements/badge/badge-model-rendering";
+import { BADGE_MODEL_CAMERA_FOV } from "@/lib/achievements/badge/badge-model-viewer-pipeline";
+import { badgeModelViewStateCache } from "@/lib/achievements/badge/badge-model-view-state";
 
 import { useBadgeModelInteraction } from "./use-badge-model-interaction";
 

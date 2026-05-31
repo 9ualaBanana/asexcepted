@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 
 import { ImpressionGlitterField } from "@/components/achievements/badge/effects/impression-glitter-field";
-import { badgeImageMaskStylePadded } from "@/lib/achievements/badge-mask-style";
+import { badgeImageMaskStylePadded } from "@/lib/achievements/badge/badge-mask-style";
 import {
   ensureBadgeImageDecoded,
   getCachedBadgeMaskStyle,

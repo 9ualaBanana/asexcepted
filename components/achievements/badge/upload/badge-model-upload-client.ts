@@ -7,15 +7,15 @@ import {
   isGlbHeader,
   looksLikeGlbUpload,
   BADGE_MODEL_MAX_FILE_BYTES,
-} from "@/lib/achievements/badge-assets";
-import { createConfiguredBadgeGltfLoader } from "@/lib/achievements/badge-gltf-loader";
-import { BADGE_MODEL_POSE_PRESETS } from "@/lib/achievements/badge-model-poses";
+} from "@/lib/achievements/badge/badge-assets";
+import { createConfiguredBadgeGltfLoader } from "@/lib/achievements/badge/badge-gltf-loader";
+import { BADGE_MODEL_POSE_PRESETS } from "@/lib/achievements/badge/badge-model-poses";
 import {
   applyBadgeModelEnvironment,
   buildBadgeModelSceneGraph,
   configureBadgeModelRenderer,
   renderBadgeModelFrame,
-} from "@/lib/achievements/badge-model-viewer-pipeline";
+} from "@/lib/achievements/badge/badge-model-viewer-pipeline";
 
 const PREVIEW_SIZE_PX = 768;
 

@@ -5,7 +5,7 @@ import {
   BADGE_PREVIEW_BUCKET,
   buildShareInviteBadgeModelPath,
   buildShareInviteBadgePreviewPath,
-} from "@/lib/achievements/badge-assets";
+} from "@/lib/achievements/badge/badge-assets";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 
 /** Removes a pending invite created during a failed dedicate/share flow. */

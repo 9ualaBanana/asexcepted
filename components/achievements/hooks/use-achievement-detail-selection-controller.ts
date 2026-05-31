@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 
 import type { AchievementUiStateActions } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
-import type { AchievementRecord } from "@/lib/achievements/achievement-transformers";
+import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
 
 type UseAchievementDetailSelectionControllerArgs = {
   achievements: AchievementRecord[];

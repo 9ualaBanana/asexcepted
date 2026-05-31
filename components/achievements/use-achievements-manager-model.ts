@@ -14,7 +14,7 @@ import {
   achievementToGridItem,
   isAchievementFormDirty,
   type AchievementRecord,
-} from "@/lib/achievements/achievement-transformers";
+} from "@/lib/achievements/data/achievement-transformers";
 import { useBadgeChunkedPrewarm, useBadgeMetricsController, useBadgeSessionController } from "@/components/achievements/badge";
 import { useAchievementUnlockReveal } from "@/components/achievements/badge/effects/use-achievement-unlock-reveal";
 import { useAchievementEditorPipelineController } from "@/components/achievements/badge/editor/use-achievement-editor-pipeline-controller";
@@ -31,23 +31,23 @@ import { showErrorToast } from "@/lib/toast";
 import { useAchievementUiStateMachine } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import {
+  markTutorialCompleted,
   resetHideLockedPreferenceForNewAccount,
   useHideLockedPreference,
-} from "@/lib/achievements/hide-locked-preference";
-import { useVisibilityFilterPreference } from "@/lib/achievements/visibility-filter-preference";
+  useVisibilityFilterPreference,
+} from "@/lib/storage";
 import {
   canEditDedicatedVisibility,
   isDedicatedVisibilityDirty,
-} from "@/lib/achievements/dedication-utils";
+} from "@/lib/achievements/dedication/dedication-utils";
 import { userCollection } from "@/lib/routes";
-import { showsDedicatedBadgeEffect } from "@/lib/achievements/dedication-utils";
-import { markTutorialCompleted } from "@/lib/tutorials/completed-store";
+import { showsDedicatedBadgeEffect } from "@/lib/achievements/dedication/dedication-utils";
 import { TUTORIAL_IDS } from "@/lib/tutorials/registry";
 import { useDedicationQueueController } from "@/components/achievements/dedication/use-dedication-queue-controller";
 import {
   achievementToForm,
   formToPayload,
-} from "@/lib/achievements/achievement-transformers";
+} from "@/lib/achievements/data/achievement-transformers";
 import {
   payloadToDedicateApiBody,
   postDedicateAchievement,

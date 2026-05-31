@@ -38,11 +38,11 @@ import { AchievementVisibilityToggle } from "@/components/achievements/detail/ac
 import {
   canEditDedicatedVisibility,
   isDedicatedAchievement,
-} from "@/lib/achievements/dedication-utils";
+} from "@/lib/achievements/dedication/dedication-utils";
 import {
   hasCustomBadge,
   type AchievementRecord,
-} from "@/lib/achievements/achievement-transformers";
+} from "@/lib/achievements/data/achievement-transformers";
 import { useDoubleActivate } from "@/lib/hooks/use-double-activate";
 import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
 import { getTutorial, TUTORIAL_IDS, useTutorial, useTutorialToast } from "@/lib/tutorials";

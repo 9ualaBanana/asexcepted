@@ -3,7 +3,7 @@
 import { Canvas } from "@react-three/fiber";
 import { useCallback } from "react";
 
-import { configureBadgeModelRenderer } from "@/lib/achievements/badge-model-viewer-pipeline";
+import { configureBadgeModelRenderer } from "@/lib/achievements/badge/badge-model-viewer-pipeline";
 
 import { BadgeModelScene } from "./badge-model-scene";
 import { BadgeModelContent, type BadgeModelContentProps } from "./badge-model-content";

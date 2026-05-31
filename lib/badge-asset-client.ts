@@ -1,5 +1,5 @@
 import type { BadgeRemoteAsset } from "@/components/achievements/achievement-editor-shared";
-import { BADGE_MODEL_BUCKET } from "@/lib/achievements/badge-assets";
+import { BADGE_MODEL_BUCKET } from "@/lib/achievements/badge/badge-assets";
 import { createClient } from "@/lib/supabase/client";
 
 type BadgeModelUploadSuccess = {

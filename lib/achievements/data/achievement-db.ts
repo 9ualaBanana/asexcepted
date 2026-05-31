@@ -4,18 +4,18 @@ import type { Database } from "@/lib/supabase/database.types";
 import type {
   AchievementDbRow,
   AchievementDbWritePayload,
-} from "@/lib/achievements/achievement-db-schema";
+} from "@/lib/achievements/data/achievement-db-schema";
 import { todayDateString } from "@/components/achievements/achievement-editor-shared";
 import {
   tryNormalizeAchievement,
   type AchievementRecord,
-} from "@/lib/achievements/achievement-transformers";
+} from "@/lib/achievements/data/achievement-transformers";
 import {
   attachImpressionCounts,
   fetchImpressionCountMap,
-} from "@/lib/achievements/impression-counts";
+} from "@/lib/achievements/data/impression-counts";
 
-export type { AchievementDbRow, AchievementDbWritePayload } from "@/lib/achievements/achievement-db-schema";
+export type { AchievementDbRow, AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
 
 export type AchievementListResult = Result<AchievementRecord[], string>;
 export type AchievementSingleResult = Result<AchievementRecord, string>;

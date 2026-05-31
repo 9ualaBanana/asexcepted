@@ -14,7 +14,7 @@ import {
   isModelBadgeAssetKind,
   isShareInviteBadgeModelPath,
   sanitizeBadgeAssetPath,
-} from "@/lib/achievements/badge-assets";
+} from "@/lib/achievements/badge/badge-assets";
 import { getImageKitServerClient, isImageKitServerConfigured } from "@/lib/imagekit/server-client";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 

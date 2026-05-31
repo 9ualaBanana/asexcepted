@@ -2,15 +2,15 @@ import "server-only";
 
 import { err, ok, type Result } from "neverthrow";
 
-import type { AchievementDbWritePayload } from "@/lib/achievements/achievement-db-schema";
+import type { AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
 import { todayDateString } from "@/components/achievements/achievement-editor-shared";
-import { isModelBadgeAssetKind, isShareInviteBadgeModelPath } from "@/lib/achievements/badge-assets";
+import { isModelBadgeAssetKind, isShareInviteBadgeModelPath } from "@/lib/achievements/badge/badge-assets";
 import { validateShareInviteBadgeSnapshot } from "@/lib/share-invites/eligibility";
 import { deleteShareInviteRollback } from "@/lib/share-invites/invite-rollback";
 import {
   pinBadgeAssetsForShareInvite,
   resolveClaimedBadgeIconFields,
-} from "@/lib/achievements/badge-assets-server";
+} from "@/lib/achievements/badge/badge-assets-server";
 import type { Tables } from "@/lib/supabase/database.types";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { fetchPublicUserDisplayName } from "@/lib/user-profile-db";

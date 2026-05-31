@@ -1,11 +1,11 @@
 import { err, ok, type Result } from "neverthrow";
 
-import type { AchievementDbWritePayload } from "@/lib/achievements/achievement-db-schema";
+import type { AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
 import {
   isModelBadgeAssetKind,
   isPublicHttpImageUrl,
   sanitizeBadgeAssetPath,
-} from "@/lib/achievements/badge-assets";
+} from "@/lib/achievements/badge/badge-assets";
 import type { AchievementShareInviteSnapshot } from "@/lib/share-invites/invite-snapshot";
 import { shareInviteSnapshotFromAchievementRow } from "@/lib/share-invites/invite-snapshot";
 import type { CollectionAchievementSnapshotSource } from "@/lib/share-invites/invite-snapshot";

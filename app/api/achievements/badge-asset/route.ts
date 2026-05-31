@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { deleteBadgeRemoteAsset } from "@/lib/achievements/badge-assets-server";
+import { deleteBadgeRemoteAsset } from "@/lib/achievements/badge/badge-assets-server";
 import { createClient } from "@/lib/supabase/server";
 
 const deleteBadgeAssetBodySchema = z.object({

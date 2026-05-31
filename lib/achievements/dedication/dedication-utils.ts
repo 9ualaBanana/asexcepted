@@ -1,6 +1,6 @@
-import type { AchievementRecord } from "@/lib/achievements/achievement-transformers";
+import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
 import type { FormState } from "@/components/achievements/achievement-editor-shared";
-import { hasModelGlbAsset } from "@/lib/achievements/badge-assets";
+import { hasModelGlbAsset } from "@/lib/achievements/badge/badge-assets";
 
 /** Sender-dedicated row (pending or accepted). */
 export function isDedicatedAchievement(

@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import type { AchievementRecord } from "@/lib/achievements/achievement-transformers";
+import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
 
 type CountRow = {
   achievement_id: string;

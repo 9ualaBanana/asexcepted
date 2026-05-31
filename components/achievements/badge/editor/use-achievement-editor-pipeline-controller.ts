@@ -3,15 +3,15 @@
 import { useCallback, type FormEvent } from "react";
 
 import { ACHIEVEMENT_UI_COPY } from "@/components/achievements/share/achievement-ui-copy";
-import { createAchievement, updateAchievement } from "@/lib/achievements/achievement-db";
+import { createAchievement, updateAchievement } from "@/lib/achievements/data/achievement-db";
 import {
   canEditDedicatedVisibility,
   isDedicatedAchievement,
-} from "@/lib/achievements/dedication-utils";
+} from "@/lib/achievements/dedication/dedication-utils";
 import { createInitialForm, sortAchievements } from "@/components/achievements/achievement-manager-utils";
 import { type FormState, hasMeaningfulContent } from "@/components/achievements/achievement-editor-shared";
-import type { AchievementRecord } from "@/lib/achievements/achievement-transformers";
-import { achievementToForm, formToPayload } from "@/lib/achievements/achievement-transformers";
+import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
+import { achievementToForm, formToPayload } from "@/lib/achievements/data/achievement-transformers";
 import type { BadgeSessionController } from "@/components/achievements/badge/upload/use-badge-session-controller";
 import type { AchievementUiStateActions } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
 import { clearBadgeRenderCacheForSrc, prewarmBadgeRenderCache } from "@/lib/badge/render-cache";

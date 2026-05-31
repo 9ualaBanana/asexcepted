@@ -19,11 +19,11 @@ import {
   toNullable,
 } from "@/components/achievements/achievement-editor-shared";
 import { normalizeImageKitFileId } from "@/components/achievements/badge";
-import { showsDedicatedBadgeEffect } from "@/lib/achievements/dedication-utils";
+import { showsDedicatedBadgeEffect } from "@/lib/achievements/dedication/dedication-utils";
 import type {
   AchievementDbRow,
   AchievementDbWritePayload,
-} from "@/lib/achievements/achievement-db-schema";
+} from "@/lib/achievements/data/achievement-db-schema";
 
 export type AchievementRecord = {
   id: string;

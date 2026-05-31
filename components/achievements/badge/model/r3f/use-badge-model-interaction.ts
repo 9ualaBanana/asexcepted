@@ -4,8 +4,8 @@ import { useEffect, useRef, type RefObject } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { Group } from "three";
 
-import { applyBadgeModelPose } from "@/lib/achievements/badge-model-poses";
-import { badgeModelViewStateCache } from "@/lib/achievements/badge-model-view-state";
+import { applyBadgeModelPose } from "@/lib/achievements/badge/badge-model-poses";
+import { badgeModelViewStateCache } from "@/lib/achievements/badge/badge-model-view-state";
 
 const MAX_PITCH_RAD = Math.PI / 2.2;
 const DRAG_YAW_SENSITIVITY = 0.0072;

@@ -5,6 +5,6 @@ export {
   type TutorialDefinition,
   type TutorialId,
 } from "@/lib/tutorials/registry";
-export { isTutorialCompleted, markTutorialCompleted } from "@/lib/tutorials/completed-store";
+export { isTutorialCompleted, markTutorialCompleted } from "@/lib/storage";
 export { useTutorial } from "@/lib/tutorials/use-tutorial";
 export { useTutorialToast } from "@/lib/tutorials/use-tutorial-toast";

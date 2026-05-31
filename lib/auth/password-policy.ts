@@ -1,9 +1,8 @@
 /** Mirrors supabase/config.toml minimum_password_length. */
-export const MIN_PASSWORD_LENGTH = 8;
-
 export function validatePassword(password: string): string | null {
-  if (password.length < MIN_PASSWORD_LENGTH) {
-    return `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
+  const minLength = Number(process.env.NEXT_PUBLIC_MIN_PASSWORD_LENGTH);
+  if (password.length < minLength) {
+    return `Password must be at least ${minLength} characters.`;
   }
   return null;
 }

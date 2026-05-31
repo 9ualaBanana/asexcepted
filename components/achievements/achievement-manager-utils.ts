@@ -36,7 +36,7 @@ export function getSafeTone(value?: string | null): AchievementTone {
   return "teal";
 }
 import { type FormState } from "@/components/achievements/achievement-editor-shared";
-import type { AchievementRecord } from "@/lib/achievements/achievement-transformers";
+import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
 
 export const UNLOCK_HOLD_DURATION_MS = Number(
   process.env.NEXT_PUBLIC_UNLOCK_HOLD_DURATION_MS,

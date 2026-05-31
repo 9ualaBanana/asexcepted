@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createBadgeModelUploadTarget } from "@/lib/achievements/badge-assets-server";
+import { createBadgeModelUploadTarget } from "@/lib/achievements/badge/badge-assets-server";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST() {

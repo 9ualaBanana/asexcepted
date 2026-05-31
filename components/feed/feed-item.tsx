@@ -10,7 +10,7 @@ import { getSafeTone } from "@/components/achievements/achievement-manager-utils
 import { getSafeIcon } from "@/components/achievements/achievement-editor-shared";
 import { FeedActivityText } from "@/components/feed/feed-activity-text";
 import { ProfileAvatarSlot } from "@/components/profile/profile-avatar-slot";
-import { isModelBadgeAssetKind } from "@/lib/achievements/badge-assets";
+import { isModelBadgeAssetKind } from "@/lib/achievements/badge/badge-assets";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import { formatFeedEventTimestamp } from "@/lib/feed/format-feed-event-time";
 import {

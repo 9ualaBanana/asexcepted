@@ -4,12 +4,12 @@ export {
   BADGE_MODEL_ENVIRONMENT_INTENSITY,
   BADGE_MODEL_TONE_MAPPING_EXPOSURE,
   configureBadgeModelRenderer,
-} from "@/lib/achievements/badge-model-viewer-pipeline";
+} from "@/lib/achievements/badge/badge-model-viewer-pipeline";
 
 export {
   BADGE_MODEL_DRACO_DECODER_CDN,
   configureBadgeModelLoader,
-} from "@/lib/achievements/badge-gltf-loader";
+} from "@/lib/achievements/badge/badge-gltf-loader";
 
 export type BadgeModelFrameMetrics = {
   size: Vector3;

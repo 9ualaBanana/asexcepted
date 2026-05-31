@@ -15,7 +15,7 @@ import {
   badgeImageMaskStylePadded,
   circularBadgeMaskStyle,
   paddedBadgeMaskStyle,
-} from "@/lib/achievements/badge-mask-style";
+} from "@/lib/achievements/badge/badge-mask-style";
 import { isOpaqueBadgeHit, type AlphaMaskData } from "@/lib/badge/shape-utils";
 import { cn } from "@/lib/utils";
 

@@ -25,7 +25,7 @@ import {
   getDeviceFcmToken,
   unregisterDevicePushToken,
 } from "@/lib/push/device-push-status";
-import { useSoundsEnabledPreference } from "@/lib/sounds-enabled-preference";
+import { useSoundsEnabledPreference } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/client";
 import { useErrorToast } from "@/lib/toast";
 

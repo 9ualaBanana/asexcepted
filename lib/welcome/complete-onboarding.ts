@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { resetHideLockedPreferenceForNewAccount } from "@/lib/achievements/hide-locked-preference";
+import { resetHideLockedPreferenceForNewAccount } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/database.types";
 import { userCollection } from "@/lib/routes";

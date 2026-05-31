@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { completeBadgeModelUpload } from "@/lib/achievements/badge-assets-server";
+import { completeBadgeModelUpload } from "@/lib/achievements/badge/badge-assets-server";
 import { createClient } from "@/lib/supabase/server";
 
 function asFile(value: FormDataEntryValue | null): File | null {

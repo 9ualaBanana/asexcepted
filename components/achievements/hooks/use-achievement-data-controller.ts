@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { deleteAchievement, listAchievements } from "@/lib/achievements/achievement-db";
+import { deleteAchievement, listAchievements } from "@/lib/achievements/data/achievement-db";
 import { sortAchievements } from "@/components/achievements/achievement-manager-utils";
 import type { BadgeSessionController } from "@/components/achievements/badge/upload/use-badge-session-controller";
 import type { AchievementUiStateActions } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
-import type { AchievementRecord } from "@/lib/achievements/achievement-transformers";
+import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
 import { clearBadgeRenderCacheForSrc } from "@/lib/badge/render-cache";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import { useUserAchievementsLiveUpdates } from "@/lib/live-updates";

@@ -5,8 +5,8 @@ import {
   Badge3DViewer,
   BadgeModelViewer,
 } from "@/components/achievements/badge";
-import { createSignedBadgeModelUrl } from "@/lib/achievements/badge-assets-server";
-import { isModelBadgeAssetKind } from "@/lib/achievements/badge-assets";
+import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/badge-assets-server";
+import { isModelBadgeAssetKind } from "@/lib/achievements/badge/badge-assets";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import { verifyEmbedBadgeToken } from "@/lib/embed-badge-token";
 import { createAnonServerClient } from "@/lib/supabase/server-anon";

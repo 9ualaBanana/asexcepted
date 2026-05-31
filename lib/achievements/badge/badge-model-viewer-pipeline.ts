@@ -14,11 +14,11 @@ import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
 
-import { applyBadgeModelPose } from "@/lib/achievements/badge-model-poses";
+import { applyBadgeModelPose } from "@/lib/achievements/badge/badge-model-poses";
 import {
   centerBadgeModelAtOrigin,
   frameCameraForBadgeModel,
-} from "@/lib/achievements/badge-model-rendering";
+} from "@/lib/achievements/badge/badge-model-rendering";
 
 /** Same exposure for live R3F viewers and poster snapshots. */
 export const BADGE_MODEL_TONE_MAPPING_EXPOSURE = 1;

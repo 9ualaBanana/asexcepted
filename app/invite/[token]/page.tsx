@@ -7,8 +7,8 @@ import {
   BadgeAttributionPopover,
 } from "@/components/achievements/badge";
 import { formatAchievedAt } from "@/components/achievements/achievement-editor-shared";
-import { isModelBadgeAssetKind } from "@/lib/achievements/badge-assets";
-import { createSignedBadgeModelUrl } from "@/lib/achievements/badge-assets-server";
+import { isModelBadgeAssetKind } from "@/lib/achievements/badge/badge-assets";
+import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/badge-assets-server";
 import { APP_DISPLAY_NAME } from "@/lib/brand";
 import { resolvePublicSiteOrigin } from "@/lib/public-site-origin";
 import { resolveInviteOgBadgeImageUrl } from "@/lib/share-invites/invite-og-badge-image";
