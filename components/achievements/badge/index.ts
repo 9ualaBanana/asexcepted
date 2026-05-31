@@ -62,3 +62,13 @@ export {
 } from "./upload/use-badge-model-uploader";
 
 export { useSignedBadgeModelUrl } from "./hooks/use-signed-badge-model-url";
+export { useBadgeMetricsController } from "./hooks/use-badge-metrics-controller";
+export { useBadgeChunkedPrewarm } from "./hooks/use-badge-chunked-prewarm";
+
+export { submitImpression } from "./effects/use-impression-on-badge";
+export type { ImpressionResult } from "./effects/use-impression-on-badge";
+
+export {
+  useBadgeSessionController,
+  type BadgeSessionController,
+} from "./upload/use-badge-session-controller";

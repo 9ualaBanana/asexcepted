@@ -6,7 +6,7 @@ import {
   DedicatedBadgeGlitter,
   RemoteBadgeImage,
 } from "@/components/achievements/badge";
-import { getSafeTone } from "@/components/achievements/achievement-card";
+import { getSafeTone } from "@/components/achievements/achievement-manager-utils";
 import { getSafeIcon } from "@/components/achievements/achievement-editor-shared";
 import { FeedActivityText } from "@/components/feed/feed-activity-text";
 import { ProfileAvatarSlot } from "@/components/profile/profile-avatar-slot";

@@ -18,7 +18,7 @@ import {
   type BadgeAssetSession,
   type FormState,
 } from "@/components/achievements/achievement-editor-shared";
-import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
+import type { AchievementRecord } from "@/lib/achievements/achievement-transformers";
 import { finalizeBadgeModelUpload } from "@/lib/badge-asset-client";
 
 type UseBadgeSessionControllerArgs = {

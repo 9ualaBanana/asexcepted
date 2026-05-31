@@ -28,7 +28,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { type AchievementTone } from "@/components/achievements/achievement-card";
+import { type AchievementTone } from "@/components/achievements/achievement-manager-utils";
 import { SpiralIcon } from "@/components/achievements/icons/spiral-icon";
 
 export type AchievementIconKey =

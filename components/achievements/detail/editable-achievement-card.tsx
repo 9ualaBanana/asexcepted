@@ -19,8 +19,8 @@ import {
   rollbackBadgeUploadSession,
   setSessionStagedUpload,
 } from "@/components/achievements/badge";
-import type { BadgeSessionController } from "@/components/achievements/use-badge-session-controller";
-import { AchievementVisibilityToggle } from "@/components/achievements/achievement-visibility-toggle";
+import type { BadgeSessionController } from "@/components/achievements/badge";
+import { AchievementVisibilityToggle } from "@/components/achievements/detail/achievement-visibility-toggle";
 import {
   badgeChromeWidth,
   achievementDialogChromeInset,

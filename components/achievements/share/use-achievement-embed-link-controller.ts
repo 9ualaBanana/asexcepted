@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   ACHIEVEMENT_UI_COPY,
   ACHIEVEMENT_UI_HINT_MS,
-} from "@/components/achievements/achievement-ui-copy";
+} from "@/components/achievements/share/achievement-ui-copy";
 import { copyTextToClipboard } from "@/lib/copy-text-to-clipboard";
 import { toast } from "@/lib/toast";
 import { requestEmbedBadgeToken } from "@/lib/embed-api-client";

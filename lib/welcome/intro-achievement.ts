@@ -1,4 +1,4 @@
-import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
+import type { AchievementRecord } from "@/lib/achievements/achievement-transformers";
 
 /** Shared ImageKit asset shown on welcome and seeded as the first locked achievement. */
 export const INTRO_ACHIEVEMENT_ICON_URL =

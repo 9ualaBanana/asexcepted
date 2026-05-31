@@ -3,7 +3,7 @@
 import { Code2, Gift, Loader2, Share2 } from "lucide-react";
 
 import { achievementDialogIconBtn } from "@/components/achievements/achievement-editor-shared";
-import { ACHIEVEMENT_UI_COPY } from "@/components/achievements/achievement-ui-copy";
+import { ACHIEVEMENT_UI_COPY } from "@/components/achievements/share/achievement-ui-copy";
 import {
   DropdownMenu,
   DropdownMenuContent,

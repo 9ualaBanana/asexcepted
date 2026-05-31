@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { coerceAchievementDbRow } from "@/components/achievements/achievement-transformers";
+import { coerceAchievementDbRow } from "@/lib/achievements/achievement-transformers";
 import { notifyDedicationAccepted } from "@/lib/notifications/dedication-accepted";
 import { createClient } from "@/lib/supabase/server";
 

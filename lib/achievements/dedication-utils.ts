@@ -1,4 +1,4 @@
-import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
+import type { AchievementRecord } from "@/lib/achievements/achievement-transformers";
 import type { FormState } from "@/components/achievements/achievement-editor-shared";
 import { hasModelGlbAsset } from "@/lib/achievements/badge-assets";
 

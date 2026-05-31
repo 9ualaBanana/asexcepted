@@ -12,7 +12,7 @@ import {
 import {
   achievementToneSwatches,
   type AchievementTone,
-} from "@/components/achievements/achievement-card";
+} from "@/components/achievements/achievement-manager-utils";
 import { BadgeSlot } from "@/components/achievements/badge/chrome/badge-slot";
 import { BadgeAttributionPopover } from "@/components/achievements/badge/chrome/badge-attribution-popover";
 import { FallbackBadge } from "@/components/achievements/badge/display/fallback-badge";

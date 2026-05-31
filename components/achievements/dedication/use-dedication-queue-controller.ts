@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
+import type { AchievementRecord } from "@/lib/achievements/achievement-transformers";
 import {
   listPendingDedications,
   rejectDedication,

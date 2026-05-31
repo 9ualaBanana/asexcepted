@@ -2,7 +2,7 @@ import "server-only";
 
 import { err, ok, type Result } from "neverthrow";
 
-import type { AchievementDbWritePayload } from "@/components/achievements/achievement-db-schema";
+import type { AchievementDbWritePayload } from "@/lib/achievements/achievement-db-schema";
 import { todayDateString } from "@/components/achievements/achievement-editor-shared";
 import { isModelBadgeAssetKind, isShareInviteBadgeModelPath } from "@/lib/achievements/badge-assets";
 import { validateShareInviteBadgeSnapshot } from "@/lib/share-invites/eligibility";

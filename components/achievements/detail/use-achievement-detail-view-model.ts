@@ -4,7 +4,7 @@ import { useEffect, useMemo } from "react";
 
 import { resolveTone } from "@/components/achievements/achievement-manager-utils";
 import { getSafeIcon } from "@/components/achievements/achievement-editor-shared";
-import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
+import type { AchievementRecord } from "@/lib/achievements/achievement-transformers";
 import { prewarmBadgeRenderCache } from "@/lib/badge/render-cache";
 import { getAlphaMaskStyle } from "@/lib/badge/shape-utils";
 

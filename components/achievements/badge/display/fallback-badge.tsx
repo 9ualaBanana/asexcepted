@@ -4,9 +4,7 @@ import {
   BadgeIconDisc,
   badgeIconDiscSizeStyles,
 } from "@/components/achievements/badge/chrome/badge-icon-disc";
-import {
-  type AchievementTone,
-} from "@/components/achievements/achievement-card";
+import { type AchievementTone } from "@/components/achievements/achievement-manager-utils";
 import { cn } from "@/lib/utils";
 
 type FallbackBadgeProps = {

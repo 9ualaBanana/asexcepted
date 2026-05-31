@@ -1,6 +1,6 @@
 import { err, ok, type Result } from "neverthrow";
 
-import type { AchievementDbWritePayload } from "@/components/achievements/achievement-db-schema";
+import type { AchievementDbWritePayload } from "@/lib/achievements/achievement-db-schema";
 
 export type AchievementShareInviteIntent = "showcase" | "dedicate";
 

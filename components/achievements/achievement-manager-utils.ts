@@ -1,7 +1,42 @@
-import { getSafeTone } from "@/components/achievements/achievement-card";
 import { unlockRevealLutSteps } from "@/lib/badge/shape-utils";
+
+export type AchievementTone =
+  | "rose"
+  | "indigo"
+  | "teal"
+  | "orange"
+  | "lime"
+  | "fuchsia";
+
+export const achievementToneStyles: Record<AchievementTone, string> = {
+  rose: "from-rose-300/20 via-pink-200/10 to-transparent border-rose-300/30",
+  indigo:
+    "from-indigo-300/20 via-blue-200/10 to-transparent border-indigo-300/30",
+  teal: "from-teal-300/20 via-cyan-200/10 to-transparent border-teal-300/30",
+  orange:
+    "from-orange-300/20 via-amber-200/10 to-transparent border-orange-300/30",
+  lime: "from-lime-300/20 via-emerald-200/10 to-transparent border-lime-300/30",
+  fuchsia:
+    "from-fuchsia-300/20 via-pink-200/10 to-transparent border-fuchsia-300/30",
+};
+
+export const achievementToneSwatches: Record<AchievementTone, string> = {
+  rose: "bg-rose-400",
+  indigo: "bg-indigo-400",
+  teal: "bg-teal-400",
+  orange: "bg-orange-400",
+  lime: "bg-lime-400",
+  fuchsia: "bg-fuchsia-400",
+};
+
+export function getSafeTone(value?: string | null): AchievementTone {
+  if (value && value in achievementToneStyles) {
+    return value as AchievementTone;
+  }
+  return "teal";
+}
 import { type FormState } from "@/components/achievements/achievement-editor-shared";
-import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
+import type { AchievementRecord } from "@/lib/achievements/achievement-transformers";
 
 export const UNLOCK_HOLD_DURATION_MS = Number(
   process.env.NEXT_PUBLIC_UNLOCK_HOLD_DURATION_MS,

@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 
-import { ACHIEVEMENT_UI_COPY } from "@/components/achievements/achievement-ui-copy";
+import { ACHIEVEMENT_UI_COPY } from "@/components/achievements/share/achievement-ui-copy";
 import { copyTextToClipboard } from "@/lib/copy-text-to-clipboard";
 import {
   postCreateAchievementShareInvite,

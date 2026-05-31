@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { type AchievementTone } from "@/components/achievements/achievement-card";
+import { type AchievementTone } from "@/components/achievements/achievement-manager-utils";
 import { cn } from "@/lib/utils";
 
 const toneInnerDiscStyles: Record<AchievementTone, string> = {

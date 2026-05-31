@@ -8,7 +8,7 @@ import {
 } from "@/lib/badge/render-cache";
 import { logImageKitEvent } from "@/lib/imagekit/telemetry";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
-import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
+import type { AchievementRecord } from "@/lib/achievements/achievement-transformers";
 
 type UseBadgeChunkedPrewarmArgs = {
   achievements: AchievementRecord[];

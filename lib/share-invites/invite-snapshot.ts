@@ -1,4 +1,4 @@
-import type { AchievementDbWritePayload } from "@/components/achievements/achievement-db-schema";
+import type { AchievementDbWritePayload } from "@/lib/achievements/achievement-db-schema";
 import type { Tables } from "@/lib/supabase/database.types";
 
 type AchievementRow = Tables<"achievements">;

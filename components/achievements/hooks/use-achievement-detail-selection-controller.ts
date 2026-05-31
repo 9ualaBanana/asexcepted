@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo } from "react";
 
-import type { AchievementUiStateActions } from "@/components/achievements/use-achievement-ui-state-machine";
-import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
+import type { AchievementUiStateActions } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
+import type { AchievementRecord } from "@/lib/achievements/achievement-transformers";
 
 type UseAchievementDetailSelectionControllerArgs = {
   achievements: AchievementRecord[];

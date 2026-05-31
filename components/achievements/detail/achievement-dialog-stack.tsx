@@ -12,11 +12,13 @@ import {
 } from "react";
 import { Check, Loader2, PenLine, X, type LucideIcon } from "lucide-react";
 
-import type { AchievementTone } from "@/components/achievements/achievement-card";
+import type { AchievementTone } from "@/components/achievements/achievement-manager-utils";
 import {
   DetailBadgeInteractive,
   BadgeAttributionPopover,
   ImpressionBurst,
+  submitImpression,
+  type BadgeSessionController,
 } from "@/components/achievements/badge";
 import type { AlphaMaskData } from "@/lib/badge/shape-utils";
 import {
@@ -30,19 +32,17 @@ import {
 } from "@/components/achievements/achievement-editor-shared";
 import { DedicationByline } from "@/components/achievements/dedication/dedication-byline";
 import { DedicationBylineChromeRow } from "@/components/achievements/dedication/dedication-byline-chrome-row";
-import { AchievementDetailShareMenu } from "@/components/achievements/achievement-detail-share-menu";
-import { EditableAchievementCard } from "@/components/achievements/editable-achievement-card";
-import { AchievementVisibilityToggle } from "@/components/achievements/achievement-visibility-toggle";
+import { AchievementDetailShareMenu } from "@/components/achievements/share/achievement-detail-share-menu";
+import { EditableAchievementCard } from "@/components/achievements/detail/editable-achievement-card";
+import { AchievementVisibilityToggle } from "@/components/achievements/detail/achievement-visibility-toggle";
 import {
   canEditDedicatedVisibility,
   isDedicatedAchievement,
 } from "@/lib/achievements/dedication-utils";
-import { submitImpression } from "@/components/achievements/use-impression-on-badge";
 import {
   hasCustomBadge,
   type AchievementRecord,
-} from "@/components/achievements/achievement-transformers";
-import type { BadgeSessionController } from "@/components/achievements/use-badge-session-controller";
+} from "@/lib/achievements/achievement-transformers";
 import { useDoubleActivate } from "@/lib/hooks/use-double-activate";
 import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
 import { getTutorial, TUTORIAL_IDS, useTutorial, useTutorialToast } from "@/lib/tutorials";

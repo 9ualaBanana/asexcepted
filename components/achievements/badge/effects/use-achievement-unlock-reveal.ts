@@ -2,15 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
 
-import { unlockAchievement } from "@/components/achievements/achievement-db";
+import { unlockAchievement } from "@/lib/achievements/achievement-db";
 import {
   UNLOCK_HOLD_DURATION_MS,
   UNLOCK_REVEAL_DURATION_MS,
   UNLOCK_REVEAL_LUT_STEPS,
   sortAchievements,
 } from "@/components/achievements/achievement-manager-utils";
-import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
-import { useAchievementSounds } from "@/components/achievements/use-achievement-sounds";
+import type { AchievementRecord } from "@/lib/achievements/achievement-transformers";
+import { useAchievementSounds } from "@/components/achievements/badge/effects/use-achievement-sounds";
 import {
   buildUnlockRevealClipPath,
   buildUnlockRevealClipPathLut,

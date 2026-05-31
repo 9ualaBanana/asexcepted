@@ -10,7 +10,7 @@ import { ImpressionGlitterField } from "@/components/achievements/badge/effects/
 import { UnlockRevealWave } from "@/components/achievements/badge/effects/unlock-reveal-wave";
 import { BadgeImageParallaxView } from "@/components/achievements/badge/detail/badge-image-parallax-view";
 import { BadgeModelLiveView } from "@/components/achievements/badge/detail/badge-model-live-view";
-import type { AchievementTone } from "@/components/achievements/achievement-card";
+import type { AchievementTone } from "@/components/achievements/achievement-manager-utils";
 import {
   badgeImageMaskStylePadded,
   circularBadgeMaskStyle,

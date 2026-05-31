@@ -5,7 +5,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   type AchievementTone,
   getSafeTone,
-} from "@/components/achievements/achievement-card";
+} from "@/components/achievements/achievement-manager-utils";
 import {
   type AchievementIconKey,
   type AchievementIconAssetKind,
@@ -23,7 +23,7 @@ import { showsDedicatedBadgeEffect } from "@/lib/achievements/dedication-utils";
 import type {
   AchievementDbRow,
   AchievementDbWritePayload,
-} from "@/components/achievements/achievement-db-schema";
+} from "@/lib/achievements/achievement-db-schema";
 
 export type AchievementRecord = {
   id: string;

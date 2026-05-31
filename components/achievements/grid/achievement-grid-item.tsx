@@ -9,7 +9,7 @@ import {
   RemoteBadgeImage,
   ImpressionGlitterField,
 } from "@/components/achievements/badge";
-import type { AchievementTone } from "@/components/achievements/achievement-card";
+import type { AchievementTone } from "@/components/achievements/achievement-manager-utils";
 import {
   badgeImageMaskStylePadded,
   circularBadgeMaskStyle,

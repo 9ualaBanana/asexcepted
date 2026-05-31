@@ -8,29 +8,27 @@ import {
   sortAchievements,
 } from "@/components/achievements/achievement-manager-utils";
 import { type FormState } from "@/components/achievements/achievement-editor-shared";
-import type { AchievementDialogStackProps } from "@/components/achievements/achievement-dialog-stack";
+import type { AchievementDialogStackProps } from "@/components/achievements/detail/achievement-dialog-stack";
 import {
   hasCustomBadge,
   achievementToGridItem,
   isAchievementFormDirty,
   type AchievementRecord,
-} from "@/components/achievements/achievement-transformers";
-import { useBadgeMetricsController } from "@/components/achievements/use-badge-metrics-controller";
-import { useBadgeSessionController } from "@/components/achievements/use-badge-session-controller";
-import { useAchievementDataController } from "@/components/achievements/use-achievement-data-controller";
-import { useAchievementDetailSelectionController } from "@/components/achievements/use-achievement-detail-selection-controller";
-import { useAchievementDetailViewModel } from "@/components/achievements/use-achievement-detail-view-model";
-import { useAchievementEditorPipelineController } from "@/components/achievements/use-achievement-editor-pipeline-controller";
-import { useAchievementEmbedLinkController } from "@/components/achievements/use-achievement-embed-link-controller";
-import { useAchievementShareInviteController } from "@/components/achievements/use-achievement-share-invite-controller";
+} from "@/lib/achievements/achievement-transformers";
+import { useBadgeChunkedPrewarm, useBadgeMetricsController, useBadgeSessionController } from "@/components/achievements/badge";
+import { useAchievementUnlockReveal } from "@/components/achievements/badge/effects/use-achievement-unlock-reveal";
+import { useAchievementEditorPipelineController } from "@/components/achievements/badge/editor/use-achievement-editor-pipeline-controller";
+import { useAchievementDetailViewModel } from "@/components/achievements/detail/use-achievement-detail-view-model";
+import { useAchievementDataController } from "@/components/achievements/hooks/use-achievement-data-controller";
+import { useAchievementDetailSelectionController } from "@/components/achievements/hooks/use-achievement-detail-selection-controller";
+import { useAchievementEmbedLinkController } from "@/components/achievements/share/use-achievement-embed-link-controller";
+import { useAchievementShareInviteController } from "@/components/achievements/share/use-achievement-share-invite-controller";
 import {
   canDedicateAchievementViaShareInvite,
   getAchievementShareReadinessError,
 } from "@/lib/share-invites/eligibility";
 import { showErrorToast } from "@/lib/toast";
-import { useAchievementUiStateMachine } from "@/components/achievements/use-achievement-ui-state-machine";
-import { useAchievementUnlockReveal } from "@/components/achievements/use-achievement-unlock-reveal";
-import { useBadgeChunkedPrewarm } from "@/components/achievements/use-badge-chunked-prewarm";
+import { useAchievementUiStateMachine } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import {
   resetHideLockedPreferenceForNewAccount,
@@ -49,7 +47,7 @@ import { useDedicationQueueController } from "@/components/achievements/dedicati
 import {
   achievementToForm,
   formToPayload,
-} from "@/components/achievements/achievement-transformers";
+} from "@/lib/achievements/achievement-transformers";
 import {
   payloadToDedicateApiBody,
   postDedicateAchievement,

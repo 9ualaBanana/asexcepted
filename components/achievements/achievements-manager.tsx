@@ -2,12 +2,12 @@
 
 import { useEffect } from "react";
 
-import { BadgeDebugOverlay } from "@/components/achievements/badge-debug-overlay";
-import { AchievementDeleteConfirmDialog } from "@/components/achievements/achievement-delete-confirm-dialog";
-import { AchievementDiscardEditConfirmDialog } from "@/components/achievements/achievement-discard-edit-confirm-dialog";
-import { AchievementDialogStack } from "@/components/achievements/achievement-dialog-stack";
-import { AchievementGrid } from "@/components/achievements/achievement-grid";
-import { AchievementManualEmbedDialog } from "@/components/achievements/achievement-manual-embed-dialog";
+import { BadgeDebugOverlay } from "@/components/admin/badge-debug-overlay";
+import { AchievementDeleteConfirmDialog } from "@/components/achievements/dialogs/achievement-delete-confirm-dialog";
+import { AchievementDiscardEditConfirmDialog } from "@/components/achievements/dialogs/achievement-discard-edit-confirm-dialog";
+import { AchievementDialogStack } from "@/components/achievements/detail/achievement-dialog-stack";
+import { AchievementGrid } from "@/components/achievements/grid/achievement-grid";
+import { AchievementManualEmbedDialog } from "@/components/achievements/share/achievement-manual-embed-dialog";
 import { DedicationResponseDialog } from "@/components/achievements/dedication/dedication-response-dialog";
 import { DedicateInviteConfirmDialog } from "@/components/achievements/dedication/dedicate-invite-confirm-dialog";
 import { DedicationSenderConfirmDialog } from "@/components/achievements/dedication/dedication-sender-confirm-dialog";

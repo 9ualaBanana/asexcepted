@@ -11,7 +11,7 @@ import {
   achievementDialogIconBtn,
   getSafeIcon,
 } from "@/components/achievements/achievement-editor-shared";
-import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
+import type { AchievementRecord } from "@/lib/achievements/achievement-transformers";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
 import { cn } from "@/lib/utils";

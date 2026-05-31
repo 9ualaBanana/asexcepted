@@ -5,8 +5,8 @@ import {
   AchievementGridItemAdd,
   AchievementGridItemDedicate,
   AchievementGridItemFallback,
-} from "@/components/achievements/achievement-grid-item";
-import type { AchievementTone } from "@/components/achievements/achievement-card";
+} from "@/components/achievements/grid/achievement-grid-item";
+import type { AchievementTone } from "@/components/achievements/achievement-manager-utils";
 import { cn } from "@/lib/utils";
 
 type AchievementGridEntry = {

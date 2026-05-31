@@ -3,7 +3,7 @@
 import { useMemo, useRef } from "react";
 
 import { DetailBadgeInteractive } from "@/components/achievements/badge";
-import { useAchievementDetailViewModel } from "@/components/achievements/use-achievement-detail-view-model";
+import { useAchievementDetailViewModel } from "@/components/achievements/detail/use-achievement-detail-view-model";
 import { getWelcomeIntroAchievementRecord } from "@/lib/welcome/intro-achievement";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import type { AlphaMaskData } from "@/lib/badge/shape-utils";
