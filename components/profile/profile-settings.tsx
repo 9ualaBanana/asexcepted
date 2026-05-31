@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { AdminProfileTools } from "@/components/admin/admin-profile-tools";
-import { normalizeImageKitFileId } from "@/components/achievements/badge/badge-imagekit-session";
+import { normalizeImageKitFileId } from "@/components/achievements/badge";
 import { ProfileNotificationsSection } from "@/components/profile/profile-notifications-section";
 import { ProfileAvatarSlot } from "@/components/profile/profile-avatar-slot";
 import { Button } from "@/components/ui/button";

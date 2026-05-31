@@ -4,14 +4,14 @@ import { useRef, useState } from "react";
 
 import {
   clearBadgeModelPoseSessionRef,
-} from "@/components/achievements/badge/use-badge-model-uploader";
-import {
   createAchievementBadgeRemoteAsset,
   clearSessionStagedUpload,
   deleteBadgeRemoteAssetQuietly,
   getReplacedBadgeRemoteAsset,
   rollbackBadgeUploadSession,
-} from "@/components/achievements/badge/badge-asset-session";
+  revokeBadgeModelPoseSession,
+  type BadgeModelPoseSession,
+} from "@/components/achievements/badge";
 import {
   revokeBadgeModelPoseSession,
   type BadgeModelPoseSession,

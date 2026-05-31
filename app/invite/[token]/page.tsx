@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { AchievementBadge3DViewer } from "@/components/achievements/badge/achievement-badge-3d-viewer";
-import { BadgeAttributionPopover } from "@/components/achievements/badge/badge-attribution-popover";
-import { AchievementBadgeModelViewer } from "@/components/achievements/badge/achievement-badge-model-viewer";
+import {
+  AchievementBadge3DViewer,
+  AchievementBadgeModelViewer,
+  BadgeAttributionPopover,
+} from "@/components/achievements/badge";
 import { formatAchievedAt } from "@/components/achievements/achievement-editor-shared";
 import { isModelBadgeAssetKind } from "@/lib/achievements/badge-assets";
 import { createSignedAchievementBadgeModelUrl } from "@/lib/achievements/badge-assets-server";

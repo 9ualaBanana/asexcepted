@@ -18,7 +18,7 @@ import {
   getSafeVisibility,
   toNullable,
 } from "@/components/achievements/achievement-editor-shared";
-import { normalizeImageKitFileId } from "@/components/achievements/badge/badge-imagekit-session";
+import { normalizeImageKitFileId } from "@/components/achievements/badge";
 import { showsDedicatedBadgeEffect } from "@/lib/achievements/dedication-utils";
 import type {
   AchievementDbRow,

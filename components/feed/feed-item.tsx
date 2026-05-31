@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { AchievementBadgeSlot } from "@/components/achievements/badge/achievement-badge-slot";
-import { AchievementFallbackBadge } from "@/components/achievements/badge/achievement-fallback-badge";
-import { DedicatedBadgeGlitter } from "@/components/achievements/badge/dedicated-badge-glitter";
-import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
+import {
+  AchievementBadgeSlot,
+  AchievementFallbackBadge,
+  DedicatedBadgeGlitter,
+  RemoteBadgeImage,
+} from "@/components/achievements/badge";
 import { getSafeTone } from "@/components/achievements/achievement-card";
 import { getSafeIcon } from "@/components/achievements/achievement-editor-shared";
 import { FeedActivityText } from "@/components/feed/feed-activity-text";

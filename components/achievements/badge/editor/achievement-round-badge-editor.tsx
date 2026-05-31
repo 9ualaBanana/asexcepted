@@ -13,14 +13,14 @@ import {
   achievementToneSwatches,
   type AchievementTone,
 } from "@/components/achievements/achievement-card";
-import { AchievementBadgeSlot } from "@/components/achievements/badge/achievement-badge-slot";
-import { BadgeAttributionPopover } from "@/components/achievements/badge/badge-attribution-popover";
-import { AchievementFallbackBadge } from "@/components/achievements/badge/achievement-fallback-badge";
-import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
+import { AchievementBadgeSlot } from "@/components/achievements/badge/chrome/achievement-badge-slot";
+import { BadgeAttributionPopover } from "@/components/achievements/badge/chrome/badge-attribution-popover";
+import { AchievementFallbackBadge } from "@/components/achievements/badge/display/achievement-fallback-badge";
+import { RemoteBadgeImage } from "@/components/achievements/badge/display/achievement-remote-badge-image";
 import {
   deleteBadgeRemoteAssetQuietly,
   getReplacedBadgeRemoteAsset,
-} from "@/components/achievements/badge/badge-asset-session";
+} from "@/components/achievements/badge/upload/badge-asset-session";
 import {
   type BadgeRemoteAsset,
   type AchievementIconKey,
@@ -31,13 +31,13 @@ import { Button } from "@/components/ui/button";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import { useErrorToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import { useBadgeImageUploader } from "@/components/achievements/badge/use-badge-image-uploader";
+import { useBadgeImageUploader } from "@/components/achievements/badge/upload/use-badge-image-uploader";
 import {
   useBadgeModelUploader,
   type BadgeModelUploadStaged,
-} from "@/components/achievements/badge/use-badge-model-uploader";
-import { useSignedBadgeModelUrl } from "@/components/achievements/badge/use-signed-badge-model-url";
-import { AchievementBadgeModelViewer } from "@/components/achievements/badge/achievement-badge-model-viewer";
+} from "@/components/achievements/badge/upload/use-badge-model-uploader";
+import { useSignedBadgeModelUrl } from "@/components/achievements/badge/hooks/use-signed-badge-model-url";
+import { AchievementBadgeModelViewer } from "@/components/achievements/badge/model/achievement-badge-model-viewer";
 
 import "@uppy/core/css/style.min.css";
 

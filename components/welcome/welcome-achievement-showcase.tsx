@@ -2,7 +2,7 @@
 
 import { useMemo, useRef } from "react";
 
-import { AchievementDetailBadgeInteractive } from "@/components/achievements/badge/achievement-detail-badge-interactive";
+import { AchievementDetailBadgeInteractive } from "@/components/achievements/badge";
 import { useAchievementDetailViewModel } from "@/components/achievements/use-achievement-detail-view-model";
 import { getWelcomeIntroAchievementRecord } from "@/lib/welcome/intro-achievement";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";

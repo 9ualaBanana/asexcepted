@@ -6,7 +6,7 @@ import {
   normalizeImageKitFileId,
   rollbackBadgeUploadSession,
   setSessionStagedUpload,
-} from "@/components/achievements/badge/badge-imagekit-session";
+} from "@/components/achievements/badge/upload/badge-imagekit-session";
 
 export type ProfileAvatarUploadSession = BadgeIkSession;
 

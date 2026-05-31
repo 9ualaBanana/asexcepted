@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 
-import { ImpressionGlitterField } from "@/components/achievements/badge/impression-glitter-field";
+import { ImpressionGlitterField } from "@/components/achievements/badge/effects/impression-glitter-field";
 import { badgeImageMaskStylePadded } from "@/lib/achievements/badge-mask-style";
 import {
   ensureBadgeImageDecoded,
@@ -11,7 +11,7 @@ import {
 } from "@/lib/badge/render-cache";
 import { cn } from "@/lib/utils";
 
-type AchievementBadge3DViewerProps = {
+export type AchievementBadgeParallaxViewerProps = {
   src: string;
   className?: string;
   /**
@@ -40,7 +40,7 @@ const DRAG_PITCH_SENSITIVITY = 0.22;
 const INERTIA_DAMPING = 0.94;
 const INERTIA_MIN_SPEED = 0.015;
 
-export function AchievementBadge3DViewer({
+export function AchievementBadgeParallaxViewer({
   src,
   className,
   float,
@@ -50,7 +50,7 @@ export function AchievementBadge3DViewer({
   onVisualReady,
   impressionGlitter = false,
   impressionGlitterRevealPulse = 0,
-}: AchievementBadge3DViewerProps) {
+}: AchievementBadgeParallaxViewerProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const modelRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | null>(null);
@@ -315,3 +315,7 @@ export function AchievementBadge3DViewer({
     </div>
   );
 }
+
+/** @deprecated Use {@link AchievementBadgeParallaxViewer} — name reflects CSS parallax, not glTF. */
+export const AchievementBadge3DViewer = AchievementBadgeParallaxViewer;
+export type AchievementBadge3DViewerProps = AchievementBadgeParallaxViewerProps;

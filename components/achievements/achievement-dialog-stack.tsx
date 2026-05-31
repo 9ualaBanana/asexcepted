@@ -13,8 +13,11 @@ import {
 import { Check, Loader2, PenLine, X, type LucideIcon } from "lucide-react";
 
 import type { AchievementTone } from "@/components/achievements/achievement-card";
-import { BadgeAttributionPopover } from "@/components/achievements/badge/badge-attribution-popover";
-import { AchievementDetailBadgeInteractive } from "@/components/achievements/badge/achievement-detail-badge-interactive";
+import {
+  AchievementDetailBadgeInteractive,
+  BadgeAttributionPopover,
+  ImpressionBurst,
+} from "@/components/achievements/badge";
 import type { AlphaMaskData } from "@/lib/badge/shape-utils";
 import {
   achievementBadgeChromeWidth,
@@ -34,7 +37,6 @@ import {
   canEditDedicatedVisibility,
   isDedicatedAchievement,
 } from "@/lib/achievements/dedication-utils";
-import { ImpressionBurst } from "@/components/achievements/badge/impression-burst";
 import { submitImpression } from "@/components/achievements/use-impression-on-badge";
 import {
   achievementHasCustomBadge,

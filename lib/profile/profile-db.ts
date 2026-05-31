@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { err, ok, type Result } from "neverthrow";
 
-import { normalizeImageKitFileId } from "@/components/achievements/badge/badge-imagekit-session";
+import { normalizeImageKitFileId } from "@/components/achievements/badge";
 
 export type ProfileRow = {
   user_id: string;

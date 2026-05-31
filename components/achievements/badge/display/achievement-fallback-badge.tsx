@@ -3,7 +3,7 @@ import { Lock, type LucideIcon } from "lucide-react";
 import {
   AchievementBadgeIconDisc,
   achievementBadgeIconDiscSizeStyles,
-} from "@/components/achievements/badge/achievement-badge-icon-disc";
+} from "@/components/achievements/badge/chrome/achievement-badge-icon-disc";
 import {
   type AchievementTone,
 } from "@/components/achievements/achievement-card";

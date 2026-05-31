@@ -11,18 +11,16 @@ import {
 } from "react";
 import { ArrowLeft, Check, Loader2, Trash2, X } from "lucide-react";
 
-import { AchievementRoundBadgeEditor } from "@/components/achievements/badge/achievement-round-badge-editor";
 import {
+  AchievementRoundBadgeEditor,
   applyBadgeModelPoseSessionToForm,
   type BadgeModelUploadStaged,
-} from "@/components/achievements/badge/use-badge-model-uploader";
-import type { AchievementBadgeSessionController } from "@/components/achievements/use-achievement-badge-session-controller";
-import { AchievementVisibilityToggle } from "@/components/achievements/achievement-visibility-toggle";
-import {
   clearSessionStagedUpload,
   rollbackBadgeUploadSession,
   setSessionStagedUpload,
-} from "@/components/achievements/badge/badge-asset-session";
+} from "@/components/achievements/badge";
+import type { AchievementBadgeSessionController } from "@/components/achievements/use-achievement-badge-session-controller";
+import { AchievementVisibilityToggle } from "@/components/achievements/achievement-visibility-toggle";
 import {
   achievementBadgeChromeWidth,
   achievementDialogChromeInset,

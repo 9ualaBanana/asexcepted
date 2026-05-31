@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
-import { BadgeModelCanvas } from "@/components/achievements/badge/r3f/badge-model-canvas";
+import { RemoteBadgeImage } from "@/components/achievements/badge/display/achievement-remote-badge-image";
+import { BadgeModelCanvas } from "@/components/achievements/badge/model/r3f/badge-model-canvas";
 import { getCachedBadgeMotionStyle } from "@/lib/badge/render-cache";
 import { cn } from "@/lib/utils";
 

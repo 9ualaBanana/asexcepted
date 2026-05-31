@@ -4,7 +4,7 @@ import { useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Check, X } from "lucide-react";
 
-import { AchievementDetailBadgeInteractive } from "@/components/achievements/badge/achievement-detail-badge-interactive";
+import { AchievementDetailBadgeInteractive } from "@/components/achievements/badge";
 import { DedicationBylineChromeRow } from "@/components/achievements/dedication/dedication-byline-chrome-row";
 import { resolveTone } from "@/components/achievements/achievement-manager-utils";
 import {

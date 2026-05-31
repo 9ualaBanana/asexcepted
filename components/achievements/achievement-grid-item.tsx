@@ -1,15 +1,15 @@
 import { Gift, Sparkles, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { AchievementBadgeSlot } from "@/components/achievements/badge/achievement-badge-slot";
 import {
+  AchievementBadgeSlot,
   AchievementBadgeIconDisc,
   achievementBadgeIconDiscSizeStyles,
-} from "@/components/achievements/badge/achievement-badge-icon-disc";
-import { AchievementFallbackBadge } from "@/components/achievements/badge/achievement-fallback-badge";
+  AchievementFallbackBadge,
+  RemoteBadgeImage,
+  ImpressionGlitterField,
+} from "@/components/achievements/badge";
 import type { AchievementTone } from "@/components/achievements/achievement-card";
-import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
-import { ImpressionGlitterField } from "@/components/achievements/badge/impression-glitter-field";
 import {
   badgeImageMaskStylePadded,
   circularBadgeMaskStyle,

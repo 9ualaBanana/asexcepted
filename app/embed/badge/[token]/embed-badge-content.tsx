@@ -1,8 +1,10 @@
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
 
-import { AchievementBadge3DViewer } from "@/components/achievements/badge/achievement-badge-3d-viewer";
-import { AchievementBadgeModelViewer } from "@/components/achievements/badge/achievement-badge-model-viewer";
+import {
+  AchievementBadge3DViewer,
+  AchievementBadgeModelViewer,
+} from "@/components/achievements/badge";
 import { createSignedAchievementBadgeModelUrl } from "@/lib/achievements/badge-assets-server";
 import { isModelBadgeAssetKind } from "@/lib/achievements/badge-assets";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";

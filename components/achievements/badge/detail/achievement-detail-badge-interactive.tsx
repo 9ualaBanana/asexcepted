@@ -3,21 +3,20 @@
 import type { CSSProperties, ReactNode, RefObject } from "react";
 import type { LucideIcon } from "lucide-react";
 
-import { AchievementBadgeSlot } from "@/components/achievements/badge/achievement-badge-slot";
-import { AchievementBadgeModelViewer } from "@/components/achievements/badge/achievement-badge-model-viewer";
-import { ImpressionGlitterField } from "@/components/achievements/badge/impression-glitter-field";
-import { AchievementFallbackBadge } from "@/components/achievements/badge/achievement-fallback-badge";
-import { AchievementBadge3DViewer } from "@/components/achievements/badge/achievement-badge-3d-viewer";
-import { useSignedBadgeModelUrl } from "@/components/achievements/badge/use-signed-badge-model-url";
+import { AchievementBadgeSlot } from "@/components/achievements/badge/chrome/achievement-badge-slot";
+import { AchievementFallbackBadge } from "@/components/achievements/badge/display/achievement-fallback-badge";
+import { RemoteBadgeImage } from "@/components/achievements/badge/display/achievement-remote-badge-image";
+import { ImpressionGlitterField } from "@/components/achievements/badge/effects/impression-glitter-field";
+import { UnlockRevealWave } from "@/components/achievements/badge/effects/unlock-reveal-wave";
+import { BadgeImageParallaxView } from "@/components/achievements/badge/detail/badge-image-parallax-view";
+import { BadgeModelLiveView } from "@/components/achievements/badge/detail/badge-model-live-view";
+import type { AchievementTone } from "@/components/achievements/achievement-card";
 import {
   badgeImageMaskStylePadded,
   circularBadgeMaskStyle,
   paddedBadgeMaskStyle,
 } from "@/lib/achievements/badge-mask-style";
 import { IMPRESSION_GLITTER_UI_ENABLED } from "@/lib/achievements/impression-glitter-feature";
-import { UnlockRevealWave } from "@/components/achievements/badge/unlock-reveal-wave";
-import { RemoteBadgeImage } from "@/components/achievements/badge/achievement-remote-badge-image";
-import type { AchievementTone } from "@/components/achievements/achievement-card";
 import { isOpaqueBadgeHit, type AlphaMaskData } from "@/lib/badge/shape-utils";
 import { cn } from "@/lib/utils";
 
@@ -55,7 +54,7 @@ export type AchievementDetailBadgeInteractiveProps = {
 };
 
 /**
- * Detail-panel badge stack: 3D viewer, optional locked overlay, unlock wave, drag + float.
+ * Detail-panel badge stack: GLB live viewer OR image parallax viewer, unlock wave, glitter.
  */
 export function AchievementDetailBadgeInteractive({
   renderSrc,
@@ -90,38 +89,60 @@ export function AchievementDetailBadgeInteractive({
   dedicatedBadgeGlitter = false,
 }: AchievementDetailBadgeInteractiveProps) {
   const isModelAsset = iconAssetKind === "model_glb" && Boolean(iconAssetPath?.trim());
-  const loadInteractiveModel = isModelAsset && !lockedUi;
   const showGlitter =
-    !isModelAsset &&
-    (dedicatedBadgeGlitter || (IMPRESSION_GLITTER_UI_ENABLED && impressionGlitter));
+    dedicatedBadgeGlitter ||
+    (IMPRESSION_GLITTER_UI_ENABLED && impressionGlitter);
   const glitterRevealPulse = dedicatedBadgeGlitter ? 0 : impressionGlitterRevealPulse;
-  const { signedUrl: signedModelUrl } = useSignedBadgeModelUrl(
-    iconAssetPath ?? "",
-    hasIconUrl && loadInteractiveModel,
-    onModelUrlReady,
-  );
-
-  const modelViewer =
-    loadInteractiveModel && signedModelUrl ? (
-      <AchievementBadgeModelViewer
-        signedModelUrl={signedModelUrl}
-        previewSrc={renderSrc}
-        className="p-1"
-        float={floating}
-        motionSeed={motionSeed}
-        motionStartCentered={motionStartCentered}
-        initialYaw={iconModelYaw}
-        initialPitch={iconModelPitch}
-        playAnimation={iconModelAnimationPlay}
-        animationSpeed={iconModelAnimationSpeed}
-        stateKey={viewerStateKey}
-        onPreviewDecoded={onImageDecoded}
-        onVisualReady={onVisualReady}
-      />
-    ) : null;
   const glitterMaskStyle = renderSrc
     ? badgeImageMaskStylePadded(renderSrc, 108)
     : paddedBadgeMaskStyle(circularBadgeMaskStyle(), 108);
+
+  const unlockedBadgeContent = () => {
+    if (lockedUi) {
+      return renderSrc ? (
+        <RemoteBadgeImage
+          src={renderSrc}
+          className="h-full w-full object-contain p-1 opacity-80 grayscale"
+          onDecoded={onImageDecoded}
+        />
+      ) : null;
+    }
+
+    if (isModelAsset) {
+      return (
+        <BadgeModelLiveView
+          iconAssetPath={iconAssetPath ?? ""}
+          renderSrc={renderSrc}
+          hasIconUrl={hasIconUrl}
+          enabled
+          float={floating}
+          motionSeed={motionSeed}
+          motionStartCentered={motionStartCentered}
+          initialYaw={iconModelYaw}
+          initialPitch={iconModelPitch}
+          playAnimation={iconModelAnimationPlay}
+          animationSpeed={iconModelAnimationSpeed}
+          viewerStateKey={viewerStateKey}
+          onPreviewDecoded={onImageDecoded}
+          onModelUrlReady={onModelUrlReady}
+          onVisualReady={onVisualReady}
+        />
+      );
+    }
+
+    return (
+      <BadgeImageParallaxView
+        renderSrc={renderSrc}
+        float={floating}
+        motionSeed={motionSeed}
+        motionStartCentered={motionStartCentered}
+        onImageDecoded={onImageDecoded}
+        onVisualReady={onVisualReady}
+        impressionGlitter={showGlitter}
+        impressionGlitterRevealPulse={glitterRevealPulse}
+      />
+    );
+  };
 
   return (
     <div className="relative">
@@ -157,39 +178,8 @@ export function AchievementDetailBadgeInteractive({
         ) : null}
         {hasIconUrl ? (
           <>
-            <div className="relative h-full w-full">
-              {lockedUi ? (
-                renderSrc ? (
-                  <RemoteBadgeImage
-                    src={renderSrc}
-                    className="h-full w-full object-contain p-1 opacity-80 grayscale"
-                    onDecoded={onImageDecoded}
-                  />
-                ) : null
-              ) : isModelAsset ? (
-                modelViewer ??
-                (renderSrc ? (
-                  <RemoteBadgeImage
-                    src={renderSrc}
-                    className="h-full w-full object-contain p-1"
-                    onDecoded={onImageDecoded}
-                  />
-                ) : null)
-              ) : (
-                <AchievementBadge3DViewer
-                  src={renderSrc}
-                  className="p-1"
-                  float={floating}
-                  motionSeed={motionSeed}
-                  motionStartCentered={motionStartCentered}
-                  onImageDecoded={onImageDecoded}
-                  onVisualReady={onVisualReady}
-                  impressionGlitter={showGlitter}
-                  impressionGlitterRevealPulse={glitterRevealPulse}
-                />
-              )}
-            </div>
-            {isModelAsset && signedModelUrl && showGlitter && !lockedUi ? (
+            <div className="relative h-full w-full">{unlockedBadgeContent()}</div>
+            {isModelAsset && iconAssetPath && showGlitter && !lockedUi ? (
               <ImpressionGlitterField
                 active
                 motionSeed={motionSeed}
