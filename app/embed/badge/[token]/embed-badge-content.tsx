@@ -2,10 +2,10 @@ import { connection } from "next/server";
 import { notFound } from "next/navigation";
 
 import {
-  AchievementBadge3DViewer,
-  AchievementBadgeModelViewer,
+  Badge3DViewer,
+  BadgeModelViewer,
 } from "@/components/achievements/badge";
-import { createSignedAchievementBadgeModelUrl } from "@/lib/achievements/badge-assets-server";
+import { createSignedBadgeModelUrl } from "@/lib/achievements/badge-assets-server";
 import { isModelBadgeAssetKind } from "@/lib/achievements/badge-assets";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
 import { verifyEmbedBadgeToken } from "@/lib/embed-badge-token";
@@ -44,7 +44,7 @@ export async function EmbedBadgeContent({ params }: Props) {
   const src = toOptimizedBadgeRenderSrc(data.icon_url.trim());
   const liveModelUrl =
     isModelBadgeAssetKind(data.icon_asset_kind) && data.icon_asset_path?.trim()
-      ? await createSignedAchievementBadgeModelUrl(data.icon_asset_path)
+      ? await createSignedBadgeModelUrl(data.icon_asset_path)
       : null;
 
   return (
@@ -52,7 +52,7 @@ export async function EmbedBadgeContent({ params }: Props) {
       <EmbedTransparentSurface />
       <div className="h-[min(88vmin,20rem)] w-[min(88vmin,20rem)] max-h-[90dvh] max-w-[90dvw]">
         {liveModelUrl ? (
-          <AchievementBadgeModelViewer
+          <BadgeModelViewer
             signedModelUrl={liveModelUrl}
             previewSrc={src}
             className="p-1"
@@ -62,7 +62,7 @@ export async function EmbedBadgeContent({ params }: Props) {
             initialPitch={data.icon_model_pitch ?? 0}
           />
         ) : (
-          <AchievementBadge3DViewer
+          <Badge3DViewer
             src={src}
             className="p-1"
             float

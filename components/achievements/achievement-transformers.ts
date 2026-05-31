@@ -51,7 +51,7 @@ export type AchievementRecord = {
 };
 
 /** True when the row has uploaded badge art (not the default Lucide fallback). */
-export function achievementHasCustomBadge(
+export function hasCustomBadge(
   achievement: Pick<AchievementRecord, "icon_url">,
 ): boolean {
   return Boolean(achievement.icon_url?.trim());

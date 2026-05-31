@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-import { AchievementBadgeDebugOverlay } from "@/components/achievements/achievement-badge-debug-overlay";
+import { BadgeDebugOverlay } from "@/components/achievements/badge-debug-overlay";
 import { AchievementDeleteConfirmDialog } from "@/components/achievements/achievement-delete-confirm-dialog";
 import { AchievementDiscardEditConfirmDialog } from "@/components/achievements/achievement-discard-edit-confirm-dialog";
 import { AchievementDialogStack } from "@/components/achievements/achievement-dialog-stack";
@@ -133,7 +133,7 @@ export function AchievementsManager({
       ) : null}
 
       {badgeMetrics.badgeDebugOverlay ? (
-        <AchievementBadgeDebugOverlay
+        <BadgeDebugOverlay
           detailIsModelBadge={badgeMetrics.detailIsModelBadge}
           detailOpenToImageDecodedMs={badgeMetrics.detailOpenToImageDecodedMs}
           detailOpenToVisualReadyMs={badgeMetrics.detailOpenToVisualReadyMs}

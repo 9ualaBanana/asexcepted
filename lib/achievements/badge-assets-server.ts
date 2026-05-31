@@ -1,30 +1,30 @@
 import "server-only";
 
 import {
-  ACHIEVEMENT_BADGE_MODEL_BUCKET,
-  ACHIEVEMENT_BADGE_PREVIEW_BUCKET,
+  BADGE_MODEL_BUCKET,
+  BADGE_PREVIEW_BUCKET,
   BADGE_MODEL_MAX_FILE_BYTES,
   BADGE_PREVIEW_MAX_FILE_BYTES,
-  buildAchievementBadgeModelPath,
-  buildAchievementBadgePreviewPath,
+  buildBadgeModelPath,
+  buildBadgePreviewPath,
   buildShareInviteBadgeModelPath,
   buildShareInviteBadgePreviewPath,
   extractPublicBucketObjectPath,
   isGlbHeader,
   isModelBadgeAssetKind,
   isShareInviteBadgeModelPath,
-  sanitizeAchievementBadgeAssetPath,
+  sanitizeBadgeAssetPath,
 } from "@/lib/achievements/badge-assets";
 import { getImageKitServerClient, isImageKitServerConfigured } from "@/lib/imagekit/server-client";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 
-export type AchievementBadgeModelUploadTarget = {
+export type BadgeModelUploadTarget = {
   modelPath: string;
   token: string;
 };
 
 function assertUserOwnedBadgeModelPath(userId: string, modelPath: string): void {
-  const normalized = sanitizeAchievementBadgeAssetPath(modelPath);
+  const normalized = sanitizeBadgeAssetPath(modelPath);
   if (!normalized.startsWith(`${userId}/`)) {
     throw new Error("Invalid badge model path.");
   }
@@ -38,18 +38,18 @@ function previewPathForModelPath(userId: string, modelPath: string): string {
   if (!assetId) {
     throw new Error("Invalid badge model path.");
   }
-  return buildAchievementBadgePreviewPath(userId, assetId);
+  return buildBadgePreviewPath(userId, assetId);
 }
 
-export async function createAchievementBadgeModelUploadTarget(
+export async function createBadgeModelUploadTarget(
   userId: string,
-): Promise<AchievementBadgeModelUploadTarget> {
+): Promise<BadgeModelUploadTarget> {
   const supabase = createServiceRoleClient();
   const assetId = crypto.randomUUID();
-  const modelPath = buildAchievementBadgeModelPath(userId, assetId);
+  const modelPath = buildBadgeModelPath(userId, assetId);
 
   const { data, error } = await supabase.storage
-    .from(ACHIEVEMENT_BADGE_MODEL_BUCKET)
+    .from(BADGE_MODEL_BUCKET)
     .createSignedUploadUrl(modelPath);
 
   if (error || !data?.token) {
@@ -62,25 +62,25 @@ export async function createAchievementBadgeModelUploadTarget(
   };
 }
 
-type CompleteAchievementBadgeModelUploadArgs = {
+type CompleteBadgeModelUploadArgs = {
   userId: string;
   modelPath: string;
   previewBuffer: ArrayBuffer;
 };
 
-export async function completeAchievementBadgeModelUpload(
-  args: CompleteAchievementBadgeModelUploadArgs,
+export async function completeBadgeModelUpload(
+  args: CompleteBadgeModelUploadArgs,
 ) {
-  const modelPath = sanitizeAchievementBadgeAssetPath(args.modelPath);
+  const modelPath = sanitizeBadgeAssetPath(args.modelPath);
   assertUserOwnedBadgeModelPath(args.userId, modelPath);
 
-  if (isAchievementBadgePreviewTooLarge(args.previewBuffer)) {
+  if (isBadgePreviewTooLarge(args.previewBuffer)) {
     throw new Error("The generated badge preview is too large.");
   }
 
   const supabase = createServiceRoleClient();
   const { data: modelBlob, error: modelDownloadError } = await supabase.storage
-    .from(ACHIEVEMENT_BADGE_MODEL_BUCKET)
+    .from(BADGE_MODEL_BUCKET)
     .download(modelPath);
 
   if (modelDownloadError || !modelBlob) {
@@ -89,18 +89,18 @@ export async function completeAchievementBadgeModelUpload(
 
   const modelBuffer = await modelBlob.arrayBuffer();
   if (!isGlbHeader(modelBuffer)) {
-    await supabase.storage.from(ACHIEVEMENT_BADGE_MODEL_BUCKET).remove([modelPath]);
+    await supabase.storage.from(BADGE_MODEL_BUCKET).remove([modelPath]);
     throw new Error("This file is not a valid GLB asset.");
   }
 
   if (modelBuffer.byteLength > BADGE_MODEL_MAX_FILE_BYTES) {
-    await supabase.storage.from(ACHIEVEMENT_BADGE_MODEL_BUCKET).remove([modelPath]);
+    await supabase.storage.from(BADGE_MODEL_BUCKET).remove([modelPath]);
     throw new Error("3D badge files must be 50 MB or smaller.");
   }
 
   const previewPath = previewPathForModelPath(args.userId, modelPath);
   const previewUpload = await supabase.storage
-    .from(ACHIEVEMENT_BADGE_PREVIEW_BUCKET)
+    .from(BADGE_PREVIEW_BUCKET)
     .upload(previewPath, args.previewBuffer, {
       cacheControl: "31536000",
       contentType: "image/png",
@@ -112,7 +112,7 @@ export async function completeAchievementBadgeModelUpload(
   }
 
   const { data: publicUrlData } = supabase.storage
-    .from(ACHIEVEMENT_BADGE_PREVIEW_BUCKET)
+    .from(BADGE_PREVIEW_BUCKET)
     .getPublicUrl(previewPath);
 
   return {
@@ -122,18 +122,18 @@ export async function completeAchievementBadgeModelUpload(
   };
 }
 
-export async function createSignedAchievementBadgeModelUrl(
+export async function createSignedBadgeModelUrl(
   rawAssetPath: string,
   expiresInSeconds = 3600,
 ): Promise<string> {
-  const assetPath = sanitizeAchievementBadgeAssetPath(rawAssetPath);
+  const assetPath = sanitizeBadgeAssetPath(rawAssetPath);
   if (!assetPath) {
     throw new Error("Missing badge model asset path.");
   }
 
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase.storage
-    .from(ACHIEVEMENT_BADGE_MODEL_BUCKET)
+    .from(BADGE_MODEL_BUCKET)
     .createSignedUrl(assetPath, expiresInSeconds);
 
   if (error || !data?.signedUrl) {
@@ -143,7 +143,7 @@ export async function createSignedAchievementBadgeModelUrl(
   return data.signedUrl;
 }
 
-export async function deleteAchievementBadgeRemoteAsset(args: {
+export async function deleteBadgeRemoteAsset(args: {
   iconUrl?: string | null;
   iconFileId?: string | null;
   iconAssetPath?: string | null;
@@ -152,15 +152,15 @@ export async function deleteAchievementBadgeRemoteAsset(args: {
 
   const previewPath = extractPublicBucketObjectPath(
     args.iconUrl,
-    ACHIEVEMENT_BADGE_PREVIEW_BUCKET,
+    BADGE_PREVIEW_BUCKET,
   );
   if (previewPath) {
-    await supabase.storage.from(ACHIEVEMENT_BADGE_PREVIEW_BUCKET).remove([previewPath]);
+    await supabase.storage.from(BADGE_PREVIEW_BUCKET).remove([previewPath]);
   }
 
-  const assetPath = sanitizeAchievementBadgeAssetPath(args.iconAssetPath);
+  const assetPath = sanitizeBadgeAssetPath(args.iconAssetPath);
   if (assetPath) {
-    await supabase.storage.from(ACHIEVEMENT_BADGE_MODEL_BUCKET).remove([assetPath]);
+    await supabase.storage.from(BADGE_MODEL_BUCKET).remove([assetPath]);
   }
 
   const iconFileId = args.iconFileId?.trim() ?? "";
@@ -169,7 +169,7 @@ export async function deleteAchievementBadgeRemoteAsset(args: {
   }
 }
 
-export function isAchievementBadgePreviewTooLarge(buffer: ArrayBuffer): boolean {
+export function isBadgePreviewTooLarge(buffer: ArrayBuffer): boolean {
   return buffer.byteLength > BADGE_PREVIEW_MAX_FILE_BYTES;
 }
 
@@ -197,7 +197,7 @@ async function downloadBadgeModelBundle(args: {
   modelPath: string;
   ownerUserId: string;
 }): Promise<BadgeModelBundle> {
-  const sourceModelPath = sanitizeAchievementBadgeAssetPath(args.modelPath);
+  const sourceModelPath = sanitizeBadgeAssetPath(args.modelPath);
   if (!sourceModelPath) {
     throw new Error("Missing badge model asset path.");
   }
@@ -208,7 +208,7 @@ async function downloadBadgeModelBundle(args: {
 
   const supabase = createServiceRoleClient();
   const { data: modelBlob, error: modelDownloadError } = await supabase.storage
-    .from(ACHIEVEMENT_BADGE_MODEL_BUCKET)
+    .from(BADGE_MODEL_BUCKET)
     .download(sourceModelPath);
 
   if (modelDownloadError || !modelBlob) {
@@ -225,7 +225,7 @@ async function downloadBadgeModelBundle(args: {
 
   const previewPath = resolveSourcePreviewPath(sourceModelPath, args.ownerUserId);
   const { data: previewBlob, error: previewDownloadError } = await supabase.storage
-    .from(ACHIEVEMENT_BADGE_PREVIEW_BUCKET)
+    .from(BADGE_PREVIEW_BUCKET)
     .download(previewPath);
 
   if (previewDownloadError || !previewBlob) {
@@ -233,7 +233,7 @@ async function downloadBadgeModelBundle(args: {
   }
 
   const previewBuffer = await previewBlob.arrayBuffer();
-  if (isAchievementBadgePreviewTooLarge(previewBuffer)) {
+  if (isBadgePreviewTooLarge(previewBuffer)) {
     throw new Error("The badge preview is too large.");
   }
 
@@ -250,7 +250,7 @@ async function uploadBadgeModelBundle(args: {
   const supabase = createServiceRoleClient();
 
   const modelUpload = await supabase.storage
-    .from(ACHIEVEMENT_BADGE_MODEL_BUCKET)
+    .from(BADGE_MODEL_BUCKET)
     .upload(args.modelPath, args.modelBuffer, {
       cacheControl: "31536000",
       contentType: "model/gltf-binary",
@@ -261,19 +261,19 @@ async function uploadBadgeModelBundle(args: {
   }
 
   const previewUpload = await supabase.storage
-    .from(ACHIEVEMENT_BADGE_PREVIEW_BUCKET)
+    .from(BADGE_PREVIEW_BUCKET)
     .upload(args.previewPath, args.previewBuffer, {
       cacheControl: "31536000",
       contentType: "image/png",
       upsert: args.upsert,
     });
   if (previewUpload.error) {
-    await supabase.storage.from(ACHIEVEMENT_BADGE_MODEL_BUCKET).remove([args.modelPath]);
+    await supabase.storage.from(BADGE_MODEL_BUCKET).remove([args.modelPath]);
     throw new Error(previewUpload.error.message);
   }
 
   const { data: publicUrlData } = supabase.storage
-    .from(ACHIEVEMENT_BADGE_PREVIEW_BUCKET)
+    .from(BADGE_PREVIEW_BUCKET)
     .getPublicUrl(args.previewPath);
 
   return {
@@ -291,7 +291,7 @@ export async function pinBadgeAssetsForShareInvite(args: {
   senderUserId: string;
   iconAssetPath: string | null;
 }): Promise<ClonedBadgeModelAsset | null> {
-  const sourceModelPath = sanitizeAchievementBadgeAssetPath(args.iconAssetPath);
+  const sourceModelPath = sanitizeBadgeAssetPath(args.iconAssetPath);
   if (!sourceModelPath) {
     return null;
   }
@@ -314,12 +314,12 @@ export async function pinBadgeAssetsForShareInvite(args: {
  * Copies a badge GLB + poster into the claimer's storage so claimed achievements
  * keep working after reload (never store blob: preview URLs).
  */
-export async function cloneAchievementBadgeModelForClaimer(args: {
+export async function cloneBadgeModelForClaimer(args: {
   senderUserId: string;
   claimerUserId: string;
   iconAssetPath: string | null;
 }): Promise<ClonedBadgeModelAsset> {
-  const sourceModelPath = sanitizeAchievementBadgeAssetPath(args.iconAssetPath);
+  const sourceModelPath = sanitizeBadgeAssetPath(args.iconAssetPath);
   if (!sourceModelPath) {
     throw new Error("Missing badge model asset path.");
   }
@@ -331,8 +331,8 @@ export async function cloneAchievementBadgeModelForClaimer(args: {
 
   const assetId = crypto.randomUUID();
   return uploadBadgeModelBundle({
-    modelPath: buildAchievementBadgeModelPath(args.claimerUserId, assetId),
-    previewPath: buildAchievementBadgePreviewPath(args.claimerUserId, assetId),
+    modelPath: buildBadgeModelPath(args.claimerUserId, assetId),
+    previewPath: buildBadgePreviewPath(args.claimerUserId, assetId),
     modelBuffer: bundle.modelBuffer,
     previewBuffer: bundle.previewBuffer,
     upsert: false,
@@ -349,11 +349,11 @@ export async function resolveClaimedBadgeIconFields(args: {
   if (!isModelBadgeAssetKind(args.iconAssetKind)) {
     return {
       iconUrl: args.iconUrl?.trim() ?? "",
-      iconAssetPath: sanitizeAchievementBadgeAssetPath(args.iconAssetPath) || null,
+      iconAssetPath: sanitizeBadgeAssetPath(args.iconAssetPath) || null,
     };
   }
 
-  const cloned = await cloneAchievementBadgeModelForClaimer({
+  const cloned = await cloneBadgeModelForClaimer({
     senderUserId: args.senderUserId,
     claimerUserId: args.claimerUserId,
     iconAssetPath: args.iconAssetPath,

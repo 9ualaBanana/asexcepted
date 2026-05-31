@@ -1,5 +1,6 @@
-export const ACHIEVEMENT_BADGE_MODEL_BUCKET = "achievement-badge-models";
-export const ACHIEVEMENT_BADGE_PREVIEW_BUCKET = "achievement-badge-previews";
+/** Supabase bucket id (unchanged in storage). */
+export const BADGE_MODEL_BUCKET = "achievement-badge-models";
+export const BADGE_PREVIEW_BUCKET = "achievement-badge-previews";
 
 export const BADGE_MODEL_MAX_FILE_BYTES = 50 * 1024 * 1024;
 export const BADGE_PREVIEW_MAX_FILE_BYTES = 5 * 1024 * 1024;
@@ -24,21 +25,21 @@ export function isPublicHttpImageUrl(url: string | null | undefined): boolean {
 }
 
 /** True when the achievement uses an uploaded GLB (not a flat image badge). */
-export function hasAchievementModelGlbAsset(
+export function hasModelGlbAsset(
   iconAssetKind: string | null | undefined,
   iconAssetPath: string | null | undefined,
 ): boolean {
   return (
     isModelBadgeAssetKind(iconAssetKind) &&
-    Boolean(sanitizeAchievementBadgeAssetPath(iconAssetPath))
+    Boolean(sanitizeBadgeAssetPath(iconAssetPath))
   );
 }
 
-export function buildAchievementBadgeModelPath(userId: string, assetId: string): string {
+export function buildBadgeModelPath(userId: string, assetId: string): string {
   return `${userId}/${assetId}/badge.glb`;
 }
 
-export function buildAchievementBadgePreviewPath(userId: string, assetId: string): string {
+export function buildBadgePreviewPath(userId: string, assetId: string): string {
   return `${userId}/${assetId}/poster.png`;
 }
 
@@ -55,7 +56,7 @@ export function isShareInviteBadgeModelPath(path: string): boolean {
   return /^invites\/[^/]+\/badge\.glb$/.test(path);
 }
 
-export function sanitizeAchievementBadgeAssetPath(
+export function sanitizeBadgeAssetPath(
   value: string | null | undefined,
 ): string {
   const trimmed = value?.trim() ?? "";

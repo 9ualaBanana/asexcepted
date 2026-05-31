@@ -4,7 +4,7 @@ import { useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Check, X } from "lucide-react";
 
-import { AchievementDetailBadgeInteractive } from "@/components/achievements/badge";
+import { DetailBadgeInteractive } from "@/components/achievements/badge";
 import { DedicationBylineChromeRow } from "@/components/achievements/dedication/dedication-byline-chrome-row";
 import { resolveTone } from "@/components/achievements/achievement-manager-utils";
 import {
@@ -70,7 +70,7 @@ export function DedicationResponseDialog({
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-center">
-            <AchievementDetailBadgeInteractive
+            <DetailBadgeInteractive
               renderSrc={renderSrc}
               motionSeed={achievement.id}
               FallbackIcon={FallbackIcon}

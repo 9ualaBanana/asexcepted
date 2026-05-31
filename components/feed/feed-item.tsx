@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import {
-  AchievementBadgeSlot,
-  AchievementFallbackBadge,
+  BadgeSlot,
+  FallbackBadge,
   DedicatedBadgeGlitter,
   RemoteBadgeImage,
 } from "@/components/achievements/badge";
@@ -67,7 +67,7 @@ export function FeedItem({ row }: FeedItemProps) {
           className="relative"
           style={{ width: FEED_BADGE_PX, height: FEED_BADGE_PX }}
         >
-          <AchievementBadgeSlot
+          <BadgeSlot
             size="grid"
             className="h-full w-full max-w-none"
           >
@@ -75,7 +75,7 @@ export function FeedItem({ row }: FeedItemProps) {
               {badgeSrc ? (
                 <RemoteBadgeImage src={badgeSrc} />
               ) : (
-                <AchievementFallbackBadge
+                <FallbackBadge
                   tone={tone}
                   isLocked={false}
                   FallbackIcon={FallbackIcon}
@@ -90,7 +90,7 @@ export function FeedItem({ row }: FeedItemProps) {
                 />
               ) : null}
             </div>
-          </AchievementBadgeSlot>
+          </BadgeSlot>
           <Link
             href={actorHref}
             aria-label={`Open ${row.actor_display_name || "profile"} profile`}

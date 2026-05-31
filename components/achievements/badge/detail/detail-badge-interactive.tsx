@@ -3,9 +3,9 @@
 import type { CSSProperties, ReactNode, RefObject } from "react";
 import type { LucideIcon } from "lucide-react";
 
-import { AchievementBadgeSlot } from "@/components/achievements/badge/chrome/achievement-badge-slot";
-import { AchievementFallbackBadge } from "@/components/achievements/badge/display/achievement-fallback-badge";
-import { RemoteBadgeImage } from "@/components/achievements/badge/display/achievement-remote-badge-image";
+import { BadgeSlot } from "@/components/achievements/badge/chrome/badge-slot";
+import { FallbackBadge } from "@/components/achievements/badge/display/fallback-badge";
+import { RemoteBadgeImage } from "@/components/achievements/badge/display/remote-badge-image";
 import { ImpressionGlitterField } from "@/components/achievements/badge/effects/impression-glitter-field";
 import { UnlockRevealWave } from "@/components/achievements/badge/effects/unlock-reveal-wave";
 import { BadgeImageParallaxView } from "@/components/achievements/badge/detail/badge-image-parallax-view";
@@ -20,7 +20,7 @@ import { IMPRESSION_GLITTER_UI_ENABLED } from "@/lib/achievements/impression-gli
 import { isOpaqueBadgeHit, type AlphaMaskData } from "@/lib/badge/shape-utils";
 import { cn } from "@/lib/utils";
 
-export type AchievementDetailBadgeInteractiveProps = {
+export type DetailBadgeInteractiveProps = {
   renderSrc: string;
   motionSeed: string;
   tone: AchievementTone;
@@ -56,7 +56,7 @@ export type AchievementDetailBadgeInteractiveProps = {
 /**
  * Detail-panel badge stack: GLB live viewer OR image parallax viewer, unlock wave, glitter.
  */
-export function AchievementDetailBadgeInteractive({
+export function DetailBadgeInteractive({
   renderSrc,
   motionSeed,
   tone,
@@ -87,7 +87,7 @@ export function AchievementDetailBadgeInteractive({
   impressionGlitter = false,
   impressionGlitterRevealPulse = 0,
   dedicatedBadgeGlitter = false,
-}: AchievementDetailBadgeInteractiveProps) {
+}: DetailBadgeInteractiveProps) {
   const isModelAsset = iconAssetKind === "model_glb" && Boolean(iconAssetPath?.trim());
   const showGlitter =
     dedicatedBadgeGlitter ||
@@ -147,7 +147,7 @@ export function AchievementDetailBadgeInteractive({
   return (
     <div className="relative">
       {impressionOverlay}
-      <AchievementBadgeSlot size="detail" className={cn("relative", slotClassName)}>
+      <BadgeSlot size="detail" className={cn("relative", slotClassName)}>
         {enableUnlockHold && lockedUi ? (
           <button
             type="button"
@@ -224,7 +224,7 @@ export function AchievementDetailBadgeInteractive({
                   variant="detail"
                 />
               ) : null}
-              <AchievementFallbackBadge
+              <FallbackBadge
                 tone={tone}
                 isLocked={lockedUi}
                 FallbackIcon={FallbackIcon}
@@ -236,7 +236,7 @@ export function AchievementDetailBadgeInteractive({
               detailMaskStyle={detailMaskStyle}
               unlockRevealClipPath={unlockRevealClipPath}
             >
-              <AchievementFallbackBadge
+              <FallbackBadge
                 tone={tone}
                 isLocked={false}
                 FallbackIcon={FallbackIcon}
@@ -245,7 +245,7 @@ export function AchievementDetailBadgeInteractive({
             </UnlockRevealWave>
           </>
         )}
-      </AchievementBadgeSlot>
+      </BadgeSlot>
     </div>
   );
 }

@@ -11,11 +11,11 @@ import {
 } from "@/lib/badge/render-cache";
 import { cn } from "@/lib/utils";
 
-export type AchievementBadgeParallaxViewerProps = {
+export type BadgeParallaxViewerProps = {
   src: string;
   className?: string;
   /**
-   * When true, applies the same `.achievement-badge-object-float` motion as the
+   * When true, applies the same `.badge-object-float` motion as the
    * achievements detail panel (CSS in globals.css + `makeBadgeMotionStyle`).
    */
   float: boolean;
@@ -40,7 +40,7 @@ const DRAG_PITCH_SENSITIVITY = 0.22;
 const INERTIA_DAMPING = 0.94;
 const INERTIA_MIN_SPEED = 0.015;
 
-export function AchievementBadgeParallaxViewer({
+export function BadgeParallaxViewer({
   src,
   className,
   float,
@@ -50,7 +50,7 @@ export function AchievementBadgeParallaxViewer({
   onVisualReady,
   impressionGlitter = false,
   impressionGlitterRevealPulse = 0,
-}: AchievementBadgeParallaxViewerProps) {
+}: BadgeParallaxViewerProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const modelRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | null>(null);
@@ -307,7 +307,7 @@ export function AchievementBadgeParallaxViewer({
   return (
     <div className="relative h-full w-full">
       <div
-        className="relative h-full w-full achievement-badge-object-float"
+        className="relative h-full w-full badge-object-float"
         style={floatMotionStyle}
       >
         {viewer}
@@ -316,6 +316,6 @@ export function AchievementBadgeParallaxViewer({
   );
 }
 
-/** @deprecated Use {@link AchievementBadgeParallaxViewer} — name reflects CSS parallax, not glTF. */
-export const AchievementBadge3DViewer = AchievementBadgeParallaxViewer;
-export type AchievementBadge3DViewerProps = AchievementBadgeParallaxViewerProps;
+/** @deprecated Use {@link BadgeParallaxViewer} — name reflects CSS parallax, not glTF. */
+export const Badge3DViewer = BadgeParallaxViewer;
+export type Badge3DViewerProps = BadgeParallaxViewerProps;

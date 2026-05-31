@@ -1,5 +1,5 @@
 import type { BadgeRemoteAsset } from "@/components/achievements/achievement-editor-shared";
-import { ACHIEVEMENT_BADGE_MODEL_BUCKET } from "@/lib/achievements/badge-assets";
+import { BADGE_MODEL_BUCKET } from "@/lib/achievements/badge-assets";
 import { createClient } from "@/lib/supabase/client";
 
 type BadgeModelUploadSuccess = {
@@ -43,7 +43,7 @@ async function uploadBadgeModelToSignedUrl(
 ): Promise<void> {
   const supabase = createClient();
   const { error } = await supabase.storage
-    .from(ACHIEVEMENT_BADGE_MODEL_BUCKET)
+    .from(BADGE_MODEL_BUCKET)
     .uploadToSignedUrl(target.modelPath, target.token, model, {
       contentType: "model/gltf-binary",
       cacheControl: "3600",
@@ -106,7 +106,7 @@ export async function finalizeBadgeModelUpload(args: {
   return completeBadgeModelUpload(args.modelPath, args.poster);
 }
 
-export async function uploadAchievementBadgeModelAsset(
+export async function uploadBadgeModelAsset(
   model: File,
   poster: Blob,
 ): Promise<BadgeModelUploadSuccess> {

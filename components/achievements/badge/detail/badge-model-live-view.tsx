@@ -1,7 +1,7 @@
 "use client";
 
-import { AchievementBadgeModelViewer } from "@/components/achievements/badge/model/achievement-badge-model-viewer";
-import { RemoteBadgeImage } from "@/components/achievements/badge/display/achievement-remote-badge-image";
+import { BadgeModelViewer } from "@/components/achievements/badge/model/badge-model-viewer";
+import { RemoteBadgeImage } from "@/components/achievements/badge/display/remote-badge-image";
 import { useSignedBadgeModelUrl } from "@/components/achievements/badge/hooks/use-signed-badge-model-url";
 
 export type BadgeModelLiveViewProps = {
@@ -56,7 +56,7 @@ export function BadgeModelLiveView({
 
   if (signedModelUrl) {
     return (
-      <AchievementBadgeModelViewer
+      <BadgeModelViewer
         signedModelUrl={signedModelUrl}
         previewSrc={renderSrc}
         className={className}

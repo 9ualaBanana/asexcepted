@@ -2,10 +2,10 @@ import { Gift, Sparkles, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import {
-  AchievementBadgeSlot,
-  AchievementBadgeIconDisc,
-  achievementBadgeIconDiscSizeStyles,
-  AchievementFallbackBadge,
+  BadgeSlot,
+  BadgeIconDisc,
+  badgeIconDiscSizeStyles,
+  FallbackBadge,
   RemoteBadgeImage,
   ImpressionGlitterField,
 } from "@/components/achievements/badge";
@@ -45,7 +45,7 @@ export function AchievementGridItemDedicate({ onClick }: { onClick: () => void }
       onClick={onClick}
       buttonClassName="group text-violet-200/55 hover:text-violet-100/90"
       badge={
-        <AchievementBadgeSlot
+        <BadgeSlot
           size="grid"
           className={cn(
             "rounded-3xl border border-dashed border-violet-300/30 bg-transparent transition-colors",
@@ -53,17 +53,17 @@ export function AchievementGridItemDedicate({ onClick }: { onClick: () => void }
           )}
         >
           <div className="flex h-full w-full items-center justify-center">
-            <AchievementBadgeIconDisc size="grid">
+            <BadgeIconDisc size="grid">
               <Gift
                 className={cn(
                   "text-violet-200/80",
-                  achievementBadgeIconDiscSizeStyles.grid.iconLocked,
+                  badgeIconDiscSizeStyles.grid.iconLocked,
                 )}
                 aria-hidden
               />
-            </AchievementBadgeIconDisc>
+            </BadgeIconDisc>
           </div>
-        </AchievementBadgeSlot>
+        </BadgeSlot>
       }
       title={
         <p
@@ -88,24 +88,24 @@ export function AchievementGridItemAdd({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       buttonClassName="group text-white/45 hover:text-white/80"
       badge={
-        <AchievementBadgeSlot size="grid"
+        <BadgeSlot size="grid"
           className={cn(
             "rounded-3xl border border-dashed border-white/25 bg-transparent transition-colors",
             "group-hover:border-white/45 group-hover:bg-white/[0.04]",
           )}
         >
           <div className="flex h-full w-full items-center justify-center">
-            <AchievementBadgeIconDisc size="grid">
+            <BadgeIconDisc size="grid">
               <Sparkles
                 className={cn(
                   "text-foreground/70 dark:text-white/65",
-                  achievementBadgeIconDiscSizeStyles.grid.iconLocked,
+                  badgeIconDiscSizeStyles.grid.iconLocked,
                 )}
                 aria-hidden
               />
-            </AchievementBadgeIconDisc>
+            </BadgeIconDisc>
           </div>
-        </AchievementBadgeSlot>
+        </BadgeSlot>
       }
       title={
         <p
@@ -160,7 +160,7 @@ export function AchievementGridItem({
     <AchievementGridItemContainer
       onClick={onClick}
       badge={
-        <AchievementBadgeSlot size="grid">
+        <BadgeSlot size="grid">
           <div className="relative h-full w-full">
             <div
               className={cn(
@@ -173,7 +173,7 @@ export function AchievementGridItem({
                   {!isLocked && silhouetteMaskStyle ? (
                     <div
                       aria-hidden
-                      className="achievement-badge-silhouette-shadow"
+                      className="badge-silhouette-shadow"
                       style={silhouetteMaskStyle}
                     />
                   ) : null}
@@ -182,7 +182,7 @@ export function AchievementGridItem({
                   </div>
                 </>
               ) : (
-                <AchievementFallbackBadge
+                <FallbackBadge
                   tone={tone}
                   isLocked={isLocked}
                   FallbackIcon={FallbackIcon}
@@ -201,7 +201,7 @@ export function AchievementGridItem({
               />
             ) : null}
           </div>
-        </AchievementBadgeSlot>
+        </BadgeSlot>
       }
       title={
         <p className={cn(gridItemTitleClass, "text-white")}>{displayTitle}</p>

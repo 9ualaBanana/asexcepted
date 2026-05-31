@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { createSignedAchievementBadgeModelUrl } from "@/lib/achievements/badge-assets-server";
+import { createSignedBadgeModelUrl } from "@/lib/achievements/badge-assets-server";
 
 const badgeModelUrlBodySchema = z.object({
   assetPath: z.string().trim().min(1),
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const signedUrl = await createSignedAchievementBadgeModelUrl(body.data.assetPath);
+    const signedUrl = await createSignedBadgeModelUrl(body.data.assetPath);
     return NextResponse.json({ signedUrl });
   } catch (error) {
     return NextResponse.json(

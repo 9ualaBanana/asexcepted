@@ -15,10 +15,10 @@ const toneInnerDiscStyles: Record<AchievementTone, string> = {
     "border-fuchsia-200/70 from-fuchsia-200/75 via-fuchsia-100/45 to-white/35 ring-fuchsia-200/35",
 };
 
-export type AchievementBadgeIconDiscSize = "grid" | "detail";
+export type BadgeIconDiscSize = "grid" | "detail";
 
 /** Inner frosted disc around lock / category icons (grid + detail). */
-export const achievementBadgeIconDiscSizeStyles = {
+export const badgeIconDiscSizeStyles = {
   grid: {
     inner: "p-2.5",
     iconLocked: "h-7 w-7",
@@ -31,20 +31,20 @@ export const achievementBadgeIconDiscSizeStyles = {
   },
 } as const;
 
-type AchievementBadgeIconDiscProps = {
-  size?: AchievementBadgeIconDiscSize;
+type BadgeIconDiscProps = {
+  size?: BadgeIconDiscSize;
   tone?: AchievementTone;
   className?: string;
   children: ReactNode;
 };
 
-export function AchievementBadgeIconDisc({
+export function BadgeIconDisc({
   size = "grid",
   tone,
   className,
   children,
-}: AchievementBadgeIconDiscProps) {
-  const s = achievementBadgeIconDiscSizeStyles[size];
+}: BadgeIconDiscProps) {
+  const s = badgeIconDiscSizeStyles[size];
   const toneStyles = tone ? toneInnerDiscStyles[tone] : null;
 
   return (

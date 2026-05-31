@@ -1,15 +1,15 @@
 import { Lock, type LucideIcon } from "lucide-react";
 
 import {
-  AchievementBadgeIconDisc,
-  achievementBadgeIconDiscSizeStyles,
-} from "@/components/achievements/badge/chrome/achievement-badge-icon-disc";
+  BadgeIconDisc,
+  badgeIconDiscSizeStyles,
+} from "@/components/achievements/badge/chrome/badge-icon-disc";
 import {
   type AchievementTone,
 } from "@/components/achievements/achievement-card";
 import { cn } from "@/lib/utils";
 
-type AchievementFallbackBadgeProps = {
+type FallbackBadgeProps = {
   tone: AchievementTone;
   isLocked: boolean;
   FallbackIcon: LucideIcon;
@@ -41,14 +41,14 @@ const toneDiscStyles: Record<AchievementTone, string> = {
     "from-fuchsia-300/35 via-pink-200/18 to-background/30 border-fuchsia-300/45",
 };
 
-export function AchievementFallbackBadge({
+export function FallbackBadge({
   tone,
   isLocked,
   FallbackIcon,
   size = "grid",
   className,
-}: AchievementFallbackBadgeProps) {
-  const s = achievementBadgeIconDiscSizeStyles[size];
+}: FallbackBadgeProps) {
+  const s = badgeIconDiscSizeStyles[size];
 
   return (
     <div
@@ -79,7 +79,7 @@ export function AchievementFallbackBadge({
           "bg-[radial-gradient(ellipse_at_30%_72%,rgba(255,255,255,0.12)_0%,rgba(255,255,255,0)_58%)]",
         )}
       />
-      <AchievementBadgeIconDisc size={size} tone={isLocked ? undefined : tone}>
+      <BadgeIconDisc size={size} tone={isLocked ? undefined : tone}>
         {isLocked ? (
           <Lock
             className={cn(
@@ -97,7 +97,7 @@ export function AchievementFallbackBadge({
             aria-hidden
           />
         )}
-      </AchievementBadgeIconDisc>
+      </BadgeIconDisc>
     </div>
   );
 }

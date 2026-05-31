@@ -2,7 +2,7 @@
 
 import { useMemo, useRef } from "react";
 
-import { AchievementDetailBadgeInteractive } from "@/components/achievements/badge";
+import { DetailBadgeInteractive } from "@/components/achievements/badge";
 import { useAchievementDetailViewModel } from "@/components/achievements/use-achievement-detail-view-model";
 import { getWelcomeIntroAchievementRecord } from "@/lib/welcome/intro-achievement";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
@@ -41,7 +41,7 @@ export function WelcomeAchievementShowcase() {
 
   return (
     <div className="flex w-full max-w-lg flex-col items-center">
-      <AchievementDetailBadgeInteractive
+      <DetailBadgeInteractive
         renderSrc={renderSrc}
         motionSeed={achievement.id}
         tone={detailTone}

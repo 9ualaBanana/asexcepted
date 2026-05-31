@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { RemoteBadgeImage } from "@/components/achievements/badge/display/achievement-remote-badge-image";
+import { RemoteBadgeImage } from "@/components/achievements/badge/display/remote-badge-image";
 import { BadgeModelCanvas } from "@/components/achievements/badge/model/r3f/badge-model-canvas";
 import { getCachedBadgeMotionStyle } from "@/lib/badge/render-cache";
 import { cn } from "@/lib/utils";
 
-export type AchievementBadgeModelViewerProps = {
+export type BadgeModelViewerProps = {
   signedModelUrl: string;
   previewSrc: string;
   className?: string;
@@ -28,7 +28,7 @@ export type AchievementBadgeModelViewerProps = {
   interactive?: boolean;
 };
 
-export function AchievementBadgeModelViewer({
+export function BadgeModelViewer({
   signedModelUrl,
   previewSrc,
   className,
@@ -47,7 +47,7 @@ export function AchievementBadgeModelViewer({
   onPoseChange,
   allowInertia = true,
   interactive = true,
-}: AchievementBadgeModelViewerProps) {
+}: BadgeModelViewerProps) {
   const onVisualReadyRef = useRef(onVisualReady);
   onVisualReadyRef.current = onVisualReady;
   const onPreviewDecodedRef = useRef(onPreviewDecoded);
@@ -149,7 +149,7 @@ export function AchievementBadgeModelViewer({
   return (
     <div className="relative h-full w-full">
       <div
-        className="relative h-full w-full achievement-badge-object-float"
+        className="relative h-full w-full badge-object-float"
         style={floatMotionStyle}
       >
         {viewer}

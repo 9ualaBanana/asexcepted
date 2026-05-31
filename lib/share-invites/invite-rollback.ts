@@ -1,8 +1,8 @@
 import "server-only";
 
 import {
-  ACHIEVEMENT_BADGE_MODEL_BUCKET,
-  ACHIEVEMENT_BADGE_PREVIEW_BUCKET,
+  BADGE_MODEL_BUCKET,
+  BADGE_PREVIEW_BUCKET,
   buildShareInviteBadgeModelPath,
   buildShareInviteBadgePreviewPath,
 } from "@/lib/achievements/badge-assets";
@@ -17,6 +17,6 @@ export async function deleteShareInviteRollback(
 
   const modelPath = buildShareInviteBadgeModelPath(inviteId);
   const previewPath = buildShareInviteBadgePreviewPath(inviteId);
-  await supabase.storage.from(ACHIEVEMENT_BADGE_MODEL_BUCKET).remove([modelPath]);
-  await supabase.storage.from(ACHIEVEMENT_BADGE_PREVIEW_BUCKET).remove([previewPath]);
+  await supabase.storage.from(BADGE_MODEL_BUCKET).remove([modelPath]);
+  await supabase.storage.from(BADGE_PREVIEW_BUCKET).remove([previewPath]);
 }

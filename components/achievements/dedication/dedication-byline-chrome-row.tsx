@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import { DedicationByline } from "@/components/achievements/dedication/dedication-byline";
 import {
-  achievementBadgeChromeWidth,
+  badgeChromeWidth,
   achievementDialogChromeInset,
   achievementDialogIconSideSlot,
 } from "@/components/achievements/achievement-editor-shared";
@@ -36,7 +36,7 @@ export function DedicationBylineChromeRow({
   return (
     <div
       className={cn(
-        achievementBadgeChromeWidth,
+        badgeChromeWidth,
         achievementDialogChromeInset,
         "mt-3 flex min-h-10 items-center",
         className,

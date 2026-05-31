@@ -1,26 +1,26 @@
 /** Public badge module surface — prefer importing from here. */
 
-export { AchievementBadgeSlot } from "./chrome/achievement-badge-slot";
+export { BadgeSlot } from "./chrome/badge-slot";
 export {
-  AchievementBadgeIconDisc,
-  achievementBadgeIconDiscSizeStyles,
-} from "./chrome/achievement-badge-icon-disc";
+  BadgeIconDisc,
+  badgeIconDiscSizeStyles,
+} from "./chrome/badge-icon-disc";
 export { BadgeAttributionPopover } from "./chrome/badge-attribution-popover";
 
-export { RemoteBadgeImage } from "./display/achievement-remote-badge-image";
-export { AchievementFallbackBadge } from "./display/achievement-fallback-badge";
+export { RemoteBadgeImage } from "./display/remote-badge-image";
+export { FallbackBadge } from "./display/fallback-badge";
 
 export {
-  AchievementBadgeParallaxViewer,
-  AchievementBadge3DViewer,
-  type AchievementBadgeParallaxViewerProps,
-  type AchievementBadge3DViewerProps,
-} from "./parallax/achievement-badge-parallax-viewer";
+  BadgeParallaxViewer,
+  Badge3DViewer,
+  type BadgeParallaxViewerProps,
+  type Badge3DViewerProps,
+} from "./parallax/badge-parallax-viewer";
 
 export {
-  AchievementBadgeModelViewer,
-  type AchievementBadgeModelViewerProps,
-} from "./model/achievement-badge-model-viewer";
+  BadgeModelViewer,
+  type BadgeModelViewerProps,
+} from "./model/badge-model-viewer";
 
 export { ImpressionGlitterField } from "./effects/impression-glitter-field";
 export { ImpressionBurst } from "./effects/impression-burst";
@@ -28,19 +28,19 @@ export { UnlockRevealWave } from "./effects/unlock-reveal-wave";
 export { DedicatedBadgeGlitter } from "./effects/dedicated-badge-glitter";
 
 export {
-  AchievementDetailBadgeInteractive,
-  type AchievementDetailBadgeInteractiveProps,
-} from "./detail/achievement-detail-badge-interactive";
+  DetailBadgeInteractive,
+  type DetailBadgeInteractiveProps,
+} from "./detail/detail-badge-interactive";
 export { BadgeModelLiveView, type BadgeModelLiveViewProps } from "./detail/badge-model-live-view";
 export {
   BadgeImageParallaxView,
   type BadgeImageParallaxViewProps,
 } from "./detail/badge-image-parallax-view";
 
-export { AchievementRoundBadgeEditor } from "./editor/achievement-round-badge-editor";
+export { RoundBadgeEditor } from "./editor/round-badge-editor";
 
 export {
-  createAchievementBadgeRemoteAsset,
+  createBadgeRemoteAsset,
   clearSessionStagedUpload,
   setSessionStagedUpload,
   deleteBadgeRemoteAssetQuietly,

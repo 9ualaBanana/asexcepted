@@ -10,13 +10,13 @@ import {
 import { type FormState } from "@/components/achievements/achievement-editor-shared";
 import type { AchievementDialogStackProps } from "@/components/achievements/achievement-dialog-stack";
 import {
-  achievementHasCustomBadge,
+  hasCustomBadge,
   achievementToGridItem,
   isAchievementFormDirty,
   type AchievementRecord,
 } from "@/components/achievements/achievement-transformers";
-import { useAchievementBadgeMetricsController } from "@/components/achievements/use-achievement-badge-metrics-controller";
-import { useAchievementBadgeSessionController } from "@/components/achievements/use-achievement-badge-session-controller";
+import { useBadgeMetricsController } from "@/components/achievements/use-badge-metrics-controller";
+import { useBadgeSessionController } from "@/components/achievements/use-badge-session-controller";
 import { useAchievementDataController } from "@/components/achievements/use-achievement-data-controller";
 import { useAchievementDetailSelectionController } from "@/components/achievements/use-achievement-detail-selection-controller";
 import { useAchievementDetailViewModel } from "@/components/achievements/use-achievement-detail-view-model";
@@ -96,7 +96,7 @@ export function useAchievementsManagerModel({
   const [dedicationSenderNameLoading, setDedicationSenderNameLoading] = useState(false);
 
   const ui = useAchievementUiStateMachine();
-  const badgeSession = useAchievementBadgeSessionController({
+  const badgeSession = useBadgeSessionController({
     isCreating: ui.isCreating,
     detailMode: ui.detailMode,
   });
@@ -136,7 +136,7 @@ export function useAchievementsManagerModel({
       ),
     );
   }, [detailAchievement, setAchievements]);
-  const badgeMetrics = useAchievementBadgeMetricsController(detailAchievement, isAdmin);
+  const badgeMetrics = useBadgeMetricsController(detailAchievement, isAdmin);
   const [hideLocked, setHideLocked] = useHideLockedPreference();
   const { visibilityFilter, cycleVisibilityFilter } = useVisibilityFilterPreference();
   const detailRenderSrc = useMemo(() => {
@@ -149,7 +149,7 @@ export function useAchievementsManagerModel({
     useState(false);
 
   const handleFirstUnlockComplete = useCallback(() => {
-    if (detailAchievement && achievementHasCustomBadge(detailAchievement)) {
+    if (detailAchievement && hasCustomBadge(detailAchievement)) {
       setShowBadgeSpinAfterFirstUnlock(true);
       return;
     }

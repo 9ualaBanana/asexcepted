@@ -1,6 +1,6 @@
 "use client";
 
-import { AchievementBadgeParallaxViewer } from "@/components/achievements/badge/parallax/achievement-badge-parallax-viewer";
+import { BadgeParallaxViewer } from "@/components/achievements/badge/parallax/badge-parallax-viewer";
 
 export type BadgeImageParallaxViewProps = {
   renderSrc: string;
@@ -29,7 +29,7 @@ export function BadgeImageParallaxView({
   impressionGlitterRevealPulse = 0,
 }: BadgeImageParallaxViewProps) {
   return (
-    <AchievementBadgeParallaxViewer
+    <BadgeParallaxViewer
       src={renderSrc}
       className={className}
       float={float}

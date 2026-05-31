@@ -1,6 +1,6 @@
 import { Group, type Object3D } from "three";
 
-/** Matches viewer orbit clamp in achievement-badge-model-viewer. */
+/** Matches viewer orbit clamp in badge-model-viewer. */
 export const BADGE_MODEL_MAX_PITCH_RAD = Math.PI / 2.2;
 
 const HORIZONTAL_YAWS = [

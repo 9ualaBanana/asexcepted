@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { completeAchievementBadgeModelUpload } from "@/lib/achievements/badge-assets-server";
+import { completeBadgeModelUpload } from "@/lib/achievements/badge-assets-server";
 import { createClient } from "@/lib/supabase/server";
 
 function asFile(value: FormDataEntryValue | null): File | null {
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
 
   try {
     const posterBuffer = await poster.arrayBuffer();
-    const uploaded = await completeAchievementBadgeModelUpload({
+    const uploaded = await completeBadgeModelUpload({
       userId: user.id,
       modelPath: modelPath.trim(),
       previewBuffer: posterBuffer,

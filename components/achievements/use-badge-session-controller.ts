@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 
 import {
   clearBadgeModelPoseSessionRef,
-  createAchievementBadgeRemoteAsset,
+  createBadgeRemoteAsset,
   clearSessionStagedUpload,
   deleteBadgeRemoteAssetQuietly,
   getReplacedBadgeRemoteAsset,
@@ -12,10 +12,6 @@ import {
   revokeBadgeModelPoseSession,
   type BadgeModelPoseSession,
 } from "@/components/achievements/badge";
-import {
-  revokeBadgeModelPoseSession,
-  type BadgeModelPoseSession,
-} from "@/components/achievements/badge/badge-model-pose-session";
 import {
   createEmptyBadgeAssetSession,
   getSafeIconAssetKind,
@@ -25,7 +21,7 @@ import {
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
 import { finalizeBadgeModelUpload } from "@/lib/badge-asset-client";
 
-type UseAchievementBadgeSessionControllerArgs = {
+type UseBadgeSessionControllerArgs = {
   isCreating: boolean;
   detailMode: "view" | "edit";
 };
@@ -33,10 +29,10 @@ type UseAchievementBadgeSessionControllerArgs = {
 /**
  * Owns badge ImageKit session refs + upload flags for create/edit flows.
  */
-export function useAchievementBadgeSessionController({
+export function useBadgeSessionController({
   isCreating,
   detailMode,
-}: UseAchievementBadgeSessionControllerArgs) {
+}: UseBadgeSessionControllerArgs) {
   const [createUploadInProgress, setCreateUploadInProgress] = useState(false);
   const [panelUploadInProgress, setPanelUploadInProgress] = useState(false);
   const createBadgeAssetSessionRef = useRef<BadgeAssetSession>(createEmptyBadgeAssetSession());
@@ -116,7 +112,7 @@ export function useAchievementBadgeSessionController({
     iconModelPitch?: number | null;
   }) => {
     createBadgeAssetSessionRef.current = {
-      baseline: createAchievementBadgeRemoteAsset({
+      baseline: createBadgeRemoteAsset({
         iconUrl: asset.iconUrl ?? "",
         iconFileId: asset.iconFileId ?? "",
         iconAssetKind: getSafeIconAssetKind(asset.iconAssetKind),
@@ -131,7 +127,7 @@ export function useAchievementBadgeSessionController({
 
   const beginPanelBadgeSession = (detailAchievement: AchievementRecord) => {
     panelBadgeAssetSessionRef.current = {
-      baseline: createAchievementBadgeRemoteAsset({
+      baseline: createBadgeRemoteAsset({
         iconUrl: detailAchievement.icon_url ?? "",
         iconFileId: detailAchievement.icon_file_id ?? "",
         iconAssetKind: detailAchievement.icon_asset_kind,
@@ -150,7 +146,7 @@ export function useAchievementBadgeSessionController({
   };
 
   const commitPanelBadgeSession = (updatedAchievement: AchievementRecord) => {
-    const nextBaseline = createAchievementBadgeRemoteAsset({
+    const nextBaseline = createBadgeRemoteAsset({
       iconUrl: updatedAchievement.icon_url ?? "",
       iconFileId: updatedAchievement.icon_file_id ?? "",
       iconAssetKind: updatedAchievement.icon_asset_kind,
@@ -176,7 +172,7 @@ export function useAchievementBadgeSessionController({
     deletedAchievementId: string,
     detailAchievementId: string | null,
   ) => {
-    const persistedAsset = createAchievementBadgeRemoteAsset(
+    const persistedAsset = createBadgeRemoteAsset(
       target
         ? {
             iconUrl: target.icon_url ?? "",
@@ -245,6 +241,6 @@ export function useAchievementBadgeSessionController({
   };
 }
 
-export type AchievementBadgeSessionController = ReturnType<
-  typeof useAchievementBadgeSessionController
+export type BadgeSessionController = ReturnType<
+  typeof useBadgeSessionController
 >;

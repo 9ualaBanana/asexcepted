@@ -12,7 +12,7 @@ import { createInitialForm, sortAchievements } from "@/components/achievements/a
 import { type FormState, hasMeaningfulContent } from "@/components/achievements/achievement-editor-shared";
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
 import { achievementToForm, formToPayload } from "@/components/achievements/achievement-transformers";
-import type { AchievementBadgeSessionController } from "@/components/achievements/use-achievement-badge-session-controller";
+import type { BadgeSessionController } from "@/components/achievements/use-badge-session-controller";
 import type { AchievementUiStateActions } from "@/components/achievements/use-achievement-ui-state-machine";
 import { clearBadgeRenderCacheForSrc, prewarmBadgeRenderCache } from "@/lib/badge/render-cache";
 import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
@@ -31,7 +31,7 @@ type UseAchievementEditorPipelineControllerArgs = {
   panelForm: FormState;
   detailAchievementId: string | null;
   detailAchievement: AchievementRecord | null;
-  badgeSessionController: AchievementBadgeSessionController;
+  badgeSessionController: BadgeSessionController;
   supabase: SupabaseClient;
   setError: (value: string | null) => void;
   setIsSaving: (value: boolean) => void;

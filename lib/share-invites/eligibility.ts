@@ -4,7 +4,7 @@ import type { AchievementDbWritePayload } from "@/components/achievements/achiev
 import {
   isModelBadgeAssetKind,
   isPublicHttpImageUrl,
-  sanitizeAchievementBadgeAssetPath,
+  sanitizeBadgeAssetPath,
 } from "@/lib/achievements/badge-assets";
 import type { AchievementShareInviteSnapshot } from "@/lib/share-invites/invite-snapshot";
 import { shareInviteSnapshotFromAchievementRow } from "@/lib/share-invites/invite-snapshot";
@@ -24,7 +24,7 @@ export function validateShareInviteBadgeSnapshot(
   }
 
   if (isModelBadgeAssetKind(snapshot.icon_asset_kind)) {
-    if (!sanitizeAchievementBadgeAssetPath(snapshot.icon_asset_path)) {
+    if (!sanitizeBadgeAssetPath(snapshot.icon_asset_path)) {
       return err("Finish uploading the 3D badge before sharing this invite.");
     }
     if (!isPublicHttpImageUrl(snapshot.icon_url)) {

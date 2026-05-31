@@ -1,6 +1,6 @@
 "use client";
 
-type AchievementBadgeDebugOverlayProps = {
+type BadgeDebugOverlayProps = {
   detailIsModelBadge: boolean;
   detailOpenToImageDecodedMs: number | null;
   detailOpenToVisualReadyMs: number | null;
@@ -17,13 +17,13 @@ function formatModelMetric(value: number | null, enabled: boolean): string {
   return formatMs(value);
 }
 
-export function AchievementBadgeDebugOverlay({
+export function BadgeDebugOverlay({
   detailIsModelBadge,
   detailOpenToImageDecodedMs,
   detailOpenToVisualReadyMs,
   detailOpenToModelUrlReadyMs,
   detailOpenToModelVisualReadyMs,
-}: AchievementBadgeDebugOverlayProps) {
+}: BadgeDebugOverlayProps) {
   const decodedToVisualGap =
     detailOpenToVisualReadyMs == null || detailOpenToImageDecodedMs == null
       ? null

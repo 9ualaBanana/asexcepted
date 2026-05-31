@@ -74,7 +74,7 @@ export async function deleteBadgeRemoteAssetQuietly(
   }
 }
 
-export function createAchievementBadgeRemoteAsset(
+export function createBadgeRemoteAsset(
   asset?: Partial<BadgeRemoteAsset> | null,
 ): BadgeRemoteAsset {
   return hasBadgeRemoteAsset(asset)

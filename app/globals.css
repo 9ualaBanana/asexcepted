@@ -137,7 +137,7 @@
 }
 
 /* Unlocked remote badges: depth and light follow the true opaque silhouette mask. */
-.achievement-badge-object-float {
+.badge-object-float {
   animation: badge-phase-spin var(--badge-float-duration, 4.6s) linear
     var(--badge-float-delay, 0s) infinite;
   transform-origin: center;
@@ -166,7 +166,7 @@
   inset: -4px;
 }
 
-.achievement-badge-silhouette-shadow {
+.badge-silhouette-shadow {
   position: absolute;
   inset: 0;
   pointer-events: none;

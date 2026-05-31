@@ -13,10 +13,10 @@ import {
   achievementToneSwatches,
   type AchievementTone,
 } from "@/components/achievements/achievement-card";
-import { AchievementBadgeSlot } from "@/components/achievements/badge/chrome/achievement-badge-slot";
+import { BadgeSlot } from "@/components/achievements/badge/chrome/badge-slot";
 import { BadgeAttributionPopover } from "@/components/achievements/badge/chrome/badge-attribution-popover";
-import { AchievementFallbackBadge } from "@/components/achievements/badge/display/achievement-fallback-badge";
-import { RemoteBadgeImage } from "@/components/achievements/badge/display/achievement-remote-badge-image";
+import { FallbackBadge } from "@/components/achievements/badge/display/fallback-badge";
+import { RemoteBadgeImage } from "@/components/achievements/badge/display/remote-badge-image";
 import {
   deleteBadgeRemoteAssetQuietly,
   getReplacedBadgeRemoteAsset,
@@ -37,7 +37,7 @@ import {
   type BadgeModelUploadStaged,
 } from "@/components/achievements/badge/upload/use-badge-model-uploader";
 import { useSignedBadgeModelUrl } from "@/components/achievements/badge/hooks/use-signed-badge-model-url";
-import { AchievementBadgeModelViewer } from "@/components/achievements/badge/model/achievement-badge-model-viewer";
+import { BadgeModelViewer } from "@/components/achievements/badge/model/badge-model-viewer";
 
 import "@uppy/core/css/style.min.css";
 
@@ -53,7 +53,7 @@ const EDITOR_TONE_OPTIONS: AchievementTone[] = [
 const chipBtn =
   "border-white/25 bg-white/10 text-white hover:bg-white/15";
 
-type AchievementRoundBadgeEditorProps = {
+type RoundBadgeEditorProps = {
   imageUrl: string;
   iconFileId: string;
   iconAssetKind: AchievementIconAssetKind;
@@ -89,7 +89,7 @@ type AchievementRoundBadgeEditorProps = {
   disabled?: boolean;
 };
 
-export function AchievementRoundBadgeEditor({
+export function RoundBadgeEditor({
   imageUrl,
   iconFileId,
   iconAssetKind,
@@ -120,7 +120,7 @@ export function AchievementRoundBadgeEditor({
   onUploadInProgressChange,
   onModelUploadStaged,
   disabled = false,
-}: AchievementRoundBadgeEditorProps) {
+}: RoundBadgeEditorProps) {
   const uppyInstanceId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const modelInputRef = useRef<HTMLInputElement>(null);
@@ -359,7 +359,7 @@ export function AchievementRoundBadgeEditor({
         }}
       />
 
-      <AchievementBadgeSlot size={size}>
+      <BadgeSlot size={size}>
         <button
           type="button"
           disabled={disabled || busy}
@@ -396,7 +396,7 @@ export function AchievementRoundBadgeEditor({
         ) : null}
         {hasRemote ? (
           isModelAsset && editorSignedModelUrl ? (
-            <AchievementBadgeModelViewer
+            <BadgeModelViewer
               signedModelUrl={editorSignedModelUrl}
               previewSrc={toOptimizedBadgeRenderSrc(trimmed)}
               className={cn("p-1", busy && "scale-[0.96] blur-[3.5px] opacity-[0.72]")}
@@ -428,7 +428,7 @@ export function AchievementRoundBadgeEditor({
               busy && "scale-[0.96] blur-[3.5px] opacity-[0.72]",
             )}
           >
-            <AchievementFallbackBadge
+            <FallbackBadge
               tone={tone}
               isLocked={isLocked}
               FallbackIcon={FallbackIcon}
@@ -602,7 +602,7 @@ export function AchievementRoundBadgeEditor({
             </div>
           </div>
         ) : null}
-      </AchievementBadgeSlot>
+      </BadgeSlot>
 
       {removeConfirmOpen ? (
         <div

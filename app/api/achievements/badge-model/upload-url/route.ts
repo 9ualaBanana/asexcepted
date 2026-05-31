@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createAchievementBadgeModelUploadTarget } from "@/lib/achievements/badge-assets-server";
+import { createBadgeModelUploadTarget } from "@/lib/achievements/badge-assets-server";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST() {
@@ -17,7 +17,7 @@ export async function POST() {
   }
 
   try {
-    const target = await createAchievementBadgeModelUploadTarget(user.id);
+    const target = await createBadgeModelUploadTarget(user.id);
     return NextResponse.json(target);
   } catch (error) {
     return NextResponse.json(

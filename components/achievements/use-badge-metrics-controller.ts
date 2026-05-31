@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useBadgeDebugOverlayPreference } from "@/lib/badge/debug-overlay-preference";
-import { hasAchievementModelGlbAsset } from "@/lib/achievements/badge-assets";
+import { hasModelGlbAsset } from "@/lib/achievements/badge-assets";
 import { AchievementRecord } from "./achievement-transformers";
 
 function tryGetHighResNow() {
@@ -17,7 +17,7 @@ function tryGetHighResNow() {
  * - GLB-specific signed-URL and model-ready timings (N/A for image badges)
  * - debug-overlay preference state
  */
-export function useAchievementBadgeMetricsController(
+export function useBadgeMetricsController(
   detailAchievement: AchievementRecord | null,
   isAdmin = false,
 ) {
@@ -33,7 +33,7 @@ export function useAchievementBadgeMetricsController(
 
   const detailIsModelBadge = useMemo(
     () =>
-      hasAchievementModelGlbAsset(
+      hasModelGlbAsset(
         detailAchievement?.icon_asset_kind,
         detailAchievement?.icon_asset_path,
       ),

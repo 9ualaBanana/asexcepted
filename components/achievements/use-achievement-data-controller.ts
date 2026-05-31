@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { deleteAchievement, listAchievements } from "@/components/achievements/achievement-db";
 import { sortAchievements } from "@/components/achievements/achievement-manager-utils";
-import type { AchievementBadgeSessionController } from "@/components/achievements/use-achievement-badge-session-controller";
+import type { BadgeSessionController } from "@/components/achievements/use-badge-session-controller";
 import type { AchievementUiStateActions } from "@/components/achievements/use-achievement-ui-state-machine";
 import type { AchievementRecord } from "@/components/achievements/achievement-transformers";
 import { clearBadgeRenderCacheForSrc } from "@/lib/badge/render-cache";
@@ -23,7 +23,7 @@ type UseAchievementDataControllerArgs = {
   ) => void;
   setError: (value: string | null) => void;
   setIsSaving: (value: boolean) => void;
-  badgeSessionController: AchievementBadgeSessionController;
+  badgeSessionController: BadgeSessionController;
   uiActions: AchievementUiStateActions;
 };
 

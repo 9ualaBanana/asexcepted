@@ -6,7 +6,7 @@ import { formatDedicationActivityMessage } from "@/lib/activity-text";
 import {
   isModelBadgeAssetKind,
   isPublicHttpImageUrl,
-  sanitizeAchievementBadgeAssetPath,
+  sanitizeBadgeAssetPath,
 } from "@/lib/achievements/badge-assets";
 import { resolveClaimedBadgeIconFields } from "@/lib/achievements/badge-assets-server";
 import { resolveDisplayName, sendPushToUsers } from "@/lib/notifications";
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
 
   const iconAssetKind = parsed.data.icon_asset_kind ?? "image";
   if (isModelBadgeAssetKind(iconAssetKind)) {
-    if (!sanitizeAchievementBadgeAssetPath(parsed.data.icon_asset_path)) {
+    if (!sanitizeBadgeAssetPath(parsed.data.icon_asset_path)) {
       return NextResponse.json(
         { error: "Finish uploading the 3D badge before dedicating." },
         { status: 400 },

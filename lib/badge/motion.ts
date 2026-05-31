@@ -9,7 +9,7 @@ function hashSeed(seed: string) {
   return h >>> 0;
 }
 
-/** Deterministic CSS variables for `.achievement-badge-object-float` (globals.css). */
+/** Deterministic CSS variables for `.badge-object-float` (globals.css). */
 export function makeBadgeMotionStyle(seed: string, startCentered = false): CSSProperties {
   const h = hashSeed(seed);
   const pick = (offset: number) => ((h >>> offset) & 255) / 255;

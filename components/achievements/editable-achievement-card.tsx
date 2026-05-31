@@ -12,17 +12,17 @@ import {
 import { ArrowLeft, Check, Loader2, Trash2, X } from "lucide-react";
 
 import {
-  AchievementRoundBadgeEditor,
+  RoundBadgeEditor,
   applyBadgeModelPoseSessionToForm,
   type BadgeModelUploadStaged,
   clearSessionStagedUpload,
   rollbackBadgeUploadSession,
   setSessionStagedUpload,
 } from "@/components/achievements/badge";
-import type { AchievementBadgeSessionController } from "@/components/achievements/use-achievement-badge-session-controller";
+import type { BadgeSessionController } from "@/components/achievements/use-badge-session-controller";
 import { AchievementVisibilityToggle } from "@/components/achievements/achievement-visibility-toggle";
 import {
-  achievementBadgeChromeWidth,
+  badgeChromeWidth,
   achievementDialogChromeInset,
   achievementDialogIconBtn,
   achievementDialogIconSideSlot,
@@ -48,7 +48,7 @@ export type EditorCardProps = {
   onRequestDelete?: () => void;
   /** Admin dedicating to another user: always locked + private. */
   dedicateMode?: boolean;
-  badgeSessionController?: AchievementBadgeSessionController;
+  badgeSessionController?: BadgeSessionController;
   isCreatingFlow?: boolean;
 };
 
@@ -112,7 +112,7 @@ export function EditableAchievementCard({
 
       <div
         className={cn(
-          showDialogChrome ? achievementBadgeChromeWidth : "mt-1 w-full",
+          showDialogChrome ? badgeChromeWidth : "mt-1 w-full",
         )}
       >
         {showDialogChrome ? (
@@ -147,7 +147,7 @@ export function EditableAchievementCard({
           </div>
         ) : null}
         <div className={cn(showDialogChrome && "flex justify-center")}>
-          <AchievementRoundBadgeEditor
+          <RoundBadgeEditor
             imageUrl={form.iconUrl}
             iconFileId={form.iconFileId}
             iconAssetKind={form.iconAssetKind}
@@ -306,7 +306,7 @@ export function EditableAchievementCard({
       {showDialogChrome && showEditChrome ? (
         <div
           className={cn(
-            achievementBadgeChromeWidth,
+            badgeChromeWidth,
             achievementDialogChromeInset,
             "mt-3 flex min-h-10 items-center",
           )}
@@ -354,7 +354,7 @@ export function EditableAchievementCard({
       ) : showDialogChrome ? (
         <div
           className={cn(
-            achievementBadgeChromeWidth,
+            badgeChromeWidth,
             achievementDialogChromeInset,
             "mt-3 flex min-h-10 items-center",
           )}

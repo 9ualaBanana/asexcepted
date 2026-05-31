@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { deleteAchievementBadgeRemoteAsset } from "@/lib/achievements/badge-assets-server";
+import { deleteBadgeRemoteAsset } from "@/lib/achievements/badge-assets-server";
 import { createClient } from "@/lib/supabase/server";
 
 const deleteBadgeAssetBodySchema = z.object({
@@ -29,7 +29,7 @@ export async function DELETE(request: Request) {
   }
 
   try {
-    await deleteAchievementBadgeRemoteAsset({
+    await deleteBadgeRemoteAsset({
       iconUrl: body.data.iconUrl ?? null,
       iconFileId: body.data.iconFileId ?? null,
       iconAssetPath: body.data.iconAssetPath ?? null,

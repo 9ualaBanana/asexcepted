@@ -223,7 +223,7 @@ export const achievementDialogIconBtn =
   "inline-flex shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 p-2 text-white/80 transition hover:bg-white/10 disabled:pointer-events-none disabled:opacity-50";
 
 /** Max width aligned with overlay badge column (view + edit). */
-export const achievementBadgeChromeWidth =
+export const badgeChromeWidth =
   "mx-auto w-full max-w-[min(92vw,20rem)] sm:max-w-[20rem]";
 
 /** Same horizontal inset from chrome edges for all corner actions. */

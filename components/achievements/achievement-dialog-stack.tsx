@@ -14,13 +14,13 @@ import { Check, Loader2, PenLine, X, type LucideIcon } from "lucide-react";
 
 import type { AchievementTone } from "@/components/achievements/achievement-card";
 import {
-  AchievementDetailBadgeInteractive,
+  DetailBadgeInteractive,
   BadgeAttributionPopover,
   ImpressionBurst,
 } from "@/components/achievements/badge";
 import type { AlphaMaskData } from "@/lib/badge/shape-utils";
 import {
-  achievementBadgeChromeWidth,
+  badgeChromeWidth,
   achievementDialogChromeInset,
   achievementDialogIconBtn,
   achievementDialogIconSideSlot,
@@ -39,10 +39,10 @@ import {
 } from "@/lib/achievements/dedication-utils";
 import { submitImpression } from "@/components/achievements/use-impression-on-badge";
 import {
-  achievementHasCustomBadge,
+  hasCustomBadge,
   type AchievementRecord,
 } from "@/components/achievements/achievement-transformers";
-import type { AchievementBadgeSessionController } from "@/components/achievements/use-achievement-badge-session-controller";
+import type { BadgeSessionController } from "@/components/achievements/use-badge-session-controller";
 import { useDoubleActivate } from "@/lib/hooks/use-double-activate";
 import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
 import { getTutorial, TUTORIAL_IDS, useTutorial, useTutorialToast } from "@/lib/tutorials";
@@ -107,7 +107,7 @@ export type AchievementDialogStackProps = {
   dedicationSenderDisplayName?: string | null;
   dedicationSenderNameLoading?: boolean;
   isDedicatingCreate?: boolean;
-  badgeSessionController: AchievementBadgeSessionController;
+  badgeSessionController: BadgeSessionController;
   showBadgeSpinAfterFirstUnlock?: boolean;
   setShowBadgeSpinAfterFirstUnlock?: (show: boolean) => void;
 };
@@ -189,7 +189,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
   const unlockHoldTutorialDefinition = getTutorial(TUTORIAL_IDS.unlockHold);
   const badgeSpinTutorialDefinition = getTutorial(TUTORIAL_IDS.badgeSpin);
   const detailHasCustomBadge =
-    detailAchievement != null && achievementHasCustomBadge(detailAchievement);
+    detailAchievement != null && hasCustomBadge(detailAchievement);
   const [impressionBurstPulse, setImpressionBurstPulse] = useState(0);
 
   useTutorialToast({
@@ -326,7 +326,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
             />
           ) : showDetailContent ? (
             <div className="no-tap-highlight flex w-full flex-col items-center pt-1">
-              <div className={achievementBadgeChromeWidth}>
+              <div className={badgeChromeWidth}>
                 <div
                   className={cn(
                     "flex w-full items-center justify-end pb-1",
@@ -358,7 +358,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       readOnly ? impressionDoubleActivate.onPointerUp : undefined
                     }
                   >
-                    <AchievementDetailBadgeInteractive
+                    <DetailBadgeInteractive
                       renderSrc={detailRenderSrc}
                       motionSeed={detailAchievement.id}
                       tone={detailTone}
@@ -431,7 +431,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
               {!readOnly ? (
                 <div
                   className={cn(
-                    achievementBadgeChromeWidth,
+                    badgeChromeWidth,
                     achievementDialogChromeInset,
                     "mt-3 flex min-h-10 flex-col items-stretch gap-2",
                     !formatAchievedAt(detailAchievement.achieved_at) && "mt-6",
@@ -542,7 +542,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                 ) : detailAchievement.icon_url?.trim() ? (
                   <div
                     className={cn(
-                      achievementBadgeChromeWidth,
+                      badgeChromeWidth,
                       achievementDialogChromeInset,
                       "mt-3 flex min-h-10 items-center justify-end",
                       !formatAchievedAt(detailAchievement.achieved_at) && "mt-6",

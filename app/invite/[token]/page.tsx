@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import {
-  AchievementBadge3DViewer,
-  AchievementBadgeModelViewer,
+  Badge3DViewer,
+  BadgeModelViewer,
   BadgeAttributionPopover,
 } from "@/components/achievements/badge";
 import { formatAchievedAt } from "@/components/achievements/achievement-editor-shared";
 import { isModelBadgeAssetKind } from "@/lib/achievements/badge-assets";
-import { createSignedAchievementBadgeModelUrl } from "@/lib/achievements/badge-assets-server";
+import { createSignedBadgeModelUrl } from "@/lib/achievements/badge-assets-server";
 import { APP_DISPLAY_NAME } from "@/lib/brand";
 import { resolvePublicSiteOrigin } from "@/lib/public-site-origin";
 import { resolveInviteOgBadgeImageUrl } from "@/lib/share-invites/invite-og-badge-image";
@@ -147,7 +147,7 @@ export default async function Page({ params }: PageProps) {
   const collectionOwnerPath = userCollection(collectionOwnerId);
   const liveModelUrl =
     isModelBadgeAssetKind(invite.icon_asset_kind) && invite.icon_asset_path?.trim()
-      ? await createSignedAchievementBadgeModelUrl(invite.icon_asset_path)
+      ? await createSignedBadgeModelUrl(invite.icon_asset_path)
       : null;
 
   if (invite.status !== "pending") {
@@ -161,7 +161,7 @@ export default async function Page({ params }: PageProps) {
           <div className="mx-auto h-[18rem] w-full max-w-[18rem]">
             <div className="relative h-full w-full">
               {liveModelUrl ? (
-                <AchievementBadgeModelViewer
+                <BadgeModelViewer
                   signedModelUrl={liveModelUrl}
                   previewSrc={invite.icon_url}
                   float
@@ -171,7 +171,7 @@ export default async function Page({ params }: PageProps) {
                   className="mx-auto"
                 />
               ) : (
-                <AchievementBadge3DViewer
+                <Badge3DViewer
                   src={invite.icon_url}
                   float
                   motionSeed={invite.id}
