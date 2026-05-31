@@ -22,11 +22,7 @@ async function InspaPageInner() {
     : { rows: [], nextCursor: null };
 
   return (
-    <AppPageShell
-      title=""
-      subtitle=""
-      className="pb-[calc(3.75rem+env(safe-area-inset-bottom,0px))]"
-    >
+    <AppPageShell className="pb-[calc(3.75rem+env(safe-area-inset-bottom,0px))]">
       <div className="space-y-8 sm:space-y-10">
         <FriendsPanel viewerId={userData.user.id} />
         <FeedList

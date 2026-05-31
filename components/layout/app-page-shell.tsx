@@ -3,16 +3,12 @@ import { AuthButton } from "@/components/auth-button";
 import { cn } from "@/lib/utils";
 
 type AppPageShellProps = {
-  title: string;
-  subtitle?: string;
   children: ReactNode;
   headerExtra?: ReactNode;
   className?: string;
 };
 
 export function AppPageShell({
-  title,
-  subtitle,
   children,
   headerExtra,
   className,
@@ -36,12 +32,6 @@ export function AppPageShell({
         <section className="w-full max-w-5xl flex-1 px-5 pb-12 space-y-6">
           <header className="space-y-2 text-center">
             {headerExtra}
-            <p className="text-md uppercase tracking-[0.22em]">{title}</p>
-            {subtitle ? (
-              <p className="text-md tracking-tight text-muted-foreground/80 font-medium text-xs sm:text-sm leading-relaxed max-w-md mx-auto">
-                {subtitle}
-              </p>
-            ) : null}
           </header>
           {children}
         </section>

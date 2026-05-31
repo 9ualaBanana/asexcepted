@@ -5,7 +5,6 @@
 export const ROUTES = {
   home: "/",
   inspa: "/inspa",
-  feed: "/feed",
   social: "/social",
   profile: "/profile",
   login: "/auth/login",
@@ -26,7 +25,6 @@ export const ROUTES = {
 
 export const PROTECTED_PREFIXES = [
   ROUTES.inspa,
-  ROUTES.feed,
   ROUTES.social,
   ROUTES.profile,
   ROUTES.achievementsLegacy,

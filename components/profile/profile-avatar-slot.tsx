@@ -5,10 +5,6 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { toOptimizedAvatarRenderSrc } from "@/lib/profile/avatar-render-src";
-import {
-  PROFILE_AVATAR_MAX_EDGE_PX,
-  PROFILE_AVATAR_MAX_FILE_BYTES,
-} from "@/lib/profile/avatar-limits";
 import { useImageKitImageUploader } from "@/lib/imagekit/use-imagekit-image-uploader";
 import { useErrorToast } from "@/lib/toast";
 
@@ -63,8 +59,8 @@ export function ProfileAvatarSlot({
     instanceId: uppyInstanceId,
     purpose: "avatar",
     disabled: disabled || !editable,
-    maxFileSizeBytes: PROFILE_AVATAR_MAX_FILE_BYTES,
-    maxEdgePx: PROFILE_AVATAR_MAX_EDGE_PX,
+    maxFileSizeBytes: Number(process.env.NEXT_PUBLIC_PROFILE_AVATAR_MAX_FILE_BYTES),
+    maxEdgePx: Number(process.env.NEXT_PUBLIC_PROFILE_AVATAR_MAX_EDGE_PX),
     defaultFileName: "avatar",
     toRenderSrc: toOptimizedAvatarRenderSrc,
     onUploadSuccess: (url, fileId) => {

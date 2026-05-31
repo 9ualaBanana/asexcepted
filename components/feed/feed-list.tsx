@@ -18,7 +18,7 @@ type FeedListProps = {
 
 export function FeedList({ initialPage, initialError = null }: FeedListProps) {
   const pathname = usePathname();
-  const feedVisible = pathname === ROUTES.feed || pathname === ROUTES.inspa;
+  const feedVisible = pathname === ROUTES.inspa;
   const [rows, setRows] = useState(initialPage.rows);
   const [cursor, setCursor] = useState(initialPage.nextCursor);
   const [loading, setLoading] = useState(false);

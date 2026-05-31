@@ -11,6 +11,28 @@ import {
   removeProfileFollow,
 } from "@/lib/user-profile-db";
 import { useErrorToast } from "@/lib/toast";
+import { usePwaInstallTutorial } from "@/lib/pwa/use-pwa-install-tutorial";
+
+type FollowButtonWrapperProps = {
+  targetUserId: string;
+  initialFollowing: boolean;
+};
+
+export function FollowButtonWrapper({
+  targetUserId,
+  initialFollowing,
+}: FollowButtonWrapperProps) {
+  // Event handlers cannot be passed to Client Component props.
+  const { onFirstFollow } = usePwaInstallTutorial();
+
+  return (
+    <FollowButton
+      targetUserId={targetUserId}
+      initialFollowing={initialFollowing}
+      onFirstFollow={() => void onFirstFollow()}
+    />
+  );
+}
 
 type FollowButtonProps = {
   targetUserId: string;

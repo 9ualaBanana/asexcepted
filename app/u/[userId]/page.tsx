@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { AuthButton } from "@/components/auth-button";
 import { AchievementsManager } from "@/components/achievements/achievements-manager";
 import { ErrorToastOnce } from "@/components/toasts/error-toast-once";
-import { UserAchievementsFollowBar } from "@/components/social/user-achievements-follow-bar";
+import { FollowButtonWrapper } from "@/components/social/follow-button";
 import { isAdmin } from "@/lib/admin";
 import { createClient } from "@/lib/supabase/server";
 import { isUserFollowingProfile } from "@/lib/user-profile-db";
@@ -112,7 +112,7 @@ async function UserAchievementsContent({ params, searchParams }: PageProps) {
           </header>
           {viewer && !isOwner ? (
             <div className="flex justify-center pb-1">
-              <UserAchievementsFollowBar
+              <FollowButtonWrapper
                 targetUserId={userId}
                 initialFollowing={initialIsFollowing}
               />
