@@ -13,6 +13,7 @@ import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
 
 import { createConfiguredBadgeGltfLoader } from "@/lib/achievements/badge/badge-gltf-loader";
+import { applyBadgeModelGltfTuning } from "@/lib/achievements/badge/badge-model-gltf-tuning";
 import {
   centerBadgeModelAtOrigin,
   frameCameraForBadgeModel,
@@ -65,6 +66,7 @@ export function BadgeModelContent({
 
   const invalidate = useThree((state) => state.invalidate);
   const gl = useThree((state) => state.gl);
+  const scene = useThree((state) => state.scene);
   const camera = useThree((state) => state.camera) as PerspectiveCamera;
 
   playAnimationRef.current = playAnimation;
@@ -103,6 +105,12 @@ export function BadgeModelContent({
     centerBadgeModelAtOrigin(model);
     return model;
   }, [gltf]);
+
+  useEffect(() => {
+    if (!gltf || !modelObject) return;
+    applyBadgeModelGltfTuning(gltf, modelObject, { scene, renderer: gl });
+    invalidate();
+  }, [gltf, gl, invalidate, modelObject, scene]);
 
   useEffect(() => {
     if (!modelObject || !orbitRootRef.current) return;
