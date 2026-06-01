@@ -10,8 +10,8 @@ import { getSafeTone } from "@/components/achievements/achievement-manager-utils
 import { getSafeIcon } from "@/components/achievements/achievement-editor-shared";
 import { FeedActivityText } from "@/components/social/feed/feed-activity-text";
 import { ProfileAvatarSlot } from "@/components/profile/profile-avatar-slot";
-import { isModelBadgeAssetKind } from "@/lib/achievements/badge/badge-assets";
-import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/render-src";
+import { isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-assets";
+import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-src";
 import { formatFeedEventTimestamp } from "@/lib/feed/format-feed-event-time";
 import {
   FEED_BADGE_PX,

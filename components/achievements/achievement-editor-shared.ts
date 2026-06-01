@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 
 import { type AchievementTone } from "@/components/achievements/achievement-manager-utils";
-import { SpiralIcon } from "@/components/achievements/icons/spiral-icon";
+import { SpiralIcon } from "@/components/ui/spiral-icon";
 
 export type AchievementIconKey =
   | "trophy"

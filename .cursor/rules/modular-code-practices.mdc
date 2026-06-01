@@ -1,0 +1,71 @@
+---
+description: 
+alwaysApply: true
+---
+
+# Modular, Coherent Code
+
+Write code that is **modular and readable**, not monolithic and not over-fragmented. Aim for the smallest structure that stays easy to follow, change, and reuse.
+
+## Balance
+
+- **Avoid monoliths**: A file, component, or function that mixes unrelated concerns (UI + data fetching + formatting + business rules) should be split along natural boundaries.
+- **Avoid micro-files**: Do not create a new file for every helper, hook, or one-off function. Keep related code together until there is a clear reason to extract.
+- **Split when it helps**: Extract when code is reused elsewhere, the parent file is hard to scan, or a boundary is stable and testable on its own (see top-down-abstractions for in-file ordering).
+
+## Reuse First
+
+- Search the codebase for existing utilities, hooks, components, and types before writing new ones.
+- Extend or compose existing abstractions instead of copying logic with minor tweaks.
+- Do not duplicate behavior that already exists — consolidate or call the shared implementation.
+
+## Prefer Standard Solutions
+
+When a well-maintained library solves the problem reliably, use it instead of building a custom version:
+
+- Date/time parsing and formatting
+- Validation and schema parsing
+- HTTP clients, retries, and caching
+- Common data structures and algorithms
+- etc.
+
+Reach for project dependencies and ecosystem standards first. Custom code is justified when requirements are genuinely domain-specific or libraries do not fit.
+
+## Examples
+
+```tsx
+// ❌ BAD — monolith: fetch, transform, and render in one place
+export function UserProfile({ id }: { id: string }) {
+  const [user, setUser] = useState(null);
+  useEffect(() => { fetch(`/api/users/${id}`).then(r => r.json()).then(setUser); }, [id]);
+  const label = user ? `${user.firstName} ${user.lastName}`.trim() : '';
+  return <div>{label}</div>;
+}
+```
+
+```tsx
+// ✅ GOOD — clear boundaries, no unnecessary files
+export function UserProfile({ id }: { id: string }) {
+  const user = useUser(id);
+  return <div>{formatDisplayName(user)}</div>;
+}
+// useUser and formatDisplayName live in the same module or existing shared lib — not one file each
+```
+
+```ts
+// ❌ BAD — reinventing what the ecosystem already provides
+function isValidEmail(s: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+}
+```
+
+```ts
+// ✅ GOOD — use an existing schema/validation library already in the project
+const emailSchema = z.string().email();
+```
+
+## When editing
+
+- **New feature**: Start in the most natural existing module; extract only when reuse or size demands it.
+- **Refactoring**: Reduce duplication and shrink oversized units; do not scatter logic across many tiny files.
+- **Dependencies**: Add a library only when it clearly replaces non-trivial custom code — do not add one for a three-line helper.

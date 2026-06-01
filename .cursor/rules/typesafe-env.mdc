@@ -1,0 +1,52 @@
+---
+description: Typesafe env via @t3-oss/env-nextjs; centralize config in env.ts
+alwaysApply: true
+---
+
+# Typesafe environment variables
+
+Use [`@t3-oss/env-nextjs`](https://env.t3.gg/docs/nextjs) for all environment access. Define and validate variables once in a single module (e.g. `env.ts` at the repo root), then import `env` everywhere else.
+
+## Setup
+
+- Add `@t3-oss/env-nextjs` and wire `createEnv` with Zod schemas in `env.ts`.
+- Split **`server`** (secrets, service keys) vs **`client`** (`NEXT_PUBLIC_*` only).
+- Use `experimental__runtimeEnv` (or the package’s current Next.js pattern) so client vars are inlined at build time.
+- Document every key in `.env.example` with a short comment; never commit real secrets.
+
+## Usage
+
+```ts
+// ❌ BAD — scattered, untyped, easy to typo
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const intensity = Number(process.env.NEXT_PUBLIC_BADGE_MODEL_ENVIRONMENT_INTENSITY);
+
+// ✅ GOOD — validated once, typed everywhere
+import { env } from "@/env";
+const url = env.NEXT_PUBLIC_SUPABASE_URL;
+const intensity = env.NEXT_PUBLIC_BADGE_MODEL_ENVIRONMENT_INTENSITY;
+```
+
+- Do **not** read `process.env` outside `env.ts` (except framework hooks that require it, e.g. `next.config.ts` — keep those reads minimal and mirror values in `env` when feasible).
+- Coerce types in the schema (`.url()`, `.coerce.number()`, `.enum()`, `.default()`, `.transform(s => s.trim())`) — not at each call site.
+
+## When to add a new env variable
+
+Promote a value to `env` when it is **environment- or deployment-specific**, or when operators should tune it without a code change:
+
+- API keys, webhooks, storage/CDN endpoints, site origin
+- Feature flags and kill switches (`=== "true"` toggles)
+- Tunable product/render constants already exposed as config (e.g. badge model HDR URL, camera FOV, glitter UI flag)
+
+Keep as ordinary code constants when the value is **fixed by implementation** (algorithm thresholds tied to code, UI copy, enum labels, one-off magic numbers with no per-env meaning).
+
+When adding a variable:
+
+1. Add it to the correct `server` or `client` block in `env.ts` with Zod validation and a sensible default only if a safe fallback exists.
+2. Export via `env` and replace all `process.env` usages.
+3. Update `.env.example`.
+
+## New code
+
+- New secrets or `NEXT_PUBLIC_*` keys: add to `env.ts` first, then consume `env.*`.
+- Prefer reusing existing `env` fields over duplicating names or parsing the same key in multiple modules.

@@ -5,8 +5,8 @@ import { useMemo, useRef } from "react";
 import { DetailBadgeInteractive } from "@/components/achievements/badge";
 import { useAchievementDetailViewModel } from "@/components/achievements/detail/use-achievement-detail-view-model";
 import { getWelcomeIntroAchievementRecord } from "@/lib/welcome/intro-achievement";
-import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/render-src";
-import type { AlphaMaskData } from "@/lib/achievements/badge/shape-utils";
+import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-src";
+import type { AlphaMaskData } from "@/lib/achievements/badge/parallax/shape-utils";
 
 const EMPTY_CLIP = "circle(0% at 50% 50%)";
 

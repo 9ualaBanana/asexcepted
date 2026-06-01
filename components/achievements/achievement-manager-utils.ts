@@ -1,4 +1,4 @@
-import { unlockRevealLutSteps } from "@/lib/achievements/badge/shape-utils";
+import { unlockRevealLutSteps } from "@/lib/achievements/badge/parallax/shape-utils";
 
 export type AchievementTone =
   | "rose"

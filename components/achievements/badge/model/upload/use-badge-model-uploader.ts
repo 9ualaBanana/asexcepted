@@ -5,8 +5,8 @@ import { useCallback, useState } from "react";
 import {
   revokeBadgeModelPoseSession,
   type BadgeModelPoseSession,
-} from "@/components/achievements/badge/upload/badge-model-pose-session";
-import { prepareBadgeModelUpload } from "@/components/achievements/badge/upload/badge-model-upload-client";
+} from "@/components/achievements/badge/model/upload/badge-model-pose-session";
+import { prepareBadgeModelUpload } from "@/components/achievements/badge/model/upload/badge-model-upload-client";
 import type { FormState } from "@/components/achievements/achievement-editor-shared";
 import { uploadBadgeModelGlbOnly } from "@/lib/badge-asset-client";
 

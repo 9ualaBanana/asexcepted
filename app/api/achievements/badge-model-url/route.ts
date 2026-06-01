@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/badge-assets-server";
+import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/shared/badge-assets-server";
 
 const badgeModelUrlBodySchema = z.object({
   assetPath: z.string().trim().min(1),

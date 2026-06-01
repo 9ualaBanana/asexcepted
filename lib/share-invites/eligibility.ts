@@ -5,7 +5,7 @@ import {
   isModelBadgeAssetKind,
   isPublicHttpImageUrl,
   sanitizeBadgeAssetPath,
-} from "@/lib/achievements/badge/badge-assets";
+} from "@/lib/achievements/badge/shared/badge-assets";
 import type { AchievementShareInviteSnapshot } from "@/lib/share-invites/invite-snapshot";
 import { shareInviteSnapshotFromAchievementRow } from "@/lib/share-invites/invite-snapshot";
 import type { CollectionAchievementSnapshotSource } from "@/lib/share-invites/invite-snapshot";

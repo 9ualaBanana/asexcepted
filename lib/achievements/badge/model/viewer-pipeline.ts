@@ -18,7 +18,7 @@ import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.j
 import {
   centerBadgeModelAtOrigin,
   frameCameraForBadgeModel,
-} from "@/lib/achievements/badge/badge-model-rendering";
+} from "@/lib/achievements/badge/model/rendering";
 
 /**
  * Live badge viewers use Drei `<Environment preset="studio" />` inside R3F

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 
-import { buildGlitterParticles } from "@/lib/achievements/badge/glitter-particles";
+import { buildGlitterParticles } from "@/lib/achievements/badge/parallax/glitter-particles";
 import { cn } from "@/lib/utils";
 
 type ImpressionGlitterFieldProps = {

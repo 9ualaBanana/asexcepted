@@ -1,11 +1,11 @@
 import { Box3, Mesh, Object3D, PerspectiveCamera, Vector3 } from "three";
 
-export { configureBadgeModelRenderer } from "@/lib/achievements/badge/badge-model-viewer-pipeline";
+export { configureBadgeModelRenderer } from "@/lib/achievements/badge/model/viewer-pipeline";
 
 export {
   BADGE_MODEL_DRACO_DECODER_CDN,
   configureBadgeModelLoader,
-} from "@/lib/achievements/badge/badge-gltf-loader";
+} from "@/lib/achievements/badge/model/gltf-loader";
 
 export type BadgeModelFrameMetrics = {
   size: Vector3;

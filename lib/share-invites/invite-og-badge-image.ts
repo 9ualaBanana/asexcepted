@@ -1,6 +1,6 @@
 import "server-only";
 
-import { isPublicHttpImageUrl } from "@/lib/achievements/badge/badge-assets";
+import { isPublicHttpImageUrl } from "@/lib/achievements/badge/shared/badge-assets";
 
 const OG_IMAGE_FETCH_TIMEOUT_MS = 8_000;
 

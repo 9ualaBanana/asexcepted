@@ -9,14 +9,14 @@ import { RemoteBadgeImage } from "@/components/achievements/badge/display/remote
 import { ImpressionGlitterField } from "@/components/achievements/badge/effects/impression-glitter-field";
 import { UnlockRevealWave } from "@/components/achievements/badge/effects/unlock-reveal-wave";
 import { BadgeImageParallaxView } from "@/components/achievements/badge/detail/badge-image-parallax-view";
-import { BadgeModelLiveView } from "@/components/achievements/badge/detail/badge-model-live-view";
+import { BadgeModelLiveView } from "@/components/achievements/badge/model";
 import type { AchievementTone } from "@/components/achievements/achievement-manager-utils";
 import {
   badgeImageMaskStylePadded,
   circularBadgeMaskStyle,
   paddedBadgeMaskStyle,
-} from "@/lib/achievements/badge/badge-mask-style";
-import { isOpaqueBadgeHit, type AlphaMaskData } from "@/lib/achievements/badge/shape-utils";
+} from "@/lib/achievements/badge/parallax/badge-mask-style";
+import { isOpaqueBadgeHit, type AlphaMaskData } from "@/lib/achievements/badge/parallax/shape-utils";
 import { cn } from "@/lib/utils";
 
 export type DetailBadgeInteractiveProps = {

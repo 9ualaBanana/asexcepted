@@ -28,16 +28,16 @@ import {
   iconMap,
 } from "@/components/achievements/achievement-editor-shared";
 import { Button } from "@/components/ui/button";
-import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/render-src";
+import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-src";
 import { useErrorToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { useBadgeImageUploader } from "@/components/achievements/badge/upload/use-badge-image-uploader";
 import {
+  BadgeModelViewer,
   useBadgeModelUploader,
+  useSignedBadgeModelUrl,
   type BadgeModelUploadStaged,
-} from "@/components/achievements/badge/upload/use-badge-model-uploader";
-import { useSignedBadgeModelUrl } from "@/components/achievements/badge/hooks/use-signed-badge-model-url";
-import { BadgeModelViewer } from "@/components/achievements/badge/model/badge-model-viewer";
+} from "@/components/achievements/badge/model";
 
 import "@uppy/core/css/style.min.css";
 

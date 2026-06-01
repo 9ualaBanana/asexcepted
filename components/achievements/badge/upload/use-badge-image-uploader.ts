@@ -1,7 +1,7 @@
 "use client";
 
-import { ensureBadgeImageDecoded } from "@/lib/achievements/badge/render-cache";
-import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/render-src";
+import { ensureBadgeImageDecoded } from "@/lib/achievements/badge/shared/render-cache";
+import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-src";
 import { useImageKitImageUploader } from "@/lib/imagekit/use-imagekit-image-uploader";
 
 const BADGE_MAX_FILE_BYTES = 15 * 1024 * 1024;

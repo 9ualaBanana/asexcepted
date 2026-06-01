@@ -3,8 +3,8 @@
 import { useMemo } from "react";
 
 import { ImpressionGlitterField } from "@/components/achievements/badge/effects/impression-glitter-field";
-import { badgeImageMaskStylePadded } from "@/lib/achievements/badge/badge-mask-style";
-import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/render-src";
+import { badgeImageMaskStylePadded } from "@/lib/achievements/badge/parallax/badge-mask-style";
+import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-src";
 import { cn } from "@/lib/utils";
 
 type DedicatedBadgeGlitterProps = {

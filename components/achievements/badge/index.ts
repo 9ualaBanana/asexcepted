@@ -20,7 +20,18 @@ export {
 export {
   BadgeModelViewer,
   type BadgeModelViewerProps,
-} from "./model/badge-model-viewer";
+  BadgeModelLiveView,
+  type BadgeModelLiveViewProps,
+  revokeBadgeModelPoseSession,
+  type BadgeModelPoseSession,
+  prepareBadgeModelUpload,
+  type PreparedBadgeModelUpload,
+  useBadgeModelUploader,
+  applyBadgeModelPoseSessionToForm,
+  clearBadgeModelPoseSessionRef,
+  type BadgeModelUploadStaged,
+  useSignedBadgeModelUrl,
+} from "./model";
 
 export { ImpressionGlitterField } from "./effects/impression-glitter-field";
 export { ImpressionBurst } from "./effects/impression-burst";
@@ -31,7 +42,6 @@ export {
   DetailBadgeInteractive,
   type DetailBadgeInteractiveProps,
 } from "./detail/detail-badge-interactive";
-export { BadgeModelLiveView, type BadgeModelLiveViewProps } from "./detail/badge-model-live-view";
 export {
   BadgeImageParallaxView,
   type BadgeImageParallaxViewProps,
@@ -47,21 +57,9 @@ export {
   getReplacedBadgeRemoteAsset,
   rollbackBadgeUploadSession,
 } from "./upload/badge-asset-session";
-export {
-  revokeBadgeModelPoseSession,
-  type BadgeModelPoseSession,
-} from "./upload/badge-model-pose-session";
-export { prepareBadgeModelUpload, type PreparedBadgeModelUpload } from "./upload/badge-model-upload-client";
 export { normalizeImageKitFileId } from "./upload/badge-imagekit-session";
 export { useBadgeImageUploader } from "./upload/use-badge-image-uploader";
-export {
-  useBadgeModelUploader,
-  applyBadgeModelPoseSessionToForm,
-  clearBadgeModelPoseSessionRef,
-  type BadgeModelUploadStaged,
-} from "./upload/use-badge-model-uploader";
 
-export { useSignedBadgeModelUrl } from "./hooks/use-signed-badge-model-url";
 export { useBadgeMetricsController } from "./hooks/use-badge-metrics-controller";
 export { useBadgeChunkedPrewarm } from "./hooks/use-badge-chunked-prewarm";
 

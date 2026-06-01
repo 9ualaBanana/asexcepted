@@ -1,0 +1,66 @@
+---
+description: 
+alwaysApply: true
+---
+
+# Top-Down Abstractions Within a File
+
+When a file defines multiple abstractions (components, hooks, helpers), order them **high level → low level**: the top-level export first, then the subcomponents or helpers it composes, then their dependencies.
+
+Reading the file top-to-bottom should mirror reading the UI or call tree top-to-bottom.
+
+## Order
+
+1. **Imports**
+2. **Shared constants** used across abstractions in this file (if any)
+3. **Top-level export** — the main component, hook, or function the file exists for
+4. **Subcomponents and local helpers** — defined **below** the parent that uses them, in composition order (parent → direct child → grandchild)
+5. **Leaf utilities** — pure helpers with no further local dependencies, at the bottom
+
+Place each abstraction's props/types immediately above that abstraction.
+
+## Examples
+
+```tsx
+// ✅ GOOD — parent first, subcomponent below
+export function RemoteBadgeImage({ src, className }: Props) {
+  if (!ready) return <RemoteBadgeImageFallback className={className} />;
+  return <img src={src} className={className} />;
+}
+
+function RemoteBadgeImageFallback({ className }: { className?: string }) {
+  return <div className={className} aria-hidden />;
+}
+```
+
+```tsx
+// ✅ GOOD — composition order: page → renderer → leaf labels
+export function FeedActivityText({ row }: Props) {
+  return <p>{parts.map((part) => renderPart(part, key))}</p>;
+}
+
+function renderPart(part: ActivityTextPart, key: string) {
+  return <ActorLabel key={key}>{part.text}</ActorLabel>;
+}
+
+function ActorLabel({ children }: { children: string }) {
+  return <span className="font-semibold">{children}</span>;
+}
+```
+
+```tsx
+// ❌ BAD — subcomponent defined above the parent that uses it
+function RemoteBadgeImageFallback() { /* ... */ }
+
+export function RemoteBadgeImage() {
+  return <RemoteBadgeImageFallback />;
+}
+```
+
+## When editing
+
+- **Adding a subcomponent**: append it below the parent (or below the helper that references it), not above the file's main export.
+- **Refactoring**: reorder definitions to restore top-down flow; do not leave helpers scattered above and below the main export.
+- **Multiple exports at the same level** (e.g. two public components): order by dependency — the one that does not use the other comes first.
+
+Split into a separate file when a subcomponent grows large, is reused elsewhere, or the parent file becomes hard to scan despite correct ordering.

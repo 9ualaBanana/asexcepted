@@ -5,9 +5,9 @@ import {
   Badge3DViewer,
   BadgeModelViewer,
 } from "@/components/achievements/badge";
-import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/badge-assets-server";
-import { isModelBadgeAssetKind } from "@/lib/achievements/badge/badge-assets";
-import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/render-src";
+import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/shared/badge-assets-server";
+import { isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-assets";
+import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-src";
 import { verifyEmbedBadgeToken } from "@/lib/embed-badge-token";
 import { createAnonServerClient } from "@/lib/supabase/server-anon";
 import { EmbedTransparentSurface } from "./embed-transparent-surface";

@@ -4,13 +4,13 @@ import { LRUCache } from "lru-cache";
 import type { CSSProperties } from "react";
 
 import { logCdnDeliveryOnce } from "@/lib/imagekit/telemetry";
-import { makeBadgeMotionStyle } from "@/lib/achievements/badge/motion";
-import { decodeImageReadyPromise } from "@/lib/achievements/badge/image-decode";
+import { makeBadgeMotionStyle } from "@/lib/achievements/badge/shared/motion";
+import { decodeImageReadyPromise } from "@/lib/achievements/badge/shared/image-decode";
 import {
   getAlphaMaskStyle,
   loadAlphaMaskDataFromImage,
   type AlphaMaskData,
-} from "@/lib/achievements/badge/shape-utils";
+} from "@/lib/achievements/badge/parallax/shape-utils";
 
 const decodeReady = new LRUCache<string, Promise<void>>({
   max: 300,

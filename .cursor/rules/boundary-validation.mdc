@@ -1,0 +1,73 @@
+---
+description: 
+alwaysApply: true
+---
+
+# Validate at the Boundary
+
+External data (DB rows, API request/response bodies, webhooks, `fetch` JSON) is **unknown** until parsed. Validate and normalize **once** at the first boundary, then pass **typed, trusted** values inward. Do not re-validate the same guarantees in every component, hook, or helper.
+
+## Boundaries (validate here)
+
+- **API routes**: `safeParse` request body/query; return 400 on failure (see existing `app/api/**` routes).
+- **DB → domain**: map rows in `lib/**` transformers with Zod (`.parse` / `.safeParse` / `.transform`), not ad-hoc `typeof` chains in UI code.
+- **Client fetch**: parse JSON in the data layer (hook or `lib/**` client), not in each consumer component.
+
+Export `z.infer<typeof schema>` (or a named type alias) from the same module as the schema. Inner layers depend on that type, not `unknown` or loose `Record<string, unknown>`.
+
+## Do not scatter defensive checks
+
+After a value crosses a validated boundary, **do not** repeat:
+
+- `value?.trim()`, `value ?? ""`, `if (!value) return` for fields the schema already requires or normalizes
+- `typeof x === "string"` / manual date parsing for fields already validated as `z.string().datetime()` (or project date helpers applied in the transformer)
+- `getSafe*` / fallback enums in UI when the transformer already coerced to a closed union
+
+Reserve runtime checks for **new** untrusted input (user typing in a form before submit, file uploads, third-party widgets) or true optional UI branches (e.g. nullable `title` on display).
+
+```ts
+// ❌ BAD — DB row already normalized to AchievementRecord
+function GridItem({ achievement }: { achievement: AchievementRecord }) {
+  const title = achievement.title?.trim() ?? "Untitled";
+  const date = achievement.achieved_at ? new Date(achievement.achieved_at) : null;
+  if (Number.isNaN(date?.getTime())) return null;
+  // ...
+}
+
+// ✅ GOOD — trust AchievementRecord; formatting only
+function GridItem({ achievement }: { achievement: AchievementRecord }) {
+  return <span>{achievement.title ?? "Untitled"}</span>;
+}
+// achieved_at shape enforced in normalizeAchievement / Zod transform
+```
+
+```ts
+// ❌ BAD — validate in the component
+useEffect(() => {
+  fetch("/api/foo").then((r) => r.json()).then((data) => {
+    if (!data?.id || typeof data.id !== "string") return;
+    setFoo(data);
+  });
+}, []);
+
+// ✅ GOOD — validate at fetch boundary
+async function fetchFoo(): Promise<Foo> {
+  const raw = await fetch("/api/foo").then((r) => r.json());
+  const parsed = fooSchema.safeParse(raw);
+  if (!parsed.success) throw new Error("Invalid foo response");
+  return parsed.data;
+}
+```
+
+## Zod conventions
+
+- **Parse once**: `.safeParse` at IO edges (return errors to caller); `.parse` when failure should throw inside a dedicated mapper.
+- **Normalize in the schema**: `.trim()`, `.default()`, `.transform()`, `.pipe(z.coerce.date())` — not duplicated in callers.
+- **Prefer strict shapes** for required domain fields; use `.nullable()` only when the product truly allows absence.
+- Reuse existing schemas in `lib/**` before adding parallel validators.
+
+## When editing
+
+- **New API or query**: add/update a Zod schema at the route or transformer; wire types from `z.infer`.
+- **New UI consumer**: take the validated domain type; do not accept `unknown` and re-check.
+- **Refactoring**: move repeated null/trim/date guards **up** into the boundary mapper, then delete downstream copies.

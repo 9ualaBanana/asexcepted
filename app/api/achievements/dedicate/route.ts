@@ -7,8 +7,8 @@ import {
   isModelBadgeAssetKind,
   isPublicHttpImageUrl,
   sanitizeBadgeAssetPath,
-} from "@/lib/achievements/badge/badge-assets";
-import { resolveClaimedBadgeIconFields } from "@/lib/achievements/badge/badge-assets-server";
+} from "@/lib/achievements/badge/shared/badge-assets";
+import { resolveClaimedBadgeIconFields } from "@/lib/achievements/badge/shared/badge-assets-server";
 import { resolveDisplayName, sendPushToUsers } from "@/lib/notifications";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";

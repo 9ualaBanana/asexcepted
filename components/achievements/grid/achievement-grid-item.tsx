@@ -14,8 +14,8 @@ import {
   badgeImageMaskStylePadded,
   circularBadgeMaskStyle,
   paddedBadgeMaskStyle,
-} from "@/lib/achievements/badge/badge-mask-style";
-import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/render-src";
+} from "@/lib/achievements/badge/parallax/badge-mask-style";
+import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-src";
 import { cn } from "@/lib/utils";
 
 function getAlphaMaskStyle(src: string) {

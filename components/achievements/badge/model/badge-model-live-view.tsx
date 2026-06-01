@@ -2,7 +2,7 @@
 
 import { BadgeModelViewer } from "@/components/achievements/badge/model/badge-model-viewer";
 import { RemoteBadgeImage } from "@/components/achievements/badge/display/remote-badge-image";
-import { useSignedBadgeModelUrl } from "@/components/achievements/badge/hooks/use-signed-badge-model-url";
+import { useSignedBadgeModelUrl } from "@/components/achievements/badge/model/hooks/use-signed-badge-model-url";
 
 export type BadgeModelLiveViewProps = {
   iconAssetPath: string;

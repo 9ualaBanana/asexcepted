@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useRef } from "react";
 
 import { ImpressionGlitterField } from "@/components/achievements/badge/effects/impression-glitter-field";
-import { badgeImageMaskStylePadded } from "@/lib/achievements/badge/badge-mask-style";
+import { badgeImageMaskStylePadded } from "@/lib/achievements/badge/parallax/badge-mask-style";
 import {
   ensureBadgeImageDecoded,
   getCachedBadgeMaskStyle,
   getCachedBadgeMotionStyle,
-} from "@/lib/achievements/badge/render-cache";
+} from "@/lib/achievements/badge/shared/render-cache";
 import { cn } from "@/lib/utils";
 
 export type BadgeParallaxViewerProps = {

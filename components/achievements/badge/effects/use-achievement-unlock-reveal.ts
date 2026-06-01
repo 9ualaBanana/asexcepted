@@ -16,8 +16,8 @@ import {
   buildUnlockRevealClipPathLut,
   estimateUnlockRevealCompletionProgress,
   type AlphaMaskData,
-} from "@/lib/achievements/badge/shape-utils";
-import { ensureBadgeAlphaMaskData } from "@/lib/achievements/badge/render-cache";
+} from "@/lib/achievements/badge/parallax/shape-utils";
+import { ensureBadgeAlphaMaskData } from "@/lib/achievements/badge/shared/render-cache";
 import { type createClient } from "@/lib/supabase/client";
 
 type SupabaseClient = ReturnType<typeof createClient>;
