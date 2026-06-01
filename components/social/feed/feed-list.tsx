@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { FeedItem } from "@/components/feed/feed-item";
+import { FeedItem } from "@/components/social/feed/feed-item";
 import { Button } from "@/components/ui/button";
 import type { FeedPage } from "@/lib/feed-db";
 import { fetchFollowingUnlockFeed } from "@/lib/feed-db";

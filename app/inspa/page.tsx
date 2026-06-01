@@ -1,13 +1,21 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import { FeedList } from "@/components/feed/feed-list";
+import { FeedList } from "@/components/social/feed/feed-list";
 import { AppPageShell } from "@/components/layout/app-page-shell";
 import { FriendsPanel } from "@/components/social/friends-panel";
-import { SocialPageSkeleton } from "@/components/social/social-page-skeleton";
+import { SocialPageSkeleton } from "@/components/social/inspa-page-skeleton";
 import { fetchFollowingUnlockFeed } from "@/lib/feed-db";
 import { createClient } from "@/lib/supabase/server";
 import { loginWithNext, ROUTES } from "@/lib/routes";
+
+export default function InspaPage() {
+  return (
+    <Suspense fallback={<SocialPageSkeleton />}>
+      <InspaPageInner />
+    </Suspense>
+  );
+}
 
 async function InspaPageInner() {
   const supabase = await createClient();
@@ -31,13 +39,5 @@ async function InspaPageInner() {
         />
       </div>
     </AppPageShell>
-  );
-}
-
-export default function InspaPage() {
-  return (
-    <Suspense fallback={<SocialPageSkeleton />}>
-      <InspaPageInner />
-    </Suspense>
   );
 }
