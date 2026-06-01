@@ -4,7 +4,7 @@ import { useMemo } from "react";
 
 import { ImpressionGlitterField } from "@/components/achievements/badge/effects/impression-glitter-field";
 import { badgeImageMaskStylePadded } from "@/lib/achievements/badge/badge-mask-style";
-import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
+import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/render-src";
 import { cn } from "@/lib/utils";
 
 type DedicatedBadgeGlitterProps = {

@@ -5,8 +5,8 @@ import { useEffect, useMemo } from "react";
 import { resolveTone } from "@/components/achievements/achievement-manager-utils";
 import { getSafeIcon } from "@/components/achievements/achievement-editor-shared";
 import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
-import { prewarmBadgeRenderCache } from "@/lib/badge/render-cache";
-import { getAlphaMaskStyle } from "@/lib/badge/shape-utils";
+import { prewarmBadgeRenderCache } from "@/lib/achievements/badge/render-cache";
+import { getAlphaMaskStyle } from "@/lib/achievements/badge/shape-utils";
 
 type UseAchievementDetailViewModelArgs = {
   detailAchievement: AchievementRecord | null;

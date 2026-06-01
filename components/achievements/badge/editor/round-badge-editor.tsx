@@ -28,7 +28,7 @@ import {
   iconMap,
 } from "@/components/achievements/achievement-editor-shared";
 import { Button } from "@/components/ui/button";
-import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
+import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/render-src";
 import { useErrorToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { useBadgeImageUploader } from "@/components/achievements/badge/upload/use-badge-image-uploader";

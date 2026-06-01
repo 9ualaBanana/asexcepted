@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { ensureBadgeImageDecoded } from "@/lib/badge/render-cache";
+import { ensureBadgeImageDecoded } from "@/lib/achievements/badge/render-cache";
 import { cn } from "@/lib/utils";
 
 /** Suspends until the remote badge URL has loaded, with a slot-sized shimmer fallback. */

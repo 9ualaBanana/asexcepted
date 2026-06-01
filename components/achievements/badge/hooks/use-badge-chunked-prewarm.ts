@@ -5,9 +5,9 @@ import { useEffect } from "react";
 import {
   hasBadgeDecodeCached,
   prewarmBadgeRenderCache,
-} from "@/lib/badge/render-cache";
+} from "@/lib/achievements/badge/render-cache";
 import { logImageKitEvent } from "@/lib/imagekit/telemetry";
-import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
+import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/render-src";
 import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
 
 type UseBadgeChunkedPrewarmArgs = {

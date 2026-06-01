@@ -29,7 +29,7 @@ import {
 } from "@/lib/share-invites/eligibility";
 import { showErrorToast } from "@/lib/toast";
 import { useAchievementUiStateMachine } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
-import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
+import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/render-src";
 import {
   markTutorialCompleted,
   resetHideLockedPreferenceForNewAccount,

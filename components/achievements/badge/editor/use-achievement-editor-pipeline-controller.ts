@@ -14,8 +14,8 @@ import type { AchievementRecord } from "@/lib/achievements/data/achievement-tran
 import { achievementToForm, formToPayload } from "@/lib/achievements/data/achievement-transformers";
 import type { BadgeSessionController } from "@/components/achievements/badge/upload/use-badge-session-controller";
 import type { AchievementUiStateActions } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
-import { clearBadgeRenderCacheForSrc, prewarmBadgeRenderCache } from "@/lib/badge/render-cache";
-import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
+import { clearBadgeRenderCacheForSrc, prewarmBadgeRenderCache } from "@/lib/achievements/badge/render-cache";
+import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/render-src";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 type UseAchievementEditorPipelineControllerArgs = {

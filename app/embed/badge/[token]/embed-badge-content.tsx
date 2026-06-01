@@ -7,7 +7,7 @@ import {
 } from "@/components/achievements/badge";
 import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/badge-assets-server";
 import { isModelBadgeAssetKind } from "@/lib/achievements/badge/badge-assets";
-import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
+import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/render-src";
 import { verifyEmbedBadgeToken } from "@/lib/embed-badge-token";
 import { createAnonServerClient } from "@/lib/supabase/server-anon";
 import { EmbedTransparentSurface } from "./embed-transparent-surface";

@@ -1,4 +1,4 @@
-import { unlockRevealLutSteps } from "@/lib/badge/shape-utils";
+import { unlockRevealLutSteps } from "@/lib/achievements/badge/shape-utils";
 
 export type AchievementTone =
   | "rose"

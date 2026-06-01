@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 
-import { getCachedBadgeMaskStyle } from "@/lib/badge/render-cache";
+import { getCachedBadgeMaskStyle } from "@/lib/achievements/badge/render-cache";
 
 export function badgeImageMaskStyle(renderSrc: string): CSSProperties {
   return getCachedBadgeMaskStyle(renderSrc);

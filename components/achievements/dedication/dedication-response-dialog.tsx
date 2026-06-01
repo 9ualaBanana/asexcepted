@@ -12,7 +12,7 @@ import {
   getSafeIcon,
 } from "@/components/achievements/achievement-editor-shared";
 import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
-import { toOptimizedBadgeRenderSrc } from "@/lib/badge/render-src";
+import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/render-src";
 import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
 import { cn } from "@/lib/utils";
 

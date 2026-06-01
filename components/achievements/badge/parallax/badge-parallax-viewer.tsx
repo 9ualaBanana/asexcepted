@@ -8,7 +8,7 @@ import {
   ensureBadgeImageDecoded,
   getCachedBadgeMaskStyle,
   getCachedBadgeMotionStyle,
-} from "@/lib/badge/render-cache";
+} from "@/lib/achievements/badge/render-cache";
 import { cn } from "@/lib/utils";
 
 export type BadgeParallaxViewerProps = {

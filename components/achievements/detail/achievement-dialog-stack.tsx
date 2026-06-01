@@ -20,7 +20,7 @@ import {
   submitImpression,
   type BadgeSessionController,
 } from "@/components/achievements/badge";
-import type { AlphaMaskData } from "@/lib/badge/shape-utils";
+import type { AlphaMaskData } from "@/lib/achievements/badge/shape-utils";
 import {
   badgeChromeWidth,
   achievementDialogChromeInset,
