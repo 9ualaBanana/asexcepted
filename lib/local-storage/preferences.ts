@@ -2,10 +2,10 @@
 
 import { useLocalStorage } from "usehooks-ts";
 
-import { createBooleanPreference } from "@/lib/storage/boolean-preference";
-import { getStorageItem, setStorageItem } from "@/lib/storage/client";
-import { readJsonArray, writeJsonArray } from "@/lib/storage/json-preference";
-import { storageKeys } from "@/lib/storage/keys";
+import { createBooleanPreference } from "@/lib/local-storage/boolean-preference";
+import { getStorageItem, setStorageItem } from "@/lib/local-storage/client";
+import { readJsonArray, writeJsonArray } from "@/lib/local-storage/json-preference";
+import { storageKeys } from "@/lib/local-storage/keys";
 
 export const soundsEnabledPreference = createBooleanPreference({
   key: storageKeys.soundsEnabled,

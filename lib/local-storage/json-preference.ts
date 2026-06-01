@@ -1,4 +1,4 @@
-import { getStorageItem, setStorageItem } from "@/lib/storage/client";
+import { getStorageItem, setStorageItem } from "@/lib/local-storage/client";
 
 export function readJsonArray(key: string): string[] {
   const raw = getStorageItem(key);

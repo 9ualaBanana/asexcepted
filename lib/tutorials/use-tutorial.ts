@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { isTutorialCompleted, markTutorialCompleted } from "@/lib/storage";
+import { isTutorialCompleted, markTutorialCompleted } from "@/lib/local-storage";
 import type { TutorialId } from "@/lib/tutorials/registry";
 
 export function useTutorial(tutorialId: TutorialId) {

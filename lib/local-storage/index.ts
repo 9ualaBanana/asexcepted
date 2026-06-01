@@ -1,14 +1,14 @@
-export { storageKeys, type StorageKey } from "@/lib/storage/keys";
+export { storageKeys, type StorageKey } from "@/lib/local-storage/keys";
 export {
   getStorageItem,
   setStorageItem,
   removeStorageItem,
-} from "@/lib/storage/client";
+} from "@/lib/local-storage/client";
 export {
   createBooleanPreference,
   deserializeStoredBoolean,
-} from "@/lib/storage/boolean-preference";
-export { readJsonArray, writeJsonArray } from "@/lib/storage/json-preference";
+} from "@/lib/local-storage/boolean-preference";
+export { readJsonArray, writeJsonArray } from "@/lib/local-storage/json-preference";
 export {
   soundsEnabledPreference,
   useSoundsEnabledPreference,
@@ -24,4 +24,4 @@ export {
   useVisibilityFilterPreference,
   isTutorialCompleted,
   markTutorialCompleted,
-} from "@/lib/storage/preferences";
+} from "@/lib/local-storage/preferences";

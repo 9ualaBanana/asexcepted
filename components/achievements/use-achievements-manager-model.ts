@@ -35,7 +35,7 @@ import {
   resetHideLockedPreferenceForNewAccount,
   useHideLockedPreference,
   useVisibilityFilterPreference,
-} from "@/lib/storage";
+} from "@/lib/local-storage";
 import {
   canEditDedicatedVisibility,
   isDedicatedVisibilityDirty,

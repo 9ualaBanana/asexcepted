@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useBadgeDebugOverlayPreference } from "@/lib/storage";
+import { useBadgeDebugOverlayPreference } from "@/lib/local-storage";
 import { ensurePushRegistered } from "@/lib/push/ensure-push-registered";
 
 type AdminProfileToolsProps = {

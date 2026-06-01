@@ -39,7 +39,7 @@ export {
   resetHideLockedPreferenceForNewAccount,
   useVisibilityFilterPreference,
   type AchievementVisibilityFilter,
-} from "@/lib/storage";
+} from "@/lib/local-storage";
 
 export {
   BADGE_MODEL_BUCKET,

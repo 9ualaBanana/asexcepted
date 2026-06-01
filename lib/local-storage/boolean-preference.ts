@@ -2,7 +2,7 @@
 
 import { useLocalStorage } from "usehooks-ts";
 
-import { getStorageItem, setStorageItem } from "@/lib/storage/client";
+import { getStorageItem, setStorageItem } from "@/lib/local-storage/client";
 
 /** Supports legacy `"1"` / `"0"` and JSON booleans. */
 export function deserializeStoredBoolean(raw: string | null, fallback: boolean): boolean {
