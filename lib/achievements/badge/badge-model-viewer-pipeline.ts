@@ -11,7 +11,7 @@ import {
   type WebGLRenderer,
 } from "three";
 import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
+import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
 
 import { applyBadgeModelPose } from "@/lib/achievements/badge/badge-model-poses";
@@ -20,17 +20,14 @@ import {
   frameCameraForBadgeModel,
 } from "@/lib/achievements/badge/badge-model-rendering";
 
-/** Same exposure for live R3F viewers and poster snapshots. */
-export const BADGE_MODEL_TONE_MAPPING_EXPOSURE = 1;
-
-/** Fixed IBL strength (matches Drei Environment environmentIntensity). */
-export const BADGE_MODEL_ENVIRONMENT_INTENSITY = 1;
-
-/** Poly Haven studio HDRI — close to Drei `preset="studio"`. */
-const BADGE_MODEL_STUDIO_HDR_URL =
-  "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/studio_small_08_1k.hdr";
-
-export const BADGE_MODEL_CAMERA_FOV = 34;
+/**
+ * Live badge viewers use Drei `<Environment preset="studio" />` inside R3F
+ * (`badge-model-scene.tsx`). Poster snapshots use a plain `Scene` + offscreen
+ * `WebGLRenderer` with no React tree, so Drei's component cannot run there.
+ * We load the same kind of studio HDRI manually and bake it with PMREM so
+ * IBL matches as closely as possible. Set `NEXT_PUBLIC_BADGE_MODEL_STUDIO_HDR_URL`
+ * to point at another HDR if you need parity with a specific Drei preset asset.
+ */
 
 let sharedStudioEnvironmentMap: Texture | null = null;
 let studioEnvironmentLoadPromise: Promise<Texture> | null = null;
@@ -38,7 +35,9 @@ let studioEnvironmentLoadPromise: Promise<Texture> | null = null;
 export function configureBadgeModelRenderer(renderer: WebGLRenderer): void {
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
-  renderer.toneMappingExposure = BADGE_MODEL_TONE_MAPPING_EXPOSURE;
+  renderer.toneMappingExposure = Number(
+    process.env.NEXT_PUBLIC_BADGE_MODEL_TONE_MAPPING_EXPOSURE,
+  );
 }
 
 export async function getBadgeModelStudioEnvironment(
@@ -49,20 +48,30 @@ export async function getBadgeModelStudioEnvironment(
   }
 
   if (!studioEnvironmentLoadPromise) {
-    studioEnvironmentLoadPromise = new RGBELoader()
-      .loadAsync(BADGE_MODEL_STUDIO_HDR_URL)
-      .then((hdrTexture) => {
-        const pmremGenerator = new PMREMGenerator(renderer);
+    let hdrTexture: Texture | null = null;
+    let pmremGenerator: PMREMGenerator | null = null;
+
+    const hdrUrl =
+      process.env.NEXT_PUBLIC_BADGE_MODEL_STUDIO_HDR_URL?.trim() ||
+      "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/studio_small_08_1k.hdr";
+
+    studioEnvironmentLoadPromise = new HDRLoader()
+      .loadAsync(hdrUrl)
+      .then((hdr) => {
+        hdrTexture = hdr;
+        pmremGenerator = new PMREMGenerator(renderer);
         pmremGenerator.compileEquirectangularShader();
-        const envMap = pmremGenerator.fromEquirectangular(hdrTexture).texture;
-        hdrTexture.dispose();
-        pmremGenerator.dispose();
+        const envMap = pmremGenerator.fromEquirectangular(hdr).texture;
         sharedStudioEnvironmentMap = envMap;
         return envMap;
       })
       .catch((error) => {
         studioEnvironmentLoadPromise = null;
         throw error;
+      })
+      .finally(() => {
+        hdrTexture?.dispose();
+        pmremGenerator?.dispose();
       });
   }
 
@@ -75,7 +84,9 @@ export async function applyBadgeModelEnvironment(
 ): Promise<void> {
   configureBadgeModelRenderer(renderer);
   scene.environment = await getBadgeModelStudioEnvironment(renderer);
-  scene.environmentIntensity = BADGE_MODEL_ENVIRONMENT_INTENSITY;
+  scene.environmentIntensity = Number(
+    process.env.NEXT_PUBLIC_BADGE_MODEL_ENVIRONMENT_INTENSITY,
+  );
 }
 
 export type BadgeModelSceneGraph = {
@@ -97,7 +108,12 @@ export function buildBadgeModelSceneGraph(
   orbitRoot.add(model);
   applyBadgeModelPose(orbitRoot, yaw, pitch);
 
-  const camera = new PerspectiveCamera(BADGE_MODEL_CAMERA_FOV, 1, 0.01, 1000);
+  const camera = new PerspectiveCamera(
+    Number(process.env.NEXT_PUBLIC_BADGE_MODEL_CAMERA_FOV),
+    1,
+    0.01,
+    1000,
+  );
   frameCameraForBadgeModel(orbitRoot, camera);
 
   let mixer: AnimationMixer | null = null;

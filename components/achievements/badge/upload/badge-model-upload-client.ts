@@ -128,18 +128,18 @@ async function renderPosterFromGltf(
   const { orbitRoot, camera, mixer } = buildBadgeModelSceneGraph(gltf, yaw, pitch);
   scene.add(orbitRoot);
 
-  const warmupFrames = mixer ? 3 : 2;
-  for (let frame = 0; frame < warmupFrames; frame += 1) {
-    renderBadgeModelFrame(renderer, scene, camera, mixer, 1 / 30);
+  try {
+    const warmupFrames = mixer ? 3 : 2;
+    for (let frame = 0; frame < warmupFrames; frame += 1) {
+      renderBadgeModelFrame(renderer, scene, camera, mixer, 1 / 30);
+    }
+
+    return await canvasToPngBlob(renderer.domElement);
+  } finally {
+    mixer?.stopAllAction();
+    disposeObject3D(orbitRoot);
+    scene.clear();
   }
-
-  const blob = await canvasToPngBlob(renderer.domElement);
-
-  mixer?.stopAllAction();
-  disposeObject3D(orbitRoot);
-  scene.clear();
-
-  return blob;
 }
 
 export async function prepareBadgeModelUpload(

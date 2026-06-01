@@ -17,7 +17,6 @@ import {
   centerBadgeModelAtOrigin,
   frameCameraForBadgeModel,
 } from "@/lib/achievements/badge/badge-model-rendering";
-import { BADGE_MODEL_CAMERA_FOV } from "@/lib/achievements/badge/badge-model-viewer-pipeline";
 import { badgeModelViewStateCache } from "@/lib/achievements/badge/badge-model-view-state";
 
 import { useBadgeModelInteraction } from "./use-badge-model-interaction";
@@ -108,7 +107,7 @@ export function BadgeModelContent({
   useEffect(() => {
     if (!modelObject || !orbitRootRef.current) return;
     frameCameraForBadgeModel(orbitRootRef.current, camera);
-    camera.fov = BADGE_MODEL_CAMERA_FOV;
+    camera.fov = Number(process.env.NEXT_PUBLIC_BADGE_MODEL_CAMERA_FOV);
     camera.updateProjectionMatrix();
     invalidate();
   }, [camera, invalidate, modelObject]);

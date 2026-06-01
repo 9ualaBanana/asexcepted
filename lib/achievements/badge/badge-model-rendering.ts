@@ -1,10 +1,6 @@
 import { Box3, Mesh, Object3D, PerspectiveCamera, Vector3 } from "three";
 
-export {
-  BADGE_MODEL_ENVIRONMENT_INTENSITY,
-  BADGE_MODEL_TONE_MAPPING_EXPOSURE,
-  configureBadgeModelRenderer,
-} from "@/lib/achievements/badge/badge-model-viewer-pipeline";
+export { configureBadgeModelRenderer } from "@/lib/achievements/badge/badge-model-viewer-pipeline";
 
 export {
   BADGE_MODEL_DRACO_DECODER_CDN,
