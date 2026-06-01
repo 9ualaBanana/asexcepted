@@ -9,7 +9,6 @@ import {
   BADGE_MODEL_MAX_FILE_BYTES,
 } from "@/lib/achievements/badge/badge-assets";
 import { createConfiguredBadgeGltfLoader } from "@/lib/achievements/badge/badge-gltf-loader";
-import { BADGE_MODEL_POSE_PRESETS } from "@/lib/achievements/badge/badge-model-poses";
 import {
   applyBadgeModelEnvironment,
   buildBadgeModelSceneGraph,
@@ -148,9 +147,8 @@ export async function prepareBadgeModelUpload(
   const gltf = await parseGlbFile(file);
 
   const renderer = getSharedPosterRenderer();
-  const preset = BADGE_MODEL_POSE_PRESETS[0];
-  const initialYaw = preset?.yaw ?? 0;
-  const initialPitch = preset?.pitch ?? 0;
+  const initialYaw = 0;
+  const initialPitch = 0;
   const initialPreviewBlob = await renderPosterFromGltf(
     gltf,
     initialYaw,

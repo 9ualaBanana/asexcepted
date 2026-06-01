@@ -3,6 +3,7 @@ import {
   AnimationMixer,
   Group,
   LoopRepeat,
+  Object3D,
   PerspectiveCamera,
   PMREMGenerator,
   Scene,
@@ -14,7 +15,6 @@ import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
 
-import { applyBadgeModelPose } from "@/lib/achievements/badge/badge-model-poses";
 import {
   centerBadgeModelAtOrigin,
   frameCameraForBadgeModel,
@@ -140,4 +140,8 @@ export function renderBadgeModelFrame(
     mixer.update(deltaSeconds);
   }
   renderer.render(scene, camera);
+}
+
+export function applyBadgeModelPose(root: Object3D, yaw: number, pitch: number): void {
+  root.rotation.set(pitch, yaw, 0, "YXZ");
 }
