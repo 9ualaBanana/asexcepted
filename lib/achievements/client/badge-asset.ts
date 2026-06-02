@@ -1,7 +1,7 @@
 import { err, ok, type Result } from "neverthrow";
 
-import type { BadgeStorageRef } from "@/components/achievements/achievement-editor-shared";
-import { badgeStorageRefDeletePayload } from "@/lib/achievements/badge/shared/badge-model-asset";
+import type { RemoteAssetStorageRef } from "@/lib/upload/remote-asset-storage";
+import { remoteAssetStorageRefDeletePayload } from "@/lib/achievements/badge/shared/badge-model-asset";
 import {
   deleteBadgeRemoteAssetViaApi,
   requestSignedBadgeModelUrl,
@@ -15,8 +15,10 @@ export {
 } from "@/lib/achievements/client/badge-model-upload";
 export type { BadgeModelUploadSuccess } from "@/lib/achievements/client/badge-asset-api";
 
-export async function deleteBadgeRemoteAsset(ref: BadgeStorageRef): Promise<Result<void, string>> {
-  const result = await deleteBadgeRemoteAssetViaApi(badgeStorageRefDeletePayload(ref));
+export async function deleteBadgeRemoteAsset(
+  ref: RemoteAssetStorageRef,
+): Promise<Result<void, string>> {
+  const result = await deleteBadgeRemoteAssetViaApi(remoteAssetStorageRefDeletePayload(ref));
   if (result.isErr()) {
     return err(fetchFailureMessage(result.error));
   }

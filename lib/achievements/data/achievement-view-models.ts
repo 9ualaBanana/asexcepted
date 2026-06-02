@@ -104,7 +104,7 @@ const formToPayloadSchema = formStateSchema.transform<AchievementDbWritePayload>
   category: toNullable(form.category),
   icon: form.icon,
   icon_url: toNullable(form.iconUrl),
-  icon_file_id: normalizeImageKitFileId(form.iconFileId) || null,
+  icon_file_id: normalizeImageKitFileId(form.iconFileId),
   icon_asset_kind: form.iconAssetKind,
   icon_asset_path: toNullable(form.iconAssetPath),
   icon_cc_attribution: toNullable(form.iconCcAttribution),

@@ -8,12 +8,15 @@ import {
   useBadgeModelUploader,
   type BadgeModelUploadStaged,
 } from "@/components/achievements/badge/upload/model/use-badge-model-uploader";
-import { type BadgeStorageRef } from "@/components/achievements/achievement-editor-shared";
+import {
+  createRemoteAssetStorageRef,
+  type RemoteAssetStorageRef,
+} from "@/lib/upload/remote-asset-storage";
 
 type UseBadgeUploaderArgs = {
   instanceId: string;
   disabled: boolean;
-  onImageUploadSuccess: (ref: BadgeStorageRef, url: string) => void;
+  onImageUploadSuccess: (ref: RemoteAssetStorageRef, url: string) => void;
   onModelUploadSuccess: (staged: BadgeModelUploadStaged) => void;
   onUploadError: (message: string) => void;
   onUploadStart?: () => void;
@@ -84,13 +87,7 @@ export function useBadgeUploader({
     instanceId,
     disabled,
     onUploadSuccess: (url, fileId) => {
-      onImageUploadSuccess(
-        {
-          iconFileId: fileId,
-          modelAssetPath: "",
-        },
-        url,
-      );
+      onImageUploadSuccess(createRemoteAssetStorageRef({ iconFileId: fileId }), url);
       finishUpload();
     },
     onUploadError: (message) => {

@@ -17,8 +17,8 @@ import {
   discardProfileAvatarUploadSession,
   stageProfileAvatarUpload,
   type ProfileAvatarUploadSession,
-} from "@/lib/profile/profile-avatar-session";
-import { fetchProfileRow, updateProfileAvatar } from "@/lib/profile/profile-db";
+} from "@/components/achievements/badge/upload/profile-avatar-session";
+import { fetchProfileRow, updateProfileAvatar } from "@/lib/achievements/data/profile-db";
 import { ensurePushRegistered } from "@/lib/push/ensure-push-registered";
 import {
   fetchDevicePushRegistered,
@@ -188,7 +188,7 @@ export function ProfileSettings({
     }
 
     const nextUrl = avatarPreviewUrl.trim() || null;
-    const nextFileId = normalizeImageKitFileId(avatarFileId) || null;
+    const nextFileId = normalizeImageKitFileId(avatarFileId);
     const avatarUpdate = await updateProfileAvatar(supabase, userId, {
       avatar_url: nextUrl,
       avatar_file_id: nextFileId,

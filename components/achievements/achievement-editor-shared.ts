@@ -137,43 +137,14 @@ export type FormState = {
   visibility: AchievementVisibility;
 };
 
-/** ImageKit file id and/or Supabase GLB path — identity for upload rollback/delete only. */
-export type BadgeStorageRef = {
-  iconFileId: string;
-  modelAssetPath: string;
-};
+export type {
+  RemoteAssetStorageRef,
+  RemoteAssetStorageSession,
+} from "@/lib/upload/remote-asset-storage";
 
-/** ImageKit upload session — file ids only (preview URL lives in form/UI state). */
-export type BadgeIkSession = {
-  baselineFileId: string;
-  lastSessionFileId: string | null;
-};
-
-export type BadgeAssetSession = {
-  baseline: BadgeStorageRef;
-  staged: BadgeStorageRef | null;
-};
-
-export function createEmptyBadgeStorageRef(): BadgeStorageRef {
-  return {
-    iconFileId: "",
-    modelAssetPath: "",
-  };
-}
-
-export function createEmptyBadgeIkSession(): BadgeIkSession {
-  return {
-    baselineFileId: "",
-    lastSessionFileId: null,
-  };
-}
-
-export function createEmptyBadgeAssetSession(): BadgeAssetSession {
-  return {
-    baseline: createEmptyBadgeStorageRef(),
-    staged: null,
-  };
-}
+export {
+  createRemoteAssetStorageRef,
+} from "@/lib/upload/remote-asset-storage";
 
 export function hasMeaningfulContent(form: FormState) {
   return (

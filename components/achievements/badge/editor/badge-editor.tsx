@@ -18,14 +18,15 @@ import { BadgeAttributionPopover } from "@/components/achievements/badge/chrome/
 import { FallbackBadge } from "@/components/achievements/badge/display/fallback-badge";
 import { RemoteBadgeImage } from "@/components/achievements/badge/display/remote-badge-image";
 import {
-  deleteBadgeStorageRefQuietly,
-  getReplacedBadgeStorageRef,
+  deleteRemoteAssetStorageRefQuietly,
+  getReplacedRemoteAssetStorageRef,
 } from "@/components/achievements/badge/upload/badge-asset-session";
 import {
-  type BadgeStorageRef,
+  type RemoteAssetStorageRef,
   type AchievementIconKey,
   iconMap,
 } from "@/components/achievements/achievement-editor-shared";
+import { createRemoteAssetStorageRef } from "@/lib/upload/remote-asset-storage";
 import { Button } from "@/components/ui/button";
 import { useErrorToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
@@ -58,7 +59,7 @@ type BadgeEditorProps = {
   iconFileId: string;
   /** Parsed GLB badge fields; null for flat image badges. */
   model: BadgeModelAsset | null;
-  baselineRef: BadgeStorageRef;
+  baselineRef: RemoteAssetStorageRef;
   tone: AchievementTone;
   isLocked: boolean;
   icon: AchievementIconKey;
@@ -67,7 +68,7 @@ type BadgeEditorProps = {
   canToggleLocked?: boolean;
   onIconChange: (icon: AchievementIconKey) => void;
   /** Called after a successful remote upload with the resolved badge preview + asset metadata. */
-  onUploadStorageCommit: (ref: BadgeStorageRef) => void;
+  onUploadStorageCommit: (ref: RemoteAssetStorageRef) => void;
   onImageUrlChange: (url: string) => void;
   onIconFileIdChange: (fileId: string) => void;
   onModelChange: (model: BadgeModelAsset | null) => void;
@@ -150,14 +151,12 @@ export function BadgeEditor({
 
   const trimmed = imageUrl.trim();
   const hasRemote = trimmed.length > 0;
-  const currentStorageRef: BadgeStorageRef = {
-    iconFileId: iconFileId.trim(),
-    modelAssetPath: model?.assetPath ?? "",
-  };
+  const currentStorageRef: RemoteAssetStorageRef = createRemoteAssetStorageRef({
+    iconFileId,
+    modelAssetPath: model?.assetPath,
+  });
   const hasCustomBadge =
-    hasRemote ||
-    currentStorageRef.iconFileId.length > 0 ||
-    currentStorageRef.modelAssetPath.length > 0;
+    hasRemote || Boolean(currentStorageRef.iconFileId ?? currentStorageRef.modelAssetPath);
   const isModelAsset = model !== null;
 
   const patchModel = useCallback(
@@ -187,7 +186,7 @@ export function BadgeEditor({
     onImageUploadSuccess: (ref, url) => {
       setError(null);
       onImageUrlChange(url);
-      onIconFileIdChange(ref.iconFileId);
+      onIconFileIdChange(ref.iconFileId ?? "");
       onModelChange(null);
       onUploadStorageCommitRef.current(ref);
       setMenuOpen(false);
@@ -251,11 +250,13 @@ export function BadgeEditor({
     setIsRemoving(true);
     setError(null);
     try {
-      const stagedRefToDelete = getReplacedBadgeStorageRef(
+      const stagedRefToDelete = getReplacedRemoteAssetStorageRef(
         currentStorageRef,
         baselineRef,
       );
-      await deleteBadgeStorageRefQuietly(stagedRefToDelete, (e) => console.warn(e));
+      if (stagedRefToDelete) {
+        await deleteRemoteAssetStorageRefQuietly(stagedRefToDelete, (e) => console.warn(e));
+      }
       onImageUrlChange("");
       onIconFileIdChange("");
       onModelChange(null);

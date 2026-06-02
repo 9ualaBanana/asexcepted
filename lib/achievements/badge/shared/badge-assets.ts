@@ -11,6 +11,7 @@ export {
   applyBadgeModelToForm,
   badgeModelFromForm,
   badgeModelFromStagedUpload,
+  remoteAssetStorageRefDeletePayload,
   badgeStorageRefDeletePayload,
   patchBadgeModelAsset,
   isModelBadgeAssetKind,

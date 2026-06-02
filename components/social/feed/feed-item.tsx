@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { getSafeIcon } from "@/components/achievements/achievement-editor-shared";
 import {
   BadgeSlot,
   FallbackBadge,
@@ -26,6 +27,7 @@ type FeedItemProps = {
 };
 
 export function FeedItem({ row }: FeedItemProps) {
+  const FallbackIcon = getSafeIcon(row.icon);
   const href = links.achievementDetail(
     row.userId,
     row.achievementId,
@@ -69,7 +71,7 @@ export function FeedItem({ row }: FeedItemProps) {
                 <FallbackBadge
                   tone={row.tone}
                   isLocked={false}
-                  FallbackIcon={row.FallbackIcon}
+                  FallbackIcon={FallbackIcon}
                   size="grid"
                 />
               )}

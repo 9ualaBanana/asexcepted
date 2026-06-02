@@ -122,22 +122,25 @@ export function parseBadgeModelAsset(
   };
 }
 
-/** Flatten {@link BadgeStorageRef} for the delete API route. */
-export function badgeStorageRefDeletePayload(ref: {
-  iconFileId: string;
-  modelAssetPath: string;
+/** Flatten {@link RemoteAssetStorageRef} for the delete API route. */
+export function remoteAssetStorageRefDeletePayload(ref: {
+  iconFileId: string | null;
+  modelAssetPath: string | null;
 }): {
   iconFileId: string;
   iconAssetKind: IconAssetKind;
   iconAssetPath: string;
 } {
-  const modelAssetPath = ref.modelAssetPath.trim();
+  const modelAssetPath = ref.modelAssetPath?.trim() ?? "";
   return {
-    iconFileId: ref.iconFileId,
+    iconFileId: ref.iconFileId ?? "",
     iconAssetKind: modelAssetPath ? BADGE_MODEL_ASSET_KIND : "image",
     iconAssetPath: modelAssetPath,
   };
 }
+
+/** @deprecated Use {@link remoteAssetStorageRefDeletePayload} */
+export const badgeStorageRefDeletePayload = remoteAssetStorageRefDeletePayload;
 
 export type BadgeModelFormFields = Pick<
   FormState,

@@ -3,10 +3,11 @@
 import { useRef, useState } from "react";
 
 import {
-  createBadgeStorageRef,
-  clearSessionStagedUpload,
-  deleteBadgeStorageRefQuietly,
-  getReplacedBadgeStorageRef,
+  beginRemoteAssetStorageSession,
+  commitRemoteAssetStorageBaseline,
+  createEmptyRemoteAssetStorageSession,
+  deleteRemoteAssetStorageRefQuietly,
+  getReplacedRemoteAssetStorageRef,
   rollbackBadgeUploadSession,
 } from "@/components/achievements/badge/upload/badge-asset-session";
 import {
@@ -15,15 +16,17 @@ import {
 } from "@/components/achievements/badge/upload/model/badge-model-pose-session";
 import { clearBadgeModelPoseSessionRef } from "@/components/achievements/badge/upload/model/use-badge-model-uploader";
 import {
-  createEmptyBadgeAssetSession,
+  getSafeIconAssetKind,
   type IconAssetKind,
-  type BadgeAssetSession,
-  type BadgeStorageRef,
+  type RemoteAssetStorageSession,
   type FormState,
 } from "@/components/achievements/achievement-editor-shared";
-import { sanitizeBadgeAssetPath } from "@/lib/achievements/badge/shared/badge-assets";
 import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
 import { finalizeBadgeModelUpload } from "@/lib/achievements/client/badge-asset";
+import {
+  createRemoteAssetStorageRef,
+  type RemoteAssetStorageRef,
+} from "@/lib/upload/remote-asset-storage";
 
 type UseBadgeSessionControllerArgs = {
   isCreating: boolean;
@@ -31,7 +34,7 @@ type UseBadgeSessionControllerArgs = {
 };
 
 /**
- * Owns badge ImageKit session refs + upload flags for create/edit flows.
+ * Owns badge upload session refs + upload flags for create/edit flows.
  */
 export function useBadgeSessionController({
   isCreating,
@@ -39,8 +42,12 @@ export function useBadgeSessionController({
 }: UseBadgeSessionControllerArgs) {
   const [createUploadInProgress, setCreateUploadInProgress] = useState(false);
   const [panelUploadInProgress, setPanelUploadInProgress] = useState(false);
-  const createBadgeAssetSessionRef = useRef<BadgeAssetSession>(createEmptyBadgeAssetSession());
-  const panelBadgeAssetSessionRef = useRef<BadgeAssetSession>(createEmptyBadgeAssetSession());
+  const createBadgeAssetSessionRef = useRef<RemoteAssetStorageSession>(
+    createEmptyRemoteAssetStorageSession(),
+  );
+  const panelBadgeAssetSessionRef = useRef<RemoteAssetStorageSession>(
+    createEmptyRemoteAssetStorageSession(),
+  );
   const createModelPoseSessionRef = useRef<BadgeModelPoseSession | null>(null);
   const panelModelPoseSessionRef = useRef<BadgeModelPoseSession | null>(null);
 
@@ -102,7 +109,7 @@ export function useBadgeSessionController({
   };
 
   const beginCreateBadgeSession = () => {
-    createBadgeAssetSessionRef.current = createEmptyBadgeAssetSession();
+    createBadgeAssetSessionRef.current = createEmptyRemoteAssetStorageSession();
     clearModelPoseSession("create");
   };
 
@@ -119,24 +126,22 @@ export function useBadgeSessionController({
     iconModelYaw?: number | null;
     iconModelPitch?: number | null;
   }) => {
-    createBadgeAssetSessionRef.current = {
-      baseline: createBadgeStorageRef({
-        iconFileId: asset.iconFileId ?? "",
-        modelAssetPath: sanitizeBadgeAssetPath(asset.iconAssetPath),
+    createBadgeAssetSessionRef.current = beginRemoteAssetStorageSession(
+      createRemoteAssetStorageRef({
+        iconFileId: asset.iconFileId,
+        modelAssetPath:
+          getSafeIconAssetKind(asset.iconAssetKind) === "model_glb"
+            ? asset.iconAssetPath
+            : null,
       }),
-      staged: null,
-    };
+    );
     clearModelPoseSession("create");
   };
 
   const beginPanelBadgeSession = (detail: AchievementDetailViewModel) => {
-    panelBadgeAssetSessionRef.current = {
-      baseline: createBadgeStorageRef({
-        iconFileId: detail.iconFileId ?? "",
-        modelAssetPath: detail.model?.assetPath ?? "",
-      }),
-      staged: null,
-    };
+    panelBadgeAssetSessionRef.current = beginRemoteAssetStorageSession(
+      createRemoteAssetStorageRef(detail),
+    );
     clearModelPoseSession("panel");
   };
 
@@ -146,19 +151,11 @@ export function useBadgeSessionController({
   };
 
   const commitPanelBadgeSession = (updated: AchievementDetailViewModel) => {
-    const nextBaseline = createBadgeStorageRef({
-      iconFileId: updated.iconFileId ?? "",
-      modelAssetPath: updated.model?.assetPath ?? "",
-    });
-    const replacedBaselineRef = getReplacedBadgeStorageRef(
-      panelBadgeAssetSessionRef.current.baseline,
+    const nextBaseline = createRemoteAssetStorageRef(updated);
+    const replacedBaselineRef = commitRemoteAssetStorageBaseline(
+      panelBadgeAssetSessionRef.current,
       nextBaseline,
     );
-    panelBadgeAssetSessionRef.current = {
-      baseline: nextBaseline,
-      staged: panelBadgeAssetSessionRef.current.staged,
-    };
-    clearSessionStagedUpload(panelBadgeAssetSessionRef.current);
     clearModelPoseSession("panel");
     return replacedBaselineRef;
   };
@@ -168,41 +165,40 @@ export function useBadgeSessionController({
     deletedAchievementId: string,
     detailAchievementId: string | null,
   ) => {
-    const persistedRef = createBadgeStorageRef(
-      target
-        ? {
-            iconFileId: target.iconFileId ?? "",
-            modelAssetPath: target.model?.assetPath ?? "",
-          }
-        : null,
-    );
+    const persistedRef = createRemoteAssetStorageRef(target ?? {});
+
     const stagedPanelAsset =
       detailAchievementId === deletedAchievementId
         ? panelBadgeAssetSessionRef.current.staged
         : null;
 
-    await deleteBadgeStorageRefQuietly(persistedRef, (e) =>
+    await deleteRemoteAssetStorageRefQuietly(persistedRef, (e) =>
       console.warn("Badge asset delete on achievement remove", e),
     );
-    const stagedToDelete = getReplacedBadgeStorageRef(stagedPanelAsset, persistedRef);
-    if (stagedToDelete) {
-      await deleteBadgeStorageRefQuietly(stagedToDelete, (e) =>
-        console.warn("Badge staged asset delete on achievement remove", e),
+    if (stagedPanelAsset) {
+      const stagedToDelete = getReplacedRemoteAssetStorageRef(
+        stagedPanelAsset,
+        persistedRef,
       );
+      if (stagedToDelete) {
+        await deleteRemoteAssetStorageRefQuietly(stagedToDelete, (e) =>
+          console.warn("Badge staged asset delete on achievement remove", e),
+        );
+      }
     }
 
     if (detailAchievementId === deletedAchievementId) {
-      panelBadgeAssetSessionRef.current = createEmptyBadgeAssetSession();
+      panelBadgeAssetSessionRef.current = createEmptyRemoteAssetStorageSession();
       setPanelUploadInProgress(false);
       clearModelPoseSession("panel");
     }
   };
 
   const deleteStorageRefQuietly = async (
-    ref: Partial<BadgeStorageRef> | null | undefined,
+    ref: RemoteAssetStorageRef,
     warningContext: string,
   ) => {
-    await deleteBadgeStorageRefQuietly(ref, (e) => console.warn(warningContext, e));
+    await deleteRemoteAssetStorageRefQuietly(ref, (e) => console.warn(warningContext, e));
   };
 
   return {

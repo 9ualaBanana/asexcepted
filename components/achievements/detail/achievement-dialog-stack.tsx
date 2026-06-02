@@ -26,7 +26,7 @@ import {
   achievementDialogChromeInset,
   achievementDialogIconBtn,
   achievementDialogIconSideSlot,
-  type BadgeAssetSession,
+  type RemoteAssetStorageSession,
   formatAchievedAt,
   type FormState,
 } from "@/components/achievements/achievement-editor-shared";
@@ -57,7 +57,7 @@ export type AchievementDialogStackProps = {
   createForm: FormState;
   setCreateForm: Dispatch<SetStateAction<FormState>>;
   setCreateUploadInProgress: (inProgress: boolean) => void;
-  createBadgeAssetSessionRef: RefObject<BadgeAssetSession>;
+  createBadgeAssetSessionRef: RefObject<RemoteAssetStorageSession>;
   onSubmitCreate: (e: FormEvent) => void | Promise<void>;
   onCancelCreate: () => void;
 
@@ -68,7 +68,7 @@ export type AchievementDialogStackProps = {
   panelForm: FormState;
   setPanelForm: Dispatch<SetStateAction<FormState>>;
   setPanelUploadInProgress: (inProgress: boolean) => void;
-  panelBadgeAssetSessionRef: RefObject<BadgeAssetSession>;
+  panelBadgeAssetSessionRef: RefObject<RemoteAssetStorageSession>;
   onSubmitPanelSave: (e: FormEvent) => void | Promise<void>;
   onSubmitPanelVisibilitySave: () => void | Promise<void>;
   onCancelPanelEdit: () => void;

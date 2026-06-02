@@ -22,7 +22,8 @@ export { useSignedBadgeModelUrl } from "./model";
 export {
   revokeBadgeModelPoseSession,
   type BadgeModelPoseSession,
-} from "./upload/model/badge-model-pose-session";
+  type BadgeModelPoseSessionApi,
+} from "./upload/session/badge-model-pose-session";
 export {
   prepareBadgeModelUpload,
   type PreparedBadgeModelUpload,
@@ -47,14 +48,14 @@ export {
 export { BadgeEditor } from "./editor/badge-editor";
 
 export {
-  createBadgeStorageRef,
+  beginRemoteAssetStorageSession,
   clearSessionStagedUpload,
   setSessionStagedUpload,
-  deleteBadgeStorageRefQuietly,
-  getReplacedBadgeStorageRef,
+  deleteRemoteAssetStorageRefQuietly,
+  getReplacedRemoteAssetStorageRef,
   rollbackBadgeUploadSession,
 } from "./upload/badge-asset-session";
-export { normalizeImageKitFileId } from "./upload/image/badge-imagekit-session";
+export { normalizeImageKitFileId } from "@/lib/imagekit/client/imagekit-api";
 export { useBadgeImageUploader } from "./upload/image/use-badge-image-uploader";
 
 export { useBadgeMetricsController } from "./hooks/use-badge-metrics-controller";

@@ -1,12 +1,9 @@
-import type { LucideIcon } from "lucide-react";
-
 import {
   type AchievementTone,
   getSafeTone,
 } from "@/components/achievements/achievement-manager-utils";
 import {
   type AchievementIconKey,
-  getSafeIcon,
   getSafeIconKey,
 } from "@/components/achievements/achievement-editor-shared";
 import {
@@ -36,7 +33,6 @@ export type AchievementFeedItemViewModel = {
   icon: AchievementIconKey;
   displaySrc: string | null;
   tone: AchievementTone;
-  FallbackIcon: LucideIcon;
   showDedicatedGlitter: boolean;
   isDedicated: boolean;
   achievedAt: string | null;
@@ -119,7 +115,6 @@ export function feedRowSourceToViewModel(row: FeedRowSource): AchievementFeedIte
     icon: getSafeIconKey(row.icon),
     displaySrc,
     tone: getSafeTone(row.tone),
-    FallbackIcon: getSafeIcon(row.icon),
     showDedicatedGlitter:
       isDedicated && !isModelBadgeAssetKind(row.icon_asset_kind) && iconUrl !== null,
     isDedicated,

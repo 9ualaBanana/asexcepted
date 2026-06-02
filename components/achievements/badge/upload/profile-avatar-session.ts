@@ -1,29 +1,27 @@
-import type { BadgeIkSession } from "@/components/achievements/achievement-editor-shared";
 import {
+  beginRemoteAssetStorageSession,
   clearSessionStagedUpload,
-  deleteImageKitFileQuietly,
-  getReplacedImageKitFileId,
-  normalizeImageKitFileId,
+  commitRemoteAssetStorageBaseline,
   rollbackBadgeUploadSession,
   setSessionStagedUpload,
-} from "@/components/achievements/badge/upload/image/badge-imagekit-session";
+} from "@/components/achievements/badge/upload/badge-asset-session";
+import type { RemoteAssetStorageSession } from "@/lib/upload/remote-asset-storage";
+import {
+  createRemoteAssetStorageRef,
+  type RemoteAssetStorageRef,
+} from "@/lib/upload/remote-asset-storage";
+import {
+  deleteImageKitFileQuietly,
+} from "@/lib/imagekit/client/imagekit-api";
 
-export type ProfileAvatarUploadSession = BadgeIkSession;
-
-export function createEmptyProfileAvatarSession(): ProfileAvatarUploadSession {
-  return {
-    baselineFileId: "",
-    lastSessionFileId: null,
-  };
-}
+export type ProfileAvatarUploadSession = RemoteAssetStorageSession;
 
 export function beginProfileAvatarSession(
   savedFileId: string,
 ): ProfileAvatarUploadSession {
-  return {
-    baselineFileId: savedFileId.trim(),
-    lastSessionFileId: null,
-  };
+  return beginRemoteAssetStorageSession(
+    createRemoteAssetStorageRef({ iconFileId: savedFileId }),
+  );
 }
 
 /**
@@ -35,7 +33,7 @@ export function stageProfileAvatarUpload(
   fileId: string,
 ): void {
   rollbackBadgeUploadSession(session);
-  setSessionStagedUpload(session, fileId);
+  setSessionStagedUpload(session, createRemoteAssetStorageRef({ iconFileId: fileId }));
 }
 
 /** Discard staged avatar upload(s); UI should revert to saved preview state. */
@@ -52,20 +50,25 @@ export function commitProfileAvatarUploadSession(
   session: ProfileAvatarUploadSession,
   savedFileId: string,
 ): string | null {
-  const replacedBaselineId = getReplacedImageKitFileId(
-    session.baselineFileId,
-    savedFileId,
+  const replacedBaseline = commitRemoteAssetStorageBaseline(
+    session,
+    createRemoteAssetStorageRef({ iconFileId: savedFileId }),
   );
-  session.baselineFileId = normalizeImageKitFileId(savedFileId);
-  clearSessionStagedUpload(session);
-  return replacedBaselineId;
+  return replacedBaseline?.iconFileId ?? null;
+}
+
+export async function deleteProfileAvatarFileQuietly(
+  fileId: string | null | undefined,
+  onError?: (error: unknown) => void,
+): Promise<void> {
+  await deleteImageKitFileQuietly(fileId, onError);
 }
 
 export {
   clearSessionStagedUpload as clearProfileAvatarStagedUpload,
   deleteImageKitFileQuietly,
-  getReplacedImageKitFileId,
-  normalizeImageKitFileId,
   rollbackBadgeUploadSession as rollbackProfileAvatarSession,
   setSessionStagedUpload as setProfileAvatarStagedUpload,
 };
+
+export type { RemoteAssetStorageRef };

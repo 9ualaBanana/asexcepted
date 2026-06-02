@@ -26,7 +26,7 @@ import {
   achievementDialogChromeInset,
   achievementDialogIconBtn,
   achievementDialogIconSideSlot,
-  type BadgeAssetSession,
+  type RemoteAssetStorageSession,
   type FormState,
   hasMeaningfulContent,
 } from "@/components/achievements/achievement-editor-shared";
@@ -37,6 +37,7 @@ import {
   applyBadgeModelToForm,
   badgeModelFromForm,
 } from "@/lib/achievements/badge/shared/badge-model-asset";
+import { createRemoteAssetStorageRef } from "@/lib/upload/remote-asset-storage";
 import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
 
 export type EditorCardProps = {
@@ -45,7 +46,7 @@ export type EditorCardProps = {
   isSaving: boolean;
   onSubmit: (e: FormEvent) => void;
   onCancel?: () => void;
-  badgeAssetSessionRef: RefObject<BadgeAssetSession>;
+  badgeAssetSessionRef: RefObject<RemoteAssetStorageSession>;
   onClosePanel?: () => void;
   /** Panel edit (not create): top back, bottom save / visibility / delete. */
   showEditChrome?: boolean;
@@ -191,7 +192,7 @@ export function EditableAchievementCard({
               rollbackBadgeUploadSession(badgeAssetSessionRef.current);
               setSessionStagedUpload(badgeAssetSessionRef.current, ref);
               setForm((prev) =>
-                applyBadgeModelToForm({ ...prev, iconFileId: ref.iconFileId }, null),
+                applyBadgeModelToForm({ ...prev, iconFileId: ref.iconFileId ?? "" }, null),
               );
             }}
             onModelUploadStaged={(staged) => {
@@ -200,10 +201,10 @@ export function EditableAchievementCard({
                 staged.poseSession,
                 isCreatingFlow ? "create" : "panel",
               );
-              setSessionStagedUpload(badgeAssetSessionRef.current, {
-                iconFileId: "",
-                modelAssetPath: staged.modelPath,
-              });
+              setSessionStagedUpload(
+                badgeAssetSessionRef.current,
+                createRemoteAssetStorageRef({ modelAssetPath: staged.modelPath }),
+              );
               setForm((prev) => applyBadgeModelPoseSessionToForm(prev, staged));
             }}
             onImageUrlChange={(url) =>

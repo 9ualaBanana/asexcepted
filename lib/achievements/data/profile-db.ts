@@ -34,7 +34,7 @@ export async function fetchProfileRow(
   return ok({
     user_id: data.user_id,
     avatar_url: data.avatar_url,
-    avatar_file_id: normalizeImageKitFileId(data.avatar_file_id) || null,
+    avatar_file_id: normalizeImageKitFileId(data.avatar_file_id),
   });
 }
 
