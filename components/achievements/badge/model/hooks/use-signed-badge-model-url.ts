@@ -2,7 +2,7 @@
 
 import { useEffect, useEffectEvent, useState } from "react";
 
-import { fetchSignedBadgeModelUrl } from "@/lib/badge-asset-client";
+import { fetchSignedBadgeModelUrl } from "@/lib/achievements/client/badge-asset";
 
 export function useSignedBadgeModelUrl(
   assetPath: string,
@@ -27,21 +27,18 @@ export function useSignedBadgeModelUrl(
     setLoading(true);
     setError(null);
 
-    void fetchSignedBadgeModelUrl(trimmedPath)
-      .then((url) => {
-        if (!cancelled) {
-          setSignedUrl(url);
-          setLoading(false);
-          notifyUrlReady();
-        }
-      })
-      .catch((nextError) => {
-        if (!cancelled) {
-          setSignedUrl(null);
-          setLoading(false);
-          setError(nextError instanceof Error ? nextError.message : "Could not load badge model.");
-        }
-      });
+    void fetchSignedBadgeModelUrl(trimmedPath).then((result) => {
+      if (cancelled) return;
+      if (result.isOk()) {
+        setSignedUrl(result.value);
+        setLoading(false);
+        notifyUrlReady();
+        return;
+      }
+      setSignedUrl(null);
+      setLoading(false);
+      setError(result.error);
+    });
 
     return () => {
       cancelled = true;

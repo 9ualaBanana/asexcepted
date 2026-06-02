@@ -28,7 +28,7 @@ import {
   iconMap,
 } from "@/components/achievements/achievement-editor-shared";
 import { Button } from "@/components/ui/button";
-import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-src";
+import { toOptimizedRenderSrc } from "@/lib/achievements/badge/shared/render-src";
 import { useErrorToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { BadgeGltfViewer, useSignedBadgeModelUrl } from "@/components/achievements/badge/model";
@@ -381,7 +381,7 @@ export function BadgeEditor({
           isModelAsset && editorSignedModelUrl ? (
             <BadgeGltfViewer
               signedModelUrl={editorSignedModelUrl}
-              previewSrc={toOptimizedBadgeRenderSrc(trimmed)}
+              previewSrc={toOptimizedRenderSrc(trimmed)}
               className={cn("p-1", busy && "scale-[0.96] blur-[3.5px] opacity-[0.72]")}
               float={false}
               motionSeed={currentAsset.iconAssetPath || trimmed}
@@ -396,7 +396,7 @@ export function BadgeEditor({
             />
           ) : (
             <RemoteBadgeImage
-              src={toOptimizedBadgeRenderSrc(trimmed)}
+              src={toOptimizedRenderSrc(trimmed)}
               className={cn(
                 "p-1 transition-all duration-500 ease-out",
                 "h-full w-full object-contain drop-shadow-lg",

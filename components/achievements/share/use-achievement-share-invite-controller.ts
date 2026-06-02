@@ -7,7 +7,7 @@ import { copyTextToClipboard } from "@/lib/copy-text-to-clipboard";
 import {
   postCreateAchievementShareInvite,
   type AchievementShareInviteIntent,
-} from "@/lib/share-invites/share-invite-api";
+} from "@/lib/achievements/client/share-invite-api";
 import { showErrorToast, toast } from "@/lib/toast";
 
 type NativeShareAttemptResult = "shared" | "cancelled" | "fallback";

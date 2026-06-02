@@ -2,6 +2,7 @@
 
 import { getToken } from "firebase/messaging";
 
+import { postPushRegister } from "@/lib/push/client/push-api";
 import { ROUTES } from "@/lib/routes";
 import { createClient } from "@/lib/supabase/client";
 import { getFirebaseMessagingClient } from "@/lib/push/firebase-client";
@@ -58,17 +59,11 @@ export async function ensurePushRegistered({
   });
   if (!token) return "misconfigured";
 
-  const response = await fetch("/api/push/register", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ token, platform: detectPlatform() }),
+  const registerResult = await postPushRegister({
+    token,
+    platform: detectPlatform(),
   });
-
-  const payload = (await response.json().catch(() => ({}))) as {
-    ok?: boolean;
-    error?: string;
-  };
-  if (!response.ok || !payload.ok) {
+  if (registerResult.isErr()) {
     return "register-failed";
   }
 

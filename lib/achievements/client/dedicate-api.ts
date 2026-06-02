@@ -1,5 +1,8 @@
 import { err, ok, type Result } from "neverthrow";
+import { z } from "zod";
+
 import type { AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
+import { fetchFailureMessage, postJson } from "@/lib/client/fetch-json";
 
 export type DedicateAchievementApiBody = {
   recipientUserId: string;
@@ -19,6 +22,10 @@ export type DedicateAchievementApiBody = {
   tone: string;
   achieved_at: AchievementDbWritePayload["achieved_at"];
 };
+
+const dedicateSuccessSchema = z.object({
+  achievementId: z.string().uuid(),
+});
 
 export function payloadToDedicateApiBody(
   recipientUserId: string,
@@ -47,24 +54,14 @@ export function payloadToDedicateApiBody(
 export async function postDedicateAchievement(
   body: DedicateAchievementApiBody,
 ): Promise<Result<{ achievementId: string }, string>> {
-  const response = await fetch("/api/achievements/dedicate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  const data = (await response.json().catch(() => null)) as {
-    error?: string;
-    achievementId?: string;
-  } | null;
-
-  if (!response.ok) {
-    return err(data?.error ?? "Could not dedicate achievement.");
+  const result = await postJson(
+    "/api/achievements/dedicate",
+    body,
+    dedicateSuccessSchema,
+    "Invalid dedication response.",
+  );
+  if (result.isErr()) {
+    return err(fetchFailureMessage(result.error));
   }
-
-  if (!data?.achievementId) {
-    return err("Invalid dedication response.");
-  }
-
-  return ok({ achievementId: data.achievementId });
+  return ok(result.value);
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import type { BadgeIkSession } from "@/components/achievements/achievement-editor-shared";
-import { deleteImageKitFile } from "@/lib/imagekit-client";
+import { deleteImageKitFile } from "@/lib/imagekit/client/imagekit-api";
 
 export function normalizeImageKitFileId(fileId: string | null | undefined): string {
   return fileId?.trim() ?? "";
@@ -34,7 +34,7 @@ export function rollbackBadgeUploadSession(session: BadgeIkSession): void {
     session.baselineFileId,
   );
   if (stagedToDelete) {
-    void deleteImageKitFile(stagedToDelete).catch(() => undefined);
+    void deleteImageKitFile(stagedToDelete);
   }
   clearSessionStagedUpload(session);
 }
@@ -55,9 +55,8 @@ export async function deleteImageKitFileQuietly(
 ): Promise<void> {
   const normalized = normalizeImageKitFileId(fileId);
   if (!normalized) return;
-  try {
-    await deleteImageKitFile(normalized);
-  } catch (error) {
-    onError?.(error);
+  const result = await deleteImageKitFile(normalized);
+  if (result.isErr()) {
+    onError?.(new Error(result.error));
   }
 }

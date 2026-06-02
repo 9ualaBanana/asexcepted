@@ -19,7 +19,7 @@ import { NextResponse } from "next/server";
 import {
   isImageKitReachabilityError,
   logImageKitRouteError,
-} from "@/lib/imagekit-route-errors";
+} from "@/lib/imagekit/imagekit-route-errors";
 import {
   getImageKitServerClient,
   isImageKitServerConfigured,

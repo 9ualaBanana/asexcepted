@@ -34,7 +34,7 @@ export {
 export {
   badgeDisplaySrcFromIconUrl,
   badgeRenderSrcFromIconUrl,
-  toOptimizedBadgeRenderSrc,
+  toOptimizedRenderSrc,
 } from "./render-src";
 
 export {

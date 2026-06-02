@@ -4,11 +4,11 @@ import { ImagePlus, UserRound } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
-import { toOptimizedAvatarRenderSrc } from "@/lib/profile/avatar-render-src";
 import { useImageKitImageUploader } from "@/lib/imagekit/use-imagekit-image-uploader";
 import { useErrorToast } from "@/lib/toast";
 
 import "@uppy/core/css/style.min.css";
+import { toOptimizedRenderSrc as toOptimizedRenderSrc } from "@/lib/achievements/badge/shared/render-src";
 
 export type ProfileAvatarSlotLayout = "profile" | "feed-overlay";
 
@@ -53,7 +53,7 @@ export function ProfileAvatarSlot({
 
   const trimmed = imageUrl?.trim() ?? "";
   const hasImage = trimmed.length > 0;
-  const displaySrc = hasImage ? toOptimizedAvatarRenderSrc(trimmed) : null;
+  const displaySrc = hasImage ? toOptimizedRenderSrc(trimmed) : null;
 
   const { queueUpload, uploadInProgress } = useImageKitImageUploader({
     instanceId: uppyInstanceId,
@@ -62,7 +62,7 @@ export function ProfileAvatarSlot({
     maxFileSizeBytes: Number(process.env.NEXT_PUBLIC_PROFILE_AVATAR_MAX_FILE_BYTES),
     maxEdgePx: Number(process.env.NEXT_PUBLIC_PROFILE_AVATAR_MAX_EDGE_PX),
     defaultFileName: "avatar",
-    toRenderSrc: toOptimizedAvatarRenderSrc,
+    toRenderSrc: toOptimizedRenderSrc,
     onUploadSuccess: (url, fileId) => {
       setError(null);
       onUploadSuccessRef.current?.(url, fileId);

@@ -51,7 +51,7 @@ import {
 import {
   payloadToDedicateApiBody,
   postDedicateAchievement,
-} from "@/lib/dedications/dedicate-achievement-api";
+} from "@/lib/achievements/client/dedicate-api";
 import {
   buildAchievementAbility,
   getAchievementPermissions,

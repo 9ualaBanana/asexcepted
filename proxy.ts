@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { allowRateLimit } from "@/lib/embed-rate-limit";
+import { allowRateLimit } from "@/lib/embed/embed-rate-limit";
 import { updateSession } from "@/lib/supabase/update-session";
 
 export async function proxy(request: NextRequest) {

@@ -15,7 +15,7 @@ import { achievementToForm, formToPayload } from "@/lib/achievements/data/achiev
 import type { BadgeSessionController } from "@/components/achievements/badge/upload/use-badge-session-controller";
 import type { AchievementUiStateActions } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
 import { clearBadgeRenderCacheForSrc, prewarmBadgeRenderCache } from "@/lib/achievements/badge/shared/render-cache";
-import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-src";
+import { toOptimizedRenderSrc } from "@/lib/achievements/badge/shared/render-src";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 type UseAchievementEditorPipelineControllerArgs = {
@@ -224,7 +224,7 @@ export function useAchievementEditorPipelineController({
       const createdAchievement = result.value;
       const createdSrc = createdAchievement.icon_url?.trim() ?? "";
       if (createdSrc) {
-        const renderSrc = toOptimizedBadgeRenderSrc(createdSrc);
+        const renderSrc = toOptimizedRenderSrc(createdSrc);
         prewarmBadgeRenderCache(renderSrc, {
           motionSeed: createdAchievement.id,
           includeAlphaMaskData: Boolean(createdAchievement.is_locked) && !readOnly,
@@ -294,10 +294,10 @@ export function useAchievementEditorPipelineController({
       const previousSrc = detailAchievement?.icon_url?.trim() ?? "";
       const nextSrc = updatedAchievement.icon_url?.trim() ?? "";
       if (previousSrc && previousSrc !== nextSrc) {
-        clearBadgeRenderCacheForSrc(toOptimizedBadgeRenderSrc(previousSrc));
+        clearBadgeRenderCacheForSrc(toOptimizedRenderSrc(previousSrc));
       }
       if (nextSrc) {
-        const renderSrc = toOptimizedBadgeRenderSrc(nextSrc);
+        const renderSrc = toOptimizedRenderSrc(nextSrc);
         prewarmBadgeRenderCache(renderSrc, {
           motionSeed: updatedAchievement.id,
           includeAlphaMaskData: Boolean(updatedAchievement.is_locked) && !readOnly,

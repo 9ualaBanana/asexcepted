@@ -8,7 +8,7 @@ import type { BadgeSessionController } from "@/components/achievements/badge/upl
 import type { AchievementUiStateActions } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
 import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
 import { clearBadgeRenderCacheForSrc } from "@/lib/achievements/badge/shared/render-cache";
-import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-src";
+import { toOptimizedRenderSrc } from "@/lib/achievements/badge/shared/render-src";
 import { useUserAchievementsLiveUpdates } from "@/lib/live-updates";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -117,7 +117,7 @@ export function useAchievementDataController({
 
       setAchievements((prev) => prev.filter((achievement) => achievement.id !== id));
       if (targetSrc) {
-        clearBadgeRenderCacheForSrc(toOptimizedBadgeRenderSrc(targetSrc));
+        clearBadgeRenderCacheForSrc(toOptimizedRenderSrc(targetSrc));
       }
       if (detailAchievementId === id) {
         uiActions.closeOverlay();

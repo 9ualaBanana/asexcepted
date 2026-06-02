@@ -5,7 +5,7 @@ import {
   type BadgeAssetSession,
   type BadgeRemoteAsset,
 } from "@/components/achievements/achievement-editor-shared";
-import { deleteBadgeRemoteAsset } from "@/lib/badge-asset-client";
+import { deleteBadgeRemoteAsset } from "@/lib/achievements/client/badge-asset";
 
 function normalizeBadgeRemoteAsset(asset?: Partial<BadgeRemoteAsset> | null): BadgeRemoteAsset {
   return {
@@ -56,7 +56,7 @@ export function getReplacedBadgeRemoteAsset(
 export function rollbackBadgeUploadSession(session: BadgeAssetSession): void {
   const stagedToDelete = getReplacedBadgeRemoteAsset(session.staged, session.baseline);
   if (stagedToDelete) {
-    void deleteBadgeRemoteAsset(stagedToDelete).catch(() => undefined);
+    void deleteBadgeRemoteAsset(stagedToDelete);
   }
   clearSessionStagedUpload(session);
 }
@@ -67,10 +67,9 @@ export async function deleteBadgeRemoteAssetQuietly(
 ): Promise<void> {
   const normalized = normalizeBadgeRemoteAsset(asset);
   if (!hasBadgeRemoteAsset(normalized)) return;
-  try {
-    await deleteBadgeRemoteAsset(normalized);
-  } catch (error) {
-    onError?.(error);
+  const result = await deleteBadgeRemoteAsset(normalized);
+  if (result.isErr()) {
+    onError?.(new Error(result.error));
   }
 }
 

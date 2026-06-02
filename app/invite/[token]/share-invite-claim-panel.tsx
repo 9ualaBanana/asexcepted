@@ -9,7 +9,7 @@ import {
   ROUTES,
   userCollection,
 } from "@/lib/routes";
-import { postClaimAchievementShareInvite } from "@/lib/share-invites/share-invite-api";
+import { postClaimAchievementShareInvite } from "@/lib/achievements/client/share-invite-api";
 import { createClient } from "@/lib/supabase/client";
 import { showErrorToast } from "@/lib/toast";
 

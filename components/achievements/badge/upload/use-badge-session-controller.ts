@@ -21,7 +21,7 @@ import {
   type FormState,
 } from "@/components/achievements/achievement-editor-shared";
 import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
-import { finalizeBadgeModelUpload } from "@/lib/badge-asset-client";
+import { finalizeBadgeModelUpload } from "@/lib/achievements/client/badge-asset";
 
 type UseBadgeSessionControllerArgs = {
   isCreating: boolean;
@@ -78,10 +78,14 @@ export function useBadgeSessionController({
     if (!session || session.finalized) return form;
     const snapshot = await session.createPreviewBlob(form.iconModelYaw, form.iconModelPitch);
 
-    const uploaded = await finalizeBadgeModelUpload({
+    const uploadedResult = await finalizeBadgeModelUpload({
       modelPath: form.iconAssetPath.trim(),
       poster: snapshot,
     });
+    if (uploadedResult.isErr()) {
+      throw new Error(uploadedResult.error);
+    }
+    const uploaded = uploadedResult.value;
 
     session.finalized = true;
     revokeBadgeModelPoseSession(session);

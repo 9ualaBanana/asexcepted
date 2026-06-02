@@ -2,6 +2,7 @@
 
 import { getToken } from "firebase/messaging";
 
+import { fetchPushDeviceRegistered, postPushUnregister } from "@/lib/push/client/push-api";
 import { ROUTES } from "@/lib/routes";
 import { getFirebaseMessagingClient } from "@/lib/push/firebase-client";
 
@@ -37,21 +38,14 @@ export async function getDeviceFcmToken(): Promise<DeviceFcmTokenResult> {
 export async function fetchDevicePushRegistered(
   token: string,
 ): Promise<boolean | null> {
-  const params = new URLSearchParams({ token });
-  const response = await fetch(`/api/push/status?${params.toString()}`);
-  if (!response.ok) return null;
-  const payload = (await response.json().catch(() => ({}))) as {
-    registeredForDevice?: boolean;
-  };
-  return Boolean(payload.registeredForDevice);
+  const result = await fetchPushDeviceRegistered(token);
+  if (result.isErr()) {
+    return null;
+  }
+  return result.value;
 }
 
 export async function unregisterDevicePushToken(token: string): Promise<boolean> {
-  const response = await fetch("/api/push/unregister", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ token }),
-  });
-  const payload = (await response.json().catch(() => ({}))) as { ok?: boolean };
-  return response.ok && Boolean(payload.ok);
+  const result = await postPushUnregister(token);
+  return result.isOk();
 }

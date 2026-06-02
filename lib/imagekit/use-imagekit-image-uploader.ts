@@ -8,7 +8,7 @@ import { imageKitAvatarUploadFileName } from "@/lib/imagekit/avatar-upload-file-
 import {
   getImageKitUploadAuth,
   type ImageKitUploadPurpose,
-} from "@/lib/imagekit-client";
+} from "@/lib/imagekit/client/imagekit-api";
 import { logImageKitEvent } from "@/lib/imagekit/telemetry";
 import { validateImageEdgeBounds } from "@/lib/imagekit/validate-image-file";
 
@@ -124,7 +124,11 @@ export function useImageKitImageUploader({
     });
 
     uppy.addPreProcessor(async (fileIDs) => {
-      const data = await getImageKitUploadAuth({ purpose });
+      const authResult = await getImageKitUploadAuth({ purpose });
+      if (authResult.isErr()) {
+        throw new Error(authResult.error);
+      }
+      const data = authResult.value;
 
       for (const id of fileIDs) {
         const file = uppy.getFile(id);

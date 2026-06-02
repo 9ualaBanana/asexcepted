@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { withVercelDeploymentProtectionBypassForEmbed } from "@/lib/embed-vercel-bypass-url";
+import { withVercelDeploymentProtectionBypassForEmbed } from "@/lib/embed/embed-vercel-bypass-url";
 
 type Context = {
   params: Promise<{ token: string }>;

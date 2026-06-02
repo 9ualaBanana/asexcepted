@@ -8,7 +8,7 @@ import {
 } from "@/components/achievements/badge/upload/model/badge-model-pose-session";
 import { prepareBadgeModelUpload } from "@/components/achievements/badge/upload/model/badge-model-upload-client";
 import type { FormState } from "@/components/achievements/achievement-editor-shared";
-import { uploadBadgeModelGlbOnly } from "@/lib/badge-asset-client";
+import { uploadBadgeModelGlbOnly } from "@/lib/achievements/client/badge-asset";
 
 export type BadgeModelUploadStaged = {
   modelPath: string;
@@ -45,7 +45,11 @@ export function useBadgeModelUploader(options: UseBadgeModelUploaderOptions) {
       options.onUploadStart?.();
       try {
         const prepared = await prepareBadgeModelUpload(file);
-        const { modelPath } = await uploadBadgeModelGlbOnly(file);
+        const glbResult = await uploadBadgeModelGlbOnly(file);
+        if (glbResult.isErr()) {
+          throw new Error(glbResult.error);
+        }
+        const { modelPath } = glbResult.value;
 
         const poseSession: BadgeModelPoseSession = {
           modelPath,

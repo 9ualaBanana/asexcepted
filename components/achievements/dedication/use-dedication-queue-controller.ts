@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
+import { postAcceptDedication } from "@/lib/achievements/client/dedication-api";
 import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
 import {
   listPendingDedications,
@@ -177,43 +178,26 @@ export function useDedicationQueueController({
     setBusy(true);
     let acceptedRecord: AchievementRecord | null = null;
     let acceptError: string | null = null;
-    try {
-      const response = await fetch("/api/achievements/dedication/accept", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ achievementId: acceptedId }),
-      });
-      const data = (await response.json().catch(() => null)) as {
-        error?: string;
-        achievement?: AchievementRecord;
-      } | null;
-
-      if (response.status === 409) {
-        // Already accepted on the server — collection refresh runs in `finally`.
-      } else if (!response.ok || !data?.achievement) {
-        throw new Error(data?.error ?? "Could not accept this dedication.");
-      } else {
-        acceptedRecord = data.achievement;
-      }
-
-      if (acceptedRecord) {
+    const acceptResult = await postAcceptDedication(acceptedId);
+    if (acceptResult.isOk()) {
+      if (acceptResult.value.kind === "accepted") {
+        acceptedRecord = acceptResult.value.achievement;
         onAccepted(acceptedRecord);
       }
-    } catch (error) {
-      acceptError =
-        error instanceof Error ? error.message : "Could not accept this dedication.";
-    } finally {
-      const refreshed = await reloadAchievements({ silent: true });
-      void loadQueue();
-      const acceptedInCollection =
-        refreshed?.some((achievement) => achievement.id === acceptedId) ?? false;
-      if (acceptError && !acceptedInCollection) {
-        showErrorToast(acceptError, { id: "dedication-accept" });
-      }
-      advanceQueue(acceptedId);
-      clearDedicationQuery();
-      setBusy(false);
+    } else {
+      acceptError = acceptResult.error;
     }
+
+    const refreshed = await reloadAchievements({ silent: true });
+    void loadQueue();
+    const acceptedInCollection =
+      refreshed?.some((achievement) => achievement.id === acceptedId) ?? false;
+    if (acceptError && !acceptedInCollection) {
+      showErrorToast(acceptError, { id: "dedication-accept" });
+    }
+    advanceQueue(acceptedId);
+    clearDedicationQuery();
+    setBusy(false);
   }, [
     active,
     advanceQueue,

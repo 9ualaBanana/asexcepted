@@ -10,7 +10,7 @@ import { isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-ass
 import { badgeRenderSrcFromIconUrl } from "@/lib/achievements/badge/shared/render-src";
 import { trimBadgeIconUrl } from "@/lib/achievements/badge/shared/badge-assets";
 import { getAchievementEmbedBadgeById } from "@/lib/achievements/data/achievement-queries";
-import { verifyEmbedBadgeToken } from "@/lib/embed-badge-token";
+import { verifyEmbedBadgeToken } from "@/lib/embed/embed-badge-token";
 import { createAnonServerClient } from "@/lib/supabase/server-anon";
 import { EmbedTransparentSurface } from "./embed-transparent-surface";
 
