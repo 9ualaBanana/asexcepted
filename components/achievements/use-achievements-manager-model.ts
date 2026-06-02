@@ -52,6 +52,11 @@ import {
   payloadToDedicateApiBody,
   postDedicateAchievement,
 } from "@/lib/dedications/dedicate-achievement-api";
+import {
+  buildAchievementAbility,
+  getAchievementPermissions,
+  type AchievementAuthContext,
+} from "@/lib/auth/achievement-ability";
 import { fetchPublicUserDisplayName } from "@/lib/user-profile-db";
 import { createClient } from "@/lib/supabase/client";
 
@@ -60,19 +65,28 @@ const UUID_RE =
 
 type UseAchievementsManagerModelArgs = {
   userId: string;
-  readOnly: boolean;
-  isAdmin: boolean;
-  canDedicate: boolean;
+  auth: AchievementAuthContext;
   initialDetailAchievementId?: string | null;
 };
 
 export function useAchievementsManagerModel({
   userId,
-  readOnly,
-  isAdmin,
-  canDedicate,
+  auth,
   initialDetailAchievementId,
 }: UseAchievementsManagerModelArgs) {
+  const ability = useMemo(
+    () => buildAchievementAbility(auth),
+    [auth.readOnly, auth.isAdmin, auth.canDedicate],
+  );
+  const {
+    canEditAchievements,
+    canFilterVisibility,
+    canDedicateAchievements,
+    canUnlockViaHold,
+    canToggleBadgeLock,
+    canViewBadgeDebugMetrics,
+  } = useMemo(() => getAchievementPermissions(ability), [ability]);
+
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -133,7 +147,10 @@ export function useAchievementsManagerModel({
       ),
     );
   }, [detailAchievement, setAchievements]);
-  const badgeMetrics = useBadgeMetricsController(detailAchievement, isAdmin);
+  const badgeMetrics = useBadgeMetricsController(
+    detailAchievement,
+    canViewBadgeDebugMetrics,
+  );
   const [hideLocked, setHideLocked] = useHideLockedPreference();
   const { visibilityFilter, cycleVisibilityFilter } = useVisibilityFilterPreference();
   const detailRenderSrc = useMemo(() => {
@@ -166,7 +183,7 @@ export function useAchievementsManagerModel({
     resetUnlockWave,
     refreshUnlockAlphaMask,
   } = useAchievementUnlockReveal({
-    readOnly,
+    readOnly: !canUnlockViaHold,
     detailAchievement,
     detailRenderSrc,
     detailViewSessionKey: ui.detailViewSessionKey,
@@ -186,12 +203,12 @@ export function useAchievementsManagerModel({
     detailRenderSrc,
     optimisticUnlockedAchievementId,
     detailIsLockedUi,
-    readOnly,
+    readOnly: !canEditAchievements,
   });
 
   const editorPipeline = useAchievementEditorPipelineController({
-    readOnly,
-    canDedicate,
+    readOnly: !canEditAchievements,
+    canDedicate: canDedicateAchievements,
     isDedicatingCreate,
     setIsDedicatingCreate,
     onRequestDedicateConfirm: () => setDedicationSenderConfirmOpen(true),
@@ -217,7 +234,7 @@ export function useAchievementsManagerModel({
   const data = useAchievementDataController({
     supabase,
     userId,
-    readOnly,
+    readOnly: !canEditAchievements,
     achievements,
     detailAchievementId: ui.detailAchievementId,
     setAchievements,
@@ -257,7 +274,7 @@ export function useAchievementsManagerModel({
 
   const dedicationQueue = useDedicationQueueController({
     ownerUserId: userId,
-    readOnly,
+    readOnly: !canEditAchievements,
     collectionAchievementIds,
     onAccepted: (record) => {
       setAchievements((prev) => {
@@ -285,7 +302,7 @@ export function useAchievementsManagerModel({
   const onboardingHandledRef = useRef(false);
 
   useEffect(() => {
-    if (readOnly || onboardingHandledRef.current) return;
+    if (!canEditAchievements || onboardingHandledRef.current) return;
     if (searchParams.get("onboarding") !== "1") return;
     onboardingHandledRef.current = true;
     resetHideLockedPreferenceForNewAccount();
@@ -294,7 +311,7 @@ export function useAchievementsManagerModel({
     params.delete("onboarding");
     const qs = params.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname);
-  }, [pathname, readOnly, router, searchParams, setHideLocked]);
+  }, [canEditAchievements, pathname, router, searchParams, setHideLocked]);
 
   useEffect(() => {
     if (!deepLinkAchievementId) {
@@ -374,7 +391,7 @@ export function useAchievementsManagerModel({
   ]);
 
   const handleConfirmDedicate = useCallback(async () => {
-    if (!canDedicate) return;
+    if (!canDedicateAchievements) return;
     setIsSaving(true);
     setError(null);
 
@@ -409,7 +426,7 @@ export function useAchievementsManagerModel({
     ui.actions.closeOverlay();
   }, [
     badgeSession,
-    canDedicate,
+    canDedicateAchievements,
     createForm,
     playSavePop,
     setCreateForm,
@@ -424,7 +441,7 @@ export function useAchievementsManagerModel({
     if (hideLocked) {
       visible = visible.filter((a) => !a.is_locked);
     }
-    if (!readOnly) {
+    if (canFilterVisibility) {
       if (visibilityFilter === "public") {
         visible = visible.filter((a) => a.visibility === "public");
       } else if (visibilityFilter === "private") {
@@ -432,7 +449,7 @@ export function useAchievementsManagerModel({
       }
     }
     return visible.map(achievementToGridItem);
-  }, [achievements, hideLocked, readOnly, visibilityFilter]);
+  }, [achievements, canFilterVisibility, hideLocked, visibilityFilter]);
 
   const unlockedCount = useMemo(
     () => achievements.filter((a) => !a.is_locked).length,
@@ -507,8 +524,8 @@ export function useAchievementsManagerModel({
   }, [editorPipeline.actions, ui.actions, ui.discardEditIntent]);
 
   const dialogStackProps: AchievementDialogStackProps = {
-    readOnly,
-    isAdmin,
+    readOnly: !canEditAchievements,
+    isAdmin: canToggleBadgeLock,
     editorUploadInProgress: badgeSession.editorUploadInProgress,
     closeDetailPanel: handleCloseDetailPanel,
     isCreating: ui.isCreating,
@@ -594,7 +611,7 @@ export function useAchievementsManagerModel({
   return {
     error,
     isSaving,
-    readOnly,
+    readOnly: !canEditAchievements,
     gridItems,
     dialogStackProps,
     createForm,
@@ -629,7 +646,7 @@ export function useAchievementsManagerModel({
     cycleVisibilityFilter,
     unlockedCount,
     totalCount,
-    canDedicate,
+    canDedicate: canDedicateAchievements,
     dedicationQueue,
     dedicationSenderConfirmOpen,
     setDedicationSenderConfirmOpen,

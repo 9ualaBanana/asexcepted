@@ -5,7 +5,7 @@ import { AuthButton } from "@/components/auth-button";
 import { AchievementsManager } from "@/components/achievements/achievements-manager";
 import { ErrorToastOnce } from "@/components/toasts/error-toast-once";
 import { FollowButtonWrapper } from "@/components/social/follow-button";
-import { isAdmin } from "@/lib/admin";
+import { buildAchievementAuthContext } from "@/lib/auth/achievement-ability";
 import { createClient } from "@/lib/supabase/server";
 import { isUserFollowingProfile } from "@/lib/user-profile-db";
 import { resolveAchievementsProfileUser } from "@/lib/user-achievements-page";
@@ -65,9 +65,10 @@ async function UserAchievementsContent({ params, searchParams }: PageProps) {
   }
 
   const { userId, isOwner, publicDisplayName: ownerPublicLabel } = profile;
-  const readOnly = !isOwner;
-  const viewerIsAdmin = Boolean(viewer && isAdmin(viewer.id));
-  const canDedicate = viewerIsAdmin && !isOwner;
+  const auth = buildAchievementAuthContext({
+    isOwner,
+    viewerUserId: viewer?.id,
+  });
 
   let initialIsFollowing = false;
   if (viewer && !isOwner) {
@@ -127,9 +128,7 @@ async function UserAchievementsContent({ params, searchParams }: PageProps) {
           >
             <AchievementsManager
               userId={userId}
-              readOnly={readOnly}
-              isAdmin={viewerIsAdmin}
-              canDedicate={canDedicate}
+              auth={auth}
               initialDetailAchievementId={achievementParam ?? null}
             />
           </Suspense>

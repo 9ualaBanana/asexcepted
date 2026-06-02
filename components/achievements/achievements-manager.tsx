@@ -13,27 +13,23 @@ import { DedicateInviteConfirmDialog } from "@/components/achievements/dedicatio
 import { DedicationSenderConfirmDialog } from "@/components/achievements/dedication/dedication-sender-confirm-dialog";
 import { useAchievementsManagerModel } from "@/components/achievements/use-achievements-manager-model";
 import { resetBodyScrollLock } from "@/lib/dom/body-scroll-lock";
+import type { AchievementAuthContext } from "@/lib/auth/achievement-ability";
 import { useErrorToast } from "@/lib/toast";
+
 export type AchievementsManagerProps = {
   userId: string;
-  readOnly: boolean;
-  isAdmin: boolean;
-  canDedicate: boolean;
+  auth: AchievementAuthContext;
   initialDetailAchievementId?: string | null;
 };
 
 export function AchievementsManager({
   userId,
-  readOnly,
-  isAdmin,
-  canDedicate,
+  auth,
   initialDetailAchievementId,
 }: AchievementsManagerProps) {
   const model = useAchievementsManagerModel({
     userId,
-    readOnly,
-    isAdmin,
-    canDedicate,
+    auth,
     initialDetailAchievementId,
   });
   const { data, editorPipeline, ui, badgeMetrics, shareInvite } = model;
