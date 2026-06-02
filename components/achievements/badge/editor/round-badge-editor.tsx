@@ -32,7 +32,7 @@ import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/shared/rende
 import { useErrorToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import {
-  BadgeModelViewer,
+  BadgeGltfViewer,
   useSignedBadgeModelUrl,
   type BadgeModelUploadStaged,
 } from "@/components/achievements/badge/model";
@@ -381,7 +381,7 @@ export function RoundBadgeEditor({
         ) : null}
         {hasRemote ? (
           isModelAsset && editorSignedModelUrl ? (
-            <BadgeModelViewer
+            <BadgeGltfViewer
               signedModelUrl={editorSignedModelUrl}
               previewSrc={toOptimizedBadgeRenderSrc(trimmed)}
               className={cn("p-1", busy && "scale-[0.96] blur-[3.5px] opacity-[0.72]")}

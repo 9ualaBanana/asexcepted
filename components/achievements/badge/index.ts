@@ -9,19 +9,16 @@ export { BadgeAttributionPopover } from "./chrome/badge-attribution-popover";
 
 export { RemoteBadgeImage } from "./display/remote-badge-image";
 export { FallbackBadge } from "./display/fallback-badge";
+export { FloatingBadgeWrapper } from "./display/floating-badge-wrapper";
 
 export {
   BadgeParallaxViewer,
-  Badge3DViewer,
   type BadgeParallaxViewerProps,
-  type Badge3DViewerProps,
 } from "./parallax/badge-parallax-viewer";
 
 export {
-  BadgeModelViewer,
-  type BadgeModelViewerProps,
-  BadgeModelLiveView,
-  type BadgeModelLiveViewProps,
+  BadgeGltfViewer,
+  type BadgeGltfViewerProps,
   revokeBadgeModelPoseSession,
   type BadgeModelPoseSession,
   prepareBadgeModelUpload,

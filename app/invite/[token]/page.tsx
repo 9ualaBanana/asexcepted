@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import {
-  Badge3DViewer,
-  BadgeModelViewer,
+  BadgeGltfViewer,
   BadgeAttributionPopover,
+  BadgeParallaxViewer,
 } from "@/components/achievements/badge";
 import { formatAchievedAt } from "@/components/achievements/achievement-editor-shared";
 import { isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-assets";
@@ -161,7 +161,7 @@ export default async function Page({ params }: PageProps) {
           <div className="mx-auto h-[18rem] w-full max-w-[18rem]">
             <div className="relative h-full w-full">
               {liveModelUrl ? (
-                <BadgeModelViewer
+                <BadgeGltfViewer
                   signedModelUrl={liveModelUrl}
                   previewSrc={invite.icon_url}
                   float
@@ -171,7 +171,7 @@ export default async function Page({ params }: PageProps) {
                   className="mx-auto"
                 />
               ) : (
-                <Badge3DViewer
+                <BadgeParallaxViewer
                   src={invite.icon_url}
                   float
                   motionSeed={invite.id}

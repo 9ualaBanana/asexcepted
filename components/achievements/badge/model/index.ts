@@ -1,11 +1,9 @@
 /**
- * 3D GLB badge UI — viewer, live detail shell, upload, signed URLs.
+ * 3D GLB badge UI — GLTF viewer, upload, signed URLs.
  * Prefer importing from here or `@/components/achievements/badge`.
  */
 
-export { BadgeModelViewer, type BadgeModelViewerProps } from "./badge-model-viewer";
-
-export { BadgeModelLiveView, type BadgeModelLiveViewProps } from "./badge-model-live-view";
+export { BadgeGltfViewer, type BadgeGltfViewerProps } from "./badge-gltf-viewer";
 
 export {
   revokeBadgeModelPoseSession,

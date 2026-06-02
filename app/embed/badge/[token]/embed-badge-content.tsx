@@ -2,8 +2,8 @@ import { connection } from "next/server";
 import { notFound } from "next/navigation";
 
 import {
-  Badge3DViewer,
-  BadgeModelViewer,
+  BadgeGltfViewer,
+  BadgeParallaxViewer,
 } from "@/components/achievements/badge";
 import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/shared/badge-assets-server";
 import { isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-assets";
@@ -52,7 +52,7 @@ export async function EmbedBadgeContent({ params }: Props) {
       <EmbedTransparentSurface />
       <div className="h-[min(88vmin,20rem)] w-[min(88vmin,20rem)] max-h-[90dvh] max-w-[90dvw]">
         {liveModelUrl ? (
-          <BadgeModelViewer
+          <BadgeGltfViewer
             signedModelUrl={liveModelUrl}
             previewSrc={src}
             className="p-1"
@@ -62,7 +62,7 @@ export async function EmbedBadgeContent({ params }: Props) {
             initialPitch={data.icon_model_pitch ?? 0}
           />
         ) : (
-          <Badge3DViewer
+          <BadgeParallaxViewer
             src={src}
             className="p-1"
             float

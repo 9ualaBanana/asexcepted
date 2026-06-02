@@ -9,7 +9,7 @@ import { RemoteBadgeImage } from "@/components/achievements/badge/display/remote
 import { ImpressionGlitterField } from "@/components/achievements/badge/effects/impression-glitter-field";
 import { UnlockRevealWave } from "@/components/achievements/badge/effects/unlock-reveal-wave";
 import { BadgeImageParallaxView } from "@/components/achievements/badge/detail/badge-image-parallax-view";
-import { BadgeModelLiveView } from "@/components/achievements/badge/model";
+import { BadgeGltfViewer } from "@/components/achievements/badge/model/badge-gltf-viewer";
 import type { AchievementTone } from "@/components/achievements/achievement-manager-utils";
 import {
   badgeImageMaskStylePadded,
@@ -110,11 +110,11 @@ export function DetailBadgeInteractive({
 
     if (isModelAsset) {
       return (
-        <BadgeModelLiveView
+        <BadgeGltfViewer
           iconAssetPath={iconAssetPath ?? ""}
-          renderSrc={renderSrc}
+          previewSrc={renderSrc}
           hasIconUrl={hasIconUrl}
-          enabled
+          className="p-1"
           float={floating}
           motionSeed={motionSeed}
           motionStartCentered={motionStartCentered}
@@ -122,7 +122,7 @@ export function DetailBadgeInteractive({
           initialPitch={iconModelPitch}
           playAnimation={iconModelAnimationPlay}
           animationSpeed={iconModelAnimationSpeed}
-          viewerStateKey={viewerStateKey}
+          stateKey={viewerStateKey}
           onPreviewDecoded={onImageDecoded}
           onModelUrlReady={onModelUrlReady}
           onVisualReady={onVisualReady}

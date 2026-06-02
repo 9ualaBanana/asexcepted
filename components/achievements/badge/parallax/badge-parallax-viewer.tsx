@@ -2,22 +2,18 @@
 
 import { useEffect, useMemo, useRef } from "react";
 
+import { FloatingBadgeWrapper } from "@/components/achievements/badge/display/floating-badge-wrapper";
 import { ImpressionGlitterField } from "@/components/achievements/badge/effects/impression-glitter-field";
 import { badgeImageMaskStylePadded } from "@/lib/achievements/badge/parallax/badge-mask-style";
 import {
   ensureBadgeImageDecoded,
   getCachedBadgeMaskStyle,
-  getCachedBadgeMotionStyle,
 } from "@/lib/achievements/badge/shared/render-cache";
 import { cn } from "@/lib/utils";
 
 export type BadgeParallaxViewerProps = {
   src: string;
   className?: string;
-  /**
-   * When true, applies the same `.badge-object-float` motion as the
-   * achievements detail panel (CSS in globals.css + `makeBadgeMotionStyle`).
-   */
   float: boolean;
   /** Seed for motion params; use achievement id to match detail + embed. */
   motionSeed?: string;
@@ -72,16 +68,6 @@ export function BadgeParallaxViewer({
   const glitterMaskStyle = useMemo(
     () => badgeImageMaskStylePadded(src, 108),
     [src],
-  );
-  const floatMotionStyle = useMemo(
-    () =>
-      float ?
-          getCachedBadgeMotionStyle(
-            (motionSeed ?? src).trim() || "badge",
-            motionStartCentered,
-          )
-        : undefined,
-    [float, motionSeed, motionStartCentered, src],
   );
   const sideLayerStyle = useMemo(
     () =>
@@ -305,17 +291,13 @@ export function BadgeParallaxViewer({
   if (!float) return viewer;
 
   return (
-    <div className="relative h-full w-full">
-      <div
-        className="relative h-full w-full badge-object-float"
-        style={floatMotionStyle}
-      >
-        {viewer}
-      </div>
-    </div>
+    <FloatingBadgeWrapper
+      motionSeed={motionSeed}
+      sourceKey={src}
+      motionStartCentered={motionStartCentered}
+      fallbackSeed="badge"
+    >
+      {viewer}
+    </FloatingBadgeWrapper>
   );
 }
-
-/** @deprecated Use {@link BadgeParallaxViewer} — name reflects CSS parallax, not glTF. */
-export const Badge3DViewer = BadgeParallaxViewer;
-export type Badge3DViewerProps = BadgeParallaxViewerProps;
