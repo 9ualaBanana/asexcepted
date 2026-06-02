@@ -31,11 +31,8 @@ import { Button } from "@/components/ui/button";
 import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-src";
 import { useErrorToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import {
-  BadgeGltfViewer,
-  useSignedBadgeModelUrl,
-  type BadgeModelUploadStaged,
-} from "@/components/achievements/badge/model";
+import { BadgeGltfViewer, useSignedBadgeModelUrl } from "@/components/achievements/badge/model";
+import type { BadgeModelUploadStaged } from "@/components/achievements/badge/upload/model/use-badge-model-uploader";
 import { useBadgeUploader } from "../upload/use-badge-uploader";
 
 import "@uppy/core/css/style.min.css";

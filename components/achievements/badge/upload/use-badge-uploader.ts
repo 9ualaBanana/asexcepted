@@ -3,9 +3,11 @@
 import { Mutex } from "async-mutex";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { type BadgeModelUploadStaged } from "@/components/achievements/badge/model";
-import { useBadgeModelUploader } from "@/components/achievements/badge/model";
-import { useBadgeImageUploader } from "@/components/achievements/badge/upload/use-badge-image-uploader";
+import { useBadgeImageUploader } from "@/components/achievements/badge/upload/image/use-badge-image-uploader";
+import {
+  useBadgeModelUploader,
+  type BadgeModelUploadStaged,
+} from "@/components/achievements/badge/upload/model/use-badge-model-uploader";
 import { type BadgeRemoteAsset } from "@/components/achievements/achievement-editor-shared";
 
 type UseBadgeUploaderArgs = {

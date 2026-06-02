@@ -3,15 +3,17 @@
 import { useRef, useState } from "react";
 
 import {
-  clearBadgeModelPoseSessionRef,
   createBadgeRemoteAsset,
   clearSessionStagedUpload,
   deleteBadgeRemoteAssetQuietly,
   getReplacedBadgeRemoteAsset,
   rollbackBadgeUploadSession,
+} from "@/components/achievements/badge/upload/badge-asset-session";
+import {
   revokeBadgeModelPoseSession,
   type BadgeModelPoseSession,
-} from "@/components/achievements/badge";
+} from "@/components/achievements/badge/upload/model/badge-model-pose-session";
+import { clearBadgeModelPoseSessionRef } from "@/components/achievements/badge/upload/model/use-badge-model-uploader";
 import {
   createEmptyBadgeAssetSession,
   getSafeIconAssetKind,

@@ -16,19 +16,23 @@ export {
   type BadgeParallaxViewerProps,
 } from "./parallax/badge-parallax-viewer";
 
+export { BadgeGltfViewer, type BadgeGltfViewerProps } from "./model";
+export { useSignedBadgeModelUrl } from "./model";
+
 export {
-  BadgeGltfViewer,
-  type BadgeGltfViewerProps,
   revokeBadgeModelPoseSession,
   type BadgeModelPoseSession,
+} from "./upload/model/badge-model-pose-session";
+export {
   prepareBadgeModelUpload,
   type PreparedBadgeModelUpload,
+} from "./upload/model/badge-model-upload-client";
+export {
   useBadgeModelUploader,
   applyBadgeModelPoseSessionToForm,
   clearBadgeModelPoseSessionRef,
   type BadgeModelUploadStaged,
-  useSignedBadgeModelUrl,
-} from "./model";
+} from "./upload/model/use-badge-model-uploader";
 
 export { ImpressionGlitterField } from "./effects/impression-glitter-field";
 export { ImpressionBurst } from "./effects/impression-burst";
@@ -50,8 +54,8 @@ export {
   getReplacedBadgeRemoteAsset,
   rollbackBadgeUploadSession,
 } from "./upload/badge-asset-session";
-export { normalizeImageKitFileId } from "./upload/badge-imagekit-session";
-export { useBadgeImageUploader } from "./upload/use-badge-image-uploader";
+export { normalizeImageKitFileId } from "./upload/image/badge-imagekit-session";
+export { useBadgeImageUploader } from "./upload/image/use-badge-image-uploader";
 
 export { useBadgeMetricsController } from "./hooks/use-badge-metrics-controller";
 export { useBadgeChunkedPrewarm } from "./hooks/use-badge-chunked-prewarm";
