@@ -12,25 +12,22 @@ export type ProfileAvatarUploadSession = BadgeIkSession;
 
 export function createEmptyProfileAvatarSession(): ProfileAvatarUploadSession {
   return {
-    baselineUrl: "",
     baselineFileId: "",
     lastSessionFileId: null,
   };
 }
 
 export function beginProfileAvatarSession(
-  savedUrl: string,
   savedFileId: string,
 ): ProfileAvatarUploadSession {
   return {
-    baselineUrl: savedUrl.trim(),
     baselineFileId: savedFileId.trim(),
     lastSessionFileId: null,
   };
 }
 
 /**
- * Same as badge `onRemoteUploadCommit`: drop any prior staged file in this
+ * Same as badge `onUploadStorageCommit`: drop any prior staged file in this
  * edit session, then record the new upload.
  */
 export function stageProfileAvatarUpload(
@@ -41,7 +38,7 @@ export function stageProfileAvatarUpload(
   setSessionStagedUpload(session, fileId);
 }
 
-/** Discard staged avatar upload(s); UI should revert to session baselines. */
+/** Discard staged avatar upload(s); UI should revert to saved preview state. */
 export function discardProfileAvatarUploadSession(
   session: ProfileAvatarUploadSession,
 ): void {
@@ -53,14 +50,12 @@ export function discardProfileAvatarUploadSession(
  */
 export function commitProfileAvatarUploadSession(
   session: ProfileAvatarUploadSession,
-  savedUrl: string,
   savedFileId: string,
 ): string | null {
   const replacedBaselineId = getReplacedImageKitFileId(
     session.baselineFileId,
     savedFileId,
   );
-  session.baselineUrl = savedUrl.trim();
   session.baselineFileId = normalizeImageKitFileId(savedFileId);
   clearSessionStagedUpload(session);
   return replacedBaselineId;

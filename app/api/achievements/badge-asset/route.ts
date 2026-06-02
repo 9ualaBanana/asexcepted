@@ -5,7 +5,6 @@ import { deleteBadgeRemoteAsset } from "@/lib/achievements/badge/shared/badge-as
 import { createClient } from "@/lib/supabase/server";
 
 const deleteBadgeAssetBodySchema = z.object({
-  iconUrl: z.string().nullable().optional(),
   iconFileId: z.string().nullable().optional(),
   iconAssetKind: z.enum(["image", "model_glb"]).optional(),
   iconAssetPath: z.string().nullable().optional(),
@@ -30,7 +29,6 @@ export async function DELETE(request: Request) {
 
   try {
     await deleteBadgeRemoteAsset({
-      iconUrl: body.data.iconUrl ?? null,
       iconFileId: body.data.iconFileId ?? null,
       iconAssetPath: body.data.iconAssetPath ?? null,
     });

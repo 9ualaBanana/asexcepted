@@ -11,7 +11,7 @@ export {
   applyBadgeModelToForm,
   badgeModelFromForm,
   badgeModelFromStagedUpload,
-  badgeRemoteAssetDeletePayload,
+  badgeStorageRefDeletePayload,
   patchBadgeModelAsset,
   isModelBadgeAssetKind,
   isModelGlbAsset,
@@ -48,6 +48,19 @@ export function buildBadgeModelPath(userId: string, assetId: string): string {
 
 export function buildBadgePreviewPath(userId: string, assetId: string): string {
   return `${userId}/${assetId}/poster.png`;
+}
+
+/** Supabase preview object path paired with a badge GLB path (user or invite scope). */
+export function badgePreviewPathFromModelPath(modelPath: string): string {
+  const sanitized = sanitizeBadgeAssetPath(modelPath);
+  if (!sanitized) return "";
+  if (isShareInviteBadgeModelPath(sanitized)) {
+    const inviteId = sanitized.split("/")[1] ?? "";
+    return inviteId ? buildShareInviteBadgePreviewPath(inviteId) : "";
+  }
+  const [userId, assetId] = sanitized.split("/");
+  if (!userId || !assetId) return "";
+  return buildBadgePreviewPath(userId, assetId);
 }
 
 /** Invite-scoped badge assets (survive sender deleting their collection copy). */

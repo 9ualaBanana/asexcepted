@@ -122,22 +122,20 @@ export function parseBadgeModelAsset(
   };
 }
 
-/** Flatten {@link BadgeRemoteAsset} only for the delete API route. */
-export function badgeRemoteAssetDeletePayload(asset: {
-  iconUrl: string;
+/** Flatten {@link BadgeStorageRef} for the delete API route. */
+export function badgeStorageRefDeletePayload(ref: {
   iconFileId: string;
-  model: BadgeModelAsset | null;
+  modelAssetPath: string;
 }): {
-  iconUrl: string;
   iconFileId: string;
   iconAssetKind: IconAssetKind;
   iconAssetPath: string;
 } {
+  const modelAssetPath = ref.modelAssetPath.trim();
   return {
-    iconUrl: asset.iconUrl,
-    iconFileId: asset.iconFileId,
-    iconAssetKind: asset.model ? BADGE_MODEL_ASSET_KIND : "image",
-    iconAssetPath: asset.model?.assetPath ?? "",
+    iconFileId: ref.iconFileId,
+    iconAssetKind: modelAssetPath ? BADGE_MODEL_ASSET_KIND : "image",
+    iconAssetPath: modelAssetPath,
   };
 }
 

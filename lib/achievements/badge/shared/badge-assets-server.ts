@@ -9,7 +9,7 @@ import {
   buildBadgePreviewPath,
   buildShareInviteBadgeModelPath,
   buildShareInviteBadgePreviewPath,
-  extractPublicBucketObjectPath,
+  badgePreviewPathFromModelPath,
   isGlbHeader,
   isModelBadgeAssetKind,
   isShareInviteBadgeModelPath,
@@ -144,21 +144,17 @@ export async function createSignedBadgeModelUrl(
 }
 
 export async function deleteBadgeRemoteAsset(args: {
-  iconUrl?: string | null;
   iconFileId?: string | null;
   iconAssetPath?: string | null;
 }) {
   const supabase = createServiceRoleClient();
 
-  const previewPath = extractPublicBucketObjectPath(
-    args.iconUrl,
-    BADGE_PREVIEW_BUCKET,
-  );
+  const assetPath = sanitizeBadgeAssetPath(args.iconAssetPath);
+  const previewPath = assetPath ? badgePreviewPathFromModelPath(assetPath) : "";
   if (previewPath) {
     await supabase.storage.from(BADGE_PREVIEW_BUCKET).remove([previewPath]);
   }
 
-  const assetPath = sanitizeBadgeAssetPath(args.iconAssetPath);
   if (assetPath) {
     await supabase.storage.from(BADGE_MODEL_BUCKET).remove([assetPath]);
   }

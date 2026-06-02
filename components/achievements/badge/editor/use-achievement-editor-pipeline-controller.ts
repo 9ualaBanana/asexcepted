@@ -315,11 +315,11 @@ export function useAchievementEditorPipelineController({
       }
       playSavePop();
 
-      const replacedBaselineAsset =
+      const replacedBaselineRef =
         badgeSessionController.commitPanelBadgeSession(updatedAchievement);
-      if (replacedBaselineAsset) {
-        void badgeSessionController.deleteRemoteAssetQuietly(
-          replacedBaselineAsset,
+      if (replacedBaselineRef) {
+        void badgeSessionController.deleteStorageRefQuietly(
+          replacedBaselineRef,
           "Badge asset delete replaced baseline on achievement save",
         );
       }

@@ -54,7 +54,7 @@ export function ProfileSettings({
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const avatarSessionRef = useRef<ProfileAvatarUploadSession>(
-    beginProfileAvatarSession("", ""),
+    beginProfileAvatarSession(""),
   );
 
   const [soundsEnabled, setSoundsEnabled] = useSoundsEnabledPreference();
@@ -62,7 +62,9 @@ export function ProfileSettings({
   const [displayName, setDisplayName] = useState("");
   const [savedDisplayName, setSavedDisplayName] = useState("");
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState("");
+  const [savedAvatarUrl, setSavedAvatarUrl] = useState("");
   const [avatarFileId, setAvatarFileId] = useState("");
+  const [savedAvatarFileId, setSavedAvatarFileId] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -77,9 +79,9 @@ export function ProfileSettings({
 
   const displayNameDirty = displayName.trim() !== savedDisplayName.trim();
   const avatarDirty =
-    avatarPreviewUrl.trim() !== avatarSessionRef.current.baselineUrl.trim() ||
+    avatarPreviewUrl.trim() !== savedAvatarUrl.trim() ||
     normalizeImageKitFileId(avatarFileId) !==
-      normalizeImageKitFileId(avatarSessionRef.current.baselineFileId);
+      normalizeImageKitFileId(savedAvatarFileId);
   const isDirty = displayNameDirty || avatarDirty;
 
   useEffect(() => {
@@ -88,12 +90,12 @@ export function ProfileSettings({
 
   const discardChanges = useCallback(async () => {
     discardProfileAvatarUploadSession(avatarSessionRef.current);
-    setAvatarPreviewUrl(avatarSessionRef.current.baselineUrl);
-    setAvatarFileId(avatarSessionRef.current.baselineFileId);
+    setAvatarPreviewUrl(savedAvatarUrl);
+    setAvatarFileId(savedAvatarFileId);
     setDisplayName(savedDisplayName);
     setError(null);
     setSavedHint(false);
-  }, [savedDisplayName]);
+  }, [savedAvatarFileId, savedAvatarUrl, savedDisplayName]);
 
   useEffect(() => {
     registerDiscardHandler?.(discardChanges);
@@ -138,7 +140,9 @@ export function ProfileSettings({
 
     const savedUrl = profileResult.value?.avatar_url?.trim() ?? "";
     const savedFileId = profileResult.value?.avatar_file_id?.trim() ?? "";
-    avatarSessionRef.current = beginProfileAvatarSession(savedUrl, savedFileId);
+    avatarSessionRef.current = beginProfileAvatarSession(savedFileId);
+    setSavedAvatarUrl(savedUrl);
+    setSavedAvatarFileId(savedFileId);
     setAvatarPreviewUrl(savedUrl);
     setAvatarFileId(savedFileId);
 
@@ -197,13 +201,14 @@ export function ProfileSettings({
 
     const replacedOnSave = commitProfileAvatarUploadSession(
       avatarSessionRef.current,
-      nextUrl ?? "",
       nextFileId ?? "",
     );
     await deleteImageKitFileQuietly(replacedOnSave);
 
-    setAvatarPreviewUrl(avatarSessionRef.current.baselineUrl);
-    setAvatarFileId(avatarSessionRef.current.baselineFileId);
+    setSavedAvatarUrl(nextUrl ?? "");
+    setSavedAvatarFileId(nextFileId ?? "");
+    setAvatarPreviewUrl(nextUrl ?? "");
+    setAvatarFileId(nextFileId ?? "");
     setSavedDisplayName(trimmed);
     setDisplayName(trimmed);
 

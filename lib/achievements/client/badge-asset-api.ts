@@ -43,13 +43,11 @@ export async function completeBadgeModelUpload(modelPath: string, poster: Blob) 
 }
 
 export async function deleteBadgeRemoteAssetViaApi(asset: {
-  iconUrl: string;
   iconFileId: string;
   iconAssetPath: string;
   iconAssetKind: "image" | "model_glb";
 }) {
   return deleteJson("/api/achievements/badge-asset", {
-    iconUrl: asset.iconUrl,
     iconFileId: asset.iconFileId,
     iconAssetPath: asset.iconAssetPath,
     iconAssetKind: asset.iconAssetKind,

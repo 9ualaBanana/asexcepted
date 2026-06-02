@@ -36,7 +36,6 @@ import { cn } from "@/lib/utils";
 import {
   applyBadgeModelToForm,
   badgeModelFromForm,
-  badgeModelFromStagedUpload,
 } from "@/lib/achievements/badge/shared/badge-model-asset";
 import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
 
@@ -173,7 +172,7 @@ export function EditableAchievementCard({
             renderSrc={toOptimizedRenderUrl(form.iconUrl)}
             iconFileId={form.iconFileId}
             model={badgeModel}
-            baselineAsset={badgeAssetSessionRef.current.baseline}
+            baselineRef={badgeAssetSessionRef.current.baseline}
             tone={form.tone}
             isLocked={form.isLocked}
             icon={form.icon}
@@ -188,18 +187,11 @@ export function EditableAchievementCard({
               setForm((prev) => applyBadgeModelToForm(prev, model))
             }
             allowModelRotation={isCreatingFlow}
-            onRemoteUploadCommit={(asset) => {
+            onUploadStorageCommit={(ref) => {
               rollbackBadgeUploadSession(badgeAssetSessionRef.current);
-              setSessionStagedUpload(badgeAssetSessionRef.current, asset);
+              setSessionStagedUpload(badgeAssetSessionRef.current, ref);
               setForm((prev) =>
-                applyBadgeModelToForm(
-                  {
-                    ...prev,
-                    iconUrl: asset.iconUrl,
-                    iconFileId: asset.iconFileId,
-                  },
-                  asset.model,
-                ),
+                applyBadgeModelToForm({ ...prev, iconFileId: ref.iconFileId }, null),
               );
             }}
             onModelUploadStaged={(staged) => {
@@ -209,9 +201,8 @@ export function EditableAchievementCard({
                 isCreatingFlow ? "create" : "panel",
               );
               setSessionStagedUpload(badgeAssetSessionRef.current, {
-                iconUrl: staged.previewUrl,
                 iconFileId: "",
-                model: badgeModelFromStagedUpload(staged),
+                modelAssetPath: staged.modelPath,
               });
               setForm((prev) => applyBadgeModelPoseSessionToForm(prev, staged));
             }}

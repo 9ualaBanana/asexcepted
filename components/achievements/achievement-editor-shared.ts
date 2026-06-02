@@ -1,5 +1,3 @@
-import type { BadgeModelAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
-
 import {
   Award,
   BookOpen,
@@ -139,35 +137,32 @@ export type FormState = {
   visibility: AchievementVisibility;
 };
 
-/** ImageKit upload session pointer (flat image or GLB + poster URL). */
-export type BadgeRemoteAsset = {
-  iconUrl: string;
+/** ImageKit file id and/or Supabase GLB path — identity for upload rollback/delete only. */
+export type BadgeStorageRef = {
   iconFileId: string;
-  model: BadgeModelAsset | null;
+  modelAssetPath: string;
 };
 
+/** ImageKit upload session — file ids only (preview URL lives in form/UI state). */
 export type BadgeIkSession = {
-  baselineUrl: string;
   baselineFileId: string;
   lastSessionFileId: string | null;
 };
 
 export type BadgeAssetSession = {
-  baseline: BadgeRemoteAsset;
-  staged: BadgeRemoteAsset | null;
+  baseline: BadgeStorageRef;
+  staged: BadgeStorageRef | null;
 };
 
-export function createEmptyBadgeRemoteAsset(): BadgeRemoteAsset {
+export function createEmptyBadgeStorageRef(): BadgeStorageRef {
   return {
-    iconUrl: "",
     iconFileId: "",
-    model: null,
+    modelAssetPath: "",
   };
 }
 
 export function createEmptyBadgeIkSession(): BadgeIkSession {
   return {
-    baselineUrl: "",
     baselineFileId: "",
     lastSessionFileId: null,
   };
@@ -175,7 +170,7 @@ export function createEmptyBadgeIkSession(): BadgeIkSession {
 
 export function createEmptyBadgeAssetSession(): BadgeAssetSession {
   return {
-    baseline: createEmptyBadgeRemoteAsset(),
+    baseline: createEmptyBadgeStorageRef(),
     staged: null,
   };
 }

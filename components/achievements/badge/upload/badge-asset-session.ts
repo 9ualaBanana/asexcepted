@@ -1,41 +1,25 @@
 "use client";
 
 import {
-  createEmptyBadgeRemoteAsset,
+  createEmptyBadgeStorageRef,
   type BadgeAssetSession,
-  type BadgeRemoteAsset,
+  type BadgeStorageRef,
 } from "@/components/achievements/achievement-editor-shared";
 import { deleteBadgeRemoteAsset } from "@/lib/achievements/client/badge-asset";
+import { sanitizeBadgeAssetPath } from "@/lib/achievements/badge/shared/badge-assets";
 
-function normalizeBadgeRemoteAsset(asset?: Partial<BadgeRemoteAsset> | null): BadgeRemoteAsset {
+export function normalizeBadgeStorageRef(
+  ref?: Partial<BadgeStorageRef> | null,
+): BadgeStorageRef {
   return {
-    iconUrl: asset?.iconUrl?.trim() ?? "",
-    iconFileId: asset?.iconFileId?.trim() ?? "",
-    model: asset?.model ?? null,
+    iconFileId: ref?.iconFileId?.trim() ?? "",
+    modelAssetPath: sanitizeBadgeAssetPath(ref?.modelAssetPath),
   };
 }
 
-function sameBadgeModel(
-  a: BadgeRemoteAsset["model"],
-  b: BadgeRemoteAsset["model"],
-): boolean {
-  if (a === b) return true;
-  if (!a || !b) return false;
-  return (
-    a.assetPath === b.assetPath &&
-    a.yaw === b.yaw &&
-    a.pitch === b.pitch &&
-    a.animationPlay === b.animationPlay &&
-    a.animationSpeed === b.animationSpeed &&
-    a.ccAttribution === b.ccAttribution
-  );
-}
-
-export function hasBadgeRemoteAsset(asset?: Partial<BadgeRemoteAsset> | null): boolean {
-  const normalized = normalizeBadgeRemoteAsset(asset);
-  return Boolean(
-    normalized.iconUrl || normalized.iconFileId || normalized.model?.assetPath,
-  );
+export function hasBadgeStorageRef(ref?: Partial<BadgeStorageRef> | null): boolean {
+  const normalized = normalizeBadgeStorageRef(ref);
+  return Boolean(normalized.iconFileId || normalized.modelAssetPath);
 }
 
 export function clearSessionStagedUpload(session: BadgeAssetSession): void {
@@ -44,23 +28,22 @@ export function clearSessionStagedUpload(session: BadgeAssetSession): void {
 
 export function setSessionStagedUpload(
   session: BadgeAssetSession,
-  asset: Partial<BadgeRemoteAsset> | null,
+  ref: Partial<BadgeStorageRef> | null,
 ): void {
-  const normalized = normalizeBadgeRemoteAsset(asset);
-  session.staged = hasBadgeRemoteAsset(normalized) ? normalized : null;
+  const normalized = normalizeBadgeStorageRef(ref);
+  session.staged = hasBadgeStorageRef(normalized) ? normalized : null;
 }
 
-export function getReplacedBadgeRemoteAsset(
-  previousAsset: Partial<BadgeRemoteAsset> | null | undefined,
-  nextAsset: Partial<BadgeRemoteAsset> | null | undefined,
-): BadgeRemoteAsset | null {
-  const previous = normalizeBadgeRemoteAsset(previousAsset);
-  const next = normalizeBadgeRemoteAsset(nextAsset);
-  if (!hasBadgeRemoteAsset(previous)) return null;
+export function getReplacedBadgeStorageRef(
+  previousRef: Partial<BadgeStorageRef> | null | undefined,
+  nextRef: Partial<BadgeStorageRef> | null | undefined,
+): BadgeStorageRef | null {
+  const previous = normalizeBadgeStorageRef(previousRef);
+  const next = normalizeBadgeStorageRef(nextRef);
+  if (!hasBadgeStorageRef(previous)) return null;
   if (
-    previous.iconUrl === next.iconUrl &&
     previous.iconFileId === next.iconFileId &&
-    sameBadgeModel(previous.model, next.model)
+    previous.modelAssetPath === next.modelAssetPath
   ) {
     return null;
   }
@@ -68,29 +51,29 @@ export function getReplacedBadgeRemoteAsset(
 }
 
 export function rollbackBadgeUploadSession(session: BadgeAssetSession): void {
-  const stagedToDelete = getReplacedBadgeRemoteAsset(session.staged, session.baseline);
+  const stagedToDelete = getReplacedBadgeStorageRef(session.staged, session.baseline);
   if (stagedToDelete) {
     void deleteBadgeRemoteAsset(stagedToDelete);
   }
   clearSessionStagedUpload(session);
 }
 
-export async function deleteBadgeRemoteAssetQuietly(
-  asset: Partial<BadgeRemoteAsset> | null | undefined,
+export async function deleteBadgeStorageRefQuietly(
+  ref: Partial<BadgeStorageRef> | null | undefined,
   onError?: (error: unknown) => void,
 ): Promise<void> {
-  const normalized = normalizeBadgeRemoteAsset(asset);
-  if (!hasBadgeRemoteAsset(normalized)) return;
+  const normalized = normalizeBadgeStorageRef(ref);
+  if (!hasBadgeStorageRef(normalized)) return;
   const result = await deleteBadgeRemoteAsset(normalized);
   if (result.isErr()) {
     onError?.(new Error(result.error));
   }
 }
 
-export function createBadgeRemoteAsset(
-  asset?: Partial<BadgeRemoteAsset> | null,
-): BadgeRemoteAsset {
-  return hasBadgeRemoteAsset(asset)
-    ? normalizeBadgeRemoteAsset(asset)
-    : createEmptyBadgeRemoteAsset();
+export function createBadgeStorageRef(
+  ref?: Partial<BadgeStorageRef> | null,
+): BadgeStorageRef {
+  return hasBadgeStorageRef(ref)
+    ? normalizeBadgeStorageRef(ref)
+    : createEmptyBadgeStorageRef();
 }

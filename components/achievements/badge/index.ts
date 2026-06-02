@@ -47,11 +47,11 @@ export {
 export { BadgeEditor } from "./editor/badge-editor";
 
 export {
-  createBadgeRemoteAsset,
+  createBadgeStorageRef,
   clearSessionStagedUpload,
   setSessionStagedUpload,
-  deleteBadgeRemoteAssetQuietly,
-  getReplacedBadgeRemoteAsset,
+  deleteBadgeStorageRefQuietly,
+  getReplacedBadgeStorageRef,
   rollbackBadgeUploadSession,
 } from "./upload/badge-asset-session";
 export { normalizeImageKitFileId } from "./upload/image/badge-imagekit-session";

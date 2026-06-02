@@ -41,10 +41,8 @@ export function rollbackBadgeUploadSession(session: BadgeIkSession): void {
 
 export function retainBadgeUploadSession(
   session: BadgeIkSession,
-  retainedUrl: string | null | undefined,
   retainedFileId: string | null | undefined,
 ): void {
-  session.baselineUrl = retainedUrl?.trim() ?? "";
   session.baselineFileId = normalizeImageKitFileId(retainedFileId);
   clearSessionStagedUpload(session);
 }
