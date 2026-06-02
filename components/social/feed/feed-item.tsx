@@ -11,13 +11,13 @@ import { getSafeIcon } from "@/components/achievements/achievement-editor-shared
 import { FeedActivityText } from "@/components/social/feed/feed-activity-text";
 import { ProfileAvatarSlot } from "@/components/profile/profile-avatar-slot";
 import { isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-assets";
-import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-src";
+import { badgeDisplaySrcFromIconUrl } from "@/lib/achievements/badge/shared/render-src";
 import { formatFeedEventTimestamp } from "@/lib/feed/format-feed-event-time";
 import {
   FEED_BADGE_PX,
   FEED_ROW_HEIGHT_CLASS,
 } from "@/lib/feed/feed-row-layout";
-import type { FeedRow } from "@/lib/feed-db";
+import type { FeedRow } from "@/lib/achievements/data/feed-db";
 import { userCollection } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { links } from "@/lib/notifications/templates";
@@ -41,9 +41,7 @@ export function FeedItem({ row }: FeedItemProps) {
     !isModelBadgeAssetKind(row.icon_asset_kind) &&
     Boolean(row.icon_url?.trim());
   const eventTimeLabel = formatFeedEventTimestamp(row.event_at);
-  const badgeSrc = row.icon_url?.trim()
-    ? toOptimizedBadgeRenderSrc(row.icon_url.trim())
-    : null;
+  const badgeSrc = badgeDisplaySrcFromIconUrl(row.icon_url);
   const avatarPx = Math.round(FEED_BADGE_PX * FEED_AVATAR_RATIO);
 
   return (

@@ -5,7 +5,7 @@ import { FeedList } from "@/components/social/feed/feed-list";
 import { AppPageShell } from "@/components/layout/app-page-shell";
 import { FriendsPanel } from "@/components/social/friends-panel";
 import { SocialPageSkeleton } from "@/components/social/inspa-page-skeleton";
-import { fetchFollowingUnlockFeed } from "@/lib/feed-db";
+import { fetchFollowingUnlockFeed } from "@/lib/achievements/data/feed-db";
 import { createClient } from "@/lib/supabase/server";
 import { loginWithNext, ROUTES } from "@/lib/routes";
 

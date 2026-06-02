@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useRef } from "react";
 import { createPortal } from "react-dom";
 import { Check, X } from "lucide-react";
 
@@ -12,7 +12,7 @@ import {
   getSafeIcon,
 } from "@/components/achievements/achievement-editor-shared";
 import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
-import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-src";
+import { useBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-cache";
 import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
 import { cn } from "@/lib/utils";
 
@@ -36,10 +36,7 @@ export function DedicationResponseDialog({
   const unlockAlphaMaskRef = useRef(null);
   const tone = resolveTone(achievement);
   const FallbackIcon = getSafeIcon(achievement.icon);
-  const renderSrc = useMemo(() => {
-    const src = achievement.icon_url?.trim() ?? "";
-    return src ? toOptimizedBadgeRenderSrc(src) : "";
-  }, [achievement.icon_url]);
+  const renderSrc = useBadgeRenderSrc(achievement.icon_url);
 
   useBodyScrollLock();
 
@@ -74,13 +71,7 @@ export function DedicationResponseDialog({
               renderSrc={renderSrc}
               motionSeed={achievement.id}
               FallbackIcon={FallbackIcon}
-              hasIconUrl={Boolean(renderSrc)}
-              iconAssetKind={achievement.icon_asset_kind}
-              iconAssetPath={achievement.icon_asset_path}
-              iconModelYaw={achievement.icon_model_yaw}
-              iconModelPitch={achievement.icon_model_pitch}
-              iconModelAnimationPlay={achievement.icon_model_animation_play}
-              iconModelAnimationSpeed={achievement.icon_model_animation_speed}
+              achievement={achievement}
               tone={tone}
               lockedUi
               unlocking={false}

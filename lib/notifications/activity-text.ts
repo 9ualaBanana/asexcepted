@@ -1,4 +1,4 @@
-import type { FeedRow } from "@/lib/feed-db";
+import type { FeedRow } from "@/lib/achievements/data/feed-db";
 
 export type ActivityTextPart = {
   kind: "actor" | "achievement" | "muted";

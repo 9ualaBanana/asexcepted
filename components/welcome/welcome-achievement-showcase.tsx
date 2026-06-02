@@ -5,7 +5,7 @@ import { useMemo, useRef } from "react";
 import { DetailBadgeInteractive } from "@/components/achievements/badge";
 import { useAchievementDetailViewModel } from "@/components/achievements/detail/use-achievement-detail-view-model";
 import { getWelcomeIntroAchievementRecord } from "@/lib/welcome/intro-achievement";
-import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-src";
+import { useBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-cache";
 import type { AlphaMaskData } from "@/lib/achievements/badge/parallax/shape-utils";
 
 const EMPTY_CLIP = "circle(0% at 50% 50%)";
@@ -18,14 +18,8 @@ const WELCOME_BADGE_SLOT_CLASS =
  * Inline detail badge (same component as achievement detail view), shown unlocked.
  */
 export function WelcomeAchievementShowcase() {
-  const achievement = useMemo(() => {
-    const record = getWelcomeIntroAchievementRecord();
-    return { ...record, is_locked: false };
-  }, []);
-  const renderSrc = useMemo(
-    () => toOptimizedBadgeRenderSrc(achievement.icon_url?.trim() ?? ""),
-    [achievement.icon_url],
-  );
+  const achievement = useMemo(() => getWelcomeIntroAchievementRecord(), []);
+  const renderSrc = useBadgeRenderSrc(achievement.icon_url);
   const unlockAlphaMaskRef = useRef<AlphaMaskData | null>(null);
 
   const { DetailFallbackIcon, detailTone, detailMaskStyle } =
@@ -46,7 +40,7 @@ export function WelcomeAchievementShowcase() {
         motionSeed={achievement.id}
         tone={detailTone}
         FallbackIcon={DetailFallbackIcon}
-        hasIconUrl
+        achievement={achievement}
         lockedUi={false}
         unlocking={false}
         detailMaskStyle={detailMaskStyle}

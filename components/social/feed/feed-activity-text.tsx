@@ -1,8 +1,8 @@
 import {
   buildFeedActivityText,
   type ActivityTextPart,
-} from "@/lib/activity-text";
-import type { FeedRow } from "@/lib/feed-db";
+} from "@/lib/notifications/activity-text";
+import type { FeedRow } from "@/lib/achievements/data/feed-db";
 import { cn } from "@/lib/utils";
 
 type FeedActivityTextProps = {

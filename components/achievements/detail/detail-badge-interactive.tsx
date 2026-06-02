@@ -18,19 +18,15 @@ import {
 } from "@/lib/achievements/badge/parallax/badge-mask-style";
 import { isOpaqueBadgeHit, type AlphaMaskData } from "@/lib/achievements/badge/parallax/shape-utils";
 import { cn } from "@/lib/utils";
+import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
+import { hasModelGlbAsset } from "@/lib/achievements/badge/shared/badge-assets";
 
 export type DetailBadgeInteractiveProps = {
   renderSrc: string;
   motionSeed: string;
   tone: AchievementTone;
   FallbackIcon: LucideIcon;
-  hasIconUrl: boolean;
-  iconAssetKind?: "image" | "model_glb";
-  iconAssetPath?: string | null;
-  iconModelYaw?: number;
-  iconModelPitch?: number;
-  iconModelAnimationPlay?: boolean;
-  iconModelAnimationSpeed?: number;
+  achievement: AchievementRecord;
   viewerStateKey?: string;
   lockedUi: boolean;
   unlocking: boolean;
@@ -60,13 +56,7 @@ export function DetailBadgeInteractive({
   motionSeed,
   tone,
   FallbackIcon,
-  hasIconUrl,
-  iconAssetKind = "image",
-  iconAssetPath = null,
-  iconModelYaw = 0,
-  iconModelPitch = 0,
-  iconModelAnimationPlay = true,
-  iconModelAnimationSpeed = 1,
+  achievement,
   viewerStateKey,
   lockedUi,
   unlocking,
@@ -87,7 +77,8 @@ export function DetailBadgeInteractive({
   impressionGlitterRevealPulse = 0,
   dedicatedBadgeGlitter = false,
 }: DetailBadgeInteractiveProps) {
-  const isModelAsset = iconAssetKind === "model_glb" && Boolean(iconAssetPath?.trim());
+  const hasIconUrl = !!renderSrc;
+  const isModelAsset = hasModelGlbAsset(achievement.icon_asset_kind, achievement.icon_asset_path);
   const showGlitter =
     dedicatedBadgeGlitter ||
     (process.env.NEXT_PUBLIC_IMPRESSION_GLITTER_UI_ENABLED === "true" &&
@@ -111,17 +102,16 @@ export function DetailBadgeInteractive({
     if (isModelAsset) {
       return (
         <BadgeGltfViewer
-          iconAssetPath={iconAssetPath ?? ""}
+          iconAssetPath={achievement.icon_asset_path ?? ""}
           previewSrc={renderSrc}
-          hasIconUrl={hasIconUrl}
           className="p-1"
           float={floating}
           motionSeed={motionSeed}
           motionStartCentered={motionStartCentered}
-          initialYaw={iconModelYaw}
-          initialPitch={iconModelPitch}
-          playAnimation={iconModelAnimationPlay}
-          animationSpeed={iconModelAnimationSpeed}
+          initialYaw={achievement.icon_model_yaw}
+          initialPitch={achievement.icon_model_pitch}
+          playAnimation={achievement.icon_model_animation_play}
+          animationSpeed={achievement.icon_model_animation_speed}
           stateKey={viewerStateKey}
           onPreviewDecoded={onImageDecoded}
           onModelUrlReady={onModelUrlReady}
@@ -180,7 +170,7 @@ export function DetailBadgeInteractive({
         {hasIconUrl ? (
           <>
             <div className="relative h-full w-full">{unlockedBadgeContent()}</div>
-            {isModelAsset && iconAssetPath && showGlitter && !lockedUi ? (
+            {isModelAsset && achievement.icon_asset_path && showGlitter && !lockedUi ? (
               <ImpressionGlitterField
                 active
                 motionSeed={motionSeed}

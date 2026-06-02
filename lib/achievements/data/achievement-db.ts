@@ -15,14 +15,14 @@ import {
   fetchImpressionCountMap,
 } from "@/lib/achievements/data/impression-counts";
 
+const ACHIEVEMENT_FULL_SELECT =
+  "id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_cc_attribution,icon_model_yaw,icon_model_pitch,icon_model_animation_play,icon_model_animation_speed,tone,is_locked,achieved_at,created_at,visibility,dedicated_by_user_id,dedication_status";
+
 export type { AchievementDbRow, AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
 
 export type AchievementListResult = Result<AchievementRecord[], string>;
 export type AchievementSingleResult = Result<AchievementRecord, string>;
 export type AchievementDeleteResult = Result<void, string>;
-
-const SELECT_COLUMNS =
-  "id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_cc_attribution,icon_model_yaw,icon_model_pitch,icon_model_animation_play,icon_model_animation_speed,tone,is_locked,achieved_at,created_at,visibility,dedicated_by_user_id,dedication_status";
 
 function toAchievementSingleResult(row: AchievementDbRow): AchievementSingleResult {
   const normalized = tryNormalizeAchievement(row);
@@ -38,7 +38,7 @@ export async function listAchievements(
 ): Promise<AchievementListResult> {
   const { data, error } = await supabase
     .from("achievements")
-    .select(SELECT_COLUMNS)
+    .select(ACHIEVEMENT_FULL_SELECT)
     .eq("user_id", userId)
     .or("dedication_status.is.null,dedication_status.eq.accepted")
     .order("achieved_at", { ascending: false })
@@ -76,7 +76,7 @@ export async function createAchievement(
   const { data, error } = await supabase
     .from("achievements")
     .insert(payload)
-    .select(SELECT_COLUMNS)
+    .select(ACHIEVEMENT_FULL_SELECT)
     .single();
 
   if (error) {
@@ -97,7 +97,7 @@ export async function updateAchievement(
     .from("achievements")
     .update(payload)
     .eq("id", achievementId)
-    .select(SELECT_COLUMNS)
+    .select(ACHIEVEMENT_FULL_SELECT)
     .single();
 
   if (error) {
@@ -114,6 +114,23 @@ export async function deleteAchievement(
   achievementId: string,
 ): Promise<AchievementDeleteResult> {
   const { error } = await supabase.from("achievements").delete().eq("id", achievementId);
+  if (error) {
+    return err(error.message);
+  }
+  return ok(undefined);
+}
+
+export async function deleteAchievementForOwner(
+  supabase: SupabaseClient<Database>,
+  achievementId: string,
+  ownerUserId: string,
+): Promise<AchievementDeleteResult> {
+  const { error } = await supabase
+    .from("achievements")
+    .delete()
+    .eq("id", achievementId)
+    .eq("user_id", ownerUserId);
+
   if (error) {
     return err(error.message);
   }
@@ -145,7 +162,7 @@ export async function unlockAchievement(
     .from("achievements")
     .update(patch)
     .eq("id", achievementId)
-    .select(SELECT_COLUMNS)
+    .select(ACHIEVEMENT_FULL_SELECT)
     .single();
 
   if (error) {

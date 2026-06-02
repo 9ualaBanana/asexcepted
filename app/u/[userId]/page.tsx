@@ -7,7 +7,7 @@ import { ErrorToastOnce } from "@/components/toasts/error-toast-once";
 import { FollowButtonWrapper } from "@/components/social/follow-button";
 import { buildAchievementAuthContext } from "@/lib/auth/achievement-ability";
 import { createClient } from "@/lib/supabase/server";
-import { isUserFollowingProfile } from "@/lib/user-profile-db";
+import { isUserFollowingProfile } from "@/lib/achievements/data/user-profile-db";
 import { resolveAchievementsProfileUser } from "@/lib/user-achievements-page";
 
 type PageProps = {

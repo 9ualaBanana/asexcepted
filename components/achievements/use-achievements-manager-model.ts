@@ -29,7 +29,7 @@ import {
 } from "@/lib/share-invites/eligibility";
 import { showErrorToast } from "@/lib/toast";
 import { useAchievementUiStateMachine } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
-import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-src";
+import { useBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-cache";
 import {
   markTutorialCompleted,
   resetHideLockedPreferenceForNewAccount,
@@ -57,7 +57,7 @@ import {
   getAchievementPermissions,
   type AchievementAuthContext,
 } from "@/lib/auth/achievement-ability";
-import { fetchPublicUserDisplayName } from "@/lib/user-profile-db";
+import { fetchPublicUserDisplayName } from "@/lib/achievements/data/user-profile-db";
 import { createClient } from "@/lib/supabase/client";
 
 const UUID_RE =
@@ -153,11 +153,7 @@ export function useAchievementsManagerModel({
   );
   const [hideLocked, setHideLocked] = useHideLockedPreference();
   const { visibilityFilter, cycleVisibilityFilter } = useVisibilityFilterPreference();
-  const detailRenderSrc = useMemo(() => {
-    const src = detailAchievement?.icon_url?.trim() ?? "";
-    if (!src) return "";
-    return toOptimizedBadgeRenderSrc(src);
-  }, [detailAchievement?.icon_url]);
+  const detailRenderSrc = useBadgeRenderSrc(detailAchievement?.icon_url);
 
   const [showBadgeSpinAfterFirstUnlock, setShowBadgeSpinAfterFirstUnlock] =
     useState(false);

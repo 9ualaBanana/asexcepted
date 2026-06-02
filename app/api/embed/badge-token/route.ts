@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { getAchievementEmbedMintForOwner } from "@/lib/achievements/data/achievement-queries";
 import type { MintEmbedBadgeTokenRequestBody } from "@/lib/embed-api-types";
 import { mintEmbedBadgeToken } from "@/lib/embed-badge-token";
 import { allowRateLimit } from "@/lib/embed-rate-limit";
@@ -53,16 +54,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "achievementId is required" }, { status: 400 });
   }
 
-  const { data: row, error } = await supabase
-    .from("achievements")
-    .select("id,icon_url")
-    .eq("id", achievementId)
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const rowResult = await getAchievementEmbedMintForOwner(supabase, achievementId, user.id);
 
-  if (error || !row) {
-    return NextResponse.json({ error: "Achievement not found" }, { status: 404 });
+  if (rowResult.isErr()) {
+    return NextResponse.json({ error: rowResult.error }, { status: 404 });
   }
+  const row = rowResult.value;
   const iconUrl = row.icon_url?.trim() ?? "";
   if (!iconUrl) {
     return NextResponse.json(

@@ -5,25 +5,6 @@ import { useEffect } from "react";
 let lockCount = 0;
 let savedOverflow: string | null = null;
 
-export function lockBodyScroll(): void {
-  if (typeof document === "undefined") return;
-  if (lockCount === 0) {
-    savedOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-  }
-  lockCount += 1;
-}
-
-export function unlockBodyScroll(): void {
-  if (typeof document === "undefined") return;
-  if (lockCount <= 0) return;
-  lockCount -= 1;
-  if (lockCount === 0) {
-    document.body.style.overflow = savedOverflow ?? "";
-    savedOverflow = null;
-  }
-}
-
 /** Clears a stale lock when no modal should be holding scroll (nested restore races). */
 export function resetBodyScrollLock(): void {
   if (typeof document === "undefined") return;
@@ -38,4 +19,23 @@ export function useBodyScrollLock(active = true): void {
     lockBodyScroll();
     return unlockBodyScroll;
   }, [active]);
+}
+
+function lockBodyScroll(): void {
+  if (typeof document === "undefined") return;
+  if (lockCount === 0) {
+    savedOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+  }
+  lockCount += 1;
+}
+
+function unlockBodyScroll(): void {
+  if (typeof document === "undefined") return;
+  if (lockCount <= 0) return;
+  lockCount -= 1;
+  if (lockCount === 0) {
+    document.body.style.overflow = savedOverflow ?? "";
+    savedOverflow = null;
+  }
 }

@@ -47,4 +47,4 @@ export {
   hasModelGlbAsset,
   isModelBadgeAssetKind,
   isPublicHttpImageUrl,
-} from "./badge/shared";
+} from "./badge/shared/badge-assets";

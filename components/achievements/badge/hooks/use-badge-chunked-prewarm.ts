@@ -7,7 +7,8 @@ import {
   prewarmBadgeRenderCache,
 } from "@/lib/achievements/badge/shared/render-cache";
 import { logImageKitEvent } from "@/lib/imagekit/telemetry";
-import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-src";
+import { trimBadgeIconUrl } from "@/lib/achievements/badge/shared/badge-assets";
+import { badgeRenderSrcFromIconUrl } from "@/lib/achievements/badge/shared/render-src";
 import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
 
 type UseBadgeChunkedPrewarmArgs = {
@@ -27,9 +28,9 @@ export function useBadgeChunkedPrewarm({ achievements, pause }: UseBadgeChunkedP
     let skippedCached = 0;
 
     for (const achievement of achievements) {
-      const rawSrc = achievement.icon_url?.trim() ?? "";
+      const rawSrc = trimBadgeIconUrl(achievement.icon_url);
       if (!rawSrc) continue;
-      const src = toOptimizedBadgeRenderSrc(rawSrc);
+      const src = badgeRenderSrcFromIconUrl(rawSrc);
       if (hasBadgeDecodeCached(src)) {
         skippedCached += 1;
         continue;

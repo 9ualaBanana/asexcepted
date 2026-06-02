@@ -7,7 +7,7 @@ import {
   BadgeParallaxViewer,
 } from "@/components/achievements/badge";
 import { formatAchievedAt } from "@/components/achievements/achievement-editor-shared";
-import { isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-assets";
+import { hasModelGlbAsset, isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-assets";
 import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/shared/badge-assets-server";
 import { APP_DISPLAY_NAME } from "@/lib/brand";
 import { resolvePublicSiteOrigin } from "@/lib/public-site-origin";
@@ -146,8 +146,8 @@ export default async function Page({ params }: PageProps) {
   );
   const collectionOwnerPath = userCollection(collectionOwnerId);
   const liveModelUrl =
-    isModelBadgeAssetKind(invite.icon_asset_kind) && invite.icon_asset_path?.trim()
-      ? await createSignedBadgeModelUrl(invite.icon_asset_path)
+    hasModelGlbAsset(invite.icon_asset_kind, invite.icon_asset_path)
+      ? await createSignedBadgeModelUrl(invite.icon_asset_path ?? "")
       : null;
 
   if (invite.status !== "pending") {
@@ -178,7 +178,7 @@ export default async function Page({ params }: PageProps) {
                   className="mx-auto"
                 />
               )}
-              {(invite.icon_asset_kind === "model_glb" || invite.icon_cc_attribution?.trim()) && (
+              {(isModelBadgeAssetKind(invite.icon_asset_kind) && invite.icon_cc_attribution?.trim()) && (
                 <BadgeAttributionPopover
                   value={invite.icon_cc_attribution ?? ""}
                   emptyState="No attribution was provided for this 3D badge."

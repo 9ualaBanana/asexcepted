@@ -16,6 +16,7 @@ export {
   isShareInviteBadgeModelPath,
   looksLikeGlbUpload,
   sanitizeBadgeAssetPath,
+  trimBadgeIconUrl,
 } from "./badge-assets";
 
 export {
@@ -30,7 +31,11 @@ export {
   type ClonedBadgeModelAsset,
 } from "./badge-assets-server";
 
-export { toOptimizedBadgeRenderSrc } from "./render-src";
+export {
+  badgeDisplaySrcFromIconUrl,
+  badgeRenderSrcFromIconUrl,
+  toOptimizedBadgeRenderSrc,
+} from "./render-src";
 
 export {
   clearBadgeRenderCacheForSrc,
@@ -41,6 +46,7 @@ export {
   getCachedAlphaMaskData,
   hasBadgeDecodeCached,
   prewarmBadgeRenderCache,
+  useBadgeRenderSrc,
 } from "./render-cache";
 
 export { makeBadgeMotionStyle } from "./motion";

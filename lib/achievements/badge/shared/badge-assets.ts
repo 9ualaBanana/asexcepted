@@ -9,6 +9,11 @@ export function isModelBadgeAssetKind(value: string | null | undefined): boolean
   return value === "model_glb";
 }
 
+/** Trim persisted achievement `icon_url` (empty string when absent). */
+export function trimBadgeIconUrl(value: string | null | undefined): string {
+  return value?.trim() ?? "";
+}
+
 /** Persisted badge URLs must be fetchable after reload (not session blob/data URLs). */
 export function isPublicHttpImageUrl(url: string | null | undefined): boolean {
   const trimmed = url?.trim() ?? "";

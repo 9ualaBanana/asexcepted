@@ -36,6 +36,7 @@ import type { BadgeModelUploadStaged } from "@/components/achievements/badge/upl
 import { useBadgeUploader } from "../upload/use-badge-uploader";
 
 import "@uppy/core/css/style.min.css";
+import { isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-assets";
 
 const EDITOR_TONE_OPTIONS: AchievementTone[] = [
   "teal",
@@ -419,7 +420,7 @@ export function BadgeEditor({
           </div>
         )}
         </button>
-        {(iconAssetKind === "model_glb" || iconCcAttribution.trim()) && (
+        {(isModelBadgeAssetKind(iconAssetKind) || iconCcAttribution.trim()) && (
           <BadgeAttributionPopover
             value={iconCcAttribution}
             editable

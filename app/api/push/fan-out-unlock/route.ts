@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { getAchievementForUnlockPush } from "@/lib/achievements/data/achievement-queries";
 import { resolveDisplayName, sendPushToUsers } from "@/lib/notifications";
 import { createClient } from "@/lib/supabase/server";
 
@@ -24,15 +25,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
-  const { data: achievement, error: achError } = await supabase
-    .from("achievements")
-    .select("id, user_id, title, is_locked, visibility")
-    .eq("id", parsed.data.achievementId)
-    .single();
-
-  if (achError || !achievement) {
+  const achievementResult = await getAchievementForUnlockPush(
+    supabase,
+    parsed.data.achievementId,
+  );
+  if (achievementResult.isErr()) {
     return NextResponse.json({ error: "Achievement not found" }, { status: 404 });
   }
+  const achievement = achievementResult.value;
 
   if (achievement.user_id !== user.id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

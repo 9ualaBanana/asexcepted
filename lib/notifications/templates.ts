@@ -6,7 +6,7 @@ import {
   formatImpressionActivityMessage,
   formatNewInspirationActivityMessage,
   formatUnlockActivityMessage,
-} from "@/lib/activity-text";
+} from "@/lib/notifications/activity-text";
 import { APP_DISPLAY_NAME } from "@/lib/brand";
 import type { NotificationKind } from "@/lib/notifications/kinds";
 import { ROUTES, userAchievementDetail } from "../routes";

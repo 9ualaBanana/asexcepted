@@ -7,8 +7,8 @@ import type { AchievementRecord } from "@/lib/achievements/data/achievement-tran
 import {
   listPendingDedications,
   rejectDedication,
-} from "@/lib/dedications/dedication-db";
-import { fetchPublicUserDisplayName } from "@/lib/user-profile-db";
+} from "@/lib/achievements/data/dedication-db";
+import { fetchPublicUserDisplayName } from "@/lib/achievements/data/user-profile-db";
 import { createClient } from "@/lib/supabase/client";
 import { userCollection } from "@/lib/routes";
 import { showErrorToast } from "@/lib/toast";

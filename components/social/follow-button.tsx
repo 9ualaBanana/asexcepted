@@ -9,7 +9,7 @@ import {
   createProfileFollow,
   isUserFollowingProfile,
   removeProfileFollow,
-} from "@/lib/user-profile-db";
+} from "@/lib/achievements/data/user-profile-db";
 import { useErrorToast } from "@/lib/toast";
 import { usePwaInstallTutorial } from "@/lib/pwa/use-pwa-install-tutorial";
 

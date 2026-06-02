@@ -41,7 +41,7 @@ export function getWelcomeIntroAchievementRecord(): AchievementRecord {
     icon_model_animation_play: true,
     icon_model_animation_speed: 1,
     tone: INTRO_ACHIEVEMENT_SEED.tone,
-    is_locked: true,
+    is_locked: false,
     achieved_at: INTRO_ACHIEVEMENT_SEED.achieved_at,
     created_at: "1970-01-01T00:00:00.000Z",
     impression_count: 0,

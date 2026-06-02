@@ -47,6 +47,7 @@ import { useDoubleActivate } from "@/lib/hooks/use-double-activate";
 import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
 import { getTutorial, TUTORIAL_IDS, useTutorial, useTutorialToast } from "@/lib/tutorials";
 import { cn } from "@/lib/utils";
+import { isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-assets";
 
 export type AchievementDialogStackProps = {
   readOnly: boolean;
@@ -366,13 +367,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       motionSeed={detailAchievement.id}
                       tone={detailTone}
                       FallbackIcon={DetailFallbackIcon}
-                      hasIconUrl={Boolean(detailAchievement.icon_url?.trim())}
-                      iconAssetKind={detailAchievement.icon_asset_kind}
-                      iconAssetPath={detailAchievement.icon_asset_path}
-                      iconModelYaw={detailAchievement.icon_model_yaw}
-                      iconModelPitch={detailAchievement.icon_model_pitch}
-                      iconModelAnimationPlay={detailAchievement.icon_model_animation_play}
-                      iconModelAnimationSpeed={detailAchievement.icon_model_animation_speed}
+                      achievement={detailAchievement}
                       viewerStateKey={`${detailAchievement.id}:detail:${detailViewSessionKey}`}
                       lockedUi={detailIsLockedUi}
                       unlocking={detailIsUnlocking}
@@ -397,7 +392,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                         ) : null
                       }
                     />
-                    {(detailAchievement.icon_asset_kind === "model_glb" ||
+                    {(isModelBadgeAssetKind(detailAchievement.icon_asset_kind) ||
                       detailAchievement.icon_cc_attribution?.trim()) && (
                       <BadgeAttributionPopover
                         value={detailAchievement.icon_cc_attribution ?? ""}

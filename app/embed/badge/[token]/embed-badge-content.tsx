@@ -7,7 +7,9 @@ import {
 } from "@/components/achievements/badge";
 import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/shared/badge-assets-server";
 import { isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-assets";
-import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-src";
+import { badgeRenderSrcFromIconUrl } from "@/lib/achievements/badge/shared/render-src";
+import { trimBadgeIconUrl } from "@/lib/achievements/badge/shared/badge-assets";
+import { getAchievementEmbedBadgeById } from "@/lib/achievements/data/achievement-queries";
 import { verifyEmbedBadgeToken } from "@/lib/embed-badge-token";
 import { createAnonServerClient } from "@/lib/supabase/server-anon";
 import { EmbedTransparentSurface } from "./embed-transparent-surface";
@@ -31,17 +33,17 @@ export async function EmbedBadgeContent({ params }: Props) {
   }
 
   const supabase = createAnonServerClient();
-  const { data, error } = await supabase
-    .from("achievements")
-    .select("icon_url,icon_asset_kind,icon_asset_path,icon_model_yaw,icon_model_pitch")
-    .eq("id", payload.achievementId)
-    .maybeSingle();
+  const badgeResult = await getAchievementEmbedBadgeById(supabase, payload.achievementId);
 
-  if (error || !data?.icon_url?.trim()) {
+  if (badgeResult.isErr()) {
+    notFound();
+  }
+  const data = badgeResult.value;
+  if (!trimBadgeIconUrl(data.icon_url)) {
     notFound();
   }
 
-  const src = toOptimizedBadgeRenderSrc(data.icon_url.trim());
+  const src = badgeRenderSrcFromIconUrl(data.icon_url);
   const liveModelUrl =
     isModelBadgeAssetKind(data.icon_asset_kind) && data.icon_asset_path?.trim()
       ? await createSignedBadgeModelUrl(data.icon_asset_path)

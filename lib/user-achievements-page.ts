@@ -1,10 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { isAuthUserIdSegment } from "@/lib/user-achievements-path";
 import {
   authUserExists,
   fetchPublicUserDisplayName,
-} from "@/lib/user-profile-db";
+} from "@/lib/achievements/data/user-profile-db";
 import type { Database } from "@/lib/supabase/database.types";
 
 export type ResolveAchievementsProfileUserResult =
@@ -56,4 +55,12 @@ export async function resolveAchievementsProfileUser(
     isOwner: false,
     publicDisplayName: labelResult.value,
   };
+}
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** True if `value` looks like a Supabase Auth user UUID (path segment under `/u/`). */
+export function isAuthUserIdSegment(value: string): boolean {
+  return UUID_RE.test(value.trim());
 }

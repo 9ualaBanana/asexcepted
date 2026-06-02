@@ -1,3 +1,4 @@
+import { trimBadgeIconUrl } from "@/lib/achievements/badge/shared/badge-assets";
 import { IMAGEKIT_OPTIMIZED_RENDER_TRANSFORM } from "@/lib/imagekit/render-transform";
 
 /**
@@ -19,5 +20,20 @@ export function toOptimizedBadgeRenderSrc(src: string): string {
 
   u.searchParams.set("tr", IMAGEKIT_OPTIMIZED_RENDER_TRANSFORM);
   return u.toString();
+}
+
+/** Optimized 2D badge URL for parallax / poster overlays (empty when no `icon_url`). */
+export function badgeRenderSrcFromIconUrl(
+  iconUrl: string | null | undefined,
+): string {
+  return toOptimizedBadgeRenderSrc(trimBadgeIconUrl(iconUrl));
+}
+
+/** Same as `badgeRenderSrcFromIconUrl`, but `null` when the icon URL is missing. */
+export function badgeDisplaySrcFromIconUrl(
+  iconUrl: string | null | undefined,
+): string | null {
+  const trimmed = trimBadgeIconUrl(iconUrl);
+  return trimmed ? toOptimizedBadgeRenderSrc(trimmed) : null;
 }
 

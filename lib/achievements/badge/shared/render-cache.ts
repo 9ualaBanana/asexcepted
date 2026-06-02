@@ -1,7 +1,10 @@
 "use client";
 
+import { useMemo } from "react";
 import { LRUCache } from "lru-cache";
 import type { CSSProperties } from "react";
+
+import { badgeRenderSrcFromIconUrl } from "@/lib/achievements/badge/shared/render-src";
 
 import { logCdnDeliveryOnce } from "@/lib/imagekit/telemetry";
 import { makeBadgeMotionStyle } from "@/lib/achievements/badge/shared/motion";
@@ -104,4 +107,9 @@ export function clearBadgeRenderCacheForSrc(src: string): void {
   decodeReady.delete(src);
   alphaMaskReady.delete(src);
   maskStyleCache.delete(src);
+}
+
+/** Memoized optimized `icon_url` for badge parallax / poster rendering. */
+export function useBadgeRenderSrc(iconUrl: string | null | undefined): string {
+  return useMemo(() => badgeRenderSrcFromIconUrl(iconUrl), [iconUrl]);
 }

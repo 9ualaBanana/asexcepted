@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { getAchievementDedicationNotifyRow } from "@/lib/achievements/data/achievement-queries";
 import { sendPushToUsers } from "@/lib/notifications/send";
 import { resolveDisplayName } from "@/lib/notifications/templates";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
@@ -22,13 +23,12 @@ async function notifyDedicationAcceptedInner(args: {
   supabase?: SupabaseClient;
 }): Promise<void> {
   const supabase = args.supabase ?? createServiceRoleClient();
-  const { data: achievement, error } = await supabase
-    .from("achievements")
-    .select("id,user_id,title,dedicated_by_user_id,dedication_status")
-    .eq("id", args.achievementId)
-    .maybeSingle();
-
-  if (error || !achievement) return;
+  const achievementResult = await getAchievementDedicationNotifyRow(
+    supabase,
+    args.achievementId,
+  );
+  if (achievementResult.isErr()) return;
+  const achievement = achievementResult.value;
 
   const dedicatorUserId = achievement.dedicated_by_user_id?.trim() ?? "";
   if (!dedicatorUserId || achievement.dedication_status !== "accepted") {
