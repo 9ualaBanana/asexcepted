@@ -57,7 +57,7 @@ export {
 export {
   BADGE_MODEL_BUCKET,
   BADGE_PREVIEW_BUCKET,
-  hasModelGlbAsset,
+  isModelGlbAsset,
   isModelBadgeAssetKind,
   isPublicHttpImageUrl,
 } from "./badge/shared/badge-assets";

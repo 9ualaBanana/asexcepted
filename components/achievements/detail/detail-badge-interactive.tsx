@@ -19,7 +19,7 @@ import {
 import { isOpaqueBadgeHit, type AlphaMaskData } from "@/lib/achievements/badge/parallax/shape-utils";
 import { cn } from "@/lib/utils";
 import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
-import { hasModelGlbAsset } from "@/lib/achievements/badge/shared/badge-assets";
+import { isModelGlbAsset } from "@/lib/achievements/badge/shared/badge-assets";
 
 export type DetailBadgeInteractiveProps = {
   renderSrc: string;
@@ -78,7 +78,7 @@ export function DetailBadgeInteractive({
   dedicatedBadgeGlitter = false,
 }: DetailBadgeInteractiveProps) {
   const hasIconUrl = !!renderSrc;
-  const isModelAsset = hasModelGlbAsset(detail.iconAssetKind, detail.iconAssetPath);
+  const isModelAsset = isModelGlbAsset(detail.iconAssetKind, detail.iconAssetPath);
   const showGlitter =
     dedicatedBadgeGlitter ||
     (process.env.NEXT_PUBLIC_IMPRESSION_GLITTER_UI_ENABLED === "true" &&

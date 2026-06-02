@@ -9,11 +9,6 @@ export function isModelBadgeAssetKind(value: string | null | undefined): boolean
   return value === "model_glb";
 }
 
-/** Trim persisted achievement `icon_url` (empty string when absent). */
-export function trimBadgeIconUrl(value: string | null | undefined): string {
-  return value?.trim() ?? "";
-}
-
 /** Trimmed badge URL, or `null` when absent — apply at DB/API boundaries only. */
 export function normalizeBadgeIconUrl(value: string | null | undefined): string | null {
   const trimmed = value?.trim() ?? "";
@@ -36,7 +31,7 @@ export function isPublicHttpImageUrl(url: string | null | undefined): boolean {
 }
 
 /** True when the achievement uses an uploaded GLB (not a flat image badge). */
-export function hasModelGlbAsset(
+export function isModelGlbAsset(
   iconAssetKind: string | null | undefined,
   iconAssetPath: string | null | undefined,
 ): boolean {

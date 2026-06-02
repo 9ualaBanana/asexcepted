@@ -9,7 +9,7 @@ export {
   buildBadgePreviewPath,
   buildShareInviteBadgeModelPath,
   buildShareInviteBadgePreviewPath,
-  hasModelGlbAsset,
+  isModelGlbAsset,
   isGlbHeader,
   isModelBadgeAssetKind,
   isPublicHttpImageUrl,
@@ -17,7 +17,6 @@ export {
   looksLikeGlbUpload,
   sanitizeBadgeAssetPath,
   normalizeBadgeIconUrl,
-  trimBadgeIconUrl,
 } from "./badge-assets";
 
 export {

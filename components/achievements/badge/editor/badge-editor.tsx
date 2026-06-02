@@ -36,7 +36,7 @@ import type { BadgeModelUploadStaged } from "@/components/achievements/badge/upl
 import { useBadgeUploader } from "../upload/use-badge-uploader";
 
 import "@uppy/core/css/style.min.css";
-import { isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-assets";
+import { isModelGlbAsset, isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-assets";
 
 const EDITOR_TONE_OPTIONS: AchievementTone[] = [
   "teal",
@@ -175,7 +175,7 @@ export function BadgeEditor({
   };
   const hasCustomBadge =
     hasRemote || currentAsset.iconFileId.length > 0 || currentAsset.iconAssetPath.length > 0;
-  const isModelAsset = iconAssetKind === "model_glb" && currentAsset.iconAssetPath.length > 0;
+  const isModelAsset = isModelGlbAsset(iconAssetKind, iconAssetPath);
 
   const { signedUrl: editorSignedModelUrl } = useSignedBadgeModelUrl(
     currentAsset.iconAssetPath,

@@ -1,6 +1,6 @@
 import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
 import type { FormState } from "@/components/achievements/achievement-editor-shared";
-import { hasModelGlbAsset } from "@/lib/achievements/badge/shared/badge-assets";
+import { isModelGlbAsset } from "@/lib/achievements/badge/shared/badge-assets";
 
 /** Sender-dedicated row (pending or accepted). */
 export function isDedicatedAchievement(
@@ -43,7 +43,7 @@ export function showsDedicatedBadgeEffect(
 ): boolean {
   return (
     showsDedicatedBadgeAura(achievement) &&
-    !hasModelGlbAsset(achievement.iconAssetKind, achievement.iconAssetPath)
+    !isModelGlbAsset(achievement.iconAssetKind, achievement.iconAssetPath)
   );
 }
 
