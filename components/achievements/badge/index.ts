@@ -42,7 +42,7 @@ export { DedicatedBadgeGlitter } from "./effects/dedicated-badge-glitter";
 export {
   DetailBadgeInteractive,
   type DetailBadgeInteractiveProps,
-} from "./detail/detail-badge-interactive";
+} from "../detail/detail-badge-interactive";
 
 export { BadgeEditor } from "./editor/badge-editor";
 
