@@ -52,7 +52,7 @@ const EDITOR_TONE_OPTIONS: AchievementTone[] = [
 const chipBtn =
   "border-white/25 bg-white/10 text-white hover:bg-white/15";
 
-type RoundBadgeEditorProps = {
+type BadgeEditorProps = {
   imageUrl: string;
   iconFileId: string;
   iconAssetKind: AchievementIconAssetKind;
@@ -89,7 +89,7 @@ type RoundBadgeEditorProps = {
   disabled?: boolean;
 };
 
-export function RoundBadgeEditor({
+export function BadgeEditor({
   imageUrl,
   iconFileId,
   iconAssetKind,
@@ -121,7 +121,7 @@ export function RoundBadgeEditor({
   onUploadInProgressChange,
   onModelUploadStaged,
   disabled = false,
-}: RoundBadgeEditorProps) {
+}: BadgeEditorProps) {
   const uppyInstanceId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const modelInputRef = useRef<HTMLInputElement>(null);

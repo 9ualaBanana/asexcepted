@@ -12,7 +12,7 @@ import {
 import { ArrowLeft, Check, Loader2, Trash2, X } from "lucide-react";
 
 import {
-  RoundBadgeEditor,
+  BadgeEditor,
   applyBadgeModelPoseSessionToForm,
   type BadgeModelUploadStaged,
   clearSessionStagedUpload,
@@ -149,7 +149,7 @@ export function EditableAchievementCard({
           </div>
         ) : null}
         <div className={cn(showDialogChrome && "flex justify-center")}>
-          <RoundBadgeEditor
+          <BadgeEditor
             imageUrl={form.iconUrl}
             iconFileId={form.iconFileId}
             iconAssetKind={form.iconAssetKind}

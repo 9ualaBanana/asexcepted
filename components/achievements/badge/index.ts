@@ -44,7 +44,7 @@ export {
   type BadgeImageParallaxViewProps,
 } from "./detail/badge-image-parallax-view";
 
-export { RoundBadgeEditor } from "./editor/round-badge-editor";
+export { BadgeEditor } from "./editor/badge-editor";
 
 export {
   createBadgeRemoteAsset,
