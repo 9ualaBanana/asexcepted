@@ -60,8 +60,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: rowResult.error }, { status: 404 });
   }
   const row = rowResult.value;
-  const iconUrl = row.icon_url?.trim() ?? "";
-  if (!iconUrl) {
+  if (!row.icon_url) {
     return NextResponse.json(
       { error: "Add a custom badge image before creating an embed link." },
       { status: 400 },

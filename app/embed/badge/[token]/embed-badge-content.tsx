@@ -7,8 +7,7 @@ import {
 } from "@/components/achievements/badge";
 import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/shared/badge-assets-server";
 import { isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-assets";
-import { badgeRenderSrcFromIconUrl } from "@/lib/achievements/badge/shared/render-src";
-import { trimBadgeIconUrl } from "@/lib/achievements/badge/shared/badge-assets";
+import { toOptimizedRenderSrc } from "@/lib/achievements/badge/shared/render-src";
 import { getAchievementEmbedBadgeById } from "@/lib/achievements/data/achievement-queries";
 import { verifyEmbedBadgeToken } from "@/lib/embed/embed-badge-token";
 import { createAnonServerClient } from "@/lib/supabase/server-anon";
@@ -39,11 +38,11 @@ export async function EmbedBadgeContent({ params }: Props) {
     notFound();
   }
   const data = badgeResult.value;
-  if (!trimBadgeIconUrl(data.icon_url)) {
+  const iconUrl = data.icon_url;
+  if (!iconUrl) {
     notFound();
   }
-
-  const src = badgeRenderSrcFromIconUrl(data.icon_url);
+  const src = toOptimizedRenderSrc(iconUrl);
   const liveModelUrl =
     isModelBadgeAssetKind(data.icon_asset_kind) && data.icon_asset_path?.trim()
       ? await createSignedBadgeModelUrl(data.icon_asset_path)

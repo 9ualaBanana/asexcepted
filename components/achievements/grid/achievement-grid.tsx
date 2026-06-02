@@ -1,31 +1,17 @@
-import type { LucideIcon } from "lucide-react";
-
 import {
   AchievementGridItem,
   AchievementGridItemAdd,
   AchievementGridItemDedicate,
   AchievementGridItemFallback,
 } from "@/components/achievements/grid/achievement-grid-item";
-import type { AchievementTone } from "@/components/achievements/achievement-manager-utils";
+import type { AchievementGridViewModel } from "@/lib/achievements/data/achievement-transformers";
 import { cn } from "@/lib/utils";
-
-type AchievementGridEntry = {
-  id: string;
-  title: string | null;
-  dateLabel: string | null;
-  iconUrl: string | null;
-  FallbackIcon: LucideIcon;
-  tone: AchievementTone;
-  isLocked: boolean;
-  hasImpressions: boolean;
-  showDedicatedGlitter: boolean;
-};
 
 type AchievementGridProps = {
   isLoading: boolean;
   readOnly: boolean;
   canDedicate?: boolean;
-  items: AchievementGridEntry[];
+  items: AchievementGridViewModel[];
   onAddAchievement: () => void;
   onAddDedicatedAchievement?: () => void;
   onSelectAchievement: (id: string) => void;
@@ -82,7 +68,7 @@ function AchievementGridInner({
               id={achievement.id}
               title={achievement.title}
               dateLabel={achievement.dateLabel}
-              iconUrl={achievement.iconUrl}
+              displaySrc={achievement.displaySrc}
               FallbackIcon={achievement.FallbackIcon}
               tone={achievement.tone}
               isLocked={achievement.isLocked}

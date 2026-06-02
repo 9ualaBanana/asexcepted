@@ -497,7 +497,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                     >
                       {isVisibilityOnlyEdit ? (
                         <span className="inline-flex h-10 w-10 shrink-0" aria-hidden />
-                      ) : detailAchievement.icon_url?.trim() ? (
+                      ) : detailAchievement.icon_url ? (
                         <AchievementDetailShareMenu
                           disabled={isSaving}
                           busy={shareMenuBusy}
@@ -523,7 +523,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       !formatAchievedAt(detailAchievement.achieved_at) ? "mt-6" : undefined
                     }
                     endSlot={
-                      detailAchievement.icon_url?.trim() ? (
+                      detailAchievement.icon_url ? (
                         <AchievementDetailShareMenu
                           disabled={isSaving}
                           busy={shareMenuBusy}
@@ -537,7 +537,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       ) : undefined
                     }
                   />
-                ) : detailAchievement.icon_url?.trim() ? (
+                ) : detailAchievement.icon_url ? (
                   <div
                     className={cn(
                       badgeChromeWidth,

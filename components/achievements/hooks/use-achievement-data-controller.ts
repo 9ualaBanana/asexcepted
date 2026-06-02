@@ -100,7 +100,7 @@ export function useAchievementDataController({
       setError(null);
 
       const target = achievements.find((a) => a.id === id);
-      const targetSrc = target?.icon_url?.trim() ?? "";
+      const targetSrc = target?.icon_url;
 
       const deleteResult = await deleteAchievement(supabase, id);
       if (deleteResult.isErr()) {

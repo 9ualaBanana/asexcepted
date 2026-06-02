@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { err, ok, type Result } from "neverthrow";
 
+import { normalizeBadgeIconUrl } from "@/lib/achievements/badge/shared/badge-assets";
 import type { Database } from "@/lib/supabase/database.types";
 import { formatSupabaseSingleRowError } from "@/lib/supabase/postgrest-errors";
 
@@ -85,7 +86,10 @@ export async function getAchievementEmbedBadgeById(
   if (!data) {
     return err("Achievement not found");
   }
-  return ok(data);
+  return ok({
+    ...data,
+    icon_url: normalizeBadgeIconUrl(data.icon_url),
+  });
 }
 
 export async function getAchievementEmbedMintForOwner(
@@ -106,7 +110,10 @@ export async function getAchievementEmbedMintForOwner(
   if (!data) {
     return err("Achievement not found");
   }
-  return ok(data);
+  return ok({
+    ...data,
+    icon_url: normalizeBadgeIconUrl(data.icon_url),
+  });
 }
 
 export async function getAchievementDedicationNotifyRow(

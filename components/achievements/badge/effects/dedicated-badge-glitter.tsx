@@ -23,7 +23,7 @@ export function DedicatedBadgeGlitter({
   overlay = true,
   className,
 }: DedicatedBadgeGlitterProps) {
-  const src = useMemo(() => toOptimizedRenderSrc(renderSrc.trim()), [renderSrc]);
+  const src = useMemo(() => toOptimizedRenderSrc(renderSrc), [renderSrc]);
   const maskStyle = useMemo(
     () => badgeImageMaskStylePadded(src, 108),
     [src],

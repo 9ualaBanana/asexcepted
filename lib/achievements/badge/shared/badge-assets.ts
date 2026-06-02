@@ -14,6 +14,12 @@ export function trimBadgeIconUrl(value: string | null | undefined): string {
   return value?.trim() ?? "";
 }
 
+/** Trimmed badge URL, or `null` when absent — apply at DB/API boundaries only. */
+export function normalizeBadgeIconUrl(value: string | null | undefined): string | null {
+  const trimmed = value?.trim() ?? "";
+  return trimmed || null;
+}
+
 /** Persisted badge URLs must be fetchable after reload (not session blob/data URLs). */
 export function isPublicHttpImageUrl(url: string | null | undefined): boolean {
   const trimmed = url?.trim() ?? "";

@@ -15,7 +15,6 @@ import {
   circularBadgeMaskStyle,
   paddedBadgeMaskStyle,
 } from "@/lib/achievements/badge/parallax/badge-mask-style";
-import { badgeDisplaySrcFromIconUrl } from "@/lib/achievements/badge/shared/render-src";
 import { cn } from "@/lib/utils";
 
 function getAlphaMaskStyle(src: string) {
@@ -128,7 +127,7 @@ type AchievementGridItemProps = {
   id: string;
   title: string | null;
   dateLabel: string | null;
-  iconUrl: string | null;
+  displaySrc: string | null;
   FallbackIcon: LucideIcon;
   tone: AchievementTone;
   isLocked: boolean;
@@ -141,7 +140,7 @@ export function AchievementGridItem({
   id,
   title,
   dateLabel,
-  iconUrl,
+  displaySrc,
   FallbackIcon,
   tone,
   isLocked,
@@ -150,7 +149,6 @@ export function AchievementGridItem({
   onClick,
 }: AchievementGridItemProps) {
   const displayTitle = title?.trim() || (isLocked ? "Locked" : "Untitled");
-  const displaySrc = badgeDisplaySrcFromIconUrl(iconUrl);
   const silhouetteMaskStyle = displaySrc ? getAlphaMaskStyle(displaySrc) : null;
   const glitterMaskStyle = displaySrc
     ? badgeImageMaskStylePadded(displaySrc, 108)

@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { err, ok, type Result } from "neverthrow";
 
+import { normalizeBadgeIconUrl } from "@/lib/achievements/badge/shared/badge-assets";
+
 export type FeedEventType = "unlock" | "impression" | "dedication";
 
 export type FeedRow = {
@@ -69,7 +71,7 @@ function normalizeFeedRow(raw: Record<string, unknown>): FeedRow | null {
     description: (raw.description as string | null) ?? null,
     category: (raw.category as string | null) ?? null,
     icon: String(raw.icon ?? "trophy"),
-    icon_url: (raw.icon_url as string | null) ?? null,
+    icon_url: normalizeBadgeIconUrl(raw.icon_url as string | null | undefined),
     icon_file_id: (raw.icon_file_id as string | null) ?? null,
     icon_asset_kind: String(raw.icon_asset_kind ?? "image"),
     tone: String(raw.tone ?? "teal"),

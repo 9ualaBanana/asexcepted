@@ -11,7 +11,7 @@ import { getSafeIcon } from "@/components/achievements/achievement-editor-shared
 import { FeedActivityText } from "@/components/social/feed/feed-activity-text";
 import { ProfileAvatarSlot } from "@/components/profile/profile-avatar-slot";
 import { isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-assets";
-import { badgeDisplaySrcFromIconUrl } from "@/lib/achievements/badge/shared/render-src";
+import { toOptimizedRenderSrc } from "@/lib/achievements/badge/shared/render-src";
 import { formatFeedEventTimestamp } from "@/lib/feed/format-feed-event-time";
 import {
   FEED_BADGE_PX,
@@ -39,9 +39,9 @@ export function FeedItem({ row }: FeedItemProps) {
   const showDedicatedGlitter =
     row.is_dedicated &&
     !isModelBadgeAssetKind(row.icon_asset_kind) &&
-    Boolean(row.icon_url?.trim());
+    Boolean(row.icon_url);
   const eventTimeLabel = formatFeedEventTimestamp(row.event_at);
-  const badgeSrc = badgeDisplaySrcFromIconUrl(row.icon_url);
+  const badgeSrc = row.icon_url ? toOptimizedRenderSrc(row.icon_url) : null;
   const avatarPx = Math.round(FEED_BADGE_PX * FEED_AVATAR_RATIO);
 
   return (

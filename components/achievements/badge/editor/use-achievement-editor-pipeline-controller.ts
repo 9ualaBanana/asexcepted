@@ -222,9 +222,8 @@ export function useAchievementEditorPipelineController({
       }
 
       const createdAchievement = result.value;
-      const createdSrc = createdAchievement.icon_url?.trim() ?? "";
-      if (createdSrc) {
-        const renderSrc = toOptimizedRenderSrc(createdSrc);
+      if (createdAchievement.icon_url) {
+        const renderSrc = toOptimizedRenderSrc(createdAchievement.icon_url);
         prewarmBadgeRenderCache(renderSrc, {
           motionSeed: createdAchievement.id,
           includeAlphaMaskData: Boolean(createdAchievement.is_locked) && !readOnly,
@@ -291,8 +290,8 @@ export function useAchievementEditorPipelineController({
       }
 
       const updatedAchievement = result.value;
-      const previousSrc = detailAchievement?.icon_url?.trim() ?? "";
-      const nextSrc = updatedAchievement.icon_url?.trim() ?? "";
+      const previousSrc = detailAchievement?.icon_url ?? null;
+      const nextSrc = updatedAchievement.icon_url;
       if (previousSrc && previousSrc !== nextSrc) {
         clearBadgeRenderCacheForSrc(toOptimizedRenderSrc(previousSrc));
       }

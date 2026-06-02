@@ -95,7 +95,7 @@ export function useBadgeMetricsController(
 
   useEffect(() => {
     if (!detailAchievement?.id) return;
-    if (!detailAchievement.icon_url?.trim()) return;
+    if (!detailAchievement.icon_url) return;
     if (detailPerfMeasuredForIdRef.current !== detailAchievement.id) return;
 
     const timeout = window.setTimeout(() => {

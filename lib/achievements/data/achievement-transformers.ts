@@ -19,6 +19,8 @@ import {
   toNullable,
 } from "@/components/achievements/achievement-editor-shared";
 import { normalizeImageKitFileId } from "@/components/achievements/badge";
+import { normalizeBadgeIconUrl } from "@/lib/achievements/badge/shared/badge-assets";
+import { toOptimizedRenderSrc } from "@/lib/achievements/badge/shared/render-src";
 import { showsDedicatedBadgeEffect } from "@/lib/achievements/dedication/dedication-utils";
 import type {
   AchievementDbRow,
@@ -54,14 +56,14 @@ export type AchievementRecord = {
 export function hasCustomBadge(
   achievement: Pick<AchievementRecord, "icon_url">,
 ): boolean {
-  return Boolean(achievement.icon_url?.trim());
+  return achievement.icon_url !== null;
 }
 
 export type AchievementGridViewModel = {
   id: string;
   title: string | null;
   dateLabel: string | null;
-  iconUrl: string;
+  displaySrc: string | null;
   FallbackIcon: LucideIcon;
   tone: AchievementTone;
   isLocked: boolean;
@@ -69,44 +71,6 @@ export type AchievementGridViewModel = {
   /** Dedicated particle glitter (image badges only). */
   showDedicatedGlitter: boolean;
 };
-
-const achievementDbRowSchema = z.custom<AchievementDbRow>();
-
-const normalizeAchievementSchema = achievementDbRowSchema.transform<AchievementRecord>(
-  (record) => ({
-    id: String(record.id),
-    title: record.title,
-    description: record.description,
-    category: record.category,
-    icon: getSafeIconKey(record.icon),
-    icon_url: record.icon_url,
-    icon_file_id: normalizeImageKitFileId(record.icon_file_id) || null,
-    icon_asset_kind: getSafeIconAssetKind(record.icon_asset_kind),
-    icon_asset_path: record.icon_asset_path?.trim() || null,
-    icon_cc_attribution: record.icon_cc_attribution?.trim() || null,
-    icon_model_yaw: Number(record.icon_model_yaw) || 0,
-    icon_model_pitch: Number(record.icon_model_pitch) || 0,
-    icon_model_animation_play:
-      record.icon_model_animation_play === false ? false : true,
-    icon_model_animation_speed:
-      typeof record.icon_model_animation_speed === "number"
-        ? Math.min(2, Math.max(0.1, record.icon_model_animation_speed))
-        : 1,
-    tone: getSafeTone(record.tone),
-    is_locked: Boolean(record.is_locked),
-    achieved_at: record.achieved_at,
-    created_at: record.created_at,
-    visibility: getSafeVisibility(record.visibility),
-    impression_count: 0,
-    dedicated_by_user_id: record.dedicated_by_user_id ?? null,
-    dedication_status:
-      record.dedication_status === "pending"
-        ? "pending"
-        : record.dedication_status === "accepted" || record.dedicated_by_user_id
-          ? "accepted"
-          : null,
-  }),
-);
 
 const achievementRecordSchema = z.custom<AchievementRecord>();
 
@@ -135,7 +99,7 @@ const achievementToGridItemSchema = achievementRecordSchema.transform<Achievemen
     id: record.id,
     title: record.title,
     dateLabel: formatGridDate(record.achieved_at),
-    iconUrl: record.icon_url?.trim() ?? "",
+    displaySrc: record.icon_url ? toOptimizedRenderSrc(record.icon_url) : null,
     FallbackIcon: getSafeIcon(record.icon),
     tone: getSafeTone(record.tone),
     isLocked: record.is_locked,
@@ -185,7 +149,7 @@ export function coerceAchievementDbRow(row: Record<string, unknown>): Achievemen
     description: (row.description as string | null) ?? null,
     category: (row.category as string | null) ?? null,
     icon: getSafeIconKey(row.icon as string | null | undefined),
-    icon_url: (row.icon_url as string | null) ?? null,
+    icon_url: normalizeBadgeIconUrl(row.icon_url as string | null | undefined),
     icon_file_id: iconFileId,
     icon_asset_kind: getSafeIconAssetKind(row.icon_asset_kind as string | null | undefined),
     icon_asset_path:
