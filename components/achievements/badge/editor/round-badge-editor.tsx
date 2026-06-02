@@ -31,13 +31,12 @@ import { Button } from "@/components/ui/button";
 import { toOptimizedBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-src";
 import { useErrorToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import { useBadgeImageUploader } from "@/components/achievements/badge/upload/use-badge-image-uploader";
 import {
   BadgeModelViewer,
-  useBadgeModelUploader,
   useSignedBadgeModelUrl,
   type BadgeModelUploadStaged,
 } from "@/components/achievements/badge/model";
+import { useBadgeUploader } from "../upload/use-badge-uploader";
 
 import "@uppy/core/css/style.min.css";
 
@@ -193,38 +192,26 @@ export function RoundBadgeEditor({
 
   useErrorToast(error, { id: "badge-editor-upload" });
 
-  const { queueUpload, uploadInProgress } = useBadgeImageUploader({
+  const { queueUpload, uploadInProgress } = useBadgeUploader({
     instanceId: uppyInstanceId,
     disabled,
-    onUploadSuccess: (url, fileId) => {
+    onImageUploadSuccess: (asset) => {
       setError(null);
-      onRemoteCommitRef.current({
-        iconUrl: url,
-        iconFileId: fileId,
-        iconAssetKind: "image",
-        iconAssetPath: "",
-      });
+      onRemoteCommitRef.current(asset);
       setMenuOpen(false);
     },
-    onUploadError: (message) => setError(message),
+    onModelUploadSuccess: (staged) => {
+      setError(null);
+      onModelUploadStaged?.(staged);
+      setMenuOpen(false);
+    },
+    onUploadError: (message) => {
+      setError(message);
+    },
     onUploadStart: () => setError(null),
     onUploadInProgressChange,
   });
-
-  const { queueUpload: queueModelUpload, uploadInProgress: modelUploadInProgress } =
-    useBadgeModelUploader({
-      disabled,
-      onUploadSuccess: (staged) => {
-        setError(null);
-        onModelUploadStaged?.(staged);
-        setMenuOpen(false);
-      },
-      onUploadError: (message) => setError(message),
-      onUploadStart: () => setError(null),
-      onUploadInProgressChange,
-    });
-
-  const busy = uploadInProgress || modelUploadInProgress || isRemoving;
+  const busy = uploadInProgress || isRemoving;
 
   useEffect(() => {
     if (!menuOpen && !removeConfirmOpen) return;
@@ -246,15 +233,9 @@ export function RoundBadgeEditor({
       setDragActive(false);
       const f = e.dataTransfer.files?.[0];
       if (!f) return;
-      if (f.type.startsWith("image/")) {
-        queueUpload(f);
-        return;
-      }
-      if (f.name.toLowerCase().endsWith(".glb")) {
-        void queueModelUpload(f);
-      }
+      void queueUpload(f);
     },
-    [queueModelUpload, queueUpload],
+    [queueUpload],
   );
 
   const onDragOver = useCallback((e: React.DragEvent) => {
@@ -343,7 +324,9 @@ export function RoundBadgeEditor({
         onChange={(e) => {
           const f = e.target.files?.[0];
           e.target.value = "";
-          if (f) queueUpload(f);
+          if (f) {
+            void queueUpload(f);
+          }
         }}
       />
       <input
@@ -356,7 +339,7 @@ export function RoundBadgeEditor({
           const f = e.target.files?.[0];
           e.target.value = "";
           if (f) {
-            void queueModelUpload(f);
+            void queueUpload(f);
           }
         }}
       />
