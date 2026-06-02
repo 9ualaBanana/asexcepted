@@ -87,8 +87,7 @@ export function useBadgeUploader({
       onImageUploadSuccess({
         iconUrl: url,
         iconFileId: fileId,
-        iconAssetKind: "image",
-        iconAssetPath: "",
+        model: null,
       });
       finishUpload();
     },

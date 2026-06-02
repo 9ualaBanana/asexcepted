@@ -16,13 +16,12 @@ export type BadgeGltfViewerProps = {
    * Shown while the GLB loads and on failure.
    */
   renderSrc: string | null;
-  /** GLB storage path, pose, and animation. */
   model: BadgeModelAsset;
   /** When set, render this GLB directly (embed, editor, server-resolved routes). */
   signedModelUrl?: string;
   onModelUrlReady?: () => void;
   className?: string;
-  float?: boolean;
+  float: boolean;
   motionSeed?: string;
   motionStartCentered?: boolean;
   onVisualReady?: () => void;
@@ -44,7 +43,7 @@ export function BadgeGltfViewer({
   signedModelUrl: signedModelUrlProp,
   onModelUrlReady,
   className,
-  float = false,
+  float,
   motionSeed,
   motionStartCentered = false,
   onVisualReady,
@@ -101,7 +100,7 @@ type BadgeGltfSceneProps = {
   renderSrc: string | null;
   model: BadgeModelAsset;
   className?: string;
-  float?: boolean;
+  float: boolean;
   motionSeed?: string;
   motionStartCentered?: boolean;
   onVisualReady?: () => void;
@@ -119,7 +118,7 @@ function BadgeGltfScene({
   renderSrc,
   model,
   className,
-  float = false,
+  float,
   motionSeed,
   motionStartCentered = false,
   onVisualReady,
@@ -182,14 +181,11 @@ function BadgeGltfScene({
           )}
         >
           <BadgeModelCanvas
+            model={model}
             className="h-full w-full"
             signedModelUrl={signedModelUrl}
             viewStateKey={viewStateKey}
-            initialYaw={model.yaw}
-            initialPitch={model.pitch}
             motionStartCentered={motionStartCentered}
-            playAnimation={model.animationPlay}
-            animationSpeed={model.animationSpeed}
             interactive={interactive}
             allowInertia={allowInertia}
             onPoseChange={notifyPoseChange}

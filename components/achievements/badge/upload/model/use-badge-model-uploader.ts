@@ -8,7 +8,10 @@ import {
 } from "@/components/achievements/badge/upload/model/badge-model-pose-session";
 import { prepareBadgeModelUpload } from "@/components/achievements/badge/upload/model/badge-model-upload-client";
 import type { FormState } from "@/components/achievements/achievement-editor-shared";
-import { applyBadgeModelToForm } from "@/lib/achievements/badge/shared/badge-model-asset";
+import {
+  applyBadgeModelToForm,
+  badgeModelFromStagedUpload,
+} from "@/lib/achievements/badge/shared/badge-model-asset";
 import { uploadBadgeModelGlbOnly } from "@/lib/achievements/client/badge-asset";
 
 export type BadgeModelUploadStaged = {
@@ -93,14 +96,7 @@ export function applyBadgeModelPoseSessionToForm(
       iconUrl: staged.previewUrl,
       iconFileId: "",
     },
-    {
-      assetPath: staged.modelPath,
-      yaw: staged.iconModelYaw,
-      pitch: staged.iconModelPitch,
-      animationPlay: true,
-      animationSpeed: 1,
-      ccAttribution: null,
-    },
+    badgeModelFromStagedUpload(staged),
   );
 }
 

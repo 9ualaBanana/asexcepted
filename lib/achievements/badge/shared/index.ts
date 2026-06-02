@@ -14,7 +14,7 @@ export {
   isModelBadgeAssetKind,
   applyBadgeModelToForm,
   badgeModelFromForm,
-  badgeRemoteAssetFromModelFields,
+  badgeModelFromStagedUpload,
   parseBadgeModelAsset,
   patchBadgeModelAsset,
   badgeModelAssetFieldsFromModel,

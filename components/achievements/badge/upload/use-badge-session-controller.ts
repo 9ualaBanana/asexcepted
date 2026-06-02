@@ -19,9 +19,10 @@ import {
   getSafeIconAssetKind,
   type IconAssetKind,
   type BadgeAssetSession,
+  type BadgeRemoteAsset,
   type FormState,
 } from "@/components/achievements/achievement-editor-shared";
-import { badgeRemoteAssetFromModelFields } from "@/lib/achievements/badge/shared/badge-model-asset";
+import { badgeModelFromForm } from "@/lib/achievements/badge/shared/badge-model-asset";
 import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
 import { finalizeBadgeModelUpload } from "@/lib/achievements/client/badge-asset";
 
@@ -123,10 +124,15 @@ export function useBadgeSessionController({
       baseline: createBadgeRemoteAsset({
         iconUrl: asset.iconUrl ?? "",
         iconFileId: asset.iconFileId ?? "",
-        iconAssetKind: getSafeIconAssetKind(asset.iconAssetKind),
-        iconAssetPath: asset.iconAssetPath ?? "",
-        iconModelYaw: asset.iconModelYaw ?? 0,
-        iconModelPitch: asset.iconModelPitch ?? 0,
+        model: badgeModelFromForm({
+          iconAssetKind: getSafeIconAssetKind(asset.iconAssetKind),
+          iconAssetPath: asset.iconAssetPath ?? "",
+          iconCcAttribution: "",
+          iconModelYaw: asset.iconModelYaw ?? 0,
+          iconModelPitch: asset.iconModelPitch ?? 0,
+          iconModelAnimationPlay: true,
+          iconModelAnimationSpeed: 1,
+        }),
       }),
       staged: null,
     };
@@ -135,13 +141,11 @@ export function useBadgeSessionController({
 
   const beginPanelBadgeSession = (detail: AchievementDetailViewModel) => {
     panelBadgeAssetSessionRef.current = {
-      baseline: createBadgeRemoteAsset(
-        badgeRemoteAssetFromModelFields({
-          iconUrl: detail.iconUrl ?? "",
-          iconFileId: detail.iconFileId ?? "",
-          model: detail.model,
-        }),
-      ),
+      baseline: createBadgeRemoteAsset({
+        iconUrl: detail.iconUrl ?? "",
+        iconFileId: detail.iconFileId ?? "",
+        model: detail.model,
+      }),
       staged: null,
     };
     clearModelPoseSession("panel");
@@ -153,13 +157,11 @@ export function useBadgeSessionController({
   };
 
   const commitPanelBadgeSession = (updated: AchievementDetailViewModel) => {
-    const nextBaseline = createBadgeRemoteAsset(
-      badgeRemoteAssetFromModelFields({
-        iconUrl: updated.iconUrl ?? "",
-        iconFileId: updated.iconFileId ?? "",
-        model: updated.model,
-      }),
-    );
+    const nextBaseline = createBadgeRemoteAsset({
+      iconUrl: updated.iconUrl ?? "",
+      iconFileId: updated.iconFileId ?? "",
+      model: updated.model,
+    });
     const replacedBaselineAsset = getReplacedBadgeRemoteAsset(
       panelBadgeAssetSessionRef.current.baseline,
       nextBaseline,
@@ -180,11 +182,11 @@ export function useBadgeSessionController({
   ) => {
     const persistedAsset = createBadgeRemoteAsset(
       target
-        ? badgeRemoteAssetFromModelFields({
+        ? {
             iconUrl: target.iconUrl ?? "",
             iconFileId: target.iconFileId ?? "",
             model: target.model,
-          })
+          }
         : null,
     );
     const stagedPanelAsset =
@@ -210,12 +212,7 @@ export function useBadgeSessionController({
   };
 
   const deleteRemoteAssetQuietly = async (
-    asset: {
-      iconUrl?: string;
-      iconFileId?: string;
-      iconAssetKind?: "image" | "model_glb";
-      iconAssetPath?: string;
-    } | null | undefined,
+    asset: Partial<BadgeRemoteAsset> | null | undefined,
     warningContext: string,
   ) => {
     await deleteBadgeRemoteAssetQuietly(asset, (e) => console.warn(warningContext, e));

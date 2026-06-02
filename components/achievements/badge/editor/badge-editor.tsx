@@ -35,7 +35,6 @@ import { useBadgeUploader } from "../upload/use-badge-uploader";
 
 import "@uppy/core/css/style.min.css";
 import {
-  badgeRemoteAssetFromModelFields,
   patchBadgeModelAsset,
   type BadgeModelAsset,
 } from "@/lib/achievements/badge/shared/badge-model-asset";
@@ -151,13 +150,13 @@ export function BadgeEditor({
 
   const trimmed = imageUrl.trim();
   const hasRemote = trimmed.length > 0;
-  const currentAsset: BadgeRemoteAsset = badgeRemoteAssetFromModelFields({
+  const currentAsset: BadgeRemoteAsset = {
     iconUrl: trimmed,
     iconFileId: iconFileId.trim(),
     model,
-  });
+  };
   const hasCustomBadge =
-    hasRemote || currentAsset.iconFileId.length > 0 || currentAsset.iconAssetPath.length > 0;
+    hasRemote || currentAsset.iconFileId.length > 0 || Boolean(currentAsset.model?.assetPath);
   const isModelAsset = model !== null;
 
   const patchModel = useCallback(

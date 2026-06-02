@@ -36,6 +36,7 @@ import { cn } from "@/lib/utils";
 import {
   applyBadgeModelToForm,
   badgeModelFromForm,
+  badgeModelFromStagedUpload,
 } from "@/lib/achievements/badge/shared/badge-model-asset";
 import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
 
@@ -197,16 +198,7 @@ export function EditableAchievementCard({
                     iconUrl: asset.iconUrl,
                     iconFileId: asset.iconFileId,
                   },
-                  asset.iconAssetKind === "model_glb" && asset.iconAssetPath
-                    ? {
-                        assetPath: asset.iconAssetPath,
-                        yaw: asset.iconModelYaw ?? prev.iconModelYaw,
-                        pitch: asset.iconModelPitch ?? prev.iconModelPitch,
-                        animationPlay: prev.iconModelAnimationPlay,
-                        animationSpeed: prev.iconModelAnimationSpeed,
-                        ccAttribution: prev.iconCcAttribution.trim() || null,
-                      }
-                    : null,
+                  asset.model,
                 ),
               );
             }}
@@ -216,15 +208,11 @@ export function EditableAchievementCard({
                 staged.poseSession,
                 isCreatingFlow ? "create" : "panel",
               );
-              const asset = {
+              setSessionStagedUpload(badgeAssetSessionRef.current, {
                 iconUrl: staged.previewUrl,
                 iconFileId: "",
-                iconAssetKind: "model_glb" as const,
-                iconAssetPath: staged.modelPath,
-                iconModelYaw: staged.iconModelYaw,
-                iconModelPitch: staged.iconModelPitch,
-              };
-              setSessionStagedUpload(badgeAssetSessionRef.current, asset);
+                model: badgeModelFromStagedUpload(staged),
+              });
               setForm((prev) => applyBadgeModelPoseSessionToForm(prev, staged));
             }}
             onImageUrlChange={(url) =>

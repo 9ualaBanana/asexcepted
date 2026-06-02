@@ -122,8 +122,8 @@ export function parseBadgeModelAsset(
   };
 }
 
-/** Maps a persisted detail VM or form slice to {@link BadgeRemoteAsset} session shape. */
-export function badgeRemoteAssetFromModelFields(args: {
+/** Flatten {@link BadgeRemoteAsset} only for the delete API route. */
+export function badgeRemoteAssetDeletePayload(asset: {
   iconUrl: string;
   iconFileId: string;
   model: BadgeModelAsset | null;
@@ -132,16 +132,12 @@ export function badgeRemoteAssetFromModelFields(args: {
   iconFileId: string;
   iconAssetKind: IconAssetKind;
   iconAssetPath: string;
-  iconModelYaw: number;
-  iconModelPitch: number;
 } {
   return {
-    iconUrl: args.iconUrl,
-    iconFileId: args.iconFileId,
-    iconAssetKind: args.model ? BADGE_MODEL_ASSET_KIND : "image",
-    iconAssetPath: args.model?.assetPath ?? "",
-    iconModelYaw: args.model?.yaw ?? 0,
-    iconModelPitch: args.model?.pitch ?? 0,
+    iconUrl: asset.iconUrl,
+    iconFileId: asset.iconFileId,
+    iconAssetKind: asset.model ? BADGE_MODEL_ASSET_KIND : "image",
+    iconAssetPath: asset.model?.assetPath ?? "",
   };
 }
 
@@ -155,6 +151,22 @@ export type BadgeModelFormFields = Pick<
   | "iconModelAnimationPlay"
   | "iconModelAnimationSpeed"
 >;
+
+/** In-progress GLB upload before poster finalize (session / staged commit). */
+export function badgeModelFromStagedUpload(staged: {
+  modelPath: string;
+  iconModelYaw: number;
+  iconModelPitch: number;
+}): BadgeModelAsset {
+  return {
+    assetPath: staged.modelPath,
+    yaw: staged.iconModelYaw,
+    pitch: staged.iconModelPitch,
+    animationPlay: true,
+    animationSpeed: 1,
+    ccAttribution: null,
+  };
+}
 
 export function badgeModelFromForm(
   form: BadgeModelFormFields,

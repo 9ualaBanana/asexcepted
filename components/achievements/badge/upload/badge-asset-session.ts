@@ -11,15 +11,30 @@ function normalizeBadgeRemoteAsset(asset?: Partial<BadgeRemoteAsset> | null): Ba
   return {
     iconUrl: asset?.iconUrl?.trim() ?? "",
     iconFileId: asset?.iconFileId?.trim() ?? "",
-    iconAssetKind: asset?.iconAssetKind === "model_glb" ? "model_glb" : "image",
-    iconAssetPath: asset?.iconAssetPath?.trim() ?? "",
+    model: asset?.model ?? null,
   };
+}
+
+function sameBadgeModel(
+  a: BadgeRemoteAsset["model"],
+  b: BadgeRemoteAsset["model"],
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return (
+    a.assetPath === b.assetPath &&
+    a.yaw === b.yaw &&
+    a.pitch === b.pitch &&
+    a.animationPlay === b.animationPlay &&
+    a.animationSpeed === b.animationSpeed &&
+    a.ccAttribution === b.ccAttribution
+  );
 }
 
 export function hasBadgeRemoteAsset(asset?: Partial<BadgeRemoteAsset> | null): boolean {
   const normalized = normalizeBadgeRemoteAsset(asset);
   return Boolean(
-    normalized.iconUrl || normalized.iconFileId || normalized.iconAssetPath,
+    normalized.iconUrl || normalized.iconFileId || normalized.model?.assetPath,
   );
 }
 
@@ -45,8 +60,7 @@ export function getReplacedBadgeRemoteAsset(
   if (
     previous.iconUrl === next.iconUrl &&
     previous.iconFileId === next.iconFileId &&
-    previous.iconAssetKind === next.iconAssetKind &&
-    previous.iconAssetPath === next.iconAssetPath
+    sameBadgeModel(previous.model, next.model)
   ) {
     return null;
   }

@@ -1,6 +1,7 @@
 import { err, ok, type Result } from "neverthrow";
 
 import type { BadgeRemoteAsset } from "@/components/achievements/achievement-editor-shared";
+import { badgeRemoteAssetDeletePayload } from "@/lib/achievements/badge/shared/badge-model-asset";
 import {
   deleteBadgeRemoteAssetViaApi,
   requestSignedBadgeModelUrl,
@@ -15,12 +16,7 @@ export {
 export type { BadgeModelUploadSuccess } from "@/lib/achievements/client/badge-asset-api";
 
 export async function deleteBadgeRemoteAsset(asset: BadgeRemoteAsset): Promise<Result<void, string>> {
-  const result = await deleteBadgeRemoteAssetViaApi({
-    iconUrl: asset.iconUrl,
-    iconFileId: asset.iconFileId,
-    iconAssetPath: asset.iconAssetPath,
-    iconAssetKind: asset.iconAssetKind,
-  });
+  const result = await deleteBadgeRemoteAssetViaApi(badgeRemoteAssetDeletePayload(asset));
   if (result.isErr()) {
     return err(fetchFailureMessage(result.error));
   }

@@ -17,7 +17,6 @@ export type BadgeModelCanvasProps = BadgeModelContentProps & {
 export function BadgeModelCanvas({
   className,
   onInvalidateReady,
-  playAnimation = true,
   ...contentProps
 }: BadgeModelCanvasProps) {
   const handleCreated = useCallback(
@@ -35,12 +34,10 @@ export function BadgeModelCanvas({
     [onInvalidateReady],
   );
 
-  const frameloop = playAnimation ? "always" : "demand";
-
   return (
     <Canvas
       className={className}
-      frameloop={frameloop}
+      frameloop={contentProps.model.animationPlay ? "always" : "demand"}
       dpr={[1, 2]}
       gl={{
         alpha: true,
@@ -57,7 +54,7 @@ export function BadgeModelCanvas({
       style={{ width: "100%", height: "100%", display: "block", touchAction: "none" }}
     >
       <BadgeModelScene />
-      <BadgeModelContent playAnimation={playAnimation} {...contentProps} />
+      <BadgeModelContent {...contentProps} />
     </Canvas>
   );
 }

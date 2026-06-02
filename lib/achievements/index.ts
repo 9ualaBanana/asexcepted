@@ -81,7 +81,7 @@ export {
   isModelBadgeAssetKind,
   isPublicHttpImageUrl,
   parseBadgeModelAsset,
-  badgeRemoteAssetFromModelFields,
+  badgeModelFromStagedUpload,
   type BadgeModelAsset,
   type BadgeModelAssetFields,
 } from "./badge/shared/badge-assets";

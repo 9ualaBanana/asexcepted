@@ -1,3 +1,5 @@
+import type { BadgeModelAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
+
 import {
   Award,
   BookOpen,
@@ -137,13 +139,11 @@ export type FormState = {
   visibility: AchievementVisibility;
 };
 
+/** ImageKit upload session pointer (flat image or GLB + poster URL). */
 export type BadgeRemoteAsset = {
   iconUrl: string;
   iconFileId: string;
-  iconAssetKind: IconAssetKind;
-  iconAssetPath: string;
-  iconModelYaw?: number;
-  iconModelPitch?: number;
+  model: BadgeModelAsset | null;
 };
 
 export type BadgeIkSession = {
@@ -161,10 +161,7 @@ export function createEmptyBadgeRemoteAsset(): BadgeRemoteAsset {
   return {
     iconUrl: "",
     iconFileId: "",
-    iconAssetKind: "image",
-    iconAssetPath: "",
-    iconModelYaw: 0,
-    iconModelPitch: 0,
+    model: null,
   };
 }
 

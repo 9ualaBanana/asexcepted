@@ -14,15 +14,13 @@ import { useBadgeGltfSource } from "../hooks/use-badge-gltf-source";
 import { useBadgeModelAnimation } from "./use-badge-model-animation";
 import { useBadgeMixerPersistence } from "./use-badge-mixer-persistence";
 import { useBadgeModelInteraction } from "./use-badge-model-interaction";
+import { type BadgeModelAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
 
 export type BadgeModelContentProps = {
+  model: BadgeModelAsset;
   signedModelUrl: string;
   viewStateKey: string;
-  initialYaw: number;
-  initialPitch: number;
   motionStartCentered: boolean;
-  playAnimation: boolean;
-  animationSpeed: number;
   interactive: boolean;
   allowInertia: boolean;
   onPoseChange?: (yaw: number, pitch: number) => void;
@@ -32,13 +30,10 @@ export type BadgeModelContentProps = {
 };
 
 export function BadgeModelContent({
+  model,
   signedModelUrl,
   viewStateKey,
-  initialYaw,
-  initialPitch,
   motionStartCentered,
-  playAnimation,
-  animationSpeed,
   interactive,
   allowInertia,
   onPoseChange,
@@ -86,8 +81,8 @@ export function BadgeModelContent({
   const { persistViewState } = useBadgeModelInteraction({
     orbitRootRef,
     viewStateKey,
-    initialYaw,
-    initialPitch,
+    initialYaw: model.yaw,
+    initialPitch: model.pitch,
     motionStartCentered,
     interactive,
     allowInertia,
@@ -99,8 +94,8 @@ export function BadgeModelContent({
     gltf,
     mixer,
     actions,
-    playAnimation,
-    animationSpeed,
+    playAnimation: model.animationPlay,
+    animationSpeed: model.animationSpeed,
     viewStateKey,
     motionStartCentered,
     onVisualReady,
