@@ -16,7 +16,6 @@ export type BadgeGltfViewerProps = {
   signedModelUrl?: string;
   /** When set without `signedModelUrl`, fetch a signed GLB URL client-side. */
   iconAssetPath?: string;
-  hasIconUrl?: boolean;
   onModelUrlReady?: () => void;
   className?: string;
   float?: boolean;
@@ -43,7 +42,6 @@ export function BadgeGltfViewer({
   previewSrc,
   signedModelUrl: signedModelUrlProp,
   iconAssetPath,
-  hasIconUrl = false,
   onModelUrlReady,
   className,
   float = false,
@@ -67,7 +65,7 @@ export function BadgeGltfViewer({
     !signedModelUrlProp?.trim() && Boolean(iconAssetPath?.trim());
   const { signedUrl: fetchedModelUrl } = useSignedBadgeModelUrl(
     iconAssetPath ?? "",
-    resolveFromAsset && hasIconUrl,
+    resolveFromAsset,
     onModelUrlReady,
   );
   const signedModelUrl = signedModelUrlProp?.trim() || fetchedModelUrl;
