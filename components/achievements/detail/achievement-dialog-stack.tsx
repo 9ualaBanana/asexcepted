@@ -46,7 +46,6 @@ import { useDoubleActivate } from "@/lib/hooks/use-double-activate";
 import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
 import { getTutorial, TUTORIAL_IDS, useTutorial, useTutorialToast } from "@/lib/tutorials";
 import { cn } from "@/lib/utils";
-import { isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-assets";
 
 export type AchievementDialogStackProps = {
   readOnly: boolean;
@@ -78,7 +77,7 @@ export type AchievementDialogStackProps = {
 
   detailIsUnlocking: boolean;
   detailIsLockedUi: boolean;
-  detailRenderSrc: string;
+  detailRenderSrc: string | null;
   detailTone: AchievementTone;
   DetailFallbackIcon: LucideIcon;
   unlockRevealClipPath: string;
@@ -391,10 +390,9 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                         ) : null
                       }
                     />
-                    {(isModelBadgeAssetKind(detailAchievement.iconAssetKind) ||
-                      detailAchievement.iconCcAttribution?.trim()) && (
+                    {detailAchievement.model != null && (
                       <BadgeAttributionPopover
-                        value={detailAchievement.iconCcAttribution ?? ""}
+                        value={detailAchievement.model.ccAttribution ?? ""}
                         emptyState="No attribution was provided for this 3D badge."
                       />
                     )}

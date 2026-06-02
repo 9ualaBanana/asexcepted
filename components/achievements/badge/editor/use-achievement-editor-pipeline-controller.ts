@@ -302,7 +302,7 @@ export function useAchievementEditorPipelineController({
       }
 
       const updatedAchievement = result.value;
-      const previousSrc = detailAchievement?.renderSrc ?? "";
+      const previousSrc = detailAchievement?.renderSrc ?? null;
       const nextSrc = updatedAchievement.renderSrc;
       if (previousSrc && previousSrc !== nextSrc) {
         clearBadgeRenderCacheForSrc(previousSrc);

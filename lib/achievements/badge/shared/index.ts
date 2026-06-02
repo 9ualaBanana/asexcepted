@@ -12,26 +12,20 @@ export {
   isModelGlbAsset,
   isGlbHeader,
   isModelBadgeAssetKind,
+  applyBadgeModelToForm,
+  badgeModelFromForm,
+  badgeRemoteAssetFromModelFields,
+  parseBadgeModelAsset,
+  patchBadgeModelAsset,
+  badgeModelAssetFieldsFromModel,
+  type BadgeModelAsset,
+  type BadgeModelAssetFields,
   isPublicHttpImageUrl,
   isShareInviteBadgeModelPath,
   looksLikeGlbUpload,
   sanitizeBadgeAssetPath,
   normalizeBadgeIconUrl,
 } from "./badge-assets";
-
-export {
-  cloneBadgeModelForClaimer,
-  completeBadgeModelUpload,
-  createBadgeModelUploadTarget,
-  createSignedBadgeModelUrl,
-  deleteBadgeRemoteAsset,
-  pinBadgeAssetsForShareInvite,
-  resolveClaimedBadgeIconFields,
-  type BadgeModelUploadTarget,
-  type ClonedBadgeModelAsset,
-} from "./badge-assets-server";
-
-export { toOptimizedRenderSrc } from "./render-src";
 
 export {
   clearBadgeRenderCacheForSrc,

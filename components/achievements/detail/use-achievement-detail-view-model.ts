@@ -10,7 +10,7 @@ import { getAlphaMaskStyle } from "@/lib/achievements/badge/parallax/shape-utils
 
 type UseAchievementDetailViewModelArgs = {
   detailAchievement: AchievementDetailViewModel | null;
-  detailRenderSrc: string;
+  detailRenderSrc: string | null;
   optimisticUnlockedAchievementId: string | null;
   detailIsLockedUi: boolean;
   readOnly: boolean;

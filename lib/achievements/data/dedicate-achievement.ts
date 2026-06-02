@@ -4,11 +4,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { err, ok, type Result } from "neverthrow";
 import { z } from "zod";
 
-import {
-  isModelBadgeAssetKind,
-  isPublicHttpImageUrl,
-  sanitizeBadgeAssetPath,
-} from "@/lib/achievements/badge/shared/badge-assets";
+import { isPublicHttpImageUrl } from "@/lib/achievements/badge/shared/badge-assets";
+import { isModelGlbAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
 import { resolveClaimedBadgeIconFields } from "@/lib/achievements/badge/shared/badge-assets-server";
 import {
   insertDedicatedAchievement,
@@ -65,11 +62,7 @@ function serverFailure(message: string): DedicateAchievementFailure {
 }
 
 function validateDedicateBadge(body: DedicateAchievementBody): Result<void, DedicateAchievementFailure> {
-  const iconAssetKind = body.icon_asset_kind ?? "image";
-  if (isModelBadgeAssetKind(iconAssetKind)) {
-    if (!sanitizeBadgeAssetPath(body.icon_asset_path)) {
-      return err(validationFailure("Finish uploading the 3D badge before dedicating."));
-    }
+  if (isModelGlbAsset({ iconAssetKind: body.icon_asset_kind, iconAssetPath: body.icon_asset_path })) {
     if (!isPublicHttpImageUrl(body.icon_url)) {
       return err(validationFailure("The 3D badge preview must be saved before dedicating."));
     }

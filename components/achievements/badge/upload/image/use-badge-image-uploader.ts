@@ -1,7 +1,6 @@
 "use client";
 
 import { ensureBadgeImageDecoded } from "@/lib/achievements/badge/shared/render-cache";
-import { toOptimizedRenderSrc } from "@/lib/achievements/badge/shared/render-src";
 import { useImageKitImageUploader } from "@/lib/imagekit/use-imagekit-image-uploader";
 
 const BADGE_MAX_FILE_BYTES = 15 * 1024 * 1024;
@@ -22,7 +21,6 @@ export function useBadgeImageUploader(options: UseBadgeImageUploaderOptions) {
     disabled: options.disabled,
     maxFileSizeBytes: BADGE_MAX_FILE_BYTES,
     defaultFileName: "badge",
-    toRenderSrc: toOptimizedRenderSrc,
     onUploadSuccess: options.onUploadSuccess,
     onUploadError: options.onUploadError,
     onUploadStart: options.onUploadStart,

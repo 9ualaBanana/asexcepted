@@ -141,7 +141,7 @@ export function useAchievementsManagerModel({
   );
   const [hideLocked, setHideLocked] = useHideLockedPreference();
   const { visibilityFilter, cycleVisibilityFilter } = useVisibilityFilterPreference();
-  const detailRenderSrc = detailAchievement?.renderSrc ?? "";
+  const detailRenderSrc = detailAchievement?.renderSrc ?? null;
 
   const [showBadgeSpinAfterFirstUnlock, setShowBadgeSpinAfterFirstUnlock] =
     useState(false);

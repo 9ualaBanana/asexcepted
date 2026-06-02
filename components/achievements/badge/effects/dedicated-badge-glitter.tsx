@@ -4,11 +4,10 @@ import { useMemo } from "react";
 
 import { ImpressionGlitterField } from "@/components/achievements/badge/effects/impression-glitter-field";
 import { badgeImageMaskStylePadded } from "@/lib/achievements/badge/parallax/badge-mask-style";
-import { toOptimizedRenderSrc } from "@/lib/achievements/badge/shared/render-src";
 import { cn } from "@/lib/utils";
 
 type DedicatedBadgeGlitterProps = {
-  renderSrc: string;
+  renderSrc: string | null;
   motionSeed: string;
   variant?: "detail" | "grid";
   overlay?: boolean;
@@ -23,13 +22,12 @@ export function DedicatedBadgeGlitter({
   overlay = true,
   className,
 }: DedicatedBadgeGlitterProps) {
-  const src = useMemo(() => toOptimizedRenderSrc(renderSrc), [renderSrc]);
   const maskStyle = useMemo(
-    () => badgeImageMaskStylePadded(src, 108),
-    [src],
+    () => (renderSrc ? badgeImageMaskStylePadded(renderSrc, 108) : null),
+    [renderSrc],
   );
 
-  if (!src) return null;
+  if (!renderSrc || !maskStyle) return null;
 
   return (
     <ImpressionGlitterField

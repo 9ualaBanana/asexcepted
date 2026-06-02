@@ -7,28 +7,28 @@ import { RemoteBadgeImage } from "@/components/achievements/badge/display/remote
 import { useBadgeModelPreviewOverlay } from "@/components/achievements/badge/model/hooks/use-badge-model-preview-overlay";
 import { useSignedBadgeModelUrl } from "@/components/achievements/badge/model/hooks/use-signed-badge-model-url";
 import { BadgeModelCanvas } from "@/components/achievements/badge/model/r3f/badge-model-canvas";
+import type { BadgeModelAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
 import { cn } from "@/lib/utils";
 
 export type BadgeGltfViewerProps = {
-  /** Poster / flat image shown while the GLB loads (and on failure). */
-  previewSrc: string;
+  /**
+   * Optimized badge poster URL (`toOptimizedRenderUrl` at the data/form boundary).
+   * Shown while the GLB loads and on failure.
+   */
+  renderSrc: string | null;
+  /** GLB storage path, pose, and animation. */
+  model: BadgeModelAsset;
   /** When set, render this GLB directly (embed, editor, server-resolved routes). */
   signedModelUrl?: string;
-  /** When set without `signedModelUrl`, fetch a signed GLB URL client-side. */
-  iconAssetPath?: string;
   onModelUrlReady?: () => void;
   className?: string;
   float?: boolean;
   motionSeed?: string;
   motionStartCentered?: boolean;
-  initialYaw?: number;
-  initialPitch?: number;
   onVisualReady?: () => void;
   onPreviewDecoded?: () => void;
   stateKey?: string;
   showPreviewOverlay?: boolean;
-  playAnimation?: boolean;
-  animationSpeed?: number;
   onHasAnimationChange?: (hasAnimation: boolean) => void;
   onPoseChange?: (yaw: number, pitch: number) => void;
   allowInertia?: boolean;
@@ -36,45 +36,39 @@ export type BadgeGltfViewerProps = {
 };
 
 /**
- * GLB badge: optional client signing from `iconAssetPath`, poster until canvas is ready.
+ * GLB badge: optional client signing from `model.assetPath`, poster until canvas is ready.
  */
 export function BadgeGltfViewer({
-  previewSrc,
+  renderSrc,
+  model,
   signedModelUrl: signedModelUrlProp,
-  iconAssetPath,
   onModelUrlReady,
   className,
   float = false,
   motionSeed,
   motionStartCentered = false,
-  initialYaw = 0,
-  initialPitch = 0,
   onVisualReady,
   onPreviewDecoded,
   stateKey,
   showPreviewOverlay = true,
-  playAnimation = true,
-  animationSpeed = 1,
   onHasAnimationChange,
   onPoseChange,
   allowInertia = true,
   interactive = true,
 }: BadgeGltfViewerProps) {
-  const normalizedPreviewSrc = useMemo(() => previewSrc.trim(), [previewSrc]);
-  const resolveFromAsset =
-    !signedModelUrlProp?.trim() && Boolean(iconAssetPath?.trim());
+  const resolveFromAsset = !signedModelUrlProp?.trim();
   const { signedUrl: fetchedModelUrl } = useSignedBadgeModelUrl(
-    iconAssetPath ?? "",
+    model.assetPath,
     resolveFromAsset,
     onModelUrlReady,
   );
   const signedModelUrl = signedModelUrlProp?.trim() || fetchedModelUrl;
 
   if (!signedModelUrl) {
-    if (!normalizedPreviewSrc) return null;
+    if (!renderSrc) return null;
     return (
       <RemoteBadgeImage
-        src={normalizedPreviewSrc}
+        src={renderSrc}
         className={cn("h-full w-full object-contain", className)}
         onDecoded={onPreviewDecoded}
       />
@@ -84,19 +78,16 @@ export function BadgeGltfViewer({
   return (
     <BadgeGltfScene
       signedModelUrl={signedModelUrl}
-      previewSrc={normalizedPreviewSrc}
+      renderSrc={renderSrc}
+      model={model}
       className={className}
       float={float}
       motionSeed={motionSeed}
       motionStartCentered={motionStartCentered}
-      initialYaw={initialYaw}
-      initialPitch={initialPitch}
       onVisualReady={onVisualReady}
       onPreviewDecoded={onPreviewDecoded}
       stateKey={stateKey}
       showPreviewOverlay={showPreviewOverlay}
-      playAnimation={playAnimation}
-      animationSpeed={animationSpeed}
       onHasAnimationChange={onHasAnimationChange}
       onPoseChange={onPoseChange}
       allowInertia={allowInertia}
@@ -107,19 +98,16 @@ export function BadgeGltfViewer({
 
 type BadgeGltfSceneProps = {
   signedModelUrl: string;
-  previewSrc: string;
+  renderSrc: string | null;
+  model: BadgeModelAsset;
   className?: string;
   float?: boolean;
   motionSeed?: string;
   motionStartCentered?: boolean;
-  initialYaw?: number;
-  initialPitch?: number;
   onVisualReady?: () => void;
   onPreviewDecoded?: () => void;
   stateKey?: string;
   showPreviewOverlay?: boolean;
-  playAnimation?: boolean;
-  animationSpeed?: number;
   onHasAnimationChange?: (hasAnimation: boolean) => void;
   onPoseChange?: (yaw: number, pitch: number) => void;
   allowInertia?: boolean;
@@ -128,19 +116,16 @@ type BadgeGltfSceneProps = {
 
 function BadgeGltfScene({
   signedModelUrl,
-  previewSrc,
+  renderSrc,
+  model,
   className,
   float = false,
   motionSeed,
   motionStartCentered = false,
-  initialYaw = 0,
-  initialPitch = 0,
   onVisualReady,
   onPreviewDecoded,
   stateKey,
   showPreviewOverlay = true,
-  playAnimation = true,
-  animationSpeed = 1,
   onHasAnimationChange,
   onPoseChange,
   allowInertia = true,
@@ -175,7 +160,7 @@ function BadgeGltfScene({
   const viewer = (
     <div className={cn("relative h-full w-full", className)}>
       <div className="relative h-full w-full p-1">
-        {previewSrc ? (
+        {renderSrc ? (
           <div
             className={cn(
               "pointer-events-none absolute inset-0 z-10 transition-opacity duration-200",
@@ -183,7 +168,7 @@ function BadgeGltfScene({
             )}
           >
             <RemoteBadgeImage
-              src={previewSrc}
+              src={renderSrc}
               className="h-full w-full object-contain"
               onDecoded={notifyPreviewDecoded}
             />
@@ -200,11 +185,11 @@ function BadgeGltfScene({
             className="h-full w-full"
             signedModelUrl={signedModelUrl}
             viewStateKey={viewStateKey}
-            initialYaw={initialYaw}
-            initialPitch={initialPitch}
+            initialYaw={model.yaw}
+            initialPitch={model.pitch}
             motionStartCentered={motionStartCentered}
-            playAnimation={playAnimation}
-            animationSpeed={animationSpeed}
+            playAnimation={model.animationPlay}
+            animationSpeed={model.animationSpeed}
             interactive={interactive}
             allowInertia={allowInertia}
             onPoseChange={notifyPoseChange}

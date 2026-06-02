@@ -19,10 +19,9 @@ import {
 import { isOpaqueBadgeHit, type AlphaMaskData } from "@/lib/achievements/badge/parallax/shape-utils";
 import { cn } from "@/lib/utils";
 import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
-import { isModelGlbAsset } from "@/lib/achievements/badge/shared/badge-assets";
 
 export type DetailBadgeInteractiveProps = {
-  renderSrc: string;
+  renderSrc: string | null;
   motionSeed: string;
   tone: AchievementTone;
   FallbackIcon: LucideIcon;
@@ -78,7 +77,7 @@ export function DetailBadgeInteractive({
   dedicatedBadgeGlitter = false,
 }: DetailBadgeInteractiveProps) {
   const hasIconUrl = !!renderSrc;
-  const isModelAsset = isModelGlbAsset(detail.iconAssetKind, detail.iconAssetPath);
+  const badgeModel = detail.model;
   const showGlitter =
     dedicatedBadgeGlitter ||
     (process.env.NEXT_PUBLIC_IMPRESSION_GLITTER_UI_ENABLED === "true" &&
@@ -99,19 +98,15 @@ export function DetailBadgeInteractive({
       ) : null;
     }
 
-    if (isModelAsset) {
+    if (badgeModel) {
       return (
         <BadgeGltfViewer
-          iconAssetPath={detail.iconAssetPath ?? ""}
-          previewSrc={renderSrc}
+          model={badgeModel}
+          renderSrc={renderSrc}
           className="p-1"
           float={floating}
           motionSeed={motionSeed}
           motionStartCentered={motionStartCentered}
-          initialYaw={detail.iconModelYaw}
-          initialPitch={detail.iconModelPitch}
-          playAnimation={detail.iconModelAnimationPlay}
-          animationSpeed={detail.iconModelAnimationSpeed}
           stateKey={viewerStateKey}
           onPreviewDecoded={onImageDecoded}
           onModelUrlReady={onModelUrlReady}
@@ -119,6 +114,8 @@ export function DetailBadgeInteractive({
         />
       );
     }
+
+    if (!renderSrc) return null;
 
     return (
       <BadgeParallaxViewer
@@ -170,7 +167,7 @@ export function DetailBadgeInteractive({
         {hasIconUrl ? (
           <>
             <div className="relative h-full w-full">{unlockedBadgeContent()}</div>
-            {isModelAsset && detail.iconAssetPath && showGlitter && !lockedUi ? (
+            {badgeModel && showGlitter && !lockedUi ? (
               <ImpressionGlitterField
                 active
                 motionSeed={motionSeed}
@@ -197,10 +194,12 @@ export function DetailBadgeInteractive({
               detailMaskStyle={detailMaskStyle}
               unlockRevealClipPath={unlockRevealClipPath}
             >
-              <RemoteBadgeImage
-                src={renderSrc}
-                className="h-full w-full object-contain p-1"
-              />
+              {renderSrc ? (
+                <RemoteBadgeImage
+                  src={renderSrc}
+                  className="h-full w-full object-contain p-1"
+                />
+              ) : null}
             </UnlockRevealWave>
           </>
         ) : (

@@ -1,6 +1,6 @@
 import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
 import type { FormState } from "@/components/achievements/achievement-editor-shared";
-import { isModelGlbAsset } from "@/lib/achievements/badge/shared/badge-assets";
+import { isModelGlbAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
 
 /** Sender-dedicated row (pending or accepted). */
 export function isDedicatedAchievement(
@@ -31,20 +31,14 @@ export function showsDedicatedBadgeAura(
   return true;
 }
 
-/** Grid/feed particle glitter — image badges only (not 3D model_glb). */
+/** Grid/feed particle glitter — image badges only (not 3D GLB). */
 export function showsDedicatedBadgeEffect(
   achievement: Pick<
     AchievementDetailViewModel,
-    | "dedicatedByUserId"
-    | "dedicationStatus"
-    | "iconAssetKind"
-    | "iconAssetPath"
+    "dedicatedByUserId" | "dedicationStatus" | "model"
   >,
 ): boolean {
-  return (
-    showsDedicatedBadgeAura(achievement) &&
-    !isModelGlbAsset(achievement.iconAssetKind, achievement.iconAssetPath)
-  );
+  return showsDedicatedBadgeAura(achievement) && !isModelGlbAsset(achievement.model);
 }
 
 export function isDedicatedVisibilityDirty(

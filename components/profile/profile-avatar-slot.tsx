@@ -8,7 +8,7 @@ import { useImageKitImageUploader } from "@/lib/imagekit/use-imagekit-image-uplo
 import { useErrorToast } from "@/lib/toast";
 
 import "@uppy/core/css/style.min.css";
-import { toOptimizedRenderSrc as toOptimizedRenderSrc } from "@/lib/achievements/badge/shared/render-src";
+import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
 
 export type ProfileAvatarSlotLayout = "profile" | "feed-overlay";
 
@@ -51,9 +51,7 @@ export function ProfileAvatarSlot({
 
   onUploadSuccessRef.current = onUploadSuccess;
 
-  const trimmed = imageUrl?.trim() ?? "";
-  const hasImage = trimmed.length > 0;
-  const displaySrc = hasImage ? toOptimizedRenderSrc(trimmed) : null;
+  const displaySrc = toOptimizedRenderUrl(imageUrl);
 
   const { queueUpload, uploadInProgress } = useImageKitImageUploader({
     instanceId: uppyInstanceId,
@@ -62,7 +60,6 @@ export function ProfileAvatarSlot({
     maxFileSizeBytes: Number(process.env.NEXT_PUBLIC_PROFILE_AVATAR_MAX_FILE_BYTES),
     maxEdgePx: Number(process.env.NEXT_PUBLIC_PROFILE_AVATAR_MAX_EDGE_PX),
     defaultFileName: "avatar",
-    toRenderSrc: toOptimizedRenderSrc,
     onUploadSuccess: (url, fileId) => {
       setError(null);
       onUploadSuccessRef.current?.(url, fileId);

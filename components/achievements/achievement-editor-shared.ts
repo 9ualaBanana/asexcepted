@@ -103,11 +103,11 @@ export function getSafeIcon(value?: string | null): LucideIcon {
 
 export type AchievementVisibility = "public" | "private";
 
-export type AchievementIconAssetKind = "image" | "model_glb";
+export type IconAssetKind = "image" | "model_glb";
 
 export function getSafeIconAssetKind(
   value?: string | null,
-): AchievementIconAssetKind {
+): IconAssetKind {
   return value === "model_glb" ? "model_glb" : "image";
 }
 
@@ -124,7 +124,7 @@ export type FormState = {
   icon: AchievementIconKey;
   iconUrl: string;
   iconFileId: string;
-  iconAssetKind: AchievementIconAssetKind;
+  iconAssetKind: IconAssetKind;
   iconAssetPath: string;
   iconCcAttribution: string;
   iconModelYaw: number;
@@ -140,7 +140,7 @@ export type FormState = {
 export type BadgeRemoteAsset = {
   iconUrl: string;
   iconFileId: string;
-  iconAssetKind: AchievementIconAssetKind;
+  iconAssetKind: IconAssetKind;
   iconAssetPath: string;
   iconModelYaw?: number;
   iconModelPitch?: number;

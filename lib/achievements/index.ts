@@ -80,4 +80,8 @@ export {
   isModelGlbAsset,
   isModelBadgeAssetKind,
   isPublicHttpImageUrl,
+  parseBadgeModelAsset,
+  badgeRemoteAssetFromModelFields,
+  type BadgeModelAsset,
+  type BadgeModelAssetFields,
 } from "./badge/shared/badge-assets";

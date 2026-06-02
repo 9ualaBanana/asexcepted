@@ -5,9 +5,20 @@ export const BADGE_PREVIEW_BUCKET = "achievement-badge-previews";
 export const BADGE_MODEL_MAX_FILE_BYTES = 50 * 1024 * 1024;
 export const BADGE_PREVIEW_MAX_FILE_BYTES = 5 * 1024 * 1024;
 
-export function isModelBadgeAssetKind(value: string | null | undefined): boolean {
-  return value === "model_glb";
-}
+export {
+  BADGE_MODEL_ASSET_KIND,
+  badgeModelAssetFieldsFromModel,
+  applyBadgeModelToForm,
+  badgeModelFromForm,
+  badgeRemoteAssetFromModelFields,
+  patchBadgeModelAsset,
+  isModelBadgeAssetKind,
+  isModelGlbAsset,
+  parseBadgeModelAsset,
+  type BadgeModelAsset,
+  type BadgeModelAssetFields,
+  type BadgeModelAssetKind,
+} from "./badge-model-asset";
 
 /** Trimmed badge URL, or `null` when absent — apply at DB/API boundaries only. */
 export function normalizeBadgeIconUrl(value: string | null | undefined): string | null {
@@ -28,17 +39,6 @@ export function isPublicHttpImageUrl(url: string | null | undefined): boolean {
   } catch {
     return false;
   }
-}
-
-/** True when the achievement uses an uploaded GLB (not a flat image badge). */
-export function isModelGlbAsset(
-  iconAssetKind: string | null | undefined,
-  iconAssetPath: string | null | undefined,
-): boolean {
-  return (
-    isModelBadgeAssetKind(iconAssetKind) &&
-    Boolean(sanitizeBadgeAssetPath(iconAssetPath))
-  );
 }
 
 export function buildBadgeModelPath(userId: string, assetId: string): string {

@@ -4,8 +4,6 @@ import { useMemo } from "react";
 import { LRUCache } from "lru-cache";
 import type { CSSProperties } from "react";
 
-import { toOptimizedRenderSrc } from "@/lib/achievements/badge/shared/render-src";
-
 import { logCdnDeliveryOnce } from "@/lib/imagekit/telemetry";
 import { makeBadgeMotionStyle } from "@/lib/achievements/badge/shared/motion";
 import { decodeImageReadyPromise } from "@/lib/achievements/badge/shared/image-decode";
@@ -14,6 +12,7 @@ import {
   loadAlphaMaskDataFromImage,
   type AlphaMaskData,
 } from "@/lib/achievements/badge/parallax/shape-utils";
+import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
 
 const decodeReady = new LRUCache<string, Promise<void>>({
   max: 300,
@@ -109,10 +108,7 @@ export function clearBadgeRenderCacheForSrc(src: string): void {
   maskStyleCache.delete(src);
 }
 
-/** Memoized optimized render URL; `iconUrl` must already be normalized at the data boundary. */
-export function useBadgeRenderSrc(iconUrl: string | null): string {
-  return useMemo(
-    () => (iconUrl ? toOptimizedRenderSrc(iconUrl) : ""),
-    [iconUrl],
-  );
+/** Memoized badge render URL from a persisted `icon_url` (normalizes once). */
+export function useBadgeRenderSrc(iconUrl: string | null): string | null {
+  return useMemo(() => toOptimizedRenderUrl(iconUrl), [iconUrl]);
 }

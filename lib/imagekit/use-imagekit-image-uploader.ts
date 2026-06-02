@@ -11,6 +11,7 @@ import {
 } from "@/lib/imagekit/client/imagekit-api";
 import { logImageKitEvent } from "@/lib/imagekit/telemetry";
 import { validateImageEdgeBounds } from "@/lib/imagekit/validate-image-file";
+import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
 
 const IMAGEKIT_UPLOAD_ENDPOINT = "https://upload.imagekit.io/api/v1/files/upload";
 
@@ -33,7 +34,6 @@ export type UseImageKitImageUploaderOptions = {
   minEdgePx?: number;
   maxEdgePx?: number;
   defaultFileName?: string;
-  toRenderSrc: (url: string) => string;
   onUploadSuccess: (url: string, fileId: string) => void;
   onUploadError: (message: string) => void;
   onUploadStart?: () => void;
@@ -81,7 +81,6 @@ export function useImageKitImageUploader({
   minEdgePx,
   maxEdgePx,
   defaultFileName = "image",
-  toRenderSrc,
   onUploadSuccess,
   onUploadError,
   onUploadStart,
@@ -190,10 +189,12 @@ export function useImageKitImageUploader({
         fileBytes,
       });
 
-      const renderSrc = toRenderSrc(url);
+      const renderSrc = toOptimizedRenderUrl(url);
       try {
-        await waitUntilImageFetchable(renderSrc);
-        await afterUploadUrlReady?.(renderSrc);
+        if (renderSrc) {
+          await waitUntilImageFetchable(renderSrc);
+          await afterUploadUrlReady?.(renderSrc);
+        }
       } catch {
         // commit anyway
       }
@@ -225,7 +226,7 @@ export function useImageKitImageUploader({
       uppy.destroy();
       uppyRef.current = null;
     };
-  }, [defaultFileName, instanceId, maxFileSizeBytes, purpose, toRenderSrc]);
+  }, [defaultFileName, instanceId, maxFileSizeBytes, purpose]);
 
   const queueUpload = useCallback(
     async (file: File) => {

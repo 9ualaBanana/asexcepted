@@ -1,11 +1,8 @@
 import { err, ok, type Result } from "neverthrow";
 
 import type { AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
-import {
-  isModelBadgeAssetKind,
-  isPublicHttpImageUrl,
-  sanitizeBadgeAssetPath,
-} from "@/lib/achievements/badge/shared/badge-assets";
+import { isPublicHttpImageUrl } from "@/lib/achievements/badge/shared/badge-assets";
+import { isModelGlbAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
 import type { AchievementShareInviteSnapshot } from "@/lib/share-invites/invite-snapshot";
 import { shareInviteSnapshotFromAchievementRow } from "@/lib/share-invites/invite-snapshot";
 import type { CollectionAchievementSnapshotSource } from "@/lib/share-invites/invite-snapshot";
@@ -23,10 +20,7 @@ export function validateShareInviteBadgeSnapshot(
     return err("Only achievements with a custom badge image can be shared.");
   }
 
-  if (isModelBadgeAssetKind(snapshot.icon_asset_kind)) {
-    if (!sanitizeBadgeAssetPath(snapshot.icon_asset_path)) {
-      return err("Finish uploading the 3D badge before sharing this invite.");
-    }
+  if (isModelGlbAsset({ iconAssetKind: snapshot.icon_asset_kind, iconAssetPath: snapshot.icon_asset_path })) {
     if (!isPublicHttpImageUrl(snapshot.icon_url)) {
       return err(
         "The 3D badge preview is not saved yet. Wait for upload to finish, then share again.",

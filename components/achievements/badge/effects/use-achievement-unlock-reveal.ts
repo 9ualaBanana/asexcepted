@@ -30,7 +30,7 @@ type SupabaseClient = ReturnType<typeof createClient>;
 type UseAchievementUnlockRevealArgs = {
   readOnly: boolean;
   detailAchievement: AchievementDetailViewModel | null;
-  detailRenderSrc: string;
+  detailRenderSrc: string | null;
   /** Bumps when detail overlay reopens so alpha-mask load can retry. */
   detailViewSessionKey: number;
   isSaving: boolean;

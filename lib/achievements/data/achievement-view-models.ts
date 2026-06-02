@@ -6,7 +6,7 @@ import {
 } from "@/components/achievements/achievement-manager-utils";
 import {
   type AchievementIconKey,
-  type AchievementIconAssetKind,
+  type IconAssetKind,
   type AchievementVisibility,
   type FormState,
   formatGridDate,
@@ -17,7 +17,11 @@ import {
   toNullable,
 } from "@/components/achievements/achievement-editor-shared";
 import { normalizeImageKitFileId } from "@/components/achievements/badge";
-import { toOptimizedRenderSrc } from "@/lib/achievements/badge/shared/render-src";
+import {
+  parseBadgeModelAsset,
+  type BadgeModelAsset,
+} from "@/lib/achievements/badge/shared/badge-model-asset";
+import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
 import {
   showsDedicatedBadgeAura,
   showsDedicatedBadgeEffect,
@@ -46,17 +50,12 @@ export type AchievementDetailViewModel = {
   description: string | null;
   category: string | null;
   icon: AchievementIconKey;
-  /** Optimized render URL, or empty when there is no badge image. */
-  renderSrc: string;
+  /** Optimized render URL, or null when there is no badge image. */
+  renderSrc: string | null;
   iconUrl: string | null;
   iconFileId: string | null;
-  iconAssetKind: AchievementIconAssetKind;
-  iconAssetPath: string | null;
-  iconCcAttribution: string | null;
-  iconModelYaw: number;
-  iconModelPitch: number;
-  iconModelAnimationPlay: boolean;
-  iconModelAnimationSpeed: number;
+  /** Set when the badge is an uploaded GLB; null for flat image badges. */
+  model: BadgeModelAsset | null;
   tone: AchievementTone;
   FallbackIcon: LucideIcon;
   isLocked: boolean;
@@ -84,13 +83,13 @@ const detailToFormSchema = detailViewModelSchema.transform<FormState>((detail) =
   icon: detail.icon,
   iconUrl: detail.iconUrl ?? "",
   iconFileId: detail.iconFileId ?? "",
-  iconAssetKind: getSafeIconAssetKind(detail.iconAssetKind),
-  iconAssetPath: detail.iconAssetPath ?? "",
-  iconCcAttribution: detail.iconCcAttribution ?? "",
-  iconModelYaw: detail.iconModelYaw,
-  iconModelPitch: detail.iconModelPitch,
-  iconModelAnimationPlay: detail.iconModelAnimationPlay,
-  iconModelAnimationSpeed: detail.iconModelAnimationSpeed,
+  iconAssetKind: detail.model ? "model_glb" : "image",
+  iconAssetPath: detail.model?.assetPath ?? "",
+  iconCcAttribution: detail.model?.ccAttribution ?? "",
+  iconModelYaw: detail.model?.yaw ?? 0,
+  iconModelPitch: detail.model?.pitch ?? 0,
+  iconModelAnimationPlay: detail.model?.animationPlay ?? true,
+  iconModelAnimationSpeed: detail.model?.animationSpeed ?? 1,
   tone: getSafeTone(detail.tone),
   isLocked: detail.isLocked,
   achievedAt: detail.achievedAt ?? "",
@@ -162,28 +161,25 @@ export function sortCollectionEntries(
 
 export function domainRowToDetailViewModel(row: AchievementDomainRow): AchievementDetailViewModel {
   const iconUrl = row.icon_url;
-  const dedicationFlags = {
-    dedicatedByUserId: row.dedicated_by_user_id,
-    dedicationStatus: row.dedication_status,
+  const model = parseBadgeModelAsset({
     iconAssetKind: row.icon_asset_kind,
     iconAssetPath: row.icon_asset_path,
-  };
+    iconModelYaw: row.icon_model_yaw,
+    iconModelPitch: row.icon_model_pitch,
+    iconModelAnimationPlay: row.icon_model_animation_play,
+    iconModelAnimationSpeed: row.icon_model_animation_speed,
+    iconCcAttribution: row.icon_cc_attribution,
+  });
   return {
     id: row.id,
     title: row.title,
     description: row.description,
     category: row.category,
     icon: row.icon,
-    renderSrc: iconUrl ? toOptimizedRenderSrc(iconUrl) : "",
+    renderSrc: toOptimizedRenderUrl(iconUrl),
     iconUrl,
     iconFileId: row.icon_file_id,
-    iconAssetKind: row.icon_asset_kind,
-    iconAssetPath: row.icon_asset_path,
-    iconCcAttribution: row.icon_cc_attribution,
-    iconModelYaw: row.icon_model_yaw,
-    iconModelPitch: row.icon_model_pitch,
-    iconModelAnimationPlay: row.icon_model_animation_play,
-    iconModelAnimationSpeed: row.icon_model_animation_speed,
+    model,
     tone: row.tone,
     FallbackIcon: getSafeIcon(row.icon),
     isLocked: row.is_locked,
@@ -193,10 +189,9 @@ export function domainRowToDetailViewModel(row: AchievementDomainRow): Achieveme
     impressionCount: row.impression_count,
     hasCustomBadge: iconUrl !== null,
     showDedicatedGlitter: showsDedicatedBadgeEffect({
-      dedicatedByUserId: dedicationFlags.dedicatedByUserId,
-      dedicationStatus: dedicationFlags.dedicationStatus,
-      iconAssetKind: dedicationFlags.iconAssetKind,
-      iconAssetPath: dedicationFlags.iconAssetPath,
+      dedicatedByUserId: row.dedicated_by_user_id,
+      dedicationStatus: row.dedication_status,
+      model,
     }),
     dedicatedByUserId: row.dedicated_by_user_id,
     dedicationStatus: row.dedication_status,
@@ -208,7 +203,7 @@ export function detailToGridViewModel(detail: AchievementDetailViewModel): Achie
     id: detail.id,
     title: detail.title,
     dateLabel: formatGridDate(detail.achievedAt),
-    displaySrc: detail.renderSrc || null,
+    displaySrc: detail.renderSrc,
     FallbackIcon: detail.FallbackIcon,
     tone: detail.tone,
     isLocked: detail.isLocked,
@@ -270,11 +265,11 @@ export function detailToShareInviteSnapshotSource(
     icon: detail.icon,
     icon_url: detail.iconUrl ?? "",
     icon_file_id: detail.iconFileId,
-    icon_asset_kind: detail.iconAssetKind,
-    icon_asset_path: detail.iconAssetPath,
-    icon_cc_attribution: detail.iconCcAttribution,
-    icon_model_yaw: detail.iconModelYaw,
-    icon_model_pitch: detail.iconModelPitch,
+    icon_asset_kind: detail.model ? "model_glb" : "image",
+    icon_asset_path: detail.model?.assetPath ?? null,
+    icon_cc_attribution: detail.model?.ccAttribution ?? null,
+    icon_model_yaw: detail.model?.yaw ?? 0,
+    icon_model_pitch: detail.model?.pitch ?? 0,
     tone: detail.tone,
     achieved_at: detail.achievedAt,
   };

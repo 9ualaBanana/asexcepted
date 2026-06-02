@@ -32,12 +32,8 @@ export function useBadgeMetricsController(
   );
 
   const detailIsModelBadge = useMemo(
-    () =>
-      isModelGlbAsset(
-        detailAchievement?.iconAssetKind,
-        detailAchievement?.iconAssetPath,
-      ),
-    [detailAchievement?.iconAssetKind, detailAchievement?.iconAssetPath],
+    () => isModelGlbAsset(detailAchievement?.model),
+    [detailAchievement?.model],
   );
 
   const markDetailOpenStart = useCallback((achievementId: string) => {

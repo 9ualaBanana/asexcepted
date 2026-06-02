@@ -3,6 +3,7 @@
 import {
   useId,
   useEffect,
+  useMemo,
   useState,
   type Dispatch,
   type FormEvent,
@@ -14,7 +15,6 @@ import { ArrowLeft, Check, Loader2, Trash2, X } from "lucide-react";
 import {
   BadgeEditor,
   applyBadgeModelPoseSessionToForm,
-  type BadgeModelUploadStaged,
   clearSessionStagedUpload,
   rollbackBadgeUploadSession,
   setSessionStagedUpload,
@@ -33,6 +33,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import {
+  applyBadgeModelToForm,
+  badgeModelFromForm,
+} from "@/lib/achievements/badge/shared/badge-model-asset";
+import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
 
 export type EditorCardProps = {
   form: FormState;
@@ -88,6 +93,19 @@ export function EditableAchievementCard({
   const fieldMuted = "text-white/45";
   const fieldBody = "text-white/70";
   const fieldTitle = "text-white";
+
+  const badgeModel = useMemo(
+    () => badgeModelFromForm(form),
+    [
+      form.iconAssetKind,
+      form.iconAssetPath,
+      form.iconCcAttribution,
+      form.iconModelYaw,
+      form.iconModelPitch,
+      form.iconModelAnimationPlay,
+      form.iconModelAnimationSpeed,
+    ],
+  );
 
   return (
     <form
@@ -151,12 +169,9 @@ export function EditableAchievementCard({
         <div className={cn(showDialogChrome && "flex justify-center")}>
           <BadgeEditor
             imageUrl={form.iconUrl}
+            renderSrc={toOptimizedRenderUrl(form.iconUrl)}
             iconFileId={form.iconFileId}
-            iconAssetKind={form.iconAssetKind}
-            iconAssetPath={form.iconAssetPath}
-            iconCcAttribution={form.iconCcAttribution}
-            iconModelYaw={form.iconModelYaw}
-            iconModelPitch={form.iconModelPitch}
+            model={badgeModel}
             baselineAsset={badgeAssetSessionRef.current.baseline}
             tone={form.tone}
             isLocked={form.isLocked}
@@ -168,34 +183,32 @@ export function EditableAchievementCard({
               setForm((prev) => ({ ...prev, isLocked: !prev.isLocked }));
             }}
             onIconChange={(icon) => setForm((prev) => ({ ...prev, icon }))}
-            iconModelAnimationPlay={form.iconModelAnimationPlay}
-            iconModelAnimationSpeed={form.iconModelAnimationSpeed}
-            onIconModelAnimationPlayChange={(value) =>
-              setForm((prev) => ({ ...prev, iconModelAnimationPlay: value }))
-            }
-            onIconModelAnimationSpeedChange={(value) =>
-              setForm((prev) => ({ ...prev, iconModelAnimationSpeed: value }))
-            }
-            onModelPoseChange={(yaw, pitch) =>
-              setForm((prev) => ({
-                ...prev,
-                iconModelYaw: yaw,
-                iconModelPitch: pitch,
-              }))
+            onModelChange={(model) =>
+              setForm((prev) => applyBadgeModelToForm(prev, model))
             }
             allowModelRotation={isCreatingFlow}
             onRemoteUploadCommit={(asset) => {
               rollbackBadgeUploadSession(badgeAssetSessionRef.current);
               setSessionStagedUpload(badgeAssetSessionRef.current, asset);
-              setForm((prev) => ({
-                ...prev,
-                iconUrl: asset.iconUrl,
-                iconFileId: asset.iconFileId,
-                iconAssetKind: asset.iconAssetKind,
-                iconAssetPath: asset.iconAssetPath,
-                iconModelYaw: asset.iconModelYaw ?? prev.iconModelYaw,
-                iconModelPitch: asset.iconModelPitch ?? prev.iconModelPitch,
-              }));
+              setForm((prev) =>
+                applyBadgeModelToForm(
+                  {
+                    ...prev,
+                    iconUrl: asset.iconUrl,
+                    iconFileId: asset.iconFileId,
+                  },
+                  asset.iconAssetKind === "model_glb" && asset.iconAssetPath
+                    ? {
+                        assetPath: asset.iconAssetPath,
+                        yaw: asset.iconModelYaw ?? prev.iconModelYaw,
+                        pitch: asset.iconModelPitch ?? prev.iconModelPitch,
+                        animationPlay: prev.iconModelAnimationPlay,
+                        animationSpeed: prev.iconModelAnimationSpeed,
+                        ccAttribution: prev.iconCcAttribution.trim() || null,
+                      }
+                    : null,
+                ),
+              );
             }}
             onModelUploadStaged={(staged) => {
               rollbackBadgeUploadSession(badgeAssetSessionRef.current);
@@ -219,15 +232,6 @@ export function EditableAchievementCard({
             }
             onIconFileIdChange={(fid) =>
               setForm((prev) => ({ ...prev, iconFileId: fid }))
-            }
-            onIconAssetKindChange={(kind) =>
-              setForm((prev) => ({ ...prev, iconAssetKind: kind }))
-            }
-            onIconAssetPathChange={(path) =>
-              setForm((prev) => ({ ...prev, iconAssetPath: path }))
-            }
-            onIconCcAttributionChange={(value) =>
-              setForm((prev) => ({ ...prev, iconCcAttribution: value }))
             }
             onStagedUploadCleared={() => {
               clearSessionStagedUpload(badgeAssetSessionRef.current);

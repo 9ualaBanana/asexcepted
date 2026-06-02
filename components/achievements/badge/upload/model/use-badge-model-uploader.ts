@@ -8,6 +8,7 @@ import {
 } from "@/components/achievements/badge/upload/model/badge-model-pose-session";
 import { prepareBadgeModelUpload } from "@/components/achievements/badge/upload/model/badge-model-upload-client";
 import type { FormState } from "@/components/achievements/achievement-editor-shared";
+import { applyBadgeModelToForm } from "@/lib/achievements/badge/shared/badge-model-asset";
 import { uploadBadgeModelGlbOnly } from "@/lib/achievements/client/badge-asset";
 
 export type BadgeModelUploadStaged = {
@@ -86,15 +87,21 @@ export function applyBadgeModelPoseSessionToForm(
   form: FormState,
   staged: BadgeModelUploadStaged,
 ): FormState {
-  return {
-    ...form,
-    iconUrl: staged.previewUrl,
-    iconFileId: "",
-    iconAssetKind: "model_glb",
-    iconAssetPath: staged.modelPath,
-    iconModelYaw: staged.iconModelYaw,
-    iconModelPitch: staged.iconModelPitch,
-  };
+  return applyBadgeModelToForm(
+    {
+      ...form,
+      iconUrl: staged.previewUrl,
+      iconFileId: "",
+    },
+    {
+      assetPath: staged.modelPath,
+      yaw: staged.iconModelYaw,
+      pitch: staged.iconModelPitch,
+      animationPlay: true,
+      animationSpeed: 1,
+      ccAttribution: null,
+    },
+  );
 }
 
 export function clearBadgeModelPoseSessionRef(

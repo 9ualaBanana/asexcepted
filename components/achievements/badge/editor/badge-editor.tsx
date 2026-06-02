@@ -24,11 +24,9 @@ import {
 import {
   type BadgeRemoteAsset,
   type AchievementIconKey,
-  type AchievementIconAssetKind,
   iconMap,
 } from "@/components/achievements/achievement-editor-shared";
 import { Button } from "@/components/ui/button";
-import { toOptimizedRenderSrc } from "@/lib/achievements/badge/shared/render-src";
 import { useErrorToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { BadgeGltfViewer, useSignedBadgeModelUrl } from "@/components/achievements/badge/model";
@@ -36,7 +34,11 @@ import type { BadgeModelUploadStaged } from "@/components/achievements/badge/upl
 import { useBadgeUploader } from "../upload/use-badge-uploader";
 
 import "@uppy/core/css/style.min.css";
-import { isModelGlbAsset, isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-assets";
+import {
+  badgeRemoteAssetFromModelFields,
+  patchBadgeModelAsset,
+  type BadgeModelAsset,
+} from "@/lib/achievements/badge/shared/badge-model-asset";
 
 const EDITOR_TONE_OPTIONS: AchievementTone[] = [
   "teal",
@@ -52,12 +54,11 @@ const chipBtn =
 
 type BadgeEditorProps = {
   imageUrl: string;
+  /** `toOptimizedRenderUrl(imageUrl)` from the editor parent — do not re-optimize here. */
+  renderSrc: string | null;
   iconFileId: string;
-  iconAssetKind: AchievementIconAssetKind;
-  iconAssetPath: string;
-  iconCcAttribution: string;
-  iconModelYaw: number;
-  iconModelPitch: number;
+  /** Parsed GLB badge fields; null for flat image badges. */
+  model: BadgeModelAsset | null;
   baselineAsset: BadgeRemoteAsset;
   tone: AchievementTone;
   isLocked: boolean;
@@ -70,14 +71,7 @@ type BadgeEditorProps = {
   onRemoteUploadCommit: (asset: BadgeRemoteAsset) => void;
   onImageUrlChange: (url: string) => void;
   onIconFileIdChange: (fileId: string) => void;
-  onIconAssetKindChange: (kind: AchievementIconAssetKind) => void;
-  onIconAssetPathChange: (path: string) => void;
-  onIconCcAttributionChange: (value: string) => void;
-  iconModelAnimationPlay: boolean;
-  iconModelAnimationSpeed: number;
-  onIconModelAnimationPlayChange: (value: boolean) => void;
-  onIconModelAnimationSpeedChange: (value: number) => void;
-  onModelPoseChange: (yaw: number, pitch: number) => void;
+  onModelChange: (model: BadgeModelAsset | null) => void;
   allowModelRotation?: boolean;
   /** Clear staged-upload pointer when the in-progress image is removed locally. */
   onStagedUploadCleared?: () => void;
@@ -89,12 +83,9 @@ type BadgeEditorProps = {
 
 export function BadgeEditor({
   imageUrl,
+  renderSrc,
   iconFileId,
-  iconAssetKind,
-  iconAssetPath,
-  iconCcAttribution,
-  iconModelYaw,
-  iconModelPitch,
+  model,
   baselineAsset,
   tone,
   isLocked,
@@ -106,14 +97,7 @@ export function BadgeEditor({
   onRemoteUploadCommit,
   onImageUrlChange,
   onIconFileIdChange,
-  onIconAssetKindChange,
-  onIconAssetPathChange,
-  onIconCcAttributionChange,
-  iconModelAnimationPlay,
-  iconModelAnimationSpeed,
-  onIconModelAnimationPlayChange,
-  onIconModelAnimationSpeedChange,
-  onModelPoseChange,
+  onModelChange,
   allowModelRotation = true,
   onStagedUploadCleared,
   onUploadInProgressChange,
@@ -167,18 +151,25 @@ export function BadgeEditor({
 
   const trimmed = imageUrl.trim();
   const hasRemote = trimmed.length > 0;
-  const currentAsset: BadgeRemoteAsset = {
+  const currentAsset: BadgeRemoteAsset = badgeRemoteAssetFromModelFields({
     iconUrl: trimmed,
     iconFileId: iconFileId.trim(),
-    iconAssetKind,
-    iconAssetPath: iconAssetPath.trim(),
-  };
+    model,
+  });
   const hasCustomBadge =
     hasRemote || currentAsset.iconFileId.length > 0 || currentAsset.iconAssetPath.length > 0;
-  const isModelAsset = isModelGlbAsset(iconAssetKind, iconAssetPath);
+  const isModelAsset = model !== null;
+
+  const patchModel = useCallback(
+    (patch: Partial<BadgeModelAsset>) => {
+      if (!model) return;
+      onModelChange(patchBadgeModelAsset(model, patch));
+    },
+    [model, onModelChange],
+  );
 
   const { signedUrl: editorSignedModelUrl } = useSignedBadgeModelUrl(
-    currentAsset.iconAssetPath,
+    model?.assetPath ?? "",
     isModelAsset,
   );
 
@@ -261,9 +252,7 @@ export function BadgeEditor({
       await deleteBadgeRemoteAssetQuietly(stagedAssetToDelete, (e) => console.warn(e));
       onImageUrlChange("");
       onIconFileIdChange("");
-      onIconAssetKindChange("image");
-      onIconAssetPathChange("");
-      onIconCcAttributionChange("");
+      onModelChange(null);
       onStagedUploadCleared?.();
       setRemoveConfirmOpen(false);
       setMenuOpen(false);
@@ -274,39 +263,39 @@ export function BadgeEditor({
 
   return (
     <div ref={rootRef} className="group/badge relative flex flex-col items-center">
-      {isModelAsset ? (
+      {model ? (
         <button
           type="button"
           aria-label={
-            iconModelAnimationPlay
+            model.animationPlay
               ? "Pause and reset model animation"
               : "Play model animation from start"
           }
           disabled={disabled || busy || !hasModelAnimation}
           onClick={(event) => {
             event.stopPropagation();
-            onIconModelAnimationPlayChange(!iconModelAnimationPlay);
+            patchModel({ animationPlay: !model.animationPlay });
           }}
           className="pointer-events-auto absolute left-3 top-3 z-40 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/10 text-white/25 shadow-md backdrop-blur-sm transition hover:bg-black/20 hover:text-white/45 disabled:pointer-events-none disabled:opacity-50"
         >
-          {iconModelAnimationPlay ? <Pause className="h-4 w-4" aria-hidden /> : <Play className="h-4 w-4" aria-hidden />}
+          {model.animationPlay ? <Pause className="h-4 w-4" aria-hidden /> : <Play className="h-4 w-4" aria-hidden />}
         </button>
       ) : null}
-      {isModelAsset && iconModelAnimationPlay && hasModelAnimation ? (
+      {model?.animationPlay && hasModelAnimation ? (
         <div className="pointer-events-none absolute left-12 right-12 top-3 z-40 flex items-center">
           <input
             type="range"
             min={0.1}
             max={2}
             step={0.05}
-            value={iconModelAnimationSpeed}
+            value={model.animationSpeed}
             disabled={disabled || busy}
             aria-label="Animation speed"
             className="pointer-events-auto h-1.5 w-full cursor-pointer appearance-none rounded-full bg-white/25 accent-white disabled:cursor-not-allowed disabled:opacity-40"
             onChange={(event) => {
               const value = Number(event.target.value);
               if (!Number.isFinite(value)) return;
-              onIconModelAnimationSpeedChange(Math.min(2, Math.max(0.1, value)));
+              patchModel({ animationSpeed: value });
             }}
             onPointerDown={(event) => event.stopPropagation()}
             onClick={(event) => event.stopPropagation()}
@@ -377,26 +366,23 @@ export function BadgeEditor({
             <div className="badge-upload-blob badge-upload-blob-c absolute h-[48%] w-[48%] rounded-full" />
           </div>
         ) : null}
-        {hasRemote ? (
-          isModelAsset && editorSignedModelUrl ? (
+        {hasRemote && renderSrc ? (
+          model && editorSignedModelUrl ? (
             <BadgeGltfViewer
+              model={model}
               signedModelUrl={editorSignedModelUrl}
-              previewSrc={toOptimizedRenderSrc(trimmed)}
+              renderSrc={renderSrc}
               className={cn("p-1", busy && "scale-[0.96] blur-[3.5px] opacity-[0.72]")}
               float={false}
-              motionSeed={currentAsset.iconAssetPath || trimmed}
-              initialYaw={iconModelYaw}
-              initialPitch={iconModelPitch}
-              playAnimation={iconModelAnimationPlay}
-              animationSpeed={iconModelAnimationSpeed}
+              motionSeed={model.assetPath || trimmed}
               onHasAnimationChange={setHasModelAnimation}
-              onPoseChange={onModelPoseChange}
+              onPoseChange={(yaw, pitch) => patchModel({ yaw, pitch })}
               allowInertia={false}
               interactive={allowModelRotation}
             />
           ) : (
             <RemoteBadgeImage
-              src={toOptimizedRenderSrc(trimmed)}
+              src={renderSrc}
               className={cn(
                 "p-1 transition-all duration-500 ease-out",
                 "h-full w-full object-contain drop-shadow-lg",
@@ -420,11 +406,11 @@ export function BadgeEditor({
           </div>
         )}
         </button>
-        {(isModelBadgeAssetKind(iconAssetKind) || iconCcAttribution.trim()) && (
+        {model != null && (
           <BadgeAttributionPopover
-            value={iconCcAttribution}
+            value={model.ccAttribution ?? ""}
             editable
-            onChange={onIconCcAttributionChange}
+            onChange={(value) => patchModel({ ccAttribution: value })}
             disabled={disabled || busy}
             emptyState="Add creator credit, license, source link, or any required attribution."
           />

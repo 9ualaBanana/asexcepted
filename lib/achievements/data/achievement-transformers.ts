@@ -6,7 +6,7 @@ import {
 } from "@/components/achievements/achievement-manager-utils";
 import {
   type AchievementIconKey,
-  type AchievementIconAssetKind,
+  type IconAssetKind,
   type AchievementVisibility,
   getSafeIconAssetKind,
   getSafeIconKey,
@@ -26,7 +26,7 @@ export type AchievementDomainRow = {
   icon: AchievementIconKey;
   icon_url: string | null;
   icon_file_id: string | null;
-  icon_asset_kind: AchievementIconAssetKind;
+  icon_asset_kind: IconAssetKind;
   icon_asset_path: string | null;
   icon_cc_attribution: string | null;
   icon_model_yaw: number;

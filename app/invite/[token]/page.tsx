@@ -147,10 +147,9 @@ export default async function Page({ params }: PageProps) {
   );
   const collectionOwnerPath = userCollection(collectionOwnerId);
   const inviteBadge = shareInviteRowToBadgeViewModel(invite);
-  const liveModelUrl =
-    inviteBadge.isModelBadge && inviteBadge.iconAssetPath
-      ? await createSignedBadgeModelUrl(inviteBadge.iconAssetPath)
-      : null;
+  const liveModelUrl = inviteBadge.model
+    ? await createSignedBadgeModelUrl(inviteBadge.model.assetPath)
+    : null;
 
   if (invite.status !== "pending") {
     return <InviteUnavailableState claimed={invite.status === "claimed"} />;
@@ -162,14 +161,13 @@ export default async function Page({ params }: PageProps) {
         <div className="w-full rounded-[2.25rem] border border-white/10 bg-[rgba(20,18,28,0.9)] px-6 py-8 shadow-[0_24px_80px_rgba(0,0,0,0.36)] backdrop-blur-xl sm:px-8">
           <div className="mx-auto h-[18rem] w-full max-w-[18rem]">
             <div className="relative h-full w-full">
-              {liveModelUrl ? (
+              {liveModelUrl && inviteBadge.model ? (
                 <BadgeGltfViewer
+                  model={inviteBadge.model}
                   signedModelUrl={liveModelUrl}
-                  previewSrc={inviteBadge.renderSrc}
+                  renderSrc={inviteBadge.renderSrc}
                   float
                   motionSeed={invite.id}
-                  initialYaw={inviteBadge.iconModelYaw}
-                  initialPitch={inviteBadge.iconModelPitch}
                   className="mx-auto"
                 />
               ) : inviteBadge.renderSrc ? (
@@ -182,7 +180,7 @@ export default async function Page({ params }: PageProps) {
               ) : null}
               {inviteBadge.showAttributionPopover ? (
                 <BadgeAttributionPopover
-                  value={inviteBadge.iconCcAttribution ?? ""}
+                  value={inviteBadge.model?.ccAttribution ?? ""}
                   emptyState="No attribution was provided for this 3D badge."
                 />
               ) : null}

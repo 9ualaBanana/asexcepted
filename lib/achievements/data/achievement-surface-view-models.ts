@@ -5,18 +5,19 @@ import {
   getSafeTone,
 } from "@/components/achievements/achievement-manager-utils";
 import {
-  type AchievementIconAssetKind,
   type AchievementIconKey,
   getSafeIcon,
-  getSafeIconAssetKind,
   getSafeIconKey,
 } from "@/components/achievements/achievement-editor-shared";
 import {
-  isModelGlbAsset,
   isModelBadgeAssetKind,
   normalizeBadgeIconUrl,
 } from "@/lib/achievements/badge/shared/badge-assets";
-import { toOptimizedRenderSrc } from "@/lib/achievements/badge/shared/render-src";
+import {
+  parseBadgeModelAsset,
+  type BadgeModelAsset,
+} from "@/lib/achievements/badge/shared/badge-model-asset";
+import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
 
 export type FeedEventType = "unlock" | "impression" | "dedication";
 
@@ -46,30 +47,22 @@ export type AchievementFeedItemViewModel = {
 
 /** Embed iframe badge (model + poster fields). */
 export type AchievementEmbedBadgeViewModel = {
-  renderSrc: string;
-  iconAssetPath: string | null;
-  isModelBadge: boolean;
-  iconModelYaw: number;
-  iconModelPitch: number;
+  renderSrc: string | null;
+  model: BadgeModelAsset | null;
 };
 
 /** Embed token mint eligibility (owner must have badge art). */
 export type AchievementEmbedMintViewModel = {
   achievementId: string;
-  renderSrc: string;
+  renderSrc: string | null;
 };
 
 /** Share-invite / showcase page badge rendering. */
 export type AchievementShareInviteBadgeViewModel = {
   /** Persisted badge URL (not ImageKit-optimized). */
   iconUrl: string | null;
-  renderSrc: string;
-  iconAssetKind: AchievementIconAssetKind;
-  iconAssetPath: string | null;
-  iconModelYaw: number;
-  iconModelPitch: number;
-  iconCcAttribution: string | null;
-  isModelBadge: boolean;
+  renderSrc: string | null;
+  model: BadgeModelAsset | null;
   showAttributionPopover: boolean;
 };
 
@@ -97,25 +90,20 @@ type FeedRowSource = {
 
 type EmbedBadgeRowSource = {
   icon_url: string | null;
-  icon_asset_kind: string | null;
-  icon_asset_path: string | null;
-  icon_model_yaw: number | null;
-  icon_model_pitch: number | null;
+  icon_asset_kind?: string | null;
+  icon_asset_path?: string | null;
+  icon_model_yaw?: number | null;
+  icon_model_pitch?: number | null;
+  icon_cc_attribution?: string | null;
+  icon_model_animation_play?: boolean | null;
+  icon_model_animation_speed?: number | null;
 };
 
-type ShareInviteBadgeRowSource = {
-  icon_url: string | null;
-  icon_asset_kind: string | null;
-  icon_asset_path: string | null;
-  icon_model_yaw: number | null;
-  icon_model_pitch: number | null;
-  icon_cc_attribution: string | null;
-};
+type ShareInviteBadgeRowSource = EmbedBadgeRowSource;
 
 export function feedRowSourceToViewModel(row: FeedRowSource): AchievementFeedItemViewModel {
   const iconUrl = row.icon_url;
-  const iconAssetKind = getSafeIconAssetKind(row.icon_asset_kind);
-  const displaySrc = iconUrl ? toOptimizedRenderSrc(iconUrl) : null;
+  const displaySrc = toOptimizedRenderUrl(iconUrl);
   const isDedicated = row.is_dedicated;
   return {
     eventType: row.event_type,
@@ -133,7 +121,7 @@ export function feedRowSourceToViewModel(row: FeedRowSource): AchievementFeedIte
     tone: getSafeTone(row.tone),
     FallbackIcon: getSafeIcon(row.icon),
     showDedicatedGlitter:
-      isDedicated && !isModelBadgeAssetKind(iconAssetKind) && iconUrl !== null,
+      isDedicated && !isModelBadgeAssetKind(row.icon_asset_kind) && iconUrl !== null,
     isDedicated,
     achievedAt: row.achieved_at,
     createdAt: row.created_at,
@@ -146,16 +134,19 @@ export function embedBadgeRowToViewModel(row: EmbedBadgeRowSource): AchievementE
   const iconUrl = normalizeBadgeIconUrl(row.icon_url);
   if (!iconUrl) return null;
 
-  const iconAssetKind = getSafeIconAssetKind(row.icon_asset_kind);
-  const iconAssetPath =
-    typeof row.icon_asset_path === "string" ? row.icon_asset_path.trim() || null : null;
+  const model = parseBadgeModelAsset({
+    iconAssetKind: row.icon_asset_kind,
+    iconAssetPath: row.icon_asset_path,
+    iconModelYaw: row.icon_model_yaw,
+    iconModelPitch: row.icon_model_pitch,
+    iconModelAnimationPlay: row.icon_model_animation_play,
+    iconModelAnimationSpeed: row.icon_model_animation_speed,
+    iconCcAttribution: row.icon_cc_attribution,
+  });
 
   return {
-    renderSrc: toOptimizedRenderSrc(iconUrl),
-    iconAssetPath,
-    isModelBadge: isModelGlbAsset(iconAssetKind, iconAssetPath),
-    iconModelYaw: Number(row.icon_model_yaw) || 0,
-    iconModelPitch: Number(row.icon_model_pitch) || 0,
+    renderSrc: toOptimizedRenderUrl(iconUrl),
+    model,
   };
 }
 
@@ -167,7 +158,7 @@ export function embedMintRowToViewModel(
   if (!iconUrl) return null;
   return {
     achievementId,
-    renderSrc: toOptimizedRenderSrc(iconUrl),
+    renderSrc: toOptimizedRenderUrl(iconUrl),
   };
 }
 
@@ -175,25 +166,21 @@ export function shareInviteRowToBadgeViewModel(
   row: ShareInviteBadgeRowSource,
 ): AchievementShareInviteBadgeViewModel {
   const iconUrl = normalizeBadgeIconUrl(row.icon_url);
-  const iconAssetKind = getSafeIconAssetKind(row.icon_asset_kind);
-  const iconAssetPath =
-    typeof row.icon_asset_path === "string" ? row.icon_asset_path.trim() || null : null;
-  const iconCcAttribution =
-    typeof row.icon_cc_attribution === "string"
-      ? row.icon_cc_attribution.trim() || null
-      : null;
+  const model = parseBadgeModelAsset({
+    iconAssetKind: row.icon_asset_kind,
+    iconAssetPath: row.icon_asset_path,
+    iconModelYaw: row.icon_model_yaw,
+    iconModelPitch: row.icon_model_pitch,
+    iconModelAnimationPlay: row.icon_model_animation_play,
+    iconModelAnimationSpeed: row.icon_model_animation_speed,
+    iconCcAttribution: row.icon_cc_attribution,
+  });
 
   return {
     iconUrl,
-    renderSrc: iconUrl ? toOptimizedRenderSrc(iconUrl) : "",
-    iconAssetKind,
-    iconAssetPath,
-    iconModelYaw: Number(row.icon_model_yaw) || 0,
-    iconModelPitch: Number(row.icon_model_pitch) || 0,
-    iconCcAttribution,
-    isModelBadge: isModelGlbAsset(iconAssetKind, iconAssetPath),
-    showAttributionPopover:
-      isModelBadgeAssetKind(iconAssetKind) && Boolean(iconCcAttribution),
+    renderSrc: toOptimizedRenderUrl(iconUrl),
+    model,
+    showAttributionPopover: Boolean(model?.ccAttribution),
   };
 }
 
