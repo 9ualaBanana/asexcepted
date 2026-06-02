@@ -6,18 +6,14 @@ import {
   DedicatedBadgeGlitter,
   RemoteBadgeImage,
 } from "@/components/achievements/badge";
-import { getSafeTone } from "@/components/achievements/achievement-manager-utils";
-import { getSafeIcon } from "@/components/achievements/achievement-editor-shared";
 import { FeedActivityText } from "@/components/social/feed/feed-activity-text";
 import { ProfileAvatarSlot } from "@/components/profile/profile-avatar-slot";
-import { isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-assets";
-import { toOptimizedRenderSrc } from "@/lib/achievements/badge/shared/render-src";
+import type { AchievementFeedItemViewModel } from "@/lib/achievements/data/achievement-surface-view-models";
 import { formatFeedEventTimestamp } from "@/lib/feed/format-feed-event-time";
 import {
   FEED_BADGE_PX,
   FEED_ROW_HEIGHT_CLASS,
 } from "@/lib/feed/feed-row-layout";
-import type { FeedRow } from "@/lib/achievements/data/feed-db";
 import { userCollection } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { links } from "@/lib/notifications/templates";
@@ -26,22 +22,19 @@ import { links } from "@/lib/notifications/templates";
 const FEED_AVATAR_RATIO = 0.34;
 
 type FeedItemProps = {
-  row: FeedRow;
+  row: AchievementFeedItemViewModel;
 };
 
 export function FeedItem({ row }: FeedItemProps) {
-  const href = links.achievementDetail(row.user_id, row.achievement_id, row.event_type === "dedication");
-  const actorHref = userCollection(row.actor_user_id);
-  const tone = getSafeTone(row.tone);
-  const FallbackIcon = getSafeIcon(row.icon);
-  const isImpression = row.event_type === "impression";
-  const isDedication = row.event_type === "dedication";
-  const showDedicatedGlitter =
-    row.is_dedicated &&
-    !isModelBadgeAssetKind(row.icon_asset_kind) &&
-    Boolean(row.icon_url);
-  const eventTimeLabel = formatFeedEventTimestamp(row.event_at);
-  const badgeSrc = row.icon_url ? toOptimizedRenderSrc(row.icon_url) : null;
+  const href = links.achievementDetail(
+    row.userId,
+    row.achievementId,
+    row.eventType === "dedication",
+  );
+  const actorHref = userCollection(row.actorUserId);
+  const isImpression = row.eventType === "impression";
+  const isDedication = row.eventType === "dedication";
+  const eventTimeLabel = formatFeedEventTimestamp(row.eventAt);
   const avatarPx = Math.round(FEED_BADGE_PX * FEED_AVATAR_RATIO);
 
   return (
@@ -70,20 +63,20 @@ export function FeedItem({ row }: FeedItemProps) {
             className="h-full w-full max-w-none"
           >
             <div className="relative h-full w-full">
-              {badgeSrc ? (
-                <RemoteBadgeImage src={badgeSrc} />
+              {row.displaySrc ? (
+                <RemoteBadgeImage src={row.displaySrc} />
               ) : (
                 <FallbackBadge
-                  tone={tone}
+                  tone={row.tone}
                   isLocked={false}
-                  FallbackIcon={FallbackIcon}
+                  FallbackIcon={row.FallbackIcon}
                   size="grid"
                 />
               )}
-              {showDedicatedGlitter && badgeSrc ? (
+              {row.showDedicatedGlitter && row.displaySrc ? (
                 <DedicatedBadgeGlitter
-                  renderSrc={badgeSrc}
-                  motionSeed={row.achievement_id}
+                  renderSrc={row.displaySrc}
+                  motionSeed={row.achievementId}
                   className="z-[12]"
                 />
               ) : null}
@@ -91,13 +84,13 @@ export function FeedItem({ row }: FeedItemProps) {
           </BadgeSlot>
           <Link
             href={actorHref}
-            aria-label={`Open ${row.actor_display_name || "profile"} profile`}
+            aria-label={`Open ${row.actorDisplayName || "profile"} profile`}
             className="pointer-events-auto absolute bottom-0 right-0 z-20 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             style={{ width: avatarPx, height: avatarPx }}
           >
             <ProfileAvatarSlot
               layout="feed-overlay"
-              imageUrl={row.actor_avatar_url}
+              imageUrl={row.actorAvatarUrl}
               editable={false}
               className="h-full w-full"
             />

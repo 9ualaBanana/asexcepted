@@ -38,6 +38,26 @@ export {
   attachImpressionCounts,
   fetchImpressionCountMap,
 } from "./data/impression-counts";
+export {
+  type AchievementEmbedBadgeViewModel,
+  type AchievementEmbedMintViewModel,
+  type AchievementFeedItemViewModel,
+  type AchievementShareInviteBadgeViewModel,
+  type FeedEventType,
+  embedBadgeRowToViewModel,
+  embedMintRowToViewModel,
+  feedRowSourceToViewModel,
+  shareInviteRowToBadgeViewModel,
+} from "./data/achievement-surface-view-models";
+export {
+  fetchFollowingUnlockFeed,
+  type FeedCursor,
+  type FeedPage,
+} from "./data/feed-db";
+export {
+  getAchievementEmbedBadgeById,
+  getAchievementEmbedMintForOwner,
+} from "./data/achievement-queries";
 
 export {
   canEditDedicatedVisibility,

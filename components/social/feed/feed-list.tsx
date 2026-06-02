@@ -107,7 +107,7 @@ export function FeedList({ initialPage, initialError = null }: FeedListProps) {
       ) : null}
       {rows.map((row) => (
         <FeedItem
-          key={`${row.event_type}-${row.event_id}`}
+          key={`${row.eventType}-${row.eventId}`}
           row={row}
         />
       ))}

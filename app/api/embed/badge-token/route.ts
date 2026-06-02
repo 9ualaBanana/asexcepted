@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: rowResult.error }, { status: 404 });
   }
   const row = rowResult.value;
-  if (!row.icon_url) {
+  if (!row.renderSrc) {
     return NextResponse.json(
       { error: "Add a custom badge image before creating an embed link." },
       { status: 400 },
@@ -88,7 +88,7 @@ export async function POST(req: Request) {
   //   );
   // }
 
-  const token = mintEmbedBadgeToken(secret, row.id);
+  const token = mintEmbedBadgeToken(secret, row.achievementId);
   const embedUrl = `${origin}/e/${encodeURIComponent(token)}`;
   return NextResponse.json({ embedUrl });
 }

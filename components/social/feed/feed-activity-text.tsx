@@ -2,11 +2,11 @@ import {
   buildFeedActivityText,
   type ActivityTextPart,
 } from "@/lib/notifications/activity-text";
-import type { FeedRow } from "@/lib/achievements/data/feed-db";
+import type { AchievementFeedItemViewModel } from "@/lib/achievements/data/achievement-surface-view-models";
 import { cn } from "@/lib/utils";
 
 type FeedActivityTextProps = {
-  row: FeedRow;
+  row: AchievementFeedItemViewModel;
 };
 
 export function FeedActivityText({ row }: FeedActivityTextProps) {
@@ -22,11 +22,11 @@ export function FeedActivityText({ row }: FeedActivityTextProps) {
     <div className="grid h-full min-h-0 min-w-0 grid-rows-3 overflow-visible">
       {rows.map((parts, rowIndex) => (
         <p
-          key={`${row.event_id}-row-${rowIndex}`}
+          key={`${row.eventId}-row-${rowIndex}`}
           className="flex min-h-0 items-center text-xs leading-tight"
         >
           {parts.map((part, partIndex) =>
-            renderPart(part, `${row.event_id}-${rowIndex}-${partIndex}`),
+            renderPart(part, `${row.eventId}-${rowIndex}-${partIndex}`),
           )}
         </p>
       ))}

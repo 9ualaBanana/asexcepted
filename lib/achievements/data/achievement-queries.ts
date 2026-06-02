@@ -1,8 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { err, ok, type Result } from "neverthrow";
 
-import { normalizeBadgeIconUrl } from "@/lib/achievements/badge/shared/badge-assets";
 import type { Database } from "@/lib/supabase/database.types";
+import {
+  embedBadgeRowToViewModel,
+  embedMintRowToViewModel,
+  type AchievementEmbedBadgeViewModel,
+  type AchievementEmbedMintViewModel,
+} from "@/lib/achievements/data/achievement-surface-view-models";
 import { formatSupabaseSingleRowError } from "@/lib/supabase/postgrest-errors";
 
 type Client = SupabaseClient<Database>;
@@ -15,15 +20,13 @@ export type AchievementUnlockPushRow = {
   visibility: Database["public"]["Tables"]["achievements"]["Row"]["visibility"];
 };
 
-export type AchievementEmbedBadgeRow = Pick<
-  Database["public"]["Tables"]["achievements"]["Row"],
-  "icon_url" | "icon_asset_kind" | "icon_asset_path" | "icon_model_yaw" | "icon_model_pitch"
->;
+export type { AchievementEmbedBadgeViewModel, AchievementEmbedMintViewModel } from "@/lib/achievements/data/achievement-surface-view-models";
 
-export type AchievementEmbedMintRow = Pick<
-  Database["public"]["Tables"]["achievements"]["Row"],
-  "id" | "icon_url"
->;
+/** @deprecated Use AchievementEmbedBadgeViewModel */
+export type AchievementEmbedBadgeRow = AchievementEmbedBadgeViewModel;
+
+/** @deprecated Use AchievementEmbedMintViewModel */
+export type AchievementEmbedMintRow = AchievementEmbedMintViewModel;
 
 export type AchievementDedicationNotifyRow = Pick<
   Database["public"]["Tables"]["achievements"]["Row"],
@@ -73,7 +76,7 @@ export async function getAchievementForUnlockPush(
 export async function getAchievementEmbedBadgeById(
   supabase: Client,
   achievementId: string,
-): Promise<Result<AchievementEmbedBadgeRow, string>> {
+): Promise<Result<AchievementEmbedBadgeViewModel, string>> {
   const { data, error } = await supabase
     .from("achievements")
     .select("icon_url,icon_asset_kind,icon_asset_path,icon_model_yaw,icon_model_pitch")
@@ -86,17 +89,18 @@ export async function getAchievementEmbedBadgeById(
   if (!data) {
     return err("Achievement not found");
   }
-  return ok({
-    ...data,
-    icon_url: normalizeBadgeIconUrl(data.icon_url),
-  });
+  const badge = embedBadgeRowToViewModel(data);
+  if (!badge) {
+    return err("Achievement not found");
+  }
+  return ok(badge);
 }
 
 export async function getAchievementEmbedMintForOwner(
   supabase: Client,
   achievementId: string,
   ownerUserId: string,
-): Promise<Result<AchievementEmbedMintRow, string>> {
+): Promise<Result<AchievementEmbedMintViewModel, string>> {
   const { data, error } = await supabase
     .from("achievements")
     .select("id,icon_url")
@@ -110,10 +114,11 @@ export async function getAchievementEmbedMintForOwner(
   if (!data) {
     return err("Achievement not found");
   }
-  return ok({
-    ...data,
-    icon_url: normalizeBadgeIconUrl(data.icon_url),
-  });
+  const mint = embedMintRowToViewModel(data.id, data);
+  if (!mint) {
+    return err("Achievement not found");
+  }
+  return ok(mint);
 }
 
 export async function getAchievementDedicationNotifyRow(

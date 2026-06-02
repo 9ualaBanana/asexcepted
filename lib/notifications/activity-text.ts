@@ -1,4 +1,4 @@
-import type { FeedRow } from "@/lib/achievements/data/feed-db";
+import type { AchievementFeedItemViewModel } from "@/lib/achievements/data/achievement-surface-view-models";
 
 export type ActivityTextPart = {
   kind: "actor" | "achievement" | "muted";
@@ -11,15 +11,15 @@ export type ActivityTextCopy = {
 };
 
 export function buildFeedActivityText(
-  row: Pick<FeedRow, "event_type" | "actor_display_name" | "title">,
+  row: Pick<AchievementFeedItemViewModel, "eventType" | "actorDisplayName" | "title">,
 ): ActivityTextCopy {
-  switch (row.event_type) {
+  switch (row.eventType) {
     case "dedication":
-      return buildDedicationActivityText(row.title ?? "", row.actor_display_name);
+      return buildDedicationActivityText(row.title ?? "", row.actorDisplayName);
     case "impression":
-      return buildImpressionActivityText(row.title ?? "", row.actor_display_name);
+      return buildImpressionActivityText(row.title ?? "", row.actorDisplayName);
     default:
-      return buildUnlockActivityText(row.title ?? "", row.actor_display_name);
+      return buildUnlockActivityText(row.title ?? "", row.actorDisplayName);
   }
 }
 

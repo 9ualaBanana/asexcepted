@@ -2,35 +2,15 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { err, ok, type Result } from "neverthrow";
 
 import { normalizeBadgeIconUrl } from "@/lib/achievements/badge/shared/badge-assets";
+import {
+  feedRowSourceToViewModel,
+  type AchievementFeedItemViewModel,
+  type FeedEventType,
+} from "@/lib/achievements/data/achievement-surface-view-models";
 
-export type FeedEventType = "unlock" | "impression" | "dedication";
-
-export type FeedRow = {
-  event_type: FeedEventType;
-  event_id: string;
-  achievement_id: string;
-  user_id: string;
-  actor_user_id: string;
-  actor_display_name: string;
-  actor_avatar_url: string | null;
-  title: string | null;
-  description: string | null;
-  category: string | null;
-  icon: string;
-  icon_url: string | null;
-  icon_file_id: string | null;
-  icon_asset_kind: string;
-  tone: string;
-  achieved_at: string | null;
-  created_at: string;
-  updated_at: string;
-  event_at: string;
-  /** True for dedication inbox rows and unlock rows of dedicated achievements. */
-  is_dedicated: boolean;
-};
-
-/** @deprecated Use FeedRow */
-export type FeedUnlockRow = FeedRow;
+export type { AchievementFeedItemViewModel, FeedEventType } from "@/lib/achievements/data/achievement-surface-view-models";
+/** @deprecated Use AchievementFeedItemViewModel */
+export type { FeedRow, FeedUnlockRow } from "@/lib/achievements/data/achievement-surface-view-models";
 
 export type FeedCursor = {
   updated_at: string;
@@ -38,13 +18,13 @@ export type FeedCursor = {
 };
 
 export type FeedPage = {
-  rows: FeedRow[];
+  rows: AchievementFeedItemViewModel[];
   nextCursor: FeedCursor | null;
 };
 
-function normalizeFeedRow(raw: Record<string, unknown>): FeedRow | null {
+function normalizeFeedRow(raw: Record<string, unknown>): AchievementFeedItemViewModel | null {
   const rawType = raw.event_type;
-  const eventType =
+  const eventType: FeedEventType | null =
     rawType === "impression"
       ? "impression"
       : rawType === "dedication"
@@ -59,7 +39,7 @@ function normalizeFeedRow(raw: Record<string, unknown>): FeedRow | null {
   const eventId = raw.event_id ?? raw.achievement_id;
   if (typeof eventId !== "string") return null;
 
-  return {
+  return feedRowSourceToViewModel({
     event_type: eventType,
     event_id: eventId,
     achievement_id: String(raw.achievement_id),
@@ -72,7 +52,6 @@ function normalizeFeedRow(raw: Record<string, unknown>): FeedRow | null {
     category: (raw.category as string | null) ?? null,
     icon: String(raw.icon ?? "trophy"),
     icon_url: normalizeBadgeIconUrl(raw.icon_url as string | null | undefined),
-    icon_file_id: (raw.icon_file_id as string | null) ?? null,
     icon_asset_kind: String(raw.icon_asset_kind ?? "image"),
     tone: String(raw.tone ?? "teal"),
     achieved_at: (raw.achieved_at as string | null) ?? null,
@@ -80,7 +59,7 @@ function normalizeFeedRow(raw: Record<string, unknown>): FeedRow | null {
     updated_at: String(raw.updated_at),
     event_at: String(raw.event_at ?? raw.updated_at),
     is_dedicated: eventType === "dedication" || Boolean(raw.is_dedicated),
-  };
+  });
 }
 
 export async function fetchFollowingUnlockFeed(
@@ -116,12 +95,12 @@ export async function fetchFollowingUnlockFeed(
           : {},
       ),
     )
-    .filter((row): row is FeedRow => row !== null);
+    .filter((row): row is AchievementFeedItemViewModel => row !== null);
 
   const last = rows[rows.length - 1];
   const nextCursor =
     rows.length >= limit && last
-      ? { updated_at: last.event_at, id: last.event_id }
+      ? { updated_at: last.eventAt, id: last.eventId }
       : null;
 
   return ok({ rows, nextCursor });

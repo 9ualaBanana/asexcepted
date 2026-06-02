@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 
+import { shareInviteRowToBadgeViewModel } from "@/lib/achievements/data/achievement-surface-view-models";
 import { resolveInviteOgImageTitle } from "@/lib/share-invites/invite-share-title";
 import {
   fetchInviteOgBadgeImageDataUrl,
@@ -64,7 +65,8 @@ export default async function Image({ params }: ImageProps) {
       ? `An achievement from ${collectionOwnerName}'s collection.`
       : `${senderDisplayName} shared this for your collection.`);
 
-  const badgeImageUrl = resolveInviteOgBadgeImageUrl(invite);
+  const inviteBadge = shareInviteRowToBadgeViewModel(invite);
+  const badgeImageUrl = resolveInviteOgBadgeImageUrl(inviteBadge);
   const badgeImageSrc = badgeImageUrl
     ? await fetchInviteOgBadgeImageDataUrl(badgeImageUrl)
     : null;

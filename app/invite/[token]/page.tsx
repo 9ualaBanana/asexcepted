@@ -7,8 +7,8 @@ import {
   BadgeParallaxViewer,
 } from "@/components/achievements/badge";
 import { formatAchievedAt } from "@/components/achievements/achievement-editor-shared";
-import { isModelGlbAsset, isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-assets";
 import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/shared/badge-assets-server";
+import { shareInviteRowToBadgeViewModel } from "@/lib/achievements/data/achievement-surface-view-models";
 import { APP_DISPLAY_NAME } from "@/lib/brand";
 import { resolvePublicSiteOrigin } from "@/lib/public-site-origin";
 import { resolveInviteOgBadgeImageUrl } from "@/lib/share-invites/invite-og-badge-image";
@@ -91,9 +91,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       : `${senderDisplayName} shared an achievement waiting in your collection.`);
 
   const pageUrl = origin ? `${origin}${achievementShareInvitePath(token)}` : undefined;
+  const inviteBadge = shareInviteRowToBadgeViewModel(invite);
   const ogImageUrl = origin
     ? `${origin}${achievementShareInviteOgImagePath(token)}`
-    : resolveInviteOgBadgeImageUrl(invite) ?? undefined;
+    : resolveInviteOgBadgeImageUrl(inviteBadge) ?? undefined;
 
   return buildInviteMetadata({
     title: `${title} | ${APP_DISPLAY_NAME}`,
@@ -145,9 +146,10 @@ export default async function Page({ params }: PageProps) {
     collectionOwnerId,
   );
   const collectionOwnerPath = userCollection(collectionOwnerId);
+  const inviteBadge = shareInviteRowToBadgeViewModel(invite);
   const liveModelUrl =
-    isModelGlbAsset(invite.icon_asset_kind, invite.icon_asset_path)
-      ? await createSignedBadgeModelUrl(invite.icon_asset_path ?? "")
+    inviteBadge.isModelBadge && inviteBadge.iconAssetPath
+      ? await createSignedBadgeModelUrl(inviteBadge.iconAssetPath)
       : null;
 
   if (invite.status !== "pending") {
@@ -163,27 +165,27 @@ export default async function Page({ params }: PageProps) {
               {liveModelUrl ? (
                 <BadgeGltfViewer
                   signedModelUrl={liveModelUrl}
-                  previewSrc={invite.icon_url}
+                  previewSrc={inviteBadge.renderSrc}
                   float
                   motionSeed={invite.id}
-                  initialYaw={invite.icon_model_yaw ?? 0}
-                  initialPitch={invite.icon_model_pitch ?? 0}
+                  initialYaw={inviteBadge.iconModelYaw}
+                  initialPitch={inviteBadge.iconModelPitch}
                   className="mx-auto"
                 />
-              ) : (
+              ) : inviteBadge.renderSrc ? (
                 <BadgeParallaxViewer
-                  src={invite.icon_url}
+                  src={inviteBadge.renderSrc}
                   float
                   motionSeed={invite.id}
                   className="mx-auto"
                 />
-              )}
-              {(isModelBadgeAssetKind(invite.icon_asset_kind) && invite.icon_cc_attribution?.trim()) && (
+              ) : null}
+              {inviteBadge.showAttributionPopover ? (
                 <BadgeAttributionPopover
-                  value={invite.icon_cc_attribution ?? ""}
+                  value={inviteBadge.iconCcAttribution ?? ""}
                   emptyState="No attribution was provided for this 3D badge."
                 />
-              )}
+              ) : null}
             </div>
           </div>
 
