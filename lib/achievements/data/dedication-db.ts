@@ -1,8 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { err, ok, type Result } from "neverthrow";
 
-import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
 import { coerceAchievementDbRow } from "@/lib/achievements/data/achievement-transformers";
+import {
+  domainRowToDetailViewModel,
+  type AchievementDetailViewModel,
+} from "@/lib/achievements/data/achievement-view-models";
 import type { Database } from "@/lib/supabase/database.types";
 
 type Client = SupabaseClient<Database>;
@@ -19,7 +22,7 @@ export type DedicatedAchievementRow = {
 export async function listPendingDedications(
   supabase: Client,
   recipientUserId: string,
-): Promise<Result<AchievementRecord[], string>> {
+): Promise<Result<AchievementDetailViewModel[], string>> {
   const { data, error } = await supabase
     .from("achievements")
     .select(ACHIEVEMENT_FULL_SELECT)
@@ -31,18 +34,18 @@ export async function listPendingDedications(
     return err(error.message);
   }
 
-  const rows: AchievementRecord[] = [];
+  const details: AchievementDetailViewModel[] = [];
   for (const row of data ?? []) {
-    rows.push(coerceAchievementDbRow(row as Record<string, unknown>));
+    details.push(domainRowToDetailViewModel(coerceAchievementDbRow(row as Record<string, unknown>)));
   }
-  return ok(rows);
+  return ok(details);
 }
 
 export async function acceptPendingDedicationForRecipient(
   supabase: Client,
   achievementId: string,
   recipientUserId: string,
-): Promise<Result<AchievementRecord, string>> {
+): Promise<Result<AchievementDetailViewModel, string>> {
   const { data, error } = await supabase
     .from("achievements")
     .update({
@@ -62,7 +65,7 @@ export async function acceptPendingDedicationForRecipient(
     return err("This dedication is no longer pending or was already accepted.");
   }
 
-  return ok(coerceAchievementDbRow(data as Record<string, unknown>));
+  return ok(domainRowToDetailViewModel(coerceAchievementDbRow(data as Record<string, unknown>)));
 }
 
 export async function rejectDedication(

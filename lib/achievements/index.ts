@@ -5,15 +5,28 @@ export type {
   AchievementDbWritePayload,
 } from "./data/achievement-db-schema";
 export {
-  type AchievementRecord,
+  tryNormalizeAchievement,
+  coerceAchievementDbRow,
+  type AchievementDomainRow,
+} from "./data/achievement-transformers";
+export {
+  type AchievementCollectionEntryViewModel,
+  type AchievementDetailViewModel,
+  type AchievementGridViewModel,
+  achievementDetailToForm,
   achievementToForm,
   achievementToGridItem,
-  coerceAchievementDbRow,
+  collectionEntryFromDetail,
+  detailToShareInviteSnapshotSource,
+  domainRowToCollectionEntry,
+  domainRowToDetailViewModel,
   formToPayload,
-  hasCustomBadge,
   isAchievementFormDirty,
-  tryNormalizeAchievement,
-} from "./data/achievement-transformers";
+  mapCollectionDetails,
+  sortCollectionEntries,
+  updateCollectionEntryDetail,
+  upsertCollectionEntry,
+} from "./data/achievement-view-models";
 export {
   createAchievement,
   deleteAchievement,

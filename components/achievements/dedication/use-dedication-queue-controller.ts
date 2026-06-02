@@ -4,7 +4,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { postAcceptDedication } from "@/lib/achievements/client/dedication-api";
-import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
+import type {
+  AchievementCollectionEntryViewModel,
+  AchievementDetailViewModel,
+} from "@/lib/achievements/data/achievement-view-models";
 import {
   listPendingDedications,
   rejectDedication,
@@ -22,11 +25,11 @@ type UseDedicationQueueControllerArgs = {
   readOnly: boolean;
   /** Accepted / in-grid achievements (not pending dedication). */
   collectionAchievementIds: Set<string>;
-  onAccepted: (record: AchievementRecord) => void;
+  onAccepted: (detail: AchievementDetailViewModel) => void;
   onRejected: (achievementId: string) => void;
   reloadAchievements: (opts?: {
     silent?: boolean;
-  }) => Promise<AchievementRecord[] | null>;
+  }) => Promise<AchievementCollectionEntryViewModel[] | null>;
 };
 
 export function useDedicationQueueController({
@@ -42,8 +45,8 @@ export function useDedicationQueueController({
   const searchParams = useSearchParams();
   const supabase = createClient();
 
-  const [queue, setQueue] = useState<AchievementRecord[]>([]);
-  const [active, setActive] = useState<AchievementRecord | null>(null);
+  const [queue, setQueue] = useState<AchievementDetailViewModel[]>([]);
+  const [active, setActive] = useState<AchievementDetailViewModel | null>(null);
   const [senderName, setSenderName] = useState("Someone");
   const [busy, setBusy] = useState(false);
   const [queueSessionOpen, setQueueSessionOpen] = useState(false);
@@ -137,15 +140,15 @@ export function useDedicationQueueController({
   ]);
 
   useEffect(() => {
-    if (!active?.dedicated_by_user_id) return;
-    void fetchPublicUserDisplayName(supabase, active.dedicated_by_user_id).then(
+    if (!active?.dedicatedByUserId) return;
+    void fetchPublicUserDisplayName(supabase, active.dedicatedByUserId).then(
       (result) => {
         if (result.isOk() && result.value) {
           setSenderName(result.value);
         }
       },
     );
-  }, [active?.dedicated_by_user_id, supabase]);
+  }, [active?.dedicatedByUserId, supabase]);
 
   const dismissActive = useCallback(() => {
     if (dedicationDeepLinkId) {
@@ -176,7 +179,7 @@ export function useDedicationQueueController({
     if (!active) return;
     const acceptedId = active.id;
     setBusy(true);
-    let acceptedRecord: AchievementRecord | null = null;
+    let acceptedRecord: AchievementDetailViewModel | null = null;
     let acceptError: string | null = null;
     const acceptResult = await postAcceptDedication(acceptedId);
     if (acceptResult.isOk()) {
@@ -191,7 +194,7 @@ export function useDedicationQueueController({
     const refreshed = await reloadAchievements({ silent: true });
     void loadQueue();
     const acceptedInCollection =
-      refreshed?.some((achievement) => achievement.id === acceptedId) ?? false;
+      refreshed?.some((entry) => entry.detail.id === acceptedId) ?? false;
     if (acceptError && !acceptedInCollection) {
       showErrorToast(acceptError, { id: "dedication-accept" });
     }

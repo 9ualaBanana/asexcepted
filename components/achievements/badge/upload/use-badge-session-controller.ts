@@ -20,7 +20,7 @@ import {
   type BadgeAssetSession,
   type FormState,
 } from "@/components/achievements/achievement-editor-shared";
-import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
+import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
 import { finalizeBadgeModelUpload } from "@/lib/achievements/client/badge-asset";
 
 type UseBadgeSessionControllerArgs = {
@@ -131,15 +131,15 @@ export function useBadgeSessionController({
     clearModelPoseSession("create");
   };
 
-  const beginPanelBadgeSession = (detailAchievement: AchievementRecord) => {
+  const beginPanelBadgeSession = (detail: AchievementDetailViewModel) => {
     panelBadgeAssetSessionRef.current = {
       baseline: createBadgeRemoteAsset({
-        iconUrl: detailAchievement.icon_url ?? "",
-        iconFileId: detailAchievement.icon_file_id ?? "",
-        iconAssetKind: detailAchievement.icon_asset_kind,
-        iconAssetPath: detailAchievement.icon_asset_path ?? "",
-        iconModelYaw: detailAchievement.icon_model_yaw,
-        iconModelPitch: detailAchievement.icon_model_pitch,
+        iconUrl: detail.iconUrl ?? "",
+        iconFileId: detail.iconFileId ?? "",
+        iconAssetKind: detail.iconAssetKind,
+        iconAssetPath: detail.iconAssetPath ?? "",
+        iconModelYaw: detail.iconModelYaw,
+        iconModelPitch: detail.iconModelPitch,
       }),
       staged: null,
     };
@@ -151,14 +151,14 @@ export function useBadgeSessionController({
     clearModelPoseSession("panel");
   };
 
-  const commitPanelBadgeSession = (updatedAchievement: AchievementRecord) => {
+  const commitPanelBadgeSession = (updated: AchievementDetailViewModel) => {
     const nextBaseline = createBadgeRemoteAsset({
-      iconUrl: updatedAchievement.icon_url ?? "",
-      iconFileId: updatedAchievement.icon_file_id ?? "",
-      iconAssetKind: updatedAchievement.icon_asset_kind,
-      iconAssetPath: updatedAchievement.icon_asset_path ?? "",
-      iconModelYaw: updatedAchievement.icon_model_yaw,
-      iconModelPitch: updatedAchievement.icon_model_pitch,
+      iconUrl: updated.iconUrl ?? "",
+      iconFileId: updated.iconFileId ?? "",
+      iconAssetKind: updated.iconAssetKind,
+      iconAssetPath: updated.iconAssetPath ?? "",
+      iconModelYaw: updated.iconModelYaw,
+      iconModelPitch: updated.iconModelPitch,
     });
     const replacedBaselineAsset = getReplacedBadgeRemoteAsset(
       panelBadgeAssetSessionRef.current.baseline,
@@ -174,17 +174,17 @@ export function useBadgeSessionController({
   };
 
   const deleteRemoteFilesForAchievement = async (
-    target: AchievementRecord | undefined,
+    target: AchievementDetailViewModel | undefined,
     deletedAchievementId: string,
     detailAchievementId: string | null,
   ) => {
     const persistedAsset = createBadgeRemoteAsset(
       target
         ? {
-            iconUrl: target.icon_url ?? "",
-            iconFileId: target.icon_file_id ?? "",
-            iconAssetKind: target.icon_asset_kind,
-            iconAssetPath: target.icon_asset_path ?? "",
+            iconUrl: target.iconUrl ?? "",
+            iconFileId: target.iconFileId ?? "",
+            iconAssetKind: target.iconAssetKind,
+            iconAssetPath: target.iconAssetPath ?? "",
           }
         : null,
     );

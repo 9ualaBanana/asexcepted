@@ -4,8 +4,7 @@ import { useMemo, useRef } from "react";
 
 import { DetailBadgeInteractive } from "@/components/achievements/badge";
 import { useAchievementDetailViewModel } from "@/components/achievements/detail/use-achievement-detail-view-model";
-import { getWelcomeIntroAchievementRecord } from "@/lib/welcome/intro-achievement";
-import { useBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-cache";
+import { getWelcomeIntroDetailViewModel } from "@/lib/welcome/intro-achievement";
 import type { AlphaMaskData } from "@/lib/achievements/badge/parallax/shape-utils";
 
 const EMPTY_CLIP = "circle(0% at 50% 50%)";
@@ -18,13 +17,13 @@ const WELCOME_BADGE_SLOT_CLASS =
  * Inline detail badge (same component as achievement detail view), shown unlocked.
  */
 export function WelcomeAchievementShowcase() {
-  const achievement = useMemo(() => getWelcomeIntroAchievementRecord(), []);
-  const renderSrc = useBadgeRenderSrc(achievement.icon_url);
+  const detail = useMemo(() => getWelcomeIntroDetailViewModel(), []);
+  const renderSrc = detail.renderSrc;
   const unlockAlphaMaskRef = useRef<AlphaMaskData | null>(null);
 
   const { DetailFallbackIcon, detailTone, detailMaskStyle } =
     useAchievementDetailViewModel({
-      detailAchievement: achievement,
+      detailAchievement: detail,
       detailRenderSrc: renderSrc,
       optimisticUnlockedAchievementId: null,
       detailIsLockedUi: false,
@@ -37,10 +36,10 @@ export function WelcomeAchievementShowcase() {
     <div className="flex w-full max-w-lg flex-col items-center">
       <DetailBadgeInteractive
         renderSrc={renderSrc}
-        motionSeed={achievement.id}
+        motionSeed={detail.id}
         tone={detailTone}
         FallbackIcon={DetailFallbackIcon}
-        achievement={achievement}
+        detail={detail}
         lockedUi={false}
         unlocking={false}
         detailMaskStyle={detailMaskStyle}
@@ -50,13 +49,13 @@ export function WelcomeAchievementShowcase() {
       />
 
       <p className="mt-3 w-full shrink-0 text-center text-[10px] font-medium uppercase tracking-[0.2em] text-white/45">
-        {achievement.category?.trim() || "Uncategorized"}
+        {detail.category?.trim() || "Uncategorized"}
       </p>
       <h2 className="mt-1.5 shrink-0 text-center text-lg font-semibold tracking-tight text-white sm:text-xl">
-        {achievement.title?.trim() || "Untitled"}
+        {detail.title?.trim() || "Untitled"}
       </h2>
       <p className="mt-2 max-w-xs shrink-0 text-center text-xs leading-relaxed text-white/60 sm:text-sm">
-        {achievement.description?.trim() || "No description yet."}
+        {detail.description?.trim() || "No description yet."}
       </p>
     </div>
   );

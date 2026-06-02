@@ -8,14 +8,21 @@ import {
   canEditDedicatedVisibility,
   isDedicatedAchievement,
 } from "@/lib/achievements/dedication/dedication-utils";
-import { createInitialForm, sortAchievements } from "@/components/achievements/achievement-manager-utils";
+import { createInitialForm } from "@/components/achievements/achievement-manager-utils";
 import { type FormState, hasMeaningfulContent } from "@/components/achievements/achievement-editor-shared";
-import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
-import { achievementToForm, formToPayload } from "@/lib/achievements/data/achievement-transformers";
+import type {
+  AchievementCollectionEntryViewModel,
+  AchievementDetailViewModel,
+} from "@/lib/achievements/data/achievement-view-models";
+import {
+  achievementDetailToForm,
+  formToPayload,
+  upsertCollectionEntry,
+  updateCollectionEntryDetail,
+} from "@/lib/achievements/data/achievement-view-models";
 import type { BadgeSessionController } from "@/components/achievements/badge/upload/use-badge-session-controller";
 import type { AchievementUiStateActions } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
 import { clearBadgeRenderCacheForSrc, prewarmBadgeRenderCache } from "@/lib/achievements/badge/shared/render-cache";
-import { toOptimizedRenderSrc } from "@/lib/achievements/badge/shared/render-src";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 type UseAchievementEditorPipelineControllerArgs = {
@@ -30,12 +37,18 @@ type UseAchievementEditorPipelineControllerArgs = {
   createForm: FormState;
   panelForm: FormState;
   detailAchievementId: string | null;
-  detailAchievement: AchievementRecord | null;
+  detailAchievement: AchievementDetailViewModel | null;
   badgeSessionController: BadgeSessionController;
   supabase: SupabaseClient;
   setError: (value: string | null) => void;
   setIsSaving: (value: boolean) => void;
-  setAchievements: (value: AchievementRecord[] | ((prev: AchievementRecord[]) => AchievementRecord[])) => void;
+  setAchievements: (
+    value:
+      | AchievementCollectionEntryViewModel[]
+      | ((
+          prev: AchievementCollectionEntryViewModel[],
+        ) => AchievementCollectionEntryViewModel[]),
+  ) => void;
   setCreateForm: (value: FormState | ((prev: FormState) => FormState)) => void;
   setPanelForm: (value: FormState | ((prev: FormState) => FormState)) => void;
   playSavePop: () => void;
@@ -84,7 +97,7 @@ export function useAchievementEditorPipelineController({
     if (detailMode !== "edit" || !detailAchievement) return false;
 
     if (isVisibilityOnlyEdit) {
-      setPanelForm(achievementToForm(detailAchievement));
+      setPanelForm(achievementDetailToForm(detailAchievement));
       uiActions.exitDetailEdit();
       return true;
     }
@@ -92,7 +105,7 @@ export function useAchievementEditorPipelineController({
     if (badgeSessionController.editorUploadInProgress) return false;
 
     badgeSessionController.rollbackPanelBadgeSession();
-    setPanelForm(achievementToForm(detailAchievement));
+    setPanelForm(achievementDetailToForm(detailAchievement));
     badgeSessionController.setPanelUploadInProgress(false);
     uiActions.exitDetailEdit();
     return true;
@@ -116,11 +129,11 @@ export function useAchievementEditorPipelineController({
     }
     if (detailMode === "edit" && detailAchievement) {
       if (isVisibilityOnlyEdit) {
-        setPanelForm(achievementToForm(detailAchievement));
+        setPanelForm(achievementDetailToForm(detailAchievement));
         uiActions.exitDetailEdit();
       } else {
         badgeSessionController.rollbackPanelBadgeSession();
-        setPanelForm(achievementToForm(detailAchievement));
+        setPanelForm(achievementDetailToForm(detailAchievement));
         badgeSessionController.setPanelUploadInProgress(false);
         uiActions.exitDetailEdit();
       }
@@ -162,14 +175,14 @@ export function useAchievementEditorPipelineController({
     if (!detailAchievement) return;
     if (isDedicatedAchievement(detailAchievement)) return;
     badgeSessionController.beginPanelBadgeSession(detailAchievement);
-    setPanelForm(achievementToForm(detailAchievement));
+    setPanelForm(achievementDetailToForm(detailAchievement));
     uiActions.enterDetailEdit();
   }, [badgeSessionController, detailAchievement, setPanelForm, uiActions]);
 
   const startPanelVisibilityEditFlow = useCallback(() => {
     if (!detailAchievement) return;
     if (!canEditDedicatedVisibility(detailAchievement)) return;
-    setPanelForm(achievementToForm(detailAchievement));
+    setPanelForm(achievementDetailToForm(detailAchievement));
     uiActions.enterDetailVisibilityEdit();
   }, [detailAchievement, setPanelForm, uiActions]);
 
@@ -222,15 +235,14 @@ export function useAchievementEditorPipelineController({
       }
 
       const createdAchievement = result.value;
-      if (createdAchievement.icon_url) {
-        const renderSrc = toOptimizedRenderSrc(createdAchievement.icon_url);
-        prewarmBadgeRenderCache(renderSrc, {
+      if (createdAchievement.renderSrc) {
+        prewarmBadgeRenderCache(createdAchievement.renderSrc, {
           motionSeed: createdAchievement.id,
-          includeAlphaMaskData: Boolean(createdAchievement.is_locked) && !readOnly,
+          includeAlphaMaskData: createdAchievement.isLocked && !readOnly,
         });
       }
       playSavePop();
-      setAchievements((prev) => sortAchievements([createdAchievement, ...prev]));
+      setAchievements((prev) => upsertCollectionEntry(prev, createdAchievement));
       setCreateForm(createInitialForm());
       badgeSessionController.beginCreateBadgeSession();
       setIsSaving(false);
@@ -290,16 +302,15 @@ export function useAchievementEditorPipelineController({
       }
 
       const updatedAchievement = result.value;
-      const previousSrc = detailAchievement?.icon_url ?? null;
-      const nextSrc = updatedAchievement.icon_url;
+      const previousSrc = detailAchievement?.renderSrc ?? "";
+      const nextSrc = updatedAchievement.renderSrc;
       if (previousSrc && previousSrc !== nextSrc) {
-        clearBadgeRenderCacheForSrc(toOptimizedRenderSrc(previousSrc));
+        clearBadgeRenderCacheForSrc(previousSrc);
       }
       if (nextSrc) {
-        const renderSrc = toOptimizedRenderSrc(nextSrc);
-        prewarmBadgeRenderCache(renderSrc, {
+        prewarmBadgeRenderCache(nextSrc, {
           motionSeed: updatedAchievement.id,
-          includeAlphaMaskData: Boolean(updatedAchievement.is_locked) && !readOnly,
+          includeAlphaMaskData: updatedAchievement.isLocked && !readOnly,
         });
       }
       playSavePop();
@@ -314,11 +325,7 @@ export function useAchievementEditorPipelineController({
       }
 
       setAchievements((prev) =>
-        sortAchievements(
-          prev.map((achievement) =>
-            achievement.id === updatedAchievement.id ? updatedAchievement : achievement,
-          ),
-        ),
+        updateCollectionEntryDetail(prev, updatedAchievement),
       );
       uiActions.exitDetailEdit();
       setIsSaving(false);
@@ -351,7 +358,7 @@ export function useAchievementEditorPipelineController({
     setError(null);
 
     const updatePayload = {
-      ...formToPayload(achievementToForm(detailAchievement)),
+      ...formToPayload(achievementDetailToForm(detailAchievement)),
       visibility: panelForm.visibility,
     };
     const result = await updateAchievement(supabase, detailAchievementId, updatePayload);
@@ -364,14 +371,8 @@ export function useAchievementEditorPipelineController({
 
     playSavePop();
     const updatedAchievement = result.value;
-    setAchievements((prev) =>
-      sortAchievements(
-        prev.map((achievement) =>
-          achievement.id === updatedAchievement.id ? updatedAchievement : achievement,
-        ),
-      ),
-    );
-    setPanelForm(achievementToForm(updatedAchievement));
+    setAchievements((prev) => updateCollectionEntryDetail(prev, updatedAchievement));
+    setPanelForm(achievementDetailToForm(updatedAchievement));
     uiActions.exitDetailEdit();
     setIsSaving(false);
   }, [

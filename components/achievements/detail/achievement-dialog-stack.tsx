@@ -40,9 +40,8 @@ import {
   isDedicatedAchievement,
 } from "@/lib/achievements/dedication/dedication-utils";
 import {
-  hasCustomBadge,
-  type AchievementRecord,
-} from "@/lib/achievements/data/achievement-transformers";
+  type AchievementDetailViewModel,
+} from "@/lib/achievements/data/achievement-view-models";
 import { useDoubleActivate } from "@/lib/hooks/use-double-activate";
 import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
 import { getTutorial, TUTORIAL_IDS, useTutorial, useTutorialToast } from "@/lib/tutorials";
@@ -66,7 +65,7 @@ export type AchievementDialogStackProps = {
   detailMode: "view" | "edit";
   isVisibilityOnlyEdit?: boolean;
   detailViewSessionKey: number;
-  detailAchievement: AchievementRecord | null;
+  detailAchievement: AchievementDetailViewModel | null;
   panelForm: FormState;
   setPanelForm: Dispatch<SetStateAction<FormState>>;
   setPanelUploadInProgress: (inProgress: boolean) => void;
@@ -180,7 +179,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     detailAchievement != null && isDedicatedAchievement(detailAchievement);
   const dedicatedVisibilityEditable =
     detailAchievement != null && canEditDedicatedVisibility(detailAchievement);
-  const dedicationSenderId = detailAchievement?.dedicated_by_user_id ?? null;
+  const dedicationSenderId = detailAchievement?.dedicatedByUserId ?? null;
   const showDetailContent =
     detailAchievement != null &&
     (detailMode === "view" || isVisibilityOnlyEdit);
@@ -192,7 +191,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
   const unlockHoldTutorialDefinition = getTutorial(TUTORIAL_IDS.unlockHold);
   const badgeSpinTutorialDefinition = getTutorial(TUTORIAL_IDS.badgeSpin);
   const detailHasCustomBadge =
-    detailAchievement != null && hasCustomBadge(detailAchievement);
+    detailAchievement != null && detailAchievement.hasCustomBadge;
   const [impressionBurstPulse, setImpressionBurstPulse] = useState(0);
 
   useTutorialToast({
@@ -247,7 +246,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     }
 
     const hadImpressionsBefore =
-      (detailAchievement.impression_count ?? 0) > 0 || detailShowsImpressionGlitter;
+      detailAchievement.impressionCount > 0 || detailShowsImpressionGlitter;
 
     setImpressionBurstPulse((n) => n + 1);
     impressionTutorial.dismiss();
@@ -367,7 +366,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       motionSeed={detailAchievement.id}
                       tone={detailTone}
                       FallbackIcon={DetailFallbackIcon}
-                      achievement={detailAchievement}
+                      detail={detailAchievement}
                       viewerStateKey={`${detailAchievement.id}:detail:${detailViewSessionKey}`}
                       lockedUi={detailIsLockedUi}
                       unlocking={detailIsUnlocking}
@@ -392,10 +391,10 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                         ) : null
                       }
                     />
-                    {(isModelBadgeAssetKind(detailAchievement.icon_asset_kind) ||
-                      detailAchievement.icon_cc_attribution?.trim()) && (
+                    {(isModelBadgeAssetKind(detailAchievement.iconAssetKind) ||
+                      detailAchievement.iconCcAttribution?.trim()) && (
                       <BadgeAttributionPopover
-                        value={detailAchievement.icon_cc_attribution ?? ""}
+                        value={detailAchievement.iconCcAttribution ?? ""}
                         emptyState="No attribution was provided for this 3D badge."
                       />
                     )}
@@ -420,9 +419,9 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                     "This achievement is locked."
                   : detailAchievement.description?.trim() || "No description yet."}
               </p>
-              {formatAchievedAt(detailAchievement.achieved_at) ? (
+              {formatAchievedAt(detailAchievement.achievedAt) ? (
                 <p className="mt-4 text-center text-xs text-white/40">
-                  {formatAchievedAt(detailAchievement.achieved_at)}
+                  {formatAchievedAt(detailAchievement.achievedAt)}
                 </p>
               ) : null}
 
@@ -432,7 +431,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                     badgeChromeWidth,
                     achievementDialogChromeInset,
                     "mt-3 flex min-h-10 flex-col items-stretch gap-2",
-                    !formatAchievedAt(detailAchievement.achieved_at) && "mt-6",
+                    !formatAchievedAt(detailAchievement.achievedAt) && "mt-6",
                   )}
                 >
                   <div className="flex min-h-10 items-center">
@@ -497,7 +496,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                     >
                       {isVisibilityOnlyEdit ? (
                         <span className="inline-flex h-10 w-10 shrink-0" aria-hidden />
-                      ) : detailAchievement.icon_url ? (
+                      ) : detailAchievement.hasCustomBadge ? (
                         <AchievementDetailShareMenu
                           disabled={isSaving}
                           busy={shareMenuBusy}
@@ -520,10 +519,10 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                     senderDisplayName={dedicationSenderDisplayName}
                     senderNameLoading={dedicationSenderNameLoading}
                     className={
-                      !formatAchievedAt(detailAchievement.achieved_at) ? "mt-6" : undefined
+                      !formatAchievedAt(detailAchievement.achievedAt) ? "mt-6" : undefined
                     }
                     endSlot={
-                      detailAchievement.icon_url ? (
+                      detailAchievement.hasCustomBadge ? (
                         <AchievementDetailShareMenu
                           disabled={isSaving}
                           busy={shareMenuBusy}
@@ -537,13 +536,13 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       ) : undefined
                     }
                   />
-                ) : detailAchievement.icon_url ? (
+                ) : detailAchievement.hasCustomBadge ? (
                   <div
                     className={cn(
                       badgeChromeWidth,
                       achievementDialogChromeInset,
                       "mt-3 flex min-h-10 items-center justify-end",
-                      !formatAchievedAt(detailAchievement.achieved_at) && "mt-6",
+                      !formatAchievedAt(detailAchievement.achievedAt) && "mt-6",
                     )}
                   >
                     <AchievementDetailShareMenu
@@ -557,7 +556,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       onEmbed={onEmbedLink}
                     />
                   </div>
-                ) : !formatAchievedAt(detailAchievement.achieved_at) ? (
+                ) : !formatAchievedAt(detailAchievement.achievedAt) ? (
                   <div className="mt-6" aria-hidden />
                 ) : null
               ) : null}

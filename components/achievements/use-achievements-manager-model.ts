@@ -3,18 +3,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import {
-  createInitialForm,
-  sortAchievements,
-} from "@/components/achievements/achievement-manager-utils";
+import { createInitialForm } from "@/components/achievements/achievement-manager-utils";
 import { type FormState } from "@/components/achievements/achievement-editor-shared";
 import type { AchievementDialogStackProps } from "@/components/achievements/detail/achievement-dialog-stack";
 import {
-  hasCustomBadge,
-  achievementToGridItem,
+  achievementDetailToForm,
+  detailToShareInviteSnapshotSource,
   isAchievementFormDirty,
-  type AchievementRecord,
-} from "@/lib/achievements/data/achievement-transformers";
+  mapCollectionDetails,
+  upsertCollectionEntry,
+  type AchievementCollectionEntryViewModel,
+} from "@/lib/achievements/data/achievement-view-models";
 import { useBadgeChunkedPrewarm, useBadgeMetricsController, useBadgeSessionController } from "@/components/achievements/badge";
 import { useAchievementUnlockReveal } from "@/components/achievements/badge/effects/use-achievement-unlock-reveal";
 import { useAchievementEditorPipelineController } from "@/components/achievements/badge/editor/use-achievement-editor-pipeline-controller";
@@ -29,7 +28,6 @@ import {
 } from "@/lib/share-invites/eligibility";
 import { showErrorToast } from "@/lib/toast";
 import { useAchievementUiStateMachine } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
-import { useBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-cache";
 import {
   markTutorialCompleted,
   resetHideLockedPreferenceForNewAccount,
@@ -41,13 +39,9 @@ import {
   isDedicatedVisibilityDirty,
 } from "@/lib/achievements/dedication/dedication-utils";
 import { userCollection } from "@/lib/routes";
-import { showsDedicatedBadgeEffect } from "@/lib/achievements/dedication/dedication-utils";
 import { TUTORIAL_IDS } from "@/lib/tutorials/registry";
 import { useDedicationQueueController } from "@/components/achievements/dedication/use-dedication-queue-controller";
-import {
-  achievementToForm,
-  formToPayload,
-} from "@/lib/achievements/data/achievement-transformers";
+import { formToPayload } from "@/lib/achievements/data/achievement-view-models";
 import {
   payloadToDedicateApiBody,
   postDedicateAchievement,
@@ -91,7 +85,7 @@ export function useAchievementsManagerModel({
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = useMemo(() => createClient(), []);
-  const [achievements, setAchievements] = useState<AchievementRecord[]>([]);
+  const [achievements, setAchievements] = useState<AchievementCollectionEntryViewModel[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createForm, setCreateForm] = useState<FormState>(createInitialForm);
@@ -126,24 +120,18 @@ export function useAchievementsManagerModel({
     process.env.NEXT_PUBLIC_IMPRESSION_GLITTER_UI_ENABLED === "true" &&
     Boolean(
       detailAchievement &&
-        ((detailAchievement.impression_count ?? 0) > 0 ||
-          optimisticImpressionGlitter),
+        (detailAchievement.impressionCount > 0 || optimisticImpressionGlitter),
     );
 
-  const detailShowsDedicatedGlitter = Boolean(
-    detailAchievement && showsDedicatedBadgeEffect(detailAchievement),
-  );
+  const detailShowsDedicatedGlitter = Boolean(detailAchievement?.showDedicatedGlitter);
 
   const bumpDetailImpressionCount = useCallback(() => {
     if (!detailAchievement) return;
     setAchievements((prev) =>
-      prev.map((achievement) =>
-        achievement.id === detailAchievement.id
-          ? {
-              ...achievement,
-              impression_count: (achievement.impression_count ?? 0) + 1,
-            }
-          : achievement,
+      mapCollectionDetails(prev, (detail) =>
+        detail.id === detailAchievement.id
+          ? { ...detail, impressionCount: detail.impressionCount + 1 }
+          : detail,
       ),
     );
   }, [detailAchievement, setAchievements]);
@@ -153,13 +141,13 @@ export function useAchievementsManagerModel({
   );
   const [hideLocked, setHideLocked] = useHideLockedPreference();
   const { visibilityFilter, cycleVisibilityFilter } = useVisibilityFilterPreference();
-  const detailRenderSrc = useBadgeRenderSrc(detailAchievement?.icon_url ?? null);
+  const detailRenderSrc = detailAchievement?.renderSrc ?? "";
 
   const [showBadgeSpinAfterFirstUnlock, setShowBadgeSpinAfterFirstUnlock] =
     useState(false);
 
   const handleFirstUnlockComplete = useCallback(() => {
-    if (detailAchievement && hasCustomBadge(detailAchievement)) {
+    if (detailAchievement?.hasCustomBadge) {
       setShowBadgeSpinAfterFirstUnlock(true);
       return;
     }
@@ -264,7 +252,7 @@ export function useAchievementsManagerModel({
   }, [badgeMetrics.handleDetailBadgeImageDecoded, refreshUnlockAlphaMask]);
 
   const collectionAchievementIds = useMemo(
-    () => new Set(achievements.map((a) => a.id)),
+    () => new Set(achievements.map((entry) => entry.detail.id)),
     [achievements],
   );
 
@@ -272,11 +260,8 @@ export function useAchievementsManagerModel({
     ownerUserId: userId,
     readOnly: !canEditAchievements,
     collectionAchievementIds,
-    onAccepted: (record) => {
-      setAchievements((prev) => {
-        const rest = prev.filter((achievement) => achievement.id !== record.id);
-        return sortAchievements([record, ...rest]);
-      });
+    onAccepted: (detail) => {
+      setAchievements((prev) => upsertCollectionEntry(prev, detail));
     },
     onRejected: () => undefined,
     reloadAchievements: data.loadAchievements,
@@ -321,7 +306,7 @@ export function useAchievementsManagerModel({
   }, [deepLinkAchievementId, loadAchievements, pathname, userId]);
 
   useEffect(() => {
-    const senderId = detailAchievement?.dedicated_by_user_id;
+    const senderId = detailAchievement?.dedicatedByUserId;
     if (!senderId) {
       setDedicationBySenderName(null);
       setDedicationSenderNameLoading(false);
@@ -340,12 +325,12 @@ export function useAchievementsManagerModel({
     return () => {
       cancelled = true;
     };
-  }, [detailAchievement?.dedicated_by_user_id, supabase]);
+  }, [detailAchievement?.dedicatedByUserId, supabase]);
 
   useEffect(() => {
     if (!detailAchievement || ui.isVisibilityOnlyEdit) return;
     if (!canEditDedicatedVisibility(detailAchievement)) return;
-    setPanelForm(achievementToForm(detailAchievement));
+    setPanelForm(achievementDetailToForm(detailAchievement));
   }, [detailAchievement, ui.isVisibilityOnlyEdit, setPanelForm]);
 
   useEffect(() => {
@@ -360,7 +345,7 @@ export function useAchievementsManagerModel({
     }
     if (pathname !== userCollection(userId)) return;
     if (achievementsLoading) return;
-    const exists = achievements.some((a) => a.id === deepLinkAchievementId);
+    const exists = achievements.some((entry) => entry.detail.id === deepLinkAchievementId);
     if (!exists) return;
     const dedicationQuery = searchParams.get("dedication") === "1";
     if (dedicationQuery && !collectionAchievementIds.has(deepLinkAchievementId)) {
@@ -435,20 +420,20 @@ export function useAchievementsManagerModel({
   const gridItems = useMemo(() => {
     let visible = achievements;
     if (hideLocked) {
-      visible = visible.filter((a) => !a.is_locked);
+      visible = visible.filter((entry) => !entry.detail.isLocked);
     }
     if (canFilterVisibility) {
       if (visibilityFilter === "public") {
-        visible = visible.filter((a) => a.visibility === "public");
+        visible = visible.filter((entry) => entry.detail.visibility === "public");
       } else if (visibilityFilter === "private") {
-        visible = visible.filter((a) => a.visibility === "private");
+        visible = visible.filter((entry) => entry.detail.visibility === "private");
       }
     }
-    return visible.map(achievementToGridItem);
+    return visible.map((entry) => entry.grid);
   }, [achievements, canFilterVisibility, hideLocked, visibilityFilter]);
 
   const unlockedCount = useMemo(
-    () => achievements.filter((a) => !a.is_locked).length,
+    () => achievements.filter((entry) => !entry.detail.isLocked).length,
     [achievements],
   );
   const totalCount = achievements.length;
@@ -499,7 +484,7 @@ export function useAchievementsManagerModel({
 
   const shareReadinessError = useMemo(() => {
     if (!detailAchievement) return null;
-    return getAchievementShareReadinessError(detailAchievement);
+    return getAchievementShareReadinessError(detailToShareInviteSnapshotSource(detailAchievement));
   }, [detailAchievement]);
 
   const dedicateShareDisabledReason = useMemo(() => {

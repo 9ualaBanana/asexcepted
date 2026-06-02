@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useBadgeDebugOverlayPreference } from "@/lib/local-storage";
 import { hasModelGlbAsset } from "@/lib/achievements/badge/shared/badge-assets";
-import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
+import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
 
 function tryGetHighResNow() {
   return typeof performance !== "undefined" && Number.isFinite(performance.now())
@@ -18,7 +18,7 @@ function tryGetHighResNow() {
  * - debug-overlay preference state
  */
 export function useBadgeMetricsController(
-  detailAchievement: AchievementRecord | null,
+  detailAchievement: AchievementDetailViewModel | null,
   isAdmin = false,
 ) {
   const detailOpenStartedAtRef = useRef<number | null>(null);
@@ -34,10 +34,10 @@ export function useBadgeMetricsController(
   const detailIsModelBadge = useMemo(
     () =>
       hasModelGlbAsset(
-        detailAchievement?.icon_asset_kind,
-        detailAchievement?.icon_asset_path,
+        detailAchievement?.iconAssetKind,
+        detailAchievement?.iconAssetPath,
       ),
-    [detailAchievement?.icon_asset_kind, detailAchievement?.icon_asset_path],
+    [detailAchievement?.iconAssetKind, detailAchievement?.iconAssetPath],
   );
 
   const markDetailOpenStart = useCallback((achievementId: string) => {
@@ -95,7 +95,7 @@ export function useBadgeMetricsController(
 
   useEffect(() => {
     if (!detailAchievement?.id) return;
-    if (!detailAchievement.icon_url) return;
+    if (!detailAchievement.renderSrc) return;
     if (detailPerfMeasuredForIdRef.current !== detailAchievement.id) return;
 
     const timeout = window.setTimeout(() => {
@@ -117,7 +117,7 @@ export function useBadgeMetricsController(
     }, 2200);
     return () => window.clearTimeout(timeout);
   }, [
-    detailAchievement?.icon_url,
+    detailAchievement?.renderSrc,
     detailAchievement?.id,
     detailIsModelBadge,
     elapsedSinceDetailOpen,

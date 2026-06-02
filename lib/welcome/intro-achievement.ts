@@ -1,4 +1,8 @@
-import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
+import type { AchievementDomainRow } from "@/lib/achievements/data/achievement-transformers";
+import {
+  domainRowToDetailViewModel,
+  type AchievementDetailViewModel,
+} from "@/lib/achievements/data/achievement-view-models";
 
 /** Shared ImageKit asset shown on welcome and seeded as the first locked achievement. */
 export const INTRO_ACHIEVEMENT_ICON_URL =
@@ -7,7 +11,6 @@ export const INTRO_ACHIEVEMENT_ICON_URL =
 export const INTRO_ACHIEVEMENT_SEED = {
   title: "%dopæminer%",
   description:
-    // "Claim the first badge and start turning real moments into something worth keeping.",
     "Claim first badge to start promoting rewarding behavior.",
   category: "reward",
   icon: "trophy" as const,
@@ -23,8 +26,7 @@ export const INTRO_ACHIEVEMENT_SEED = {
 
 const WELCOME_INTRO_ID = "welcome-intro-preview";
 
-/** Static record for the marketing detail preview (not persisted). */
-export function getWelcomeIntroAchievementRecord(): AchievementRecord {
+function welcomeIntroDomainRow(): AchievementDomainRow {
   return {
     id: WELCOME_INTRO_ID,
     title: INTRO_ACHIEVEMENT_SEED.title,
@@ -50,3 +52,11 @@ export function getWelcomeIntroAchievementRecord(): AchievementRecord {
     dedication_status: null,
   };
 }
+
+/** Static detail view model for the marketing preview (not persisted). */
+export function getWelcomeIntroDetailViewModel(): AchievementDetailViewModel {
+  return domainRowToDetailViewModel(welcomeIntroDomainRow());
+}
+
+/** @deprecated Use {@link getWelcomeIntroDetailViewModel}. */
+export const getWelcomeIntroAchievementRecord = getWelcomeIntroDetailViewModel;

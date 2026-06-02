@@ -7,17 +7,13 @@ import { Check, X } from "lucide-react";
 import { DetailBadgeInteractive } from "@/components/achievements/badge";
 import { DedicationBylineChromeRow } from "@/components/achievements/dedication/dedication-byline-chrome-row";
 import { resolveTone } from "@/components/achievements/achievement-manager-utils";
-import {
-  achievementDialogIconBtn,
-  getSafeIcon,
-} from "@/components/achievements/achievement-editor-shared";
-import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
-import { useBadgeRenderSrc } from "@/lib/achievements/badge/shared/render-cache";
+import { achievementDialogIconBtn } from "@/components/achievements/achievement-editor-shared";
+import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
 import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
 import { cn } from "@/lib/utils";
 
 type DedicationResponseDialogProps = {
-  achievement: AchievementRecord;
+  detail: AchievementDetailViewModel;
   senderDisplayName: string;
   isBusy: boolean;
   onDismiss: () => void;
@@ -26,7 +22,7 @@ type DedicationResponseDialogProps = {
 };
 
 export function DedicationResponseDialog({
-  achievement,
+  detail,
   senderDisplayName,
   isBusy,
   onDismiss,
@@ -34,9 +30,8 @@ export function DedicationResponseDialog({
   onReject,
 }: DedicationResponseDialogProps) {
   const unlockAlphaMaskRef = useRef(null);
-  const tone = resolveTone(achievement);
-  const FallbackIcon = getSafeIcon(achievement.icon);
-  const renderSrc = useBadgeRenderSrc(achievement.icon_url);
+  const tone = resolveTone(detail);
+  const renderSrc = detail.renderSrc;
 
   useBodyScrollLock();
 
@@ -44,7 +39,7 @@ export function DedicationResponseDialog({
     return null;
   }
 
-  const senderId = achievement.dedicated_by_user_id ?? "";
+  const senderId = detail.dedicatedByUserId ?? "";
 
   return createPortal(
     <div
@@ -69,9 +64,9 @@ export function DedicationResponseDialog({
           <div className="flex justify-center">
             <DetailBadgeInteractive
               renderSrc={renderSrc}
-              motionSeed={achievement.id}
-              FallbackIcon={FallbackIcon}
-              achievement={achievement}
+              motionSeed={detail.id}
+              FallbackIcon={detail.FallbackIcon}
+              detail={detail}
               tone={tone}
               lockedUi
               unlocking={false}
@@ -85,16 +80,16 @@ export function DedicationResponseDialog({
           </div>
 
           <p className="mt-8 w-full text-center text-[11px] font-medium uppercase tracking-[0.2em] text-white/45">
-            {achievement.category?.trim() || "Dedicated"}
+            {detail.category?.trim() || "Dedicated"}
           </p>
           <h2
             id="dedication-response-title"
             className="mt-2 text-center text-xl font-semibold tracking-tight text-white"
           >
-            {achievement.title?.trim() || "Achievement"}
+            {detail.title?.trim() || "Achievement"}
           </h2>
           <p className="mt-4 break-words text-center text-sm leading-relaxed text-white/65">
-            {achievement.description?.trim() ||
+            {detail.description?.trim() ||
               "Someone dedicated this achievement to you."}
           </p>
 

@@ -3,12 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { deleteAchievement, listAchievements } from "@/lib/achievements/data/achievement-db";
-import { sortAchievements } from "@/components/achievements/achievement-manager-utils";
 import type { BadgeSessionController } from "@/components/achievements/badge/upload/use-badge-session-controller";
 import type { AchievementUiStateActions } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
-import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
+import type { AchievementCollectionEntryViewModel } from "@/lib/achievements/data/achievement-view-models";
 import { clearBadgeRenderCacheForSrc } from "@/lib/achievements/badge/shared/render-cache";
-import { toOptimizedRenderSrc } from "@/lib/achievements/badge/shared/render-src";
 import { useUserAchievementsLiveUpdates } from "@/lib/live-updates";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -16,10 +14,14 @@ type UseAchievementDataControllerArgs = {
   supabase: SupabaseClient;
   userId: string;
   readOnly: boolean;
-  achievements: AchievementRecord[];
+  achievements: AchievementCollectionEntryViewModel[];
   detailAchievementId: string | null;
   setAchievements: (
-    value: AchievementRecord[] | ((prev: AchievementRecord[]) => AchievementRecord[])
+    value:
+      | AchievementCollectionEntryViewModel[]
+      | ((
+          prev: AchievementCollectionEntryViewModel[],
+        ) => AchievementCollectionEntryViewModel[]),
   ) => void;
   setError: (value: string | null) => void;
   setIsSaving: (value: boolean) => void;
@@ -30,7 +32,7 @@ type UseAchievementDataControllerArgs = {
 export type AchievementDataControllerActions = {
   loadAchievements: (opts?: {
     silent?: boolean;
-  }) => Promise<AchievementRecord[] | null>;
+  }) => Promise<AchievementCollectionEntryViewModel[] | null>;
   deleteAchievementById: (id: string) => Promise<void>;
 };
 
@@ -49,7 +51,7 @@ export function useAchievementDataController({
   const [isLoading, setIsLoading] = useState(true);
 
   const loadAchievements = useCallback(
-    async (opts?: { silent?: boolean }): Promise<AchievementRecord[] | null> => {
+    async (opts?: { silent?: boolean }): Promise<AchievementCollectionEntryViewModel[] | null> => {
       const silent = opts?.silent ?? false;
       if (!silent) setIsLoading(true);
       setError(null);
@@ -62,10 +64,9 @@ export function useAchievementDataController({
         return null;
       }
 
-      const sorted = sortAchievements(result.value);
-      setAchievements(sorted);
+      setAchievements(result.value);
       if (!silent) setIsLoading(false);
-      return sorted;
+      return result.value;
     },
     [setAchievements, setError, supabase, userId],
   );
@@ -99,8 +100,8 @@ export function useAchievementDataController({
       setIsSaving(true);
       setError(null);
 
-      const target = achievements.find((a) => a.id === id);
-      const targetSrc = target?.icon_url;
+      const target = achievements.find((entry) => entry.detail.id === id);
+      const targetRenderSrc = target?.detail.renderSrc;
 
       const deleteResult = await deleteAchievement(supabase, id);
       if (deleteResult.isErr()) {
@@ -110,14 +111,14 @@ export function useAchievementDataController({
       }
 
       await badgeSessionController.deleteRemoteFilesForAchievement(
-        target,
+        target?.detail,
         id,
         detailAchievementId,
       );
 
-      setAchievements((prev) => prev.filter((achievement) => achievement.id !== id));
-      if (targetSrc) {
-        clearBadgeRenderCacheForSrc(toOptimizedRenderSrc(targetSrc));
+      setAchievements((prev) => prev.filter((entry) => entry.detail.id !== id));
+      if (targetRenderSrc) {
+        clearBadgeRenderCacheForSrc(targetRenderSrc);
       }
       if (detailAchievementId === id) {
         uiActions.closeOverlay();

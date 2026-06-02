@@ -7,11 +7,10 @@ import {
   prewarmBadgeRenderCache,
 } from "@/lib/achievements/badge/shared/render-cache";
 import { logImageKitEvent } from "@/lib/imagekit/telemetry";
-import { toOptimizedRenderSrc } from "@/lib/achievements/badge/shared/render-src";
-import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
+import type { AchievementCollectionEntryViewModel } from "@/lib/achievements/data/achievement-view-models";
 
 type UseBadgeChunkedPrewarmArgs = {
-  achievements: AchievementRecord[];
+  achievements: AchievementCollectionEntryViewModel[];
   pause: boolean;
 };
 
@@ -26,14 +25,14 @@ export function useBadgeChunkedPrewarm({ achievements, pause }: UseBadgeChunkedP
     const jobs: { src: string; id: string }[] = [];
     let skippedCached = 0;
 
-    for (const achievement of achievements) {
-      if (!achievement.icon_url) continue;
-      const src = toOptimizedRenderSrc(achievement.icon_url);
+    for (const entry of achievements) {
+      const src = entry.detail.renderSrc;
+      if (!src) continue;
       if (hasBadgeDecodeCached(src)) {
         skippedCached += 1;
         continue;
       }
-      jobs.push({ src, id: achievement.id });
+      jobs.push({ src, id: entry.detail.id });
     }
 
     const emitSummary = (scheduled: number, skippedHidden: number) => {

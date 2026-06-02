@@ -4,7 +4,7 @@ import {
   AchievementGridItemDedicate,
   AchievementGridItemFallback,
 } from "@/components/achievements/grid/achievement-grid-item";
-import type { AchievementGridViewModel } from "@/lib/achievements/data/achievement-transformers";
+import type { AchievementGridViewModel } from "@/lib/achievements/data/achievement-view-models";
 import { cn } from "@/lib/utils";
 
 type AchievementGridProps = {

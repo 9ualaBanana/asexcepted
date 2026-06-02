@@ -1,55 +1,55 @@
-import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
+import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
 import type { FormState } from "@/components/achievements/achievement-editor-shared";
 import { hasModelGlbAsset } from "@/lib/achievements/badge/shared/badge-assets";
 
 /** Sender-dedicated row (pending or accepted). */
 export function isDedicatedAchievement(
-  achievement: Pick<AchievementRecord, "dedicated_by_user_id">,
+  achievement: Pick<AchievementDetailViewModel, "dedicatedByUserId">,
 ): boolean {
-  return Boolean(achievement.dedicated_by_user_id);
+  return Boolean(achievement.dedicatedByUserId);
 }
 
 /** Accepted dedication in the owner's collection — visibility may be edited only. */
 export function canEditDedicatedVisibility(
-  achievement: Pick<AchievementRecord, "dedicated_by_user_id" | "dedication_status">,
+  achievement: Pick<AchievementDetailViewModel, "dedicatedByUserId" | "dedicationStatus">,
 ): boolean {
   return (
-    Boolean(achievement.dedicated_by_user_id) &&
-    achievement.dedication_status === "accepted"
+    Boolean(achievement.dedicatedByUserId) &&
+    achievement.dedicationStatus === "accepted"
   );
 }
 
 /** In-collection dedication (accepted, or legacy row missing status). */
 export function showsDedicatedBadgeAura(
   achievement: Pick<
-    AchievementRecord,
-    "dedicated_by_user_id" | "dedication_status"
+    AchievementDetailViewModel,
+    "dedicatedByUserId" | "dedicationStatus"
   >,
 ): boolean {
-  if (!achievement.dedicated_by_user_id) return false;
-  if (achievement.dedication_status === "pending") return false;
+  if (!achievement.dedicatedByUserId) return false;
+  if (achievement.dedicationStatus === "pending") return false;
   return true;
 }
 
 /** Grid/feed particle glitter — image badges only (not 3D model_glb). */
 export function showsDedicatedBadgeEffect(
   achievement: Pick<
-    AchievementRecord,
-    | "dedicated_by_user_id"
-    | "dedication_status"
-    | "icon_asset_kind"
-    | "icon_asset_path"
+    AchievementDetailViewModel,
+    | "dedicatedByUserId"
+    | "dedicationStatus"
+    | "iconAssetKind"
+    | "iconAssetPath"
   >,
 ): boolean {
   return (
     showsDedicatedBadgeAura(achievement) &&
-    !hasModelGlbAsset(achievement.icon_asset_kind, achievement.icon_asset_path)
+    !hasModelGlbAsset(achievement.iconAssetKind, achievement.iconAssetPath)
   );
 }
 
 export function isDedicatedVisibilityDirty(
   form: Pick<FormState, "visibility">,
-  record: Pick<AchievementRecord, "visibility">,
+  detail: Pick<AchievementDetailViewModel, "visibility">,
 ): boolean {
-  return form.visibility !== record.visibility;
+  return form.visibility !== detail.visibility;
 }

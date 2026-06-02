@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
+import type { AchievementDomainRow } from "@/lib/achievements/data/achievement-transformers";
 
 type CountRow = {
   achievement_id: string;
@@ -38,9 +38,9 @@ export async function fetchImpressionCountMap(
 }
 
 export function attachImpressionCounts(
-  records: AchievementRecord[],
+  records: AchievementDomainRow[],
   countMap: Record<string, number>,
-): AchievementRecord[] {
+): AchievementDomainRow[] {
   return records.map((record) => ({
     ...record,
     impression_count: countMap[record.id] ?? 0,

@@ -4,12 +4,12 @@ import { useEffect, useMemo } from "react";
 
 import { resolveTone } from "@/components/achievements/achievement-manager-utils";
 import { getSafeIcon } from "@/components/achievements/achievement-editor-shared";
-import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
+import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
 import { prewarmBadgeRenderCache } from "@/lib/achievements/badge/shared/render-cache";
 import { getAlphaMaskStyle } from "@/lib/achievements/badge/parallax/shape-utils";
 
 type UseAchievementDetailViewModelArgs = {
-  detailAchievement: AchievementRecord | null;
+  detailAchievement: AchievementDetailViewModel | null;
   detailRenderSrc: string;
   optimisticUnlockedAchievementId: string | null;
   detailIsLockedUi: boolean;
@@ -23,7 +23,7 @@ export function useAchievementDetailViewModel({
   detailIsLockedUi,
   readOnly,
 }: UseAchievementDetailViewModelArgs) {
-  const DetailFallbackIcon = getSafeIcon(detailAchievement?.icon);
+  const DetailFallbackIcon = detailAchievement?.FallbackIcon ?? getSafeIcon("trophy");
   const detailTone = useMemo(() => resolveTone(detailAchievement), [detailAchievement]);
   const detailMaskStyle = useMemo(
     () => (detailRenderSrc ? getAlphaMaskStyle(detailRenderSrc) : null),

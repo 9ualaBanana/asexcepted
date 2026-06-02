@@ -36,7 +36,7 @@ export function getSafeTone(value?: string | null): AchievementTone {
   return "teal";
 }
 import { type FormState } from "@/components/achievements/achievement-editor-shared";
-import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
+import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
 
 export const UNLOCK_HOLD_DURATION_MS = Number(
   process.env.NEXT_PUBLIC_UNLOCK_HOLD_DURATION_MS,
@@ -68,34 +68,6 @@ export function createInitialForm(): FormState {
   };
 }
 
-function createdAtMs(record: AchievementRecord): number {
-  return new Date(record.created_at).getTime();
-}
-
-function achievedAtMs(record: AchievementRecord): number {
-  if (!record.achieved_at) return 0;
-  return new Date(`${record.achieved_at}T00:00:00`).getTime();
-}
-
-/** 0 = locked undated, 1 = unlocked undated, 2 = has achieved_at */
-function achievementSortKey(record: AchievementRecord): [number, number, number] {
-  const dated = Boolean(record.achieved_at);
-  if (!dated && record.is_locked) return [0, 0, -createdAtMs(record)];
-  if (!dated && !record.is_locked) return [1, 0, -createdAtMs(record)];
-  return [2, -achievedAtMs(record), -createdAtMs(record)];
-}
-
-export function sortAchievements(rows: AchievementRecord[]) {
-  return [...rows].sort((a, b) => {
-    const ak = achievementSortKey(a);
-    const bk = achievementSortKey(b);
-    for (let i = 0; i < ak.length; i++) {
-      if (ak[i] !== bk[i]) return ak[i] - bk[i];
-    }
-    return 0;
-  });
-}
-
-export function resolveTone(achievement: AchievementRecord | null) {
-  return getSafeTone(achievement?.tone);
+export function resolveTone(detail: Pick<AchievementDetailViewModel, "tone"> | null) {
+  return getSafeTone(detail?.tone);
 }

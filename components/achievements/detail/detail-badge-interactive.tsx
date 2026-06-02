@@ -18,7 +18,7 @@ import {
 } from "@/lib/achievements/badge/parallax/badge-mask-style";
 import { isOpaqueBadgeHit, type AlphaMaskData } from "@/lib/achievements/badge/parallax/shape-utils";
 import { cn } from "@/lib/utils";
-import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
+import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
 import { hasModelGlbAsset } from "@/lib/achievements/badge/shared/badge-assets";
 
 export type DetailBadgeInteractiveProps = {
@@ -26,7 +26,7 @@ export type DetailBadgeInteractiveProps = {
   motionSeed: string;
   tone: AchievementTone;
   FallbackIcon: LucideIcon;
-  achievement: AchievementRecord;
+  detail: AchievementDetailViewModel;
   viewerStateKey?: string;
   lockedUi: boolean;
   unlocking: boolean;
@@ -56,7 +56,7 @@ export function DetailBadgeInteractive({
   motionSeed,
   tone,
   FallbackIcon,
-  achievement,
+  detail,
   viewerStateKey,
   lockedUi,
   unlocking,
@@ -78,7 +78,7 @@ export function DetailBadgeInteractive({
   dedicatedBadgeGlitter = false,
 }: DetailBadgeInteractiveProps) {
   const hasIconUrl = !!renderSrc;
-  const isModelAsset = hasModelGlbAsset(achievement.icon_asset_kind, achievement.icon_asset_path);
+  const isModelAsset = hasModelGlbAsset(detail.iconAssetKind, detail.iconAssetPath);
   const showGlitter =
     dedicatedBadgeGlitter ||
     (process.env.NEXT_PUBLIC_IMPRESSION_GLITTER_UI_ENABLED === "true" &&
@@ -102,16 +102,16 @@ export function DetailBadgeInteractive({
     if (isModelAsset) {
       return (
         <BadgeGltfViewer
-          iconAssetPath={achievement.icon_asset_path ?? ""}
+          iconAssetPath={detail.iconAssetPath ?? ""}
           previewSrc={renderSrc}
           className="p-1"
           float={floating}
           motionSeed={motionSeed}
           motionStartCentered={motionStartCentered}
-          initialYaw={achievement.icon_model_yaw}
-          initialPitch={achievement.icon_model_pitch}
-          playAnimation={achievement.icon_model_animation_play}
-          animationSpeed={achievement.icon_model_animation_speed}
+          initialYaw={detail.iconModelYaw}
+          initialPitch={detail.iconModelPitch}
+          playAnimation={detail.iconModelAnimationPlay}
+          animationSpeed={detail.iconModelAnimationSpeed}
           stateKey={viewerStateKey}
           onPreviewDecoded={onImageDecoded}
           onModelUrlReady={onModelUrlReady}
@@ -170,7 +170,7 @@ export function DetailBadgeInteractive({
         {hasIconUrl ? (
           <>
             <div className="relative h-full w-full">{unlockedBadgeContent()}</div>
-            {isModelAsset && achievement.icon_asset_path && showGlitter && !lockedUi ? (
+            {isModelAsset && detail.iconAssetPath && showGlitter && !lockedUi ? (
               <ImpressionGlitterField
                 active
                 motionSeed={motionSeed}

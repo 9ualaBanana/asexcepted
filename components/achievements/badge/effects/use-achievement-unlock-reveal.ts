@@ -7,9 +7,14 @@ import {
   UNLOCK_HOLD_DURATION_MS,
   UNLOCK_REVEAL_DURATION_MS,
   UNLOCK_REVEAL_LUT_STEPS,
-  sortAchievements,
 } from "@/components/achievements/achievement-manager-utils";
-import type { AchievementRecord } from "@/lib/achievements/data/achievement-transformers";
+import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
+import {
+  mapCollectionDetails,
+  sortCollectionEntries,
+  updateCollectionEntryDetail,
+  type AchievementCollectionEntryViewModel,
+} from "@/lib/achievements/data/achievement-view-models";
 import { useAchievementSounds } from "@/components/achievements/badge/effects/use-achievement-sounds";
 import {
   buildUnlockRevealClipPath,
@@ -24,14 +29,14 @@ type SupabaseClient = ReturnType<typeof createClient>;
 
 type UseAchievementUnlockRevealArgs = {
   readOnly: boolean;
-  detailAchievement: AchievementRecord | null;
+  detailAchievement: AchievementDetailViewModel | null;
   detailRenderSrc: string;
   /** Bumps when detail overlay reopens so alpha-mask load can retry. */
   detailViewSessionKey: number;
   isSaving: boolean;
   setIsSaving: Dispatch<SetStateAction<boolean>>;
   setError: Dispatch<SetStateAction<string | null>>;
-  setAchievements: Dispatch<SetStateAction<AchievementRecord[]>>;
+  setAchievements: Dispatch<SetStateAction<AchievementCollectionEntryViewModel[]>>;
   supabase: SupabaseClient;
   /** Fired once after the user's first press-and-hold unlock reveal (before persist). */
   onFirstUnlockComplete?: () => void;
@@ -84,7 +89,7 @@ export function useAchievementUnlockReveal({
   const detailIsUnlocking =
     Boolean(detailAchievement?.id) && unlockingAchievementId === detailAchievement?.id;
   const detailIsLockedUi =
-    Boolean(detailAchievement?.is_locked) &&
+    Boolean(detailAchievement?.isLocked) &&
     optimisticUnlockedAchievementId !== detailAchievement?.id;
   const detailFloating = !detailIsLockedUi && !detailIsUnlocking;
 
@@ -179,11 +184,11 @@ export function useAchievementUnlockReveal({
 
   const handlePressHoldUnlock = useCallback(async () => {
     if (readOnly) return;
-    if (!detailAchievement || !detailAchievement.is_locked || isSaving) return;
+    if (!detailAchievement || !detailAchievement.isLocked || isSaving) return;
     const targetId = detailAchievement.id;
     let hadUnlockedBefore = false;
     setAchievements((prev) => {
-      hadUnlockedBefore = prev.some((achievement) => !achievement.is_locked);
+      hadUnlockedBefore = prev.some((entry) => !entry.detail.isLocked);
       return prev;
     });
 
@@ -261,9 +266,9 @@ export function useAchievementUnlockReveal({
     }
 
     setAchievements((prev) =>
-      sortAchievements(
-        prev.map((achievement) =>
-          achievement.id === targetId ? { ...achievement, is_locked: false } : achievement,
+      sortCollectionEntries(
+        mapCollectionDetails(prev, (detail) =>
+          detail.id === targetId ? { ...detail, isLocked: false } : detail,
         ),
       ),
     );
@@ -285,9 +290,9 @@ export function useAchievementUnlockReveal({
       }
       setError(unlockResult.error);
       setAchievements((prev) =>
-        sortAchievements(
-          prev.map((achievement) =>
-            achievement.id === targetId ? { ...achievement, is_locked: true } : achievement,
+        sortCollectionEntries(
+          mapCollectionDetails(prev, (detail) =>
+            detail.id === targetId ? { ...detail, isLocked: true } : detail,
           ),
         ),
       );
@@ -297,13 +302,7 @@ export function useAchievementUnlockReveal({
     }
 
     const unlockedAchievement = unlockResult.value;
-    setAchievements((prev) =>
-      sortAchievements(
-        prev.map((achievement) =>
-          achievement.id === unlockedAchievement.id ? unlockedAchievement : achievement,
-        ),
-      ),
-    );
+    setAchievements((prev) => updateCollectionEntryDetail(prev, unlockedAchievement));
     setOptimisticUnlockedAchievementId(null);
 
     void fetch("/api/push/fan-out-unlock", {

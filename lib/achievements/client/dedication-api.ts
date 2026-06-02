@@ -1,10 +1,11 @@
 import { err, ok, type Result } from "neverthrow";
 import { z } from "zod";
 
+import { coerceAchievementDbRow } from "@/lib/achievements/data/achievement-transformers";
 import {
-  coerceAchievementDbRow,
-  type AchievementRecord,
-} from "@/lib/achievements/data/achievement-transformers";
+  domainRowToDetailViewModel,
+  type AchievementDetailViewModel,
+} from "@/lib/achievements/data/achievement-view-models";
 import { fetchFailureMessage, fetchJson } from "@/lib/client/fetch-json";
 
 const acceptDedicationResponseSchema = z.object({
@@ -12,7 +13,7 @@ const acceptDedicationResponseSchema = z.object({
 });
 
 export type AcceptDedicationResult =
-  | { kind: "accepted"; achievement: AchievementRecord }
+  | { kind: "accepted"; achievement: AchievementDetailViewModel }
   | { kind: "already_accepted" };
 
 export async function postAcceptDedication(
@@ -38,7 +39,9 @@ export async function postAcceptDedication(
   }
 
   try {
-    const achievement = coerceAchievementDbRow(parsed.data.achievement);
+    const achievement = domainRowToDetailViewModel(
+      coerceAchievementDbRow(parsed.data.achievement),
+    );
     return ok({ kind: "accepted", achievement });
   } catch {
     return err("Could not read dedication after accepting.");

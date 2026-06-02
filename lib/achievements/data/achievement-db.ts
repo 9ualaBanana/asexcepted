@@ -8,20 +8,27 @@ import type {
 import { todayDateString } from "@/components/achievements/achievement-editor-shared";
 import {
   tryNormalizeAchievement,
-  type AchievementRecord,
+  type AchievementDomainRow,
 } from "@/lib/achievements/data/achievement-transformers";
 import {
   attachImpressionCounts,
   fetchImpressionCountMap,
 } from "@/lib/achievements/data/impression-counts";
+import {
+  domainRowToDetailViewModel,
+  domainRowsToCollectionEntries,
+  sortCollectionEntries,
+  type AchievementCollectionEntryViewModel,
+  type AchievementDetailViewModel,
+} from "@/lib/achievements/data/achievement-view-models";
 
 const ACHIEVEMENT_FULL_SELECT =
   "id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_cc_attribution,icon_model_yaw,icon_model_pitch,icon_model_animation_play,icon_model_animation_speed,tone,is_locked,achieved_at,created_at,visibility,dedicated_by_user_id,dedication_status";
 
 export type { AchievementDbRow, AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
 
-export type AchievementListResult = Result<AchievementRecord[], string>;
-export type AchievementSingleResult = Result<AchievementRecord, string>;
+export type AchievementListResult = Result<AchievementCollectionEntryViewModel[], string>;
+export type AchievementSingleResult = Result<AchievementDetailViewModel, string>;
 export type AchievementDeleteResult = Result<void, string>;
 
 function toAchievementSingleResult(row: AchievementDbRow): AchievementSingleResult {
@@ -29,7 +36,7 @@ function toAchievementSingleResult(row: AchievementDbRow): AchievementSingleResu
   if (normalized.isErr()) {
     return err("Invalid achievement data received from the server.");
   }
-  return ok(normalized.value);
+  return ok(domainRowToDetailViewModel(normalized.value));
 }
 
 export async function listAchievements(
@@ -49,24 +56,25 @@ export async function listAchievements(
   }
 
   const rawRows = Array.isArray(data) ? data : [];
-  const records: AchievementRecord[] = [];
+  const domainRows: AchievementDomainRow[] = [];
   for (const row of rawRows) {
     const normalized = tryNormalizeAchievement(row);
     if (normalized.isOk()) {
-      records.push(normalized.value);
+      domainRows.push(normalized.value);
     }
   }
-  if (records.length === 0 && rawRows.length > 0) {
+  if (domainRows.length === 0 && rawRows.length > 0) {
     return err("Invalid achievement data received from the server.");
   }
+  let rowsWithCounts = domainRows;
   if (process.env.NEXT_PUBLIC_IMPRESSION_GLITTER_UI_ENABLED === "true") {
     const countMap = await fetchImpressionCountMap(
       supabase,
-      records.map((record) => record.id),
+      domainRows.map((record) => record.id),
     );
-    return ok(attachImpressionCounts(records, countMap));
+    rowsWithCounts = attachImpressionCounts(domainRows, countMap);
   }
-  return ok(records);
+  return ok(sortCollectionEntries(domainRowsToCollectionEntries(rowsWithCounts)));
 }
 
 export async function createAchievement(

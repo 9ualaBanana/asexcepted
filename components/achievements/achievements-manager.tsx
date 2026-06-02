@@ -157,7 +157,7 @@ export function AchievementsManager({
 
       {dedicationDialogOpen && dedicationAchievement ? (
         <DedicationResponseDialog
-          achievement={dedicationAchievement}
+          detail={dedicationAchievement}
           senderDisplayName={model.dedicationQueue.dedicationSenderName}
           isBusy={model.dedicationQueue.dedicationBusy}
           onDismiss={model.dedicationQueue.dismissDedicationDialog}
