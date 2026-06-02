@@ -8,6 +8,8 @@ import {
 } from "three";
 import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 
+import { badgeModelConfig } from "@/lib/achievements/badge/model/badge-model-config";
+
 const KHR_LIGHTS_PUNCTUAL = "KHR_lights_punctual";
 const KHR_TRANSMISSION = "KHR_materials_transmission";
 const KHR_EMISSIVE_STRENGTH = "KHR_materials_emissive_strength";
@@ -81,12 +83,8 @@ function applySceneExposureTuning(
   scene: Scene,
   renderer: WebGLRenderer,
 ): void {
-  const baseEnvIntensity = Number(
-    process.env.NEXT_PUBLIC_BADGE_MODEL_ENVIRONMENT_INTENSITY,
-  );
-  const baseExposure = Number(
-    process.env.NEXT_PUBLIC_BADGE_MODEL_TONE_MAPPING_EXPOSURE,
-  );
+  const baseEnvIntensity = badgeModelConfig.environment.intensity;
+  const baseExposure = badgeModelConfig.renderer.toneMappingExposure;
 
   let envScale = 1;
   let exposureScale = 1;
@@ -148,12 +146,8 @@ export function applyBadgeModelGltfTuning(
     }
   });
 
-  context.scene.environmentIntensity = Number(
-    process.env.NEXT_PUBLIC_BADGE_MODEL_ENVIRONMENT_INTENSITY,
-  );
-  context.renderer.toneMappingExposure = Number(
-    process.env.NEXT_PUBLIC_BADGE_MODEL_TONE_MAPPING_EXPOSURE,
-  );
+  context.scene.environmentIntensity = badgeModelConfig.environment.intensity;
+  context.renderer.toneMappingExposure = badgeModelConfig.renderer.toneMappingExposure;
 
   const needsSceneTuning =
     profile.hasTransmission ||

@@ -62,5 +62,6 @@ export function RemoteBadgeImage() {
 - **Adding a subcomponent**: append it below the parent (or below the helper that references it), not above the file's main export.
 - **Refactoring**: reorder definitions to restore top-down flow; do not leave helpers scattered above and below the main export.
 - **Multiple exports at the same level** (e.g. two public components): order by dependency — the one that does not use the other comes first.
+- when violated, reorder before finishing
 
 Split into a separate file when a subcomponent grows large, is reused elsewhere, or the parent file becomes hard to scan despite correct ordering.

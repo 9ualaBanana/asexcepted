@@ -3,7 +3,8 @@
 import { Canvas } from "@react-three/fiber";
 import { useCallback } from "react";
 
-import { configureBadgeModelRenderer } from "@/lib/achievements/badge/model/viewer-pipeline";
+import { badgeModelConfig } from "@/lib/achievements/badge/model/badge-model-config";
+import { configureBadgeModelRenderer } from "@/lib/achievements/badge/model/studio-environment";
 
 import { BadgeModelScene } from "./badge-model-scene";
 import { BadgeModelContent, type BadgeModelContentProps } from "./badge-model-content";
@@ -46,7 +47,12 @@ export function BadgeModelCanvas({
         antialias: true,
         powerPreference: "high-performance",
       }}
-      camera={{ fov: 34, near: 0.01, far: 1000, position: [0, 0, 5] }}
+      camera={{
+        fov: badgeModelConfig.camera.fov,
+        near: 0.01,
+        far: 1000,
+        position: [0, 0, 5],
+      }}
       onCreated={handleCreated}
       style={{ width: "100%", height: "100%", display: "block", touchAction: "none" }}
     >

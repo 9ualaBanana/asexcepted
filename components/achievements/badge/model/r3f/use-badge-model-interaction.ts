@@ -4,14 +4,17 @@ import { useEffect, useRef, type RefObject } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { Group } from "three";
 
-import { badgeModelViewStateCache } from "@/lib/achievements/badge/model/view-state";
-import { applyBadgeModelPose } from "@/lib/achievements/badge/model/viewer-pipeline";
+import { badgeModelConfig } from "@/lib/achievements/badge/model/badge-model-config";
+import { applyBadgeModelPose } from "@/lib/achievements/badge/model/scene-graph";
+import { badgeModelViewStateStore } from "@/lib/achievements/badge/model/view-state";
 
-const MAX_PITCH_RAD = Math.PI / 2.2;
-const DRAG_YAW_SENSITIVITY = 0.0072;
-const DRAG_PITCH_SENSITIVITY = 0.0054;
-const INERTIA_DAMPING = 0.93;
-const INERTIA_MIN_SPEED = 0.00035;
+const {
+  maxPitchRad: MAX_PITCH_RAD,
+  dragYawSensitivity: DRAG_YAW_SENSITIVITY,
+  dragPitchSensitivity: DRAG_PITCH_SENSITIVITY,
+  inertiaDamping: INERTIA_DAMPING,
+  inertiaMinSpeed: INERTIA_MIN_SPEED,
+} = badgeModelConfig.interaction;
 
 export type UseBadgeModelInteractionArgs = {
   orbitRootRef: RefObject<Group | null>;
@@ -24,7 +27,6 @@ export type UseBadgeModelInteractionArgs = {
   /** When false, orbit root is not mounted yet. */
   enabled?: boolean;
   onPoseChange?: (yaw: number, pitch: number) => void;
-  onPersistViewState?: (mixerTime: number) => void;
 };
 
 export function useBadgeModelInteraction({
@@ -37,14 +39,13 @@ export function useBadgeModelInteraction({
   allowInertia,
   enabled = true,
   onPoseChange,
-  onPersistViewState,
 }: UseBadgeModelInteractionArgs) {
   const invalidate = useThree((state) => state.invalidate);
   const glDomElement = useThree((state) => state.gl.domElement);
 
   const cachedState = motionStartCentered
     ? undefined
-    : badgeModelViewStateCache.get(viewStateKey);
+    : badgeModelViewStateStore.read(viewStateKey);
 
   const yawRef = useRef(motionStartCentered ? initialYaw : (cachedState?.yaw ?? initialYaw));
   const pitchRef = useRef(
@@ -56,14 +57,13 @@ export function useBadgeModelInteraction({
   const lastPointerRef = useRef({ x: 0, y: 0 });
 
   const persistViewState = (mixerTime: number) => {
-    badgeModelViewStateCache.set(viewStateKey, {
+    badgeModelViewStateStore.write(viewStateKey, {
       yaw: yawRef.current,
       pitch: pitchRef.current,
       inertiaYaw: inertiaYawRef.current,
       inertiaPitch: inertiaPitchRef.current,
       mixerTime,
     });
-    onPersistViewState?.(mixerTime);
   };
 
   const applyRotation = () => {
@@ -77,7 +77,7 @@ export function useBadgeModelInteraction({
     if (!enabled) return;
     const cached = motionStartCentered
       ? undefined
-      : badgeModelViewStateCache.get(viewStateKey);
+      : badgeModelViewStateStore.read(viewStateKey);
     if (cached) {
       yawRef.current = cached.yaw;
       pitchRef.current = cached.pitch;

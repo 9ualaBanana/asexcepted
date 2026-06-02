@@ -1,26 +1,15 @@
 import { Box3, Mesh, Object3D, PerspectiveCamera, Vector3 } from "three";
 
-export { configureBadgeModelRenderer } from "@/lib/achievements/badge/model/viewer-pipeline";
-
-export {
-  BADGE_MODEL_DRACO_DECODER_CDN,
-  configureBadgeModelLoader,
-} from "@/lib/achievements/badge/model/gltf-loader";
+import { badgeModelConfig } from "@/lib/achievements/badge/model/badge-model-config";
 
 export type BadgeModelFrameMetrics = {
   size: Vector3;
   maxDim: number;
 };
 
-const SHELL_PIVOT_OFFSET_RATIO = Number(
-  process.env.NEXT_PUBLIC_BADGE_MODEL_SHELL_PIVOT_OFFSET_RATIO,
-);
-const SHELL_MAX_RADIUS_CV = Number(
-  process.env.NEXT_PUBLIC_BADGE_MODEL_SHELL_MAX_RADIUS_CV,
-);
-const SHELL_MIN_MEAN_RADIUS_RATIO = Number(
-  process.env.NEXT_PUBLIC_BADGE_MODEL_SHELL_MIN_MEAN_RADIUS_RATIO,
-);
+const SHELL_PIVOT_OFFSET_RATIO = badgeModelConfig.camera.shellPivotOffsetRatio;
+const SHELL_MAX_RADIUS_CV = badgeModelConfig.camera.shellMaxRadiusCv;
+const SHELL_MIN_MEAN_RADIUS_RATIO = badgeModelConfig.camera.shellMinMeanRadiusRatio;
 
 const _sampleVertex = new Vector3();
 

@@ -1,27 +1,39 @@
-/** GLB badge pipeline (load, frame, poster render, orbit pose). */
-
-export {
-  BADGE_MODEL_DRACO_DECODER_CDN,
-  configureBadgeModelLoader,
-  createConfiguredBadgeGltfLoader,
-} from "./gltf-loader";
+export { badgeModelConfig } from "./badge-model-config";
 
 export { applyBadgeModelGltfTuning, type BadgeModelGltfTuningProfile } from "./gltf-tuning";
 
 export {
-  centerBadgeModelAtOrigin,
   frameBadgeModelForCamera,
   frameCameraForBadgeModel,
   type BadgeModelFrameMetrics,
 } from "./rendering";
 
 export {
-  applyBadgeModelEnvironment,
   applyBadgeModelPose,
   buildBadgeModelSceneGraph,
-  configureBadgeModelRenderer,
-  renderBadgeModelFrame,
+  prepareBadgeGltfRoot,
   type BadgeModelSceneGraph,
-} from "./viewer-pipeline";
+  type PrepareBadgeGltfOptions,
+} from "./scene-graph";
 
-export { badgeModelViewStateCache, type BadgeModelViewState } from "./view-state";
+export {
+  parseGltfFile as parseBadgeGltfFile,
+  loadGltfFromUrl as loadBadgeGltfFromUrl,
+} from "./load/load-gltf";
+
+export { renderBadgeModelPosterFromGltf } from "./poster-snapshot";
+export {
+  applyBadgeModelEnvironment,
+  configureBadgeModelRenderer,
+} from "./studio-environment";
+
+export {
+  clampBadgeAnimationSpeed,
+  pickPrimaryAnimationClip,
+  scheduleBadgeVisualReady,
+} from "./badge-model-animation";
+
+export {
+  badgeModelViewStateStore,
+  type BadgeModelViewState,
+} from "./view-state";

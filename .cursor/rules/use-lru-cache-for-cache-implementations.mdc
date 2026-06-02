@@ -1,0 +1,50 @@
+---
+description: Prefer lru-cache for cache implementations
+alwaysApply: true
+---
+
+# Use `lru-cache` for Cache Implementations
+
+When adding or refactoring in-memory caches, prefer the `lru-cache` package over custom cache classes or ad-hoc `Map` eviction logic.
+
+## Requirements
+
+- Use `LRUCache` from `lru-cache` for cache behavior (size limits, eviction, memoization).
+- Configure explicit bounds (`max`, `ttl`, or both) so caches are predictable.
+- Keep cache keys stable and deterministic.
+- Reuse existing cache helpers before creating new cache instances.
+
+## Avoid
+
+- Custom cache managers that duplicate LRU/TTL behavior.
+- Unbounded module-level `Map`/object caches for long-lived data.
+- Re-implementing `memo`, eviction, or stale handling already provided by `lru-cache`.
+
+## Examples
+
+```ts
+// ❌ BAD — unbounded cache with custom behavior
+const userCache = new Map<string, User>();
+
+export function getCachedUser(id: string) {
+  return userCache.get(id);
+}
+```
+
+```ts
+// ✅ GOOD — bounded cache using lru-cache
+import { LRUCache } from "lru-cache";
+
+const userCache = new LRUCache<string, User>({
+  max: 300,
+  ttl: 1000 * 60 * 5,
+});
+
+export function getCachedUser(id: string) {
+  return userCache.get(id);
+}
+```
+
+## Existing Project Pattern
+
+Follow the pattern already used in `lib/achievements/badge/shared/render-cache.ts` (multiple focused `LRUCache` instances with explicit limits and `memo` usage where helpful).
