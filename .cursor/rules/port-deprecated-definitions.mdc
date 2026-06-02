@@ -1,0 +1,57 @@
+---
+description: When adding replacements, deprecate legacy symbols and port callers to the new API in the same work
+alwaysApply: true
+---
+
+# Port Deprecated Definitions
+
+When you introduce a **replacement** for an existing export (type, function, component, constant, or module path), treat deprecation and migration as part of the same task—not a follow-up.
+
+## Workflow
+
+1. **Add the new definition** in the canonical module (or move logic there).
+2. **Mark the old symbol deprecated** with a JSDoc tag that names the replacement:
+   - `/** @deprecated Use {@link NewName}. */` for types and values
+   - `/** @deprecated Use NewName */` when a link is unnecessary
+3. **Keep legacy symbols as thin aliases** during transition (e.g. `export type Old = New`) so existing imports still compile but IDEs and `tsc` surface warnings.
+4. **Port all in-repo callers** to the new name in the same change when the blast radius is reasonable; search the repo before finishing.
+5. **Update barrel exports** (`index.ts`, public re-exports) to prefer the new symbol; re-export deprecated names only if external consumers still need them.
+6. **Remove deprecated shims** once nothing references them (grep again before deleting).
+
+## Do
+
+- Migrate imports, props, and return types to the new API—not only the definition site.
+- Rename related helpers, files, or routes when the product name changed (stay consistent end-to-end).
+- Use `@link` in deprecation comments when the replacement lives in the same file or is easy to discover.
+
+## Avoid
+
+- Leaving most call sites on deprecated names while only adding the new export.
+- Introducing a second parallel implementation instead of delegating the old symbol to the new one.
+- Deleting the old symbol in the same PR without porting callers (unless the symbol was unused).
+
+## Examples
+
+```ts
+// ✅ GOOD — new canonical type, deprecated alias, callers updated
+export type AchievementFeedItemViewModel = { /* ... */ };
+
+/** @deprecated Use {@link AchievementFeedItemViewModel}. */
+export type FeedRow = AchievementFeedItemViewModel;
+```
+
+```ts
+// ❌ BAD — new type added, old name still used everywhere, no @deprecated
+export type AchievementFeedItemViewModel = { /* ... */ };
+export type FeedRow = { /* duplicate shape */ };
+```
+
+```tsx
+// ✅ GOOD — component renamed; old name deprecated and delegates
+/** @deprecated Use {@link AddToHomeScreenInstallBlock}. */
+export function LegacyInstallPrompt(props: Props) {
+  return <AddToHomeScreenInstallBlock {...props} />;
+}
+```
+
+Before marking work complete: **grep for the old symbol** and confirm remaining hits are only the deprecated alias definition or intentional external compatibility.
