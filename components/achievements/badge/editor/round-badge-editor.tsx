@@ -67,6 +67,7 @@ type RoundBadgeEditorProps = {
   icon: AchievementIconKey;
   onToneChange: (tone: AchievementTone) => void;
   onToggleLocked: () => void;
+  canToggleLocked?: boolean;
   onIconChange: (icon: AchievementIconKey) => void;
   /** Called after a successful remote upload with the resolved badge preview + asset metadata. */
   onRemoteUploadCommit: (asset: BadgeRemoteAsset) => void;
@@ -103,6 +104,7 @@ export function RoundBadgeEditor({
   icon,
   onToneChange,
   onToggleLocked,
+  canToggleLocked = true,
   onIconChange,
   onRemoteUploadCommit,
   onImageUrlChange,
@@ -446,22 +448,25 @@ export function RoundBadgeEditor({
             emptyState="Add creator credit, license, source link, or any required attribution."
           />
         )}
-        <div className="group/lock pointer-events-none absolute inset-0 z-30 flex items-center justify-center">
-          <button
-            type="button"
-            aria-label={isLocked ? "Set unlocked" : "Set locked"}
-            className={cn(
-              "pointer-events-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-sm transition-opacity duration-300 sm:h-11 sm:w-11",
-              chipBtn,
-              isLocked
-                ? "opacity-100"
-                : "opacity-55",
-            )}
-            onClick={onToggleLocked}
-          >
-            {isLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
-          </button>
-        </div>
+        {canToggleLocked ? (
+          <div className="group/lock pointer-events-none absolute inset-0 z-30 flex items-center justify-center">
+            <button
+              type="button"
+              aria-label={isLocked ? "Set unlocked" : "Set locked"}
+              disabled={disabled || busy}
+              className={cn(
+                "pointer-events-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-sm transition-opacity duration-300 sm:h-11 sm:w-11",
+                chipBtn,
+                isLocked
+                  ? "opacity-100"
+                  : "opacity-55",
+              )}
+              onClick={onToggleLocked}
+            >
+              {isLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+            </button>
+          </div>
+        ) : null}
         {menuOpen && !removeConfirmOpen ? (
           <div
             className="pointer-events-none absolute inset-x-0 bottom-0 z-40 flex justify-center bg-gradient-to-t from-[#14121c]/96 via-[#14121c]/72 to-transparent px-2 pb-2.5 pt-10"

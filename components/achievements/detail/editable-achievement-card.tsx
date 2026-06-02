@@ -48,6 +48,7 @@ export type EditorCardProps = {
   onRequestDelete?: () => void;
   /** Admin dedicating to another user: always locked + private. */
   dedicateMode?: boolean;
+  canToggleLocked?: boolean;
   badgeSessionController?: BadgeSessionController;
   isCreatingFlow?: boolean;
 };
@@ -64,6 +65,7 @@ export function EditableAchievementCard({
   onUploadInProgressChange,
   onRequestDelete,
   dedicateMode = false,
+  canToggleLocked = true,
   badgeSessionController,
   isCreatingFlow = false,
 }: EditorCardProps) {
@@ -157,11 +159,12 @@ export function EditableAchievementCard({
             iconModelPitch={form.iconModelPitch}
             baselineAsset={badgeAssetSessionRef.current.baseline}
             tone={form.tone}
-            isLocked={dedicateMode ? true : form.isLocked}
+            isLocked={form.isLocked}
             icon={form.icon}
             onToneChange={(tone) => setForm((prev) => ({ ...prev, tone }))}
+            canToggleLocked={canToggleLocked}
             onToggleLocked={() => {
-              if (dedicateMode) return;
+              if (!canToggleLocked) return;
               setForm((prev) => ({ ...prev, isLocked: !prev.isLocked }));
             }}
             onIconChange={(icon) => setForm((prev) => ({ ...prev, icon }))}

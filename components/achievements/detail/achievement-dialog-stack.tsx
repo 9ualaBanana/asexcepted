@@ -50,6 +50,7 @@ import { cn } from "@/lib/utils";
 
 export type AchievementDialogStackProps = {
   readOnly: boolean;
+  isAdmin: boolean;
   editorUploadInProgress: boolean;
   closeDetailPanel: () => void;
 
@@ -115,6 +116,7 @@ export type AchievementDialogStackProps = {
 export function AchievementDialogStack(props: AchievementDialogStackProps) {
   const {
     readOnly,
+    isAdmin,
     editorUploadInProgress,
     closeDetailPanel,
     isCreating,
@@ -321,6 +323,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
               badgeAssetSessionRef={createBadgeAssetSessionRef}
               onClosePanel={() => closeDetailPanel()}
               dedicateMode={isDedicatingCreate}
+              canToggleLocked={isAdmin}
               badgeSessionController={badgeSessionController}
               isCreatingFlow
             />
@@ -580,6 +583,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                   ? () => onRequestDelete(detailAchievement.id)
                   : undefined
               }
+              canToggleLocked={isAdmin}
               badgeSessionController={badgeSessionController}
             />
           ) : null}

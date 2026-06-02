@@ -508,6 +508,7 @@ export function useAchievementsManagerModel({
 
   const dialogStackProps: AchievementDialogStackProps = {
     readOnly,
+    isAdmin,
     editorUploadInProgress: badgeSession.editorUploadInProgress,
     closeDetailPanel: handleCloseDetailPanel,
     isCreating: ui.isCreating,
