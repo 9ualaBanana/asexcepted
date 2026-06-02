@@ -39,10 +39,6 @@ export {
   DetailBadgeInteractive,
   type DetailBadgeInteractiveProps,
 } from "./detail/detail-badge-interactive";
-export {
-  BadgeImageParallaxView,
-  type BadgeImageParallaxViewProps,
-} from "./detail/badge-image-parallax-view";
 
 export { BadgeEditor } from "./editor/badge-editor";
 

@@ -11,18 +11,16 @@ import {
 } from "@/lib/achievements/badge/shared/render-cache";
 import { cn } from "@/lib/utils";
 
+/** Flat image badge with CSS parallax drag, optional float, optional impression glitter. */
 export type BadgeParallaxViewerProps = {
   src: string;
   className?: string;
-  float: boolean;
+  float?: boolean;
   /** Seed for motion params; use achievement id to match detail + embed. */
   motionSeed?: string;
   /** Passed through to `makeBadgeMotionStyle` (e.g. true right after unlock). */
   motionStartCentered?: boolean;
-  /** Uses cached mask/motion style path (toggleable for profiling). */
-  /** Debug hook: fired once when source image decode/load is ready. */
   onImageDecoded?: () => void;
-  /** Debug hook: fired once when source image is decoded and first paint should be ready. */
   onVisualReady?: () => void;
   impressionGlitter?: boolean;
   impressionGlitterRevealPulse?: number;
@@ -39,7 +37,7 @@ const INERTIA_MIN_SPEED = 0.015;
 export function BadgeParallaxViewer({
   src,
   className,
-  float,
+  float = false,
   motionSeed,
   motionStartCentered = false,
   onImageDecoded,
@@ -47,6 +45,39 @@ export function BadgeParallaxViewer({
   impressionGlitter = false,
   impressionGlitterRevealPulse = 0,
 }: BadgeParallaxViewerProps) {
+  const imageSrc = useMemo(() => src.trim(), [src]);
+  if (!imageSrc) return null;
+
+  return (
+    <BadgeParallaxScene
+      src={imageSrc}
+      className={className}
+      float={float}
+      motionSeed={motionSeed}
+      motionStartCentered={motionStartCentered}
+      onImageDecoded={onImageDecoded}
+      onVisualReady={onVisualReady}
+      impressionGlitter={impressionGlitter}
+      impressionGlitterRevealPulse={impressionGlitterRevealPulse}
+    />
+  );
+}
+
+type BadgeParallaxSceneProps = Omit<BadgeParallaxViewerProps, "src"> & {
+  src: string;
+};
+
+function BadgeParallaxScene({
+  src,
+  className,
+  float = false,
+  motionSeed,
+  motionStartCentered = false,
+  onImageDecoded,
+  onVisualReady,
+  impressionGlitter = false,
+  impressionGlitterRevealPulse = 0,
+}: BadgeParallaxSceneProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const modelRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | null>(null);
@@ -61,13 +92,14 @@ export function BadgeParallaxViewer({
   const velocityRef = useRef({ pitch: 0, yaw: 0 });
 
   const safeSrc = useMemo(() => src.replace(/"/g, '\\"'), [src]);
-  const maskStyle = useMemo(
-    () => getCachedBadgeMaskStyle(src),
-    [src],
-  );
+  const maskStyle = useMemo(() => getCachedBadgeMaskStyle(src), [src]);
   const glitterMaskStyle = useMemo(
     () => badgeImageMaskStylePadded(src, 108),
     [src],
+  );
+  const motionSeedKey = useMemo(
+    () => resolveTrimmedKey(motionSeed, src, "badge"),
+    [motionSeed, src],
   );
   const sideLayerStyle = useMemo(
     () =>
@@ -90,7 +122,7 @@ export function BadgeParallaxViewer({
 
   useEffect(() => {
     if (!onVisualReady && !onImageDecoded) return;
-    if (!src.trim()) return;
+    if (!src) return;
     let cancelled = false;
     let fired = false;
     let decodedFired = false;
@@ -277,7 +309,7 @@ export function BadgeParallaxViewer({
         {impressionGlitter ? (
           <ImpressionGlitterField
             active
-            motionSeed={(motionSeed ?? src).trim() || "badge"}
+            motionSeed={motionSeedKey}
             maskStyle={glitterMaskStyle}
             revealPulse={impressionGlitterRevealPulse}
             variant="detail"
@@ -292,7 +324,7 @@ export function BadgeParallaxViewer({
 
   return (
     <FloatingBadgeWrapper
-      motionSeed={motionSeed}
+      motionSeed={motionSeedKey}
       sourceKey={src}
       motionStartCentered={motionStartCentered}
       fallbackSeed="badge"
@@ -300,4 +332,12 @@ export function BadgeParallaxViewer({
       {viewer}
     </FloatingBadgeWrapper>
   );
+}
+
+function resolveTrimmedKey(...candidates: Array<string | null | undefined>): string {
+  for (const candidate of candidates) {
+    const normalized = candidate?.trim();
+    if (normalized) return normalized;
+  }
+  return "";
 }

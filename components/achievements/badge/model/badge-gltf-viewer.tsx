@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef } from "react";
-import type { MutableRefObject } from "react";
+import { useCallback, useEffectEvent, useMemo } from "react";
 
 import { FloatingBadgeWrapper } from "@/components/achievements/badge/display/floating-badge-wrapper";
 import { RemoteBadgeImage } from "@/components/achievements/badge/display/remote-badge-image";
@@ -149,16 +148,16 @@ function BadgeGltfScene({
   allowInertia = true,
   interactive = true,
 }: BadgeGltfSceneProps) {
-  const onVisualReadyRef = useLatest(onVisualReady);
-  const onPreviewDecodedRef = useLatest(onPreviewDecoded);
-  const onHasAnimationChangeRef = useLatest(onHasAnimationChange);
-  const onPoseChangeRef = useLatest(onPoseChange);
+  const notifyVisualReady = useEffectEvent(() => onVisualReady?.());
+  const notifyPreviewDecoded = useEffectEvent(() => onPreviewDecoded?.());
+  const notifyHasAnimationChange = useEffectEvent((has: boolean) => onHasAnimationChange?.(has));
+  const notifyPoseChange = useEffectEvent((yaw: number, pitch: number) => onPoseChange?.(yaw, pitch));
 
   const { ready, previewVisible, handleVisualReady, handleLoadError } =
     useBadgeModelPreviewOverlay({
       signedModelUrl,
       showPreviewOverlay,
-      onVisualReady: () => onVisualReadyRef.current?.(),
+      onVisualReady: notifyVisualReady,
     });
 
   const viewStateKey = useMemo(
@@ -172,8 +171,8 @@ function BadgeGltfScene({
 
   const handleLoadErrorWithAnimationReset = useCallback(() => {
     handleLoadError();
-    onHasAnimationChangeRef.current?.(false);
-  }, [handleLoadError]);
+    notifyHasAnimationChange(false);
+  }, [handleLoadError, notifyHasAnimationChange]);
 
   const viewer = (
     <div className={cn("relative h-full w-full", className)}>
@@ -188,7 +187,7 @@ function BadgeGltfScene({
             <RemoteBadgeImage
               src={previewSrc}
               className="h-full w-full object-contain"
-              onDecoded={() => onPreviewDecodedRef.current?.()}
+              onDecoded={notifyPreviewDecoded}
             />
           </div>
         ) : null}
@@ -210,8 +209,8 @@ function BadgeGltfScene({
             animationSpeed={animationSpeed}
             interactive={interactive}
             allowInertia={allowInertia}
-            onPoseChange={(yaw, pitch) => onPoseChangeRef.current?.(yaw, pitch)}
-            onHasAnimationChange={(has) => onHasAnimationChangeRef.current?.(has)}
+            onPoseChange={notifyPoseChange}
+            onHasAnimationChange={notifyHasAnimationChange}
             onVisualReady={handleVisualReady}
             onLoadError={handleLoadErrorWithAnimationReset}
           />
@@ -240,10 +239,4 @@ function resolveTrimmedKey(...candidates: Array<string | null | undefined>): str
     if (normalized) return normalized;
   }
   return "";
-}
-
-function useLatest<T>(value: T): MutableRefObject<T> {
-  const ref = useRef(value);
-  ref.current = value;
-  return ref;
 }

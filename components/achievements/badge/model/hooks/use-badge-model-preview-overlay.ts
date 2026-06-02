@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useState } from "react";
 
 export function useBadgeModelPreviewOverlay(args: {
   signedModelUrl: string;
@@ -11,6 +11,8 @@ export function useBadgeModelPreviewOverlay(args: {
   const [ready, setReady] = useState(false);
   const [previewVisible, setPreviewVisible] = useState(true);
 
+  const notifyVisualReady = useEffectEvent(() => onVisualReady?.());
+
   useEffect(() => {
     setReady(false);
     setPreviewVisible(true);
@@ -18,7 +20,7 @@ export function useBadgeModelPreviewOverlay(args: {
 
   const handleVisualReady = useCallback(() => {
     setReady(true);
-    onVisualReady?.();
+    notifyVisualReady();
     if (showPreviewOverlay) {
       window.setTimeout(() => {
         setPreviewVisible(false);
@@ -26,7 +28,7 @@ export function useBadgeModelPreviewOverlay(args: {
     } else {
       setPreviewVisible(false);
     }
-  }, [onVisualReady, showPreviewOverlay]);
+  }, [notifyVisualReady, showPreviewOverlay]);
 
   const handleLoadError = useCallback(() => {
     setReady(false);

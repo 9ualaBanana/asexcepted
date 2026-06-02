@@ -8,7 +8,7 @@ import { FallbackBadge } from "@/components/achievements/badge/display/fallback-
 import { RemoteBadgeImage } from "@/components/achievements/badge/display/remote-badge-image";
 import { ImpressionGlitterField } from "@/components/achievements/badge/effects/impression-glitter-field";
 import { UnlockRevealWave } from "@/components/achievements/badge/effects/unlock-reveal-wave";
-import { BadgeImageParallaxView } from "@/components/achievements/badge/detail/badge-image-parallax-view";
+import { BadgeParallaxViewer } from "@/components/achievements/badge/parallax/badge-parallax-viewer";
 import { BadgeGltfViewer } from "@/components/achievements/badge/model/badge-gltf-viewer";
 import type { AchievementTone } from "@/components/achievements/achievement-manager-utils";
 import {
@@ -131,8 +131,9 @@ export function DetailBadgeInteractive({
     }
 
     return (
-      <BadgeImageParallaxView
-        renderSrc={renderSrc}
+      <BadgeParallaxViewer
+        src={renderSrc}
+        className="p-1"
         float={floating}
         motionSeed={motionSeed}
         motionStartCentered={motionStartCentered}
