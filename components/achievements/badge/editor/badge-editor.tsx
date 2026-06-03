@@ -13,10 +13,10 @@ import {
   achievementToneSwatches,
   type AchievementTone,
 } from "@/components/achievements/achievement-manager-utils";
+import { Badge } from "@/components/achievements/badge/display/badge";
+import type { BadgeOptions } from "@/components/achievements/badge/display/badge-options";
 import { BadgeSlot } from "@/components/achievements/badge/chrome/badge-slot";
 import { BadgeAttributionPopover } from "@/components/achievements/badge/chrome/badge-attribution-popover";
-import { FallbackBadge } from "@/components/achievements/badge/display/fallback-badge";
-import { RemoteBadgeImage } from "@/components/achievements/badge/display/remote-badge-image";
 import {
   deleteRemoteAssetStorageRefQuietly,
   getReplacedRemoteAssetStorageRef,
@@ -30,7 +30,6 @@ import { createRemoteAssetStorageRef } from "@/lib/upload/remote-asset-storage";
 import { Button } from "@/components/ui/button";
 import { useErrorToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import { BadgeGltfViewer, useSignedBadgeModelUrl } from "@/components/achievements/badge/model";
 import type { BadgeModelUploadStaged } from "@/components/achievements/badge/upload/model/use-badge-model-uploader";
 import { useBadgeUploader } from "../upload/use-badge-uploader";
 
@@ -121,7 +120,6 @@ export function BadgeEditor({
   const [hasModelAnimation, setHasModelAnimation] = useState(false);
 
   const removeTitleId = useId();
-  const FallbackIcon = iconMap[icon];
 
   onUploadStorageCommitRef.current = onUploadStorageCommit;
 
@@ -165,11 +163,6 @@ export function BadgeEditor({
       onModelChange(patchBadgeModelAsset(model, patch));
     },
     [model, onModelChange],
-  );
-
-  const { signedUrl: editorSignedModelUrl } = useSignedBadgeModelUrl(
-    model?.assetPath ?? "",
-    isModelAsset,
   );
 
   useEffect(() => {
@@ -245,6 +238,7 @@ export function BadgeEditor({
   );
 
   const size = "detail";
+  const EditorIcon = iconMap[icon];
 
   async function confirmRemoveAsset() {
     setIsRemoving(true);
@@ -339,80 +333,67 @@ export function BadgeEditor({
       />
 
       <BadgeSlot size={size}>
-        <button
-          type="button"
-          disabled={disabled || busy}
-          onClick={() =>
-            !disabled && !busy && setMenuOpen((o) => !o)
-          }
-          onDragEnter={onDragOver}
-          onDragOver={onDragOver}
-          onDragLeave={onDragLeave}
-          onDrop={onDrop}
-          className={cn(
-            "relative flex h-full w-full min-h-0 min-w-0 cursor-pointer items-center justify-center rounded-none bg-transparent outline-none transition-shadow",
-            hasRemote ? "overflow-hidden" : "overflow-visible",
-            "focus-visible:outline-none",
-            ringHalo,
-            isLocked && "opacity-75 grayscale",
-          )}
-          aria-label="Badge"
-        >
-        {busy ? (
-          <div
-            aria-hidden
-            className={cn(
-              "pointer-events-none absolute isolate flex items-center justify-center",
-              /* Inset keeps bloom/orbit motion off the badge slot edges (was inset-[-10px]). */
-              "inset-[11%]"
-            )}
-          >
-            <div className="badge-upload-bloom absolute inset-0 rounded-full" />
-            <div className="badge-upload-blob badge-upload-blob-a absolute h-[68%] w-[68%] rounded-full" />
-            <div className="badge-upload-blob badge-upload-blob-b absolute h-[56%] w-[56%] rounded-full" />
-            <div className="badge-upload-blob badge-upload-blob-c absolute h-[48%] w-[48%] rounded-full" />
-          </div>
-        ) : null}
-        {hasRemote && renderSrc ? (
-          model && editorSignedModelUrl ? (
-            <BadgeGltfViewer
-              model={model}
-              signedModelUrl={editorSignedModelUrl}
-              renderSrc={renderSrc}
-              className={cn("p-1", busy && "scale-[0.96] blur-[3.5px] opacity-[0.72]")}
-              float={false}
-              motionSeed={model.assetPath || trimmed}
-              onHasAnimationChange={setHasModelAnimation}
-              onPoseChange={(yaw, pitch) => patchModel({ yaw, pitch })}
-              allowInertia={false}
-              interactive={allowModelRotation}
-            />
-          ) : (
-            <RemoteBadgeImage
-              src={renderSrc}
-              className={cn(
+        <Badge
+          options={{
+            frame: { kind: "none", className: "h-full w-full" },
+            content: {
+              mode: "editor",
+              onHasAnimationChange: setHasModelAnimation,
+              onPoseChange: (yaw, pitch) => patchModel({ yaw, pitch }),
+              allowModelRotation,
+              imageClassName: cn(
                 "p-1 transition-all duration-500 ease-out",
                 "h-full w-full object-contain drop-shadow-lg",
-                busy && "scale-[0.96] blur-[3.5px] opacity-[0.72]",
-              )}
-            />
-          )
-        ) : (
-          <div
-            className={cn(
-              "h-full w-full transition-all duration-500 ease-out",
-              busy && "scale-[0.96] blur-[3.5px] opacity-[0.72]",
-            )}
-          >
-            <FallbackBadge
-              tone={tone}
-              isLocked={isLocked}
-              FallbackIcon={FallbackIcon}
-              size={size}
-            />
-          </div>
-        )}
-        </button>
+              ),
+              busy,
+            },
+            displaySrc: hasRemote ? renderSrc : null,
+            icon,
+            tone,
+            model,
+            locked: isLocked,
+            glitter: "none",
+            silhouette: false,
+            motionSeed: model?.assetPath || trimmed || "badge-editor",
+            wrapStack: (stack) => (
+              <button
+                type="button"
+                disabled={disabled || busy}
+                onClick={() =>
+                  !disabled && !busy && setMenuOpen((o) => !o)
+                }
+                onDragEnter={onDragOver}
+                onDragOver={onDragOver}
+                onDragLeave={onDragLeave}
+                onDrop={onDrop}
+                className={cn(
+                  "relative flex h-full w-full min-h-0 min-w-0 cursor-pointer items-center justify-center rounded-none bg-transparent outline-none transition-shadow",
+                  hasRemote ? "overflow-hidden" : "overflow-visible",
+                  "focus-visible:outline-none",
+                  ringHalo,
+                  isLocked && "opacity-75 grayscale",
+                )}
+                aria-label="Badge"
+              >
+                {busy ? (
+                  <div
+                    aria-hidden
+                    className={cn(
+                      "pointer-events-none absolute isolate flex items-center justify-center",
+                      "inset-[11%]",
+                    )}
+                  >
+                    <div className="badge-upload-bloom absolute inset-0 rounded-full" />
+                    <div className="badge-upload-blob badge-upload-blob-a absolute h-[68%] w-[68%] rounded-full" />
+                    <div className="badge-upload-blob badge-upload-blob-b absolute h-[56%] w-[56%] rounded-full" />
+                    <div className="badge-upload-blob badge-upload-blob-c absolute h-[48%] w-[48%] rounded-full" />
+                  </div>
+                ) : null}
+                {stack}
+              </button>
+            ),
+          } satisfies BadgeOptions}
+        />
         {model != null && (
           <BadgeAttributionPopover
             value={model.ccAttribution ?? ""}
@@ -530,7 +511,7 @@ export function BadgeEditor({
                     setToneMenuOpen(false);
                   }}
                 >
-                  <FallbackIcon className="h-4 w-4" />
+                  <EditorIcon className="h-4 w-4" />
                 </button>
                 {iconMenuOpen ? (
                   <div className="absolute bottom-full left-1/2 z-50 mb-2 grid w-64 max-w-[calc(100vw-2rem)] -translate-x-1/2 grid-cols-6 gap-1.5 rounded-2xl border bg-background/95 p-2 shadow-lg backdrop-blur-sm sm:gap-2">

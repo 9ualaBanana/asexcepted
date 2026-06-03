@@ -1,36 +1,16 @@
-import { Gift, Sparkles, type LucideIcon } from "lucide-react";
+import { Gift, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { Badge } from "@/components/achievements/badge/display/badge";
+import type { BadgeOptions } from "@/components/achievements/badge/display/badge-options";
 import {
   BadgeSlot,
   BadgeIconDisc,
   badgeIconDiscSizeStyles,
-  FallbackBadge,
-  RemoteBadgeImage,
-  ImpressionGlitterField,
 } from "@/components/achievements/badge";
 import type { AchievementTone } from "@/components/achievements/achievement-manager-utils";
-import {
-  badgeImageMaskStylePadded,
-  circularBadgeMaskStyle,
-  paddedBadgeMaskStyle,
-} from "@/lib/achievements/badge/parallax/badge-mask-style";
+import type { AchievementIconKey } from "@/components/achievements/achievement-editor-shared";
 import { cn } from "@/lib/utils";
-
-function getAlphaMaskStyle(src: string) {
-  const safeSrc = src.replace(/"/g, '\\"');
-  const maskUrl = `url("${safeSrc}")`;
-  return {
-    WebkitMaskImage: maskUrl,
-    maskImage: maskUrl,
-    WebkitMaskRepeat: "no-repeat" as const,
-    maskRepeat: "no-repeat" as const,
-    WebkitMaskPosition: "center" as const,
-    maskPosition: "center" as const,
-    WebkitMaskSize: "contain" as const,
-    maskSize: "contain" as const,
-  };
-}
 
 const gridItemButtonClass =
   "no-tap-highlight flex w-full flex-col items-center gap-1.5 px-0.5 py-1 text-center outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background";
@@ -128,10 +108,9 @@ type AchievementGridItemProps = {
   title: string | null;
   dateLabel: string | null;
   displaySrc: string | null;
-  FallbackIcon: LucideIcon;
+  icon: AchievementIconKey;
   tone: AchievementTone;
   isLocked: boolean;
-  hasImpressions: boolean;
   showDedicatedGlitter: boolean;
   onClick: () => void;
 };
@@ -141,66 +120,30 @@ export function AchievementGridItem({
   title,
   dateLabel,
   displaySrc,
-  FallbackIcon,
+  icon,
   tone,
   isLocked,
-  hasImpressions,
   showDedicatedGlitter,
   onClick,
 }: AchievementGridItemProps) {
   const displayTitle = title?.trim() || (isLocked ? "Locked" : "Untitled");
-  const silhouetteMaskStyle = displaySrc ? getAlphaMaskStyle(displaySrc) : null;
-  const glitterMaskStyle = displaySrc
-    ? badgeImageMaskStylePadded(displaySrc, 108)
-    : paddedBadgeMaskStyle(circularBadgeMaskStyle(), 108);
+
+  const badgeOptions: BadgeOptions = {
+    frame: { kind: "slot", size: "grid" },
+    content: { mode: "thumbnail" },
+    displaySrc,
+    icon,
+    tone,
+    locked: isLocked,
+    glitter: showDedicatedGlitter ? "dedicated" : "none",
+    silhouette: true,
+    motionSeed: id,
+  };
 
   return (
     <AchievementGridItemContainer
       onClick={onClick}
-      badge={
-        <BadgeSlot size="grid">
-          <div className="relative h-full w-full">
-            <div
-              className={cn(
-                "relative h-full w-full",
-                isLocked && "opacity-70 grayscale",
-              )}
-            >
-              {displaySrc ? (
-                <>
-                  {!isLocked && silhouetteMaskStyle ? (
-                    <div
-                      aria-hidden
-                      className="badge-silhouette-shadow"
-                      style={silhouetteMaskStyle}
-                    />
-                  ) : null}
-                  <div className="relative h-full w-full">
-                    <RemoteBadgeImage src={displaySrc} />
-                  </div>
-                </>
-              ) : (
-                <FallbackBadge
-                  tone={tone}
-                  isLocked={isLocked}
-                  FallbackIcon={FallbackIcon}
-                  size="grid"
-                />
-              )}
-            </div>
-            {showDedicatedGlitter && displaySrc ? (
-              <ImpressionGlitterField
-                active
-                motionSeed={id}
-                maskStyle={glitterMaskStyle}
-                variant="grid"
-                overlay
-                className="z-[12]"
-              />
-            ) : null}
-          </div>
-        </BadgeSlot>
-      }
+      badge={<Badge options={badgeOptions} />}
       title={
         <p className={cn(gridItemTitleClass, "text-white")}>{displayTitle}</p>
       }
@@ -217,25 +160,21 @@ export function AchievementGridItem({
 
 type AchievementGridItemContainerProps = {
   onClick: () => void;
+  buttonClassName?: string;
   badge: ReactNode;
   title: ReactNode;
   dateLine: ReactNode;
-  buttonClassName?: string;
 };
 
 function AchievementGridItemContainer({
   onClick,
+  buttonClassName,
   badge,
   title,
   dateLine,
-  buttonClassName,
 }: AchievementGridItemContainerProps) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(gridItemButtonClass, buttonClassName)}
-    >
+    <button type="button" onClick={onClick} className={cn(gridItemButtonClass, buttonClassName)}>
       {badge}
       {title}
       {dateLine}
@@ -245,22 +184,10 @@ function AchievementGridItemContainer({
 
 export function AchievementGridItemFallback() {
   return (
-    <div
-      aria-hidden
-      className="flex w-full flex-col items-center gap-1.5 px-0.5 py-1"
-    >
-      <div
-        className={cn(
-          "aspect-square w-full max-w-[104px] animate-pulse rounded-3xl",
-          "bg-gradient-to-br from-white/[0.1] to-white/[0.03]",
-          "ring-1 ring-inset ring-white/10",
-        )}
-      />
-      <div className="flex h-[2.7em] w-full max-w-[104px] flex-col justify-center gap-1.5 px-1">
-        <div className="mx-auto h-2 w-[88%] max-w-[5.5rem] animate-pulse rounded-full bg-white/[0.08]" />
-        <div className="mx-auto h-2 w-[62%] max-w-[4rem] animate-pulse rounded-full bg-white/[0.06]" />
-      </div>
-      <div className="h-2.5 w-11 animate-pulse rounded-full bg-white/[0.06]" />
+    <div className={gridItemButtonClass} aria-hidden>
+      <div className="aspect-square w-full max-w-[104px] shrink-0 animate-pulse rounded-3xl bg-white/10" />
+      <div className="h-[2.7em] w-full animate-pulse rounded bg-white/10" />
+      <div className="h-3 w-12 animate-pulse rounded bg-white/10" />
     </div>
   );
 }

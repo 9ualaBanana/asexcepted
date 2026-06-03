@@ -6,15 +6,15 @@ type UnlockRevealWaveProps = {
   isUnlocking: boolean;
   detailMaskStyle: CSSProperties | null;
   unlockRevealClipPath: string;
-  children: ReactNode;
+  reveal: ReactNode;
 };
 
-/** Shared clipped overlay used while the unlock wave is revealing the badge. */
+/** Clipped overlay for the unlocked badge during the unlock animation. */
 export function UnlockRevealWave({
   isUnlocking,
   detailMaskStyle,
   unlockRevealClipPath,
-  children,
+  reveal,
 }: UnlockRevealWaveProps) {
   if (!isUnlocking) return null;
   return (
@@ -25,7 +25,7 @@ export function UnlockRevealWave({
         clipPath: unlockRevealClipPath,
       }}
     >
-      {children}
+      {reveal}
     </div>
   );
 }

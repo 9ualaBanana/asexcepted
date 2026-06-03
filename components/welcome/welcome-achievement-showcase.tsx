@@ -38,7 +38,6 @@ export function WelcomeAchievementShowcase() {
         renderSrc={renderSrc}
         motionSeed={detail.id}
         tone={detailTone}
-        FallbackIcon={DetailFallbackIcon}
         detail={detail}
         lockedUi={false}
         unlocking={false}

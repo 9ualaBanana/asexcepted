@@ -1,5 +1,14 @@
 /** Public badge module surface — prefer importing from here. */
 
+export { Badge } from "./display/badge";
+export type {
+  BadgeOptions,
+  BadgeFrame,
+  BadgeGlitter,
+  BadgeContent,
+  BadgeUnlock,
+} from "./display/badge-options";
+
 export { BadgeSlot } from "./chrome/badge-slot";
 export {
   BadgeIconDisc,
@@ -38,7 +47,6 @@ export {
 export { ImpressionGlitterField } from "./effects/impression-glitter-field";
 export { ImpressionBurst } from "./effects/impression-burst";
 export { UnlockRevealWave } from "./effects/unlock-reveal-wave";
-export { DedicatedBadgeGlitter } from "./effects/dedicated-badge-glitter";
 
 export {
   DetailBadgeInteractive,

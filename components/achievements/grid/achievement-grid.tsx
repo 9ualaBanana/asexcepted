@@ -69,10 +69,9 @@ function AchievementGridInner({
               title={achievement.title}
               dateLabel={achievement.dateLabel}
               displaySrc={achievement.displaySrc}
-              FallbackIcon={achievement.FallbackIcon}
+              icon={achievement.icon}
               tone={achievement.tone}
               isLocked={achievement.isLocked}
-              hasImpressions={achievement.hasImpressions}
               showDedicatedGlitter={achievement.showDedicatedGlitter}
               onClick={() => onSelectAchievement(achievement.id)}
             />

@@ -65,7 +65,6 @@ export function DedicationResponseDialog({
             <DetailBadgeInteractive
               renderSrc={renderSrc}
               motionSeed={detail.id}
-              FallbackIcon={detail.FallbackIcon}
               detail={detail}
               tone={tone}
               lockedUi

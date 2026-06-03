@@ -364,7 +364,6 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       renderSrc={detailRenderSrc}
                       motionSeed={detailAchievement.id}
                       tone={detailTone}
-                      FallbackIcon={DetailFallbackIcon}
                       detail={detailAchievement}
                       viewerStateKey={`${detailAchievement.id}:detail:${detailViewSessionKey}`}
                       lockedUi={detailIsLockedUi}

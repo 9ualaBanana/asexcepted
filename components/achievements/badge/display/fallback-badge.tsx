@@ -1,16 +1,20 @@
-import { Lock, type LucideIcon } from "lucide-react";
+import { Lock } from "lucide-react";
 
 import {
   BadgeIconDisc,
   badgeIconDiscSizeStyles,
 } from "@/components/achievements/badge/chrome/badge-icon-disc";
 import { type AchievementTone } from "@/components/achievements/achievement-manager-utils";
+import {
+  getSafeIcon,
+  type AchievementIconKey,
+} from "@/components/achievements/achievement-editor-shared";
 import { cn } from "@/lib/utils";
 
 type FallbackBadgeProps = {
   tone: AchievementTone;
   isLocked: boolean;
-  FallbackIcon: LucideIcon;
+  icon: AchievementIconKey;
   size?: "grid" | "detail";
   className?: string;
 };
@@ -42,11 +46,12 @@ const toneDiscStyles: Record<AchievementTone, string> = {
 export function FallbackBadge({
   tone,
   isLocked,
-  FallbackIcon,
+  icon,
   size = "grid",
   className,
 }: FallbackBadgeProps) {
   const s = badgeIconDiscSizeStyles[size];
+  const FallbackIcon = getSafeIcon(icon);
 
   return (
     <div

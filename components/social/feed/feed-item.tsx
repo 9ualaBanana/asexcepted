@@ -1,12 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { getSafeIcon } from "@/components/achievements/achievement-editor-shared";
-import {
-  BadgeSlot,
-  FallbackBadge,
-  DedicatedBadgeGlitter,
-  RemoteBadgeImage,
-} from "@/components/achievements/badge";
+
+import { Badge } from "@/components/achievements/badge/display/badge";
+import type { BadgeOptions } from "@/components/achievements/badge/display/badge-options";
 import { FeedActivityText } from "@/components/social/feed/feed-activity-text";
 import { ProfileAvatarSlot } from "@/components/profile/profile-avatar-slot";
 import type { AchievementFeedItemViewModel } from "@/lib/achievements/data/achievement-surface-view-models";
@@ -27,7 +25,6 @@ type FeedItemProps = {
 };
 
 export function FeedItem({ row }: FeedItemProps) {
-  const FallbackIcon = getSafeIcon(row.icon);
   const href = links.achievementDetail(
     row.userId,
     row.achievementId,
@@ -38,6 +35,18 @@ export function FeedItem({ row }: FeedItemProps) {
   const isDedication = row.eventType === "dedication";
   const eventTimeLabel = formatFeedEventTimestamp(row.eventAt);
   const avatarPx = Math.round(FEED_BADGE_PX * FEED_AVATAR_RATIO);
+
+  const badgeOptions: BadgeOptions = {
+    frame: { kind: "slot", size: "grid", className: "h-full w-full max-w-none" },
+    content: { mode: "thumbnail" },
+    displaySrc: row.displaySrc,
+    icon: row.icon,
+    tone: row.tone,
+    locked: false,
+    glitter: row.showDedicatedGlitter ? "dedicated" : "none",
+    silhouette: true,
+    motionSeed: row.achievementId,
+  };
 
   return (
     <article
@@ -60,30 +69,7 @@ export function FeedItem({ row }: FeedItemProps) {
           className="relative"
           style={{ width: FEED_BADGE_PX, height: FEED_BADGE_PX }}
         >
-          <BadgeSlot
-            size="grid"
-            className="h-full w-full max-w-none"
-          >
-            <div className="relative h-full w-full">
-              {row.displaySrc ? (
-                <RemoteBadgeImage src={row.displaySrc} />
-              ) : (
-                <FallbackBadge
-                  tone={row.tone}
-                  isLocked={false}
-                  FallbackIcon={FallbackIcon}
-                  size="grid"
-                />
-              )}
-              {row.showDedicatedGlitter && row.displaySrc ? (
-                <DedicatedBadgeGlitter
-                  renderSrc={row.displaySrc}
-                  motionSeed={row.achievementId}
-                  className="z-[12]"
-                />
-              ) : null}
-            </div>
-          </BadgeSlot>
+          <Badge options={badgeOptions} />
           <Link
             href={actorHref}
             aria-label={`Open ${row.actorDisplayName || "profile"} profile`}

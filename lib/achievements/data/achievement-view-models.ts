@@ -36,7 +36,7 @@ export type AchievementGridViewModel = {
   title: string | null;
   dateLabel: string | null;
   displaySrc: string | null;
-  FallbackIcon: LucideIcon;
+  icon: AchievementIconKey;
   tone: AchievementTone;
   isLocked: boolean;
   hasImpressions: boolean;
@@ -204,7 +204,7 @@ export function detailToGridViewModel(detail: AchievementDetailViewModel): Achie
     title: detail.title,
     dateLabel: formatGridDate(detail.achievedAt),
     displaySrc: detail.renderSrc,
-    FallbackIcon: detail.FallbackIcon,
+    icon: detail.icon,
     tone: detail.tone,
     isLocked: detail.isLocked,
     hasImpressions: detail.impressionCount > 0,

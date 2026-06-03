@@ -2,28 +2,20 @@
 
 import { useEffect, useMemo, useRef } from "react";
 
-import { FloatingBadgeWrapper } from "@/components/achievements/badge/display/floating-badge-wrapper";
-import { ImpressionGlitterField } from "@/components/achievements/badge/effects/impression-glitter-field";
-import { badgeImageMaskStylePadded } from "@/lib/achievements/badge/parallax/badge-mask-style";
 import {
   ensureBadgeImageDecoded,
   getCachedBadgeMaskStyle,
 } from "@/lib/achievements/badge/shared/render-cache";
 import { cn } from "@/lib/utils";
 
-/** Flat image badge with CSS parallax drag, optional float, optional impression glitter. */
+/** Flat image badge with CSS parallax drag — float and glitter are composed by `Badge`. */
 export type BadgeParallaxViewerProps = {
   src: string;
   className?: string;
-  float?: boolean;
   /** Seed for motion params; use achievement id to match detail + embed. */
   motionSeed?: string;
-  /** Passed through to `makeBadgeMotionStyle` (e.g. true right after unlock). */
-  motionStartCentered?: boolean;
   onImageDecoded?: () => void;
   onVisualReady?: () => void;
-  impressionGlitter?: boolean;
-  impressionGlitterRevealPulse?: number;
 };
 
 const MODEL_DEPTH_LAYERS = 7;
@@ -37,13 +29,9 @@ const INERTIA_MIN_SPEED = 0.015;
 export function BadgeParallaxViewer({
   src,
   className,
-  float = false,
   motionSeed,
-  motionStartCentered = false,
   onImageDecoded,
   onVisualReady,
-  impressionGlitter = false,
-  impressionGlitterRevealPulse = 0,
 }: BadgeParallaxViewerProps) {
   const imageSrc = useMemo(() => src.trim(), [src]);
   if (!imageSrc) return null;
@@ -52,13 +40,9 @@ export function BadgeParallaxViewer({
     <BadgeParallaxScene
       src={imageSrc}
       className={className}
-      float={float}
       motionSeed={motionSeed}
-      motionStartCentered={motionStartCentered}
       onImageDecoded={onImageDecoded}
       onVisualReady={onVisualReady}
-      impressionGlitter={impressionGlitter}
-      impressionGlitterRevealPulse={impressionGlitterRevealPulse}
     />
   );
 }
@@ -70,13 +54,9 @@ type BadgeParallaxSceneProps = Omit<BadgeParallaxViewerProps, "src"> & {
 function BadgeParallaxScene({
   src,
   className,
-  float = false,
   motionSeed,
-  motionStartCentered = false,
   onImageDecoded,
   onVisualReady,
-  impressionGlitter = false,
-  impressionGlitterRevealPulse = 0,
 }: BadgeParallaxSceneProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const modelRef = useRef<HTMLDivElement>(null);
@@ -93,10 +73,6 @@ function BadgeParallaxScene({
 
   const safeSrc = useMemo(() => src.replace(/"/g, '\\"'), [src]);
   const maskStyle = useMemo(() => getCachedBadgeMaskStyle(src), [src]);
-  const glitterMaskStyle = useMemo(
-    () => badgeImageMaskStylePadded(src, 108),
-    [src],
-  );
   const motionSeedKey = useMemo(
     () => resolveTrimmedKey(motionSeed, src, "badge"),
     [motionSeed, src],
@@ -306,32 +282,11 @@ function BadgeParallaxScene({
             backgroundImage: `url("${safeSrc}")`,
           }}
         />
-        {impressionGlitter ? (
-          <ImpressionGlitterField
-            active
-            motionSeed={motionSeedKey}
-            maskStyle={glitterMaskStyle}
-            revealPulse={impressionGlitterRevealPulse}
-            variant="detail"
-            className="impression-glitter-3d-front"
-          />
-        ) : null}
       </div>
     </div>
   );
 
-  if (!float) return viewer;
-
-  return (
-    <FloatingBadgeWrapper
-      motionSeed={motionSeedKey}
-      sourceKey={src}
-      motionStartCentered={motionStartCentered}
-      fallbackSeed="badge"
-    >
-      {viewer}
-    </FloatingBadgeWrapper>
-  );
+  return viewer;
 }
 
 function resolveTrimmedKey(...candidates: Array<string | null | undefined>): string {

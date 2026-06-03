@@ -2,10 +2,7 @@ import { connection } from "next/server";
 
 import { notFound } from "next/navigation";
 
-import {
-  BadgeGltfViewer,
-  BadgeParallaxViewer,
-} from "@/components/achievements/badge";
+import { Badge } from "@/components/achievements/badge/display/badge";
 import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/shared/badge-assets-server";
 import { getAchievementEmbedBadgeById } from "@/lib/achievements/data/achievement-queries";
 import { verifyEmbedBadgeToken } from "@/lib/embed/embed-badge-token";
@@ -51,23 +48,22 @@ export async function EmbedBadgeContent({ params }: Props) {
     <div className="flex min-h-dvh min-h-[100dvh] items-center justify-center bg-transparent p-4">
       <EmbedTransparentSurface />
       <div className="h-[min(88vmin,20rem)] w-[min(88vmin,20rem)] max-h-[90dvh] max-w-[90dvw]">
-        {liveModelUrl && badge.model ? (
-          <BadgeGltfViewer
-            model={badge.model}
-            signedModelUrl={liveModelUrl}
-            renderSrc={badge.renderSrc}
-            className="p-1"
-            float
-            motionSeed={payload.achievementId}
-          />
-        ) : (
-          <BadgeParallaxViewer
-            src={badge.renderSrc!}
-            className="p-1"
-            float
-            motionSeed={payload.achievementId}
-          />
-        )}
+        <Badge
+          options={{
+            frame: { kind: "none", className: "h-full w-full" },
+            content: { mode: "interactive" },
+            displaySrc: badge.renderSrc,
+            icon: "award",
+            tone: "teal",
+            model: badge.model,
+            signedModelUrl: liveModelUrl,
+            glitter: "none",
+            silhouette: false,
+            float: true,
+            motionSeed: payload.achievementId,
+            allowFallback: false,
+          }}
+        />
       </div>
     </div>
   );

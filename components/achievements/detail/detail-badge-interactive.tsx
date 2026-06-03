@@ -1,22 +1,14 @@
 "use client";
 
 import type { CSSProperties, ReactNode, RefObject } from "react";
-import type { LucideIcon } from "lucide-react";
-
-import { BadgeSlot } from "@/components/achievements/badge/chrome/badge-slot";
-import { FallbackBadge } from "@/components/achievements/badge/display/fallback-badge";
-import { RemoteBadgeImage } from "@/components/achievements/badge/display/remote-badge-image";
-import { ImpressionGlitterField } from "@/components/achievements/badge/effects/impression-glitter-field";
-import { UnlockRevealWave } from "@/components/achievements/badge/effects/unlock-reveal-wave";
-import { BadgeParallaxViewer } from "@/components/achievements/badge/parallax/badge-parallax-viewer";
-import { BadgeGltfViewer } from "@/components/achievements/badge/model/badge-gltf-viewer";
+import { Badge } from "@/components/achievements/badge/display/badge";
+import type {
+  BadgeGlitter,
+  BadgeOptions,
+} from "@/components/achievements/badge/display/badge-options";
 import type { AchievementTone } from "@/components/achievements/achievement-manager-utils";
-import {
-  badgeImageMaskStylePadded,
-  circularBadgeMaskStyle,
-  paddedBadgeMaskStyle,
-} from "@/lib/achievements/badge/parallax/badge-mask-style";
-import { isOpaqueBadgeHit, type AlphaMaskData } from "@/lib/achievements/badge/parallax/shape-utils";
+import type { AchievementIconKey } from "@/components/achievements/achievement-editor-shared";
+import type { AlphaMaskData } from "@/lib/achievements/badge/parallax/shape-utils";
 import { cn } from "@/lib/utils";
 import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
 
@@ -24,7 +16,6 @@ export type DetailBadgeInteractiveProps = {
   renderSrc: string | null;
   motionSeed: string;
   tone: AchievementTone;
-  FallbackIcon: LucideIcon;
   detail: AchievementDetailViewModel;
   viewerStateKey?: string;
   lockedUi: boolean;
@@ -47,14 +38,24 @@ export type DetailBadgeInteractiveProps = {
   dedicatedBadgeGlitter?: boolean;
 };
 
-/**
- * Detail-panel badge stack: GLB live viewer OR image parallax viewer, unlock wave, glitter.
- */
+function resolveDetailGlitter(
+  dedicatedBadgeGlitter: boolean,
+  impressionGlitter: boolean,
+): BadgeGlitter {
+  if (dedicatedBadgeGlitter) return "dedicated";
+  if (
+    process.env.NEXT_PUBLIC_IMPRESSION_GLITTER_UI_ENABLED === "true" &&
+    impressionGlitter
+  ) {
+    return "impression";
+  }
+  return "none";
+}
+
 export function DetailBadgeInteractive({
   renderSrc,
   motionSeed,
   tone,
-  FallbackIcon,
   detail,
   viewerStateKey,
   lockedUi,
@@ -76,166 +77,45 @@ export function DetailBadgeInteractive({
   impressionGlitterRevealPulse = 0,
   dedicatedBadgeGlitter = false,
 }: DetailBadgeInteractiveProps) {
-  const hasIconUrl = !!renderSrc;
-  const badgeModel = detail.model;
-  const showGlitter =
-    dedicatedBadgeGlitter ||
-    (process.env.NEXT_PUBLIC_IMPRESSION_GLITTER_UI_ENABLED === "true" &&
-      impressionGlitter);
-  const glitterRevealPulse = dedicatedBadgeGlitter ? 0 : impressionGlitterRevealPulse;
-  const glitterMaskStyle = renderSrc
-    ? badgeImageMaskStylePadded(renderSrc, 108)
-    : paddedBadgeMaskStyle(circularBadgeMaskStyle(), 108);
-
-  const unlockedBadgeContent = () => {
-    if (lockedUi) {
-      return renderSrc ? (
-        <RemoteBadgeImage
-          src={renderSrc}
-          className="h-full w-full object-contain p-1 opacity-80 grayscale"
-          onDecoded={onImageDecoded}
-        />
-      ) : null;
-    }
-
-    if (badgeModel) {
-      return (
-        <BadgeGltfViewer
-          model={badgeModel}
-          renderSrc={renderSrc}
-          className="p-1"
-          float={floating}
-          motionSeed={motionSeed}
-          motionStartCentered={motionStartCentered}
-          stateKey={viewerStateKey}
-          onPreviewDecoded={onImageDecoded}
-          onModelUrlReady={onModelUrlReady}
-          onVisualReady={onVisualReady}
-        />
-      );
-    }
-
-    if (!renderSrc) return null;
-
-    return (
-      <BadgeParallaxViewer
-        src={renderSrc}
-        className="p-1"
-        float={floating}
-        motionSeed={motionSeed}
-        motionStartCentered={motionStartCentered}
-        onImageDecoded={onImageDecoded}
-        onVisualReady={onVisualReady}
-        impressionGlitter={showGlitter}
-        impressionGlitterRevealPulse={glitterRevealPulse}
-      />
-    );
+  const options: BadgeOptions = {
+    frame: {
+      kind: "slot",
+      size: "detail",
+      className: cn("relative", slotClassName),
+    },
+    content: {
+      mode: "interactive",
+      viewerStateKey,
+      onImageDecoded,
+      onModelUrlReady,
+      onVisualReady,
+      motionStartCentered,
+      impressionGlitterRevealPulse,
+    },
+    displaySrc: renderSrc,
+    icon: detail.icon,
+    tone,
+    model: detail.model,
+    locked: lockedUi,
+    glitter: resolveDetailGlitter(dedicatedBadgeGlitter, impressionGlitter),
+    silhouette: false,
+    float: floating,
+    motionSeed,
+    unlock: {
+      active: unlocking,
+      clipPath: unlockRevealClipPath,
+      maskStyle: detailMaskStyle,
+      hold: enableUnlockHold
+        ? {
+            enabled: true,
+            onPointerDown: onUnlockPointerDown,
+            onPointerEnd: onUnlockPointerEnd,
+            alphaMaskRef: unlockAlphaMaskRef,
+          }
+        : undefined,
+    },
+    impressionOverlay,
   };
 
-  return (
-    <div className="relative">
-      {impressionOverlay}
-      <BadgeSlot size="detail" className={cn("relative", slotClassName)}>
-        {enableUnlockHold && lockedUi ? (
-          <button
-            type="button"
-            aria-label="Press and hold to unlock"
-            className={cn(
-              "no-tap-highlight absolute inset-0 z-20",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40",
-            )}
-            onPointerDown={(e) => {
-              if (
-                !isOpaqueBadgeHit(
-                  e.clientX,
-                  e.clientY,
-                  e.currentTarget.getBoundingClientRect(),
-                  unlockAlphaMaskRef.current,
-                  "filled",
-                )
-              ) {
-                return;
-              }
-              onUnlockPointerDown?.();
-            }}
-            onPointerUp={onUnlockPointerEnd}
-            onPointerLeave={onUnlockPointerEnd}
-            onPointerCancel={onUnlockPointerEnd}
-            onContextMenu={(e) => e.preventDefault()}
-          />
-        ) : null}
-        {hasIconUrl ? (
-          <>
-            <div className="relative h-full w-full">{unlockedBadgeContent()}</div>
-            {badgeModel && showGlitter && !lockedUi ? (
-              <ImpressionGlitterField
-                active
-                motionSeed={motionSeed}
-                maskStyle={glitterMaskStyle}
-                revealPulse={glitterRevealPulse}
-                variant="detail"
-                overlay
-                className="z-[18]"
-              />
-            ) : null}
-            {showGlitter && lockedUi ? (
-              <ImpressionGlitterField
-                active
-                motionSeed={motionSeed}
-                maskStyle={glitterMaskStyle}
-                revealPulse={glitterRevealPulse}
-                variant="detail"
-                overlay
-                className="z-[19]"
-              />
-            ) : null}
-            <UnlockRevealWave
-              isUnlocking={unlocking}
-              detailMaskStyle={detailMaskStyle}
-              unlockRevealClipPath={unlockRevealClipPath}
-            >
-              {renderSrc ? (
-                <RemoteBadgeImage
-                  src={renderSrc}
-                  className="h-full w-full object-contain p-1"
-                />
-              ) : null}
-            </UnlockRevealWave>
-          </>
-        ) : (
-          <>
-            <div className="relative h-full w-full">
-              {showGlitter ? (
-                <ImpressionGlitterField
-                  active
-                  motionSeed={motionSeed}
-                  maskStyle={paddedBadgeMaskStyle(circularBadgeMaskStyle(), 108)}
-                  revealPulse={glitterRevealPulse}
-                  variant="detail"
-                />
-              ) : null}
-              <FallbackBadge
-                tone={tone}
-                isLocked={lockedUi}
-                FallbackIcon={FallbackIcon}
-                size="detail"
-              />
-            </div>
-            <UnlockRevealWave
-              isUnlocking={unlocking}
-              detailMaskStyle={detailMaskStyle}
-              unlockRevealClipPath={unlockRevealClipPath}
-            >
-              <FallbackBadge
-                tone={tone}
-                isLocked={false}
-                FallbackIcon={FallbackIcon}
-                size="detail"
-              />
-            </UnlockRevealWave>
-          </>
-        )}
-      </BadgeSlot>
-    </div>
-  );
+  return <Badge options={options} />;
 }

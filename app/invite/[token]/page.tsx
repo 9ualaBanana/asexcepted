@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import {
-  BadgeGltfViewer,
-  BadgeAttributionPopover,
-  BadgeParallaxViewer,
-} from "@/components/achievements/badge";
+import { Badge } from "@/components/achievements/badge/display/badge";
+import { BadgeAttributionPopover } from "@/components/achievements/badge";
 import { formatAchievedAt } from "@/components/achievements/achievement-editor-shared";
 import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/shared/badge-assets-server";
 import { shareInviteRowToBadgeViewModel } from "@/lib/achievements/data/achievement-surface-view-models";
@@ -161,21 +158,22 @@ export default async function Page({ params }: PageProps) {
         <div className="w-full rounded-[2.25rem] border border-white/10 bg-[rgba(20,18,28,0.9)] px-6 py-8 shadow-[0_24px_80px_rgba(0,0,0,0.36)] backdrop-blur-xl sm:px-8">
           <div className="mx-auto h-[18rem] w-full max-w-[18rem]">
             <div className="relative h-full w-full">
-              {liveModelUrl && inviteBadge.model ? (
-                <BadgeGltfViewer
-                  model={inviteBadge.model}
-                  signedModelUrl={liveModelUrl}
-                  renderSrc={inviteBadge.renderSrc}
-                  float
-                  motionSeed={invite.id}
-                  className="mx-auto"
-                />
-              ) : inviteBadge.renderSrc ? (
-                <BadgeParallaxViewer
-                  src={inviteBadge.renderSrc}
-                  float
-                  motionSeed={invite.id}
-                  className="mx-auto"
+              {inviteBadge.renderSrc ? (
+                <Badge
+                  options={{
+                    frame: { kind: "none", className: "mx-auto h-full w-full" },
+                    content: { mode: "interactive" },
+                    displaySrc: inviteBadge.renderSrc,
+                    icon: "award",
+                    tone: "teal",
+                    model: inviteBadge.model,
+                    signedModelUrl: liveModelUrl,
+                    glitter: "none",
+                    silhouette: false,
+                    float: true,
+                    motionSeed: invite.id,
+                    allowFallback: false,
+                  }}
                 />
               ) : null}
               {inviteBadge.showAttributionPopover ? (
