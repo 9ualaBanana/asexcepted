@@ -15,7 +15,22 @@ export function badgeSilhouetteMaskStyle(src: string): CSSProperties {
   };
 }
 
-export function BadgeSilhouetteShadow({ src }: { src: string }) {
+type BadgeSilhouetteLayerProps = {
+  silhouette: boolean;
+  locked: boolean;
+  src: string | null;
+};
+
+/** Decorative silhouette behind badge art. */
+export function BadgeSilhouetteLayer({
+  silhouette,
+  locked,
+  src,
+}: BadgeSilhouetteLayerProps) {
+  if (!silhouette || locked || !src) {
+    return null;
+  }
+
   return (
     <div
       aria-hidden

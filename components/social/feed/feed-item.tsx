@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 
 import { Badge } from "@/components/achievements/badge/display/badge";
-import type { BadgeOptions } from "@/components/achievements/badge/display/badge-options";
+import { badgeOptionsForFeedRow } from "@/components/achievements/badge/display/badge-presets";
 import { FeedActivityText } from "@/components/social/feed/feed-activity-text";
 import { ProfileAvatarSlot } from "@/components/profile/profile-avatar-slot";
 import type { AchievementFeedItemViewModel } from "@/lib/achievements/data/achievement-surface-view-models";
@@ -36,17 +36,14 @@ export function FeedItem({ row }: FeedItemProps) {
   const eventTimeLabel = formatFeedEventTimestamp(row.eventAt);
   const avatarPx = Math.round(FEED_BADGE_PX * FEED_AVATAR_RATIO);
 
-  const badgeOptions: BadgeOptions = {
-    frame: { kind: "slot", size: "grid", className: "h-full w-full max-w-none" },
-    content: { mode: "thumbnail" },
+  const badgeOptions = badgeOptionsForFeedRow({
+    achievementId: row.achievementId,
     displaySrc: row.displaySrc,
     icon: row.icon,
     tone: row.tone,
-    locked: false,
-    glitter: row.showDedicatedGlitter ? "dedicated" : "none",
-    silhouette: true,
-    motionSeed: row.achievementId,
-  };
+    showDedicatedGlitter: row.showDedicatedGlitter,
+    frameClassName: "h-full w-full max-w-none",
+  });
 
   return (
     <article

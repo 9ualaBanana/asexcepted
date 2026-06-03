@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { notFound } from "next/navigation";
 
 import { Badge } from "@/components/achievements/badge/display/badge";
+import { badgeOptionsForEmbed } from "@/components/achievements/badge/display/badge-presets";
 import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/shared/badge-assets-server";
 import { getAchievementEmbedBadgeById } from "@/lib/achievements/data/achievement-queries";
 import { verifyEmbedBadgeToken } from "@/lib/embed/embed-badge-token";
@@ -49,20 +50,12 @@ export async function EmbedBadgeContent({ params }: Props) {
       <EmbedTransparentSurface />
       <div className="h-[min(88vmin,20rem)] w-[min(88vmin,20rem)] max-h-[90dvh] max-w-[90dvw]">
         <Badge
-          options={{
-            frame: { kind: "none", className: "h-full w-full" },
-            content: { mode: "interactive" },
+          options={badgeOptionsForEmbed({
+            achievementId: payload.achievementId,
             displaySrc: badge.renderSrc,
-            icon: "award",
-            tone: "teal",
             model: badge.model,
             signedModelUrl: liveModelUrl,
-            glitter: "none",
-            silhouette: false,
-            float: true,
-            motionSeed: payload.achievementId,
-            allowFallback: false,
-          }}
+          })}
         />
       </div>
     </div>

@@ -12,8 +12,6 @@ import { cn } from "@/lib/utils";
 export type BadgeParallaxViewerProps = {
   src: string;
   className?: string;
-  /** Seed for motion params; use achievement id to match detail + embed. */
-  motionSeed?: string;
   onImageDecoded?: () => void;
   onVisualReady?: () => void;
 };
@@ -29,7 +27,6 @@ const INERTIA_MIN_SPEED = 0.015;
 export function BadgeParallaxViewer({
   src,
   className,
-  motionSeed,
   onImageDecoded,
   onVisualReady,
 }: BadgeParallaxViewerProps) {
@@ -40,7 +37,6 @@ export function BadgeParallaxViewer({
     <BadgeParallaxScene
       src={imageSrc}
       className={className}
-      motionSeed={motionSeed}
       onImageDecoded={onImageDecoded}
       onVisualReady={onVisualReady}
     />
@@ -54,7 +50,6 @@ type BadgeParallaxSceneProps = Omit<BadgeParallaxViewerProps, "src"> & {
 function BadgeParallaxScene({
   src,
   className,
-  motionSeed,
   onImageDecoded,
   onVisualReady,
 }: BadgeParallaxSceneProps) {
@@ -73,10 +68,6 @@ function BadgeParallaxScene({
 
   const safeSrc = useMemo(() => src.replace(/"/g, '\\"'), [src]);
   const maskStyle = useMemo(() => getCachedBadgeMaskStyle(src), [src]);
-  const motionSeedKey = useMemo(
-    () => resolveTrimmedKey(motionSeed, src, "badge"),
-    [motionSeed, src],
-  );
   const sideLayerStyle = useMemo(
     () =>
       Array.from({ length: MODEL_DEPTH_LAYERS }).map((_, i) => {
@@ -287,12 +278,4 @@ function BadgeParallaxScene({
   );
 
   return viewer;
-}
-
-function resolveTrimmedKey(...candidates: Array<string | null | undefined>): string {
-  for (const candidate of candidates) {
-    const normalized = candidate?.trim();
-    if (normalized) return normalized;
-  }
-  return "";
 }

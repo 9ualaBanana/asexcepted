@@ -4,7 +4,10 @@ import { useRef } from "react";
 import { createPortal } from "react-dom";
 import { Check, X } from "lucide-react";
 
-import { DetailBadgeInteractive } from "@/components/achievements/badge";
+import {
+  Badge,
+  badgeOptionsForDetailInteractive,
+} from "@/components/achievements/badge";
 import { DedicationBylineChromeRow } from "@/components/achievements/dedication/dedication-byline-chrome-row";
 import { resolveTone } from "@/components/achievements/achievement-manager-utils";
 import { achievementDialogIconBtn } from "@/components/achievements/achievement-editor-shared";
@@ -62,19 +65,21 @@ export function DedicationResponseDialog({
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-center">
-            <DetailBadgeInteractive
-              renderSrc={renderSrc}
-              motionSeed={detail.id}
-              detail={detail}
-              tone={tone}
-              lockedUi
-              unlocking={false}
-              floating={false}
-              detailMaskStyle={null}
-              unlockRevealClipPath="inset(0 0 0 0)"
-              unlockAlphaMaskRef={unlockAlphaMaskRef}
-              enableUnlockHold={false}
-              dedicatedBadgeGlitter
+            <Badge
+              options={badgeOptionsForDetailInteractive({
+                renderSrc,
+                motionSeed: detail.id,
+                detail,
+                tone,
+                lockedUi: true,
+                unlocking: false,
+                floating: false,
+                detailMaskStyle: null,
+                unlockRevealClipPath: "inset(0 0 0 0)",
+                unlockAlphaMaskRef,
+                enableUnlockHold: false,
+                dedicatedBadgeGlitter: true,
+              })}
             />
           </div>
 

@@ -7,7 +7,19 @@ export type {
   BadgeGlitter,
   BadgeContent,
   BadgeUnlock,
+  BadgeImpression,
 } from "./display/badge-options";
+
+export {
+  badgeOptionsForGrid,
+  badgeOptionsForFeedRow,
+  badgeOptionsForDetailInteractive,
+  badgeOptionsForEditor,
+  badgeOptionsForEmbed,
+  badgeOptionsForInvite,
+  resolveDetailBadgeGlitter,
+  type DetailInteractiveBadgeOptionsParams,
+} from "./display/badge-presets";
 
 export { BadgeSlot } from "./chrome/badge-slot";
 export {
@@ -18,7 +30,6 @@ export { BadgeAttributionPopover } from "./chrome/badge-attribution-popover";
 
 export { RemoteBadgeImage } from "./display/remote-badge-image";
 export { FallbackBadge } from "./display/fallback-badge";
-export { FloatingBadgeWrapper } from "./display/floating-badge-wrapper";
 
 export {
   BadgeParallaxViewer,
@@ -44,14 +55,10 @@ export {
   type BadgeModelUploadStaged,
 } from "./upload/model/use-badge-model-uploader";
 
-export { ImpressionGlitterField } from "./effects/impression-glitter-field";
+export { BadgeGlitterLayer } from "./display/badge-glitter-layer";
+export { BadgeImpressionLayer } from "./display/badge-impression-layer";
 export { ImpressionBurst } from "./effects/impression-burst";
 export { UnlockRevealWave } from "./effects/unlock-reveal-wave";
-
-export {
-  DetailBadgeInteractive,
-  type DetailBadgeInteractiveProps,
-} from "../detail/detail-badge-interactive";
 
 export { BadgeEditor } from "./editor/badge-editor";
 

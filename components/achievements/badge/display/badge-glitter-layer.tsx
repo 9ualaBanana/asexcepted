@@ -2,18 +2,27 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 
+import {
+  getBadgeContentMode,
+  resolveBadgeGlitterVariant,
+  type BadgeContent,
+  type BadgeFrame,
+  type BadgeGlitter,
+} from "@/components/achievements/badge/display/badge-options";
 import { buildGlitterParticles } from "@/lib/achievements/badge/parallax/glitter-particles";
+import {
+  badgeImageMaskStylePadded,
+  circularBadgeMaskStyle,
+  paddedBadgeMaskStyle,
+} from "@/lib/achievements/badge/parallax/badge-mask-style";
 import { cn } from "@/lib/utils";
 
-type ImpressionGlitterFieldProps = {
-  active: boolean;
+type BadgeGlitterLayerProps = {
+  glitter: BadgeGlitter;
+  displaySrc: string | null;
   motionSeed: string;
-  maskStyle: CSSProperties;
-  revealPulse?: number;
-  variant?: "detail" | "grid";
-  /** Flat layer on top of badge art (grid, locked detail). */
-  overlay?: boolean;
-  className?: string;
+  frame: BadgeFrame;
+  content: BadgeContent;
 };
 
 const paletteClass: Record<
@@ -26,17 +35,29 @@ const paletteClass: Record<
   rose: "bg-rose-200/80",
 };
 
-export function ImpressionGlitterField({
-  active,
+/** Dedicated / impression glitter particles over badge art. */
+export function BadgeGlitterLayer({
+  glitter,
+  displaySrc,
   motionSeed,
-  maskStyle,
-  revealPulse = 0,
-  variant = "detail",
-  overlay = false,
-  className,
-}: ImpressionGlitterFieldProps) {
+  frame,
+  content,
+}: BadgeGlitterLayerProps) {
   const [reduceMotion, setReduceMotion] = useState(false);
-  const spinsWithBadge = variant === "detail" && !overlay;
+  const { interactive } = getBadgeContentMode(content);
+  const variant = resolveBadgeGlitterVariant(frame);
+  const revealPulse =
+    glitter === "impression"
+      ? (interactive?.impressionGlitterRevealPulse ?? 0)
+      : 0;
+
+  const maskStyle = useMemo(
+    () =>
+      displaySrc
+        ? badgeImageMaskStylePadded(displaySrc, 108)
+        : paddedBadgeMaskStyle(circularBadgeMaskStyle(), 108),
+    [displaySrc],
+  );
 
   const particleCount = variant === "grid" ? 22 : 44;
   const particles = useMemo(
@@ -59,15 +80,16 @@ export function ImpressionGlitterField({
     return () => mq.removeEventListener("change", sync);
   }, []);
 
-  if (!active) return null;
+  if (glitter === "none" || !displaySrc) {
+    return null;
+  }
 
   return (
     <div
       aria-hidden
       className={cn(
         "pointer-events-none absolute -inset-[11%] overflow-hidden",
-        spinsWithBadge && "impression-glitter-3d",
-        className,
+        variant === "grid" ? "z-[12]" : "z-[18]",
       )}
       style={maskStyle}
     >
@@ -76,10 +98,7 @@ export function ImpressionGlitterField({
           key={`${revealPulse}-${particle.id}`}
           className={cn(
             "impression-glitter-particle absolute rounded-full will-change-transform",
-            !reduceMotion &&
-              (spinsWithBadge
-                ? undefined
-                : "impression-glitter-particle-flat"),
+            !reduceMotion && "impression-glitter-particle-flat",
             paletteClass[particle.palette],
           )}
           style={
@@ -90,7 +109,7 @@ export function ImpressionGlitterField({
               height: particle.sizePx,
               "--glitter-dx": `${particle.driftX}px`,
               "--glitter-dy": `${particle.driftY}px`,
-              "--glitter-dz": spinsWithBadge ? `${particle.driftZ}px` : "0px",
+              "--glitter-dz": "0px",
               "--glitter-delay": `${particle.delayMs}ms`,
               "--glitter-duration": `${particle.durationMs}ms`,
             } as CSSProperties

@@ -2,7 +2,10 @@
 
 import { useMemo, useRef } from "react";
 
-import { DetailBadgeInteractive } from "@/components/achievements/badge";
+import {
+  Badge,
+  badgeOptionsForDetailInteractive,
+} from "@/components/achievements/badge";
 import { useAchievementDetailViewModel } from "@/components/achievements/detail/use-achievement-detail-view-model";
 import { getWelcomeIntroDetailViewModel } from "@/lib/welcome/intro-achievement";
 import type { AlphaMaskData } from "@/lib/achievements/badge/parallax/shape-utils";
@@ -34,17 +37,19 @@ export function WelcomeAchievementShowcase() {
 
   return (
     <div className="flex w-full max-w-lg flex-col items-center">
-      <DetailBadgeInteractive
-        renderSrc={renderSrc}
-        motionSeed={detail.id}
-        tone={detailTone}
-        detail={detail}
-        lockedUi={false}
-        unlocking={false}
-        detailMaskStyle={detailMaskStyle}
-        unlockRevealClipPath={EMPTY_CLIP}
-        unlockAlphaMaskRef={unlockAlphaMaskRef}
-        slotClassName={WELCOME_BADGE_SLOT_CLASS}
+      <Badge
+        options={badgeOptionsForDetailInteractive({
+          renderSrc,
+          motionSeed: detail.id,
+          tone: detailTone,
+          detail,
+          lockedUi: false,
+          unlocking: false,
+          detailMaskStyle,
+          unlockRevealClipPath: EMPTY_CLIP,
+          unlockAlphaMaskRef,
+          slotClassName: WELCOME_BADGE_SLOT_CLASS,
+        })}
       />
 
       <p className="mt-3 w-full shrink-0 text-center text-[10px] font-medium uppercase tracking-[0.2em] text-white/45">

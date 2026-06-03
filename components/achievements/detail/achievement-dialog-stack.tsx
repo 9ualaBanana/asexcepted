@@ -3,7 +3,6 @@
 import { createPortal } from "react-dom";
 import {
   useCallback,
-  useState,
   type CSSProperties,
   type Dispatch,
   type FormEvent,
@@ -14,9 +13,9 @@ import { Check, Loader2, PenLine, X, type LucideIcon } from "lucide-react";
 
 import type { AchievementTone } from "@/components/achievements/achievement-manager-utils";
 import {
-  DetailBadgeInteractive,
+  Badge,
   BadgeAttributionPopover,
-  ImpressionBurst,
+  badgeOptionsForDetailInteractive,
   submitImpression,
   type BadgeSessionController,
 } from "@/components/achievements/badge";
@@ -42,7 +41,6 @@ import {
 import {
   type AchievementDetailViewModel,
 } from "@/lib/achievements/data/achievement-view-models";
-import { useDoubleActivate } from "@/lib/hooks/use-double-activate";
 import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
 import { getTutorial, TUTORIAL_IDS, useTutorial, useTutorialToast } from "@/lib/tutorials";
 import { cn } from "@/lib/utils";
@@ -191,8 +189,6 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
   const badgeSpinTutorialDefinition = getTutorial(TUTORIAL_IDS.badgeSpin);
   const detailHasCustomBadge =
     detailAchievement != null && detailAchievement.hasCustomBadge;
-  const [impressionBurstPulse, setImpressionBurstPulse] = useState(0);
-
   useTutorialToast({
     tutorial: impressionTutorialDefinition,
     active: readOnly && !detailIsLockedUi && impressionTutorial.active,
@@ -247,7 +243,6 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     const hadImpressionsBefore =
       detailAchievement.impressionCount > 0 || detailShowsImpressionGlitter;
 
-    setImpressionBurstPulse((n) => n + 1);
     impressionTutorial.dismiss();
 
     if (!hadImpressionsBefore) {
@@ -270,15 +265,6 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     onImpressionRecorded,
     readOnly,
   ]);
-
-  const impressionDoubleActivate = useDoubleActivate({
-    onActivate: handleLeaveImpression,
-    disabled:
-      !readOnly ||
-      !detailAchievement ||
-      detailIsUnlocking ||
-      detailIsLockedUi,
-  });
 
   useBodyScrollLock();
 
@@ -348,46 +334,40 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                   </button>
                 </div>
                 <div className="flex justify-center">
-                  <div
-                    className={cn(
-                      "relative",
-                      readOnly && !detailIsUnlocking && "no-tap-highlight",
-                    )}
-                    onDoubleClick={
-                      readOnly ? impressionDoubleActivate.onDoubleClick : undefined
-                    }
-                    onPointerUp={
-                      readOnly ? impressionDoubleActivate.onPointerUp : undefined
-                    }
-                  >
-                    <DetailBadgeInteractive
-                      renderSrc={detailRenderSrc}
-                      motionSeed={detailAchievement.id}
-                      tone={detailTone}
-                      detail={detailAchievement}
-                      viewerStateKey={`${detailAchievement.id}:detail:${detailViewSessionKey}`}
-                      lockedUi={detailIsLockedUi}
-                      unlocking={detailIsUnlocking}
-                      motionStartCentered={
-                        optimisticUnlockedAchievementId === detailAchievement.id
-                      }
-                      detailMaskStyle={detailMaskStyle}
-                      unlockRevealClipPath={unlockRevealClipPath}
-                      unlockAlphaMaskRef={unlockAlphaMaskRef}
-                      enableUnlockHold={detailIsLockedUi && !readOnly}
-                      onUnlockPointerDown={handleUnlockPointerDown}
-                      onUnlockPointerEnd={cancelUnlockHold}
-                      onImageDecoded={onDetailBadgeImageDecoded}
-                      onModelUrlReady={onDetailBadgeModelUrlReady}
-                      onVisualReady={onDetailBadgeVisualReady}
-                      impressionGlitter={detailShowsImpressionGlitter}
-                      dedicatedBadgeGlitter={dedicatedBadgeGlitter}
-                      impressionGlitterRevealPulse={impressionGlitterRevealPulse}
-                      impressionOverlay={
-                        readOnly ? (
-                          <ImpressionBurst pulse={impressionBurstPulse} />
-                        ) : null
-                      }
+                  <div className="relative">
+                    <Badge
+                      options={badgeOptionsForDetailInteractive({
+                        renderSrc: detailRenderSrc,
+                        motionSeed: detailAchievement.id,
+                        tone: detailTone,
+                        detail: detailAchievement,
+                        viewerStateKey: `${detailAchievement.id}:detail:${detailViewSessionKey}`,
+                        lockedUi: detailIsLockedUi,
+                        unlocking: detailIsUnlocking,
+                        motionStartCentered:
+                          optimisticUnlockedAchievementId === detailAchievement.id,
+                        detailMaskStyle: detailMaskStyle,
+                        unlockRevealClipPath: unlockRevealClipPath,
+                        unlockAlphaMaskRef: unlockAlphaMaskRef,
+                        enableUnlockHold: detailIsLockedUi && !readOnly,
+                        onUnlockPointerDown: handleUnlockPointerDown,
+                        onUnlockPointerEnd: cancelUnlockHold,
+                        onImageDecoded: onDetailBadgeImageDecoded,
+                        onModelUrlReady: onDetailBadgeModelUrlReady,
+                        onVisualReady: onDetailBadgeVisualReady,
+                        impressionGlitter: detailShowsImpressionGlitter,
+                        dedicatedBadgeGlitter: dedicatedBadgeGlitter,
+                        impressionGlitterRevealPulse:
+                          impressionGlitterRevealPulse,
+                        impression: readOnly
+                          ? {
+                              burstEnabled: true,
+                              activateDisabled:
+                                detailIsUnlocking || detailIsLockedUi,
+                              onActivate: handleLeaveImpression,
+                            }
+                          : undefined,
+                      })}
                     />
                     {detailAchievement.model != null && (
                       <BadgeAttributionPopover

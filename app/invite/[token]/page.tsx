@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Badge } from "@/components/achievements/badge/display/badge";
+import { badgeOptionsForInvite } from "@/components/achievements/badge/display/badge-presets";
 import { BadgeAttributionPopover } from "@/components/achievements/badge";
 import { formatAchievedAt } from "@/components/achievements/achievement-editor-shared";
 import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/shared/badge-assets-server";
@@ -160,20 +161,12 @@ export default async function Page({ params }: PageProps) {
             <div className="relative h-full w-full">
               {inviteBadge.renderSrc ? (
                 <Badge
-                  options={{
-                    frame: { kind: "none", className: "mx-auto h-full w-full" },
-                    content: { mode: "interactive" },
+                  options={badgeOptionsForInvite({
+                    inviteId: invite.id,
                     displaySrc: inviteBadge.renderSrc,
-                    icon: "award",
-                    tone: "teal",
                     model: inviteBadge.model,
                     signedModelUrl: liveModelUrl,
-                    glitter: "none",
-                    silhouette: false,
-                    float: true,
-                    motionSeed: invite.id,
-                    allowFallback: false,
-                  }}
+                  })}
                 />
               ) : null}
               {inviteBadge.showAttributionPopover ? (

@@ -2,7 +2,7 @@ import { Gift, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Badge } from "@/components/achievements/badge/display/badge";
-import type { BadgeOptions } from "@/components/achievements/badge/display/badge-options";
+import { badgeOptionsForGrid } from "@/components/achievements/badge/display/badge-presets";
 import {
   BadgeSlot,
   BadgeIconDisc,
@@ -128,17 +128,14 @@ export function AchievementGridItem({
 }: AchievementGridItemProps) {
   const displayTitle = title?.trim() || (isLocked ? "Locked" : "Untitled");
 
-  const badgeOptions: BadgeOptions = {
-    frame: { kind: "slot", size: "grid" },
-    content: { mode: "thumbnail" },
+  const badgeOptions = badgeOptionsForGrid({
+    id,
     displaySrc,
     icon,
     tone,
-    locked: isLocked,
-    glitter: showDedicatedGlitter ? "dedicated" : "none",
-    silhouette: true,
-    motionSeed: id,
-  };
+    isLocked,
+    showDedicatedGlitter,
+  });
 
   return (
     <AchievementGridItemContainer

@@ -55,7 +55,10 @@ export function BadgeGltfViewer({
   );
 
   const handleVisualReady = useCallback(() => {
-    onVisualReadyFromCanvas?.();
+    if (onVisualReadyFromCanvas) {
+      onVisualReadyFromCanvas();
+      return;
+    }
     notifyVisualReady();
   }, [notifyVisualReady, onVisualReadyFromCanvas]);
 
