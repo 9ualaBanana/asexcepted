@@ -8,12 +8,12 @@ import {
 } from "@/components/achievements/badge/display/badge-options";
 import type { BadgeModelAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
 import { BadgePreviewLayer } from "@/components/achievements/badge/display/badge-preview-layer";
-import { useBadgeModelPreviewOverlay } from "@/components/achievements/badge/model/hooks/use-badge-model-preview-overlay";
+import { useBadgeModelPreviewOverlay } from "@/components/achievements/badge/display/gltf/hooks/use-badge-model-preview-overlay";
 import {
   BadgeGltfViewer,
   useBadgeGltfSignedUrl,
-} from "@/components/achievements/badge/model/badge-gltf-viewer";
-import { BadgeParallaxViewer } from "@/components/achievements/badge/parallax/badge-parallax-viewer";
+} from "@/components/achievements/badge/display/gltf/badge-gltf-viewer";
+import { BadgeParallaxViewer } from "@/components/achievements/badge/display/parallax/badge-parallax-viewer";
 import { cn } from "@/lib/utils";
 
 type BadgeInteractiveContentLayerProps = {

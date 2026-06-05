@@ -2,8 +2,8 @@
 
 import { useCallback, useEffectEvent, useMemo } from "react";
 
-import { useSignedBadgeModelUrl } from "@/components/achievements/badge/model/hooks/use-signed-badge-model-url";
-import { BadgeModelCanvas } from "@/components/achievements/badge/model/r3f/badge-model-canvas";
+import { useSignedBadgeModelUrl } from "@/components/achievements/badge/display/gltf/hooks/use-signed-badge-model-url";
+import { BadgeModelCanvas } from "@/components/achievements/badge/display/gltf/r3f/badge-model-canvas";
 import type { BadgeModelAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
 import { cn } from "@/lib/utils";
 

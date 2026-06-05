@@ -34,10 +34,10 @@ export { FallbackBadge } from "./display/fallback-badge";
 export {
   BadgeParallaxViewer,
   type BadgeParallaxViewerProps,
-} from "./parallax/badge-parallax-viewer";
+} from "./display/parallax/badge-parallax-viewer";
 
-export { BadgeGltfViewer, type BadgeGltfViewerProps } from "./model";
-export { useSignedBadgeModelUrl } from "./model";
+export { BadgeGltfViewer, type BadgeGltfViewerProps } from "./display/gltf";
+export { useSignedBadgeModelUrl } from "./display/gltf";
 
 export {
   revokeBadgeModelPoseSession,
