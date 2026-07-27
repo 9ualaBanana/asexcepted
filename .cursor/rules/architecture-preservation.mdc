@@ -1,0 +1,47 @@
+---
+description: Preserve established architecture; avoid scaffolding regressions and field/prop explosion
+alwaysApply: true
+---
+
+# Architecture Preservation
+
+Before proposing code changes:
+
+1. Identify whether the current code contains temporary scaffolding.
+2. Determine whether a later architectural change superseded that scaffolding.
+3. Do not reintroduce temporary implementations that have already been replaced.
+4. Prefer preserving the project's established abstractions over adding fields, flags, or duplicate state.
+5. When suggesting changes, say whether they align with the current architecture or are transitional.
+6. If unsure, ask whether a pattern is intentional before expanding the data model.
+
+## Prefer Cohesive Values Over Field Explosion
+
+Pass and store the established object/options/view-model. Do not flatten its fields into sibling props, params, or state when the parent already holds the cohesive value.
+
+```tsx
+// ❌ BAD — explode fields that already live on options
+function BadgeLiveContent({
+  locked,
+  unlockHoldMs,
+  revealDurationMs,
+}: {
+  locked: boolean;
+  unlockHoldMs: number;
+  revealDurationMs: number;
+}) { /* ... */ }
+
+// ✅ GOOD — pass the established abstraction
+function BadgeLiveContent({ options }: { options: BadgeDisplayOptions }) { /* ... */ }
+```
+
+## Do
+
+- Trace whether a simpler prop/API exists upstream before adding parallel fields.
+- Extend the existing type or options object when new data belongs with it.
+- Remove superseded scaffolding in the same change when replacing it.
+
+## Avoid
+
+- Reintroducing flags or temporary wrappers after a proper abstraction landed.
+- Drilling many leaf fields through the tree when one typed value already carries them.
+- Expanding schemas, props, or env keys "just in case" without confirming intent.
