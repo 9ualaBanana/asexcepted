@@ -33,6 +33,7 @@ export function DedicationResponseDialog({
   onReject,
 }: DedicationResponseDialogProps) {
   const unlockAlphaMaskRef = useRef(null);
+  const unlockRevealClipPathRef = useRef("inset(0 0 0 0)");
   const tone = resolveTone(detail);
   const renderSrc = detail.renderSrc;
 
@@ -75,7 +76,7 @@ export function DedicationResponseDialog({
                 unlocking: false,
                 floating: false,
                 detailMaskStyle: null,
-                unlockRevealClipPath: "inset(0 0 0 0)",
+                unlockRevealClipPathRef,
                 unlockAlphaMaskRef,
                 enableUnlockHold: false,
                 dedicatedBadgeGlitter: true,

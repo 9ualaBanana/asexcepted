@@ -53,7 +53,8 @@ export type BadgeLiveVisual = {
 
 export type BadgeUnlock = {
   active: boolean;
-  clipPath: string;
+  /** Updated imperatively during reveal — avoids re-rendering Badge every frame. */
+  clipPathRef: RefObject<string>;
   maskStyle: CSSProperties | null;
   hold?: {
     enabled: boolean;

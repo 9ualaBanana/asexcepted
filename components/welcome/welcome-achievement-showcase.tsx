@@ -23,6 +23,7 @@ export function WelcomeAchievementShowcase() {
   const detail = useMemo(() => getWelcomeIntroDetailViewModel(), []);
   const renderSrc = detail.renderSrc;
   const unlockAlphaMaskRef = useRef<AlphaMaskData | null>(null);
+  const unlockRevealClipPathRef = useRef(EMPTY_CLIP);
 
   const { DetailFallbackIcon, detailTone, detailMaskStyle } =
     useAchievementDetailViewModel({
@@ -46,7 +47,7 @@ export function WelcomeAchievementShowcase() {
           lockedUi: false,
           unlocking: false,
           detailMaskStyle,
-          unlockRevealClipPath: EMPTY_CLIP,
+          unlockRevealClipPathRef,
           unlockAlphaMaskRef,
           slotClassName: WELCOME_BADGE_SLOT_CLASS,
         })}

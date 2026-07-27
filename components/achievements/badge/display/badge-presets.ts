@@ -83,7 +83,7 @@ export type DetailInteractiveBadgeOptionsParams = {
   floating?: boolean;
   motionStartCentered?: boolean;
   detailMaskStyle: CSSProperties | null;
-  unlockRevealClipPath: string;
+  unlockRevealClipPathRef: RefObject<string>;
   unlockAlphaMaskRef: RefObject<AlphaMaskData | null>;
   slotClassName?: string;
   enableUnlockHold?: boolean;
@@ -130,7 +130,7 @@ export function badgeOptionsForDetailInteractive(
     motionSeed: params.motionSeed,
     unlock: {
       active: params.unlocking,
-      clipPath: params.unlockRevealClipPath,
+      clipPathRef: params.unlockRevealClipPathRef,
       maskStyle: params.detailMaskStyle,
       hold: params.enableUnlockHold
         ? {

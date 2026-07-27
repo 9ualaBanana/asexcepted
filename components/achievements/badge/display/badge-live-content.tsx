@@ -22,25 +22,21 @@ export function BadgeLiveContentProvider({
   liveVisual,
   children,
 }: BadgeLiveContentProviderProps) {
+  const { displaySrc, model, signedModelUrl, motionSeed, float, content } =
+    liveVisual;
+
   const liveContent = useMemo(
     () => (
       <BadgeInteractiveContentLayer
-        displaySrc={liveVisual.displaySrc}
-        model={liveVisual.model}
-        signedModelUrlProp={liveVisual.signedModelUrl}
-        motionSeed={liveVisual.motionSeed}
-        float={liveVisual.float}
-        content={liveVisual.content}
+        displaySrc={displaySrc}
+        model={model}
+        signedModelUrlProp={signedModelUrl}
+        motionSeed={motionSeed}
+        float={float}
+        content={content}
       />
     ),
-    [
-      liveVisual.content,
-      liveVisual.displaySrc,
-      liveVisual.float,
-      liveVisual.model,
-      liveVisual.motionSeed,
-      liveVisual.signedModelUrl,
-    ],
+    [content, displaySrc, float, model, motionSeed, signedModelUrl],
   );
 
   return (

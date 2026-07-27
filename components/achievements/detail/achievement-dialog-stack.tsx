@@ -78,7 +78,7 @@ export type AchievementDialogStackProps = {
   detailRenderSrc: string | null;
   detailTone: AchievementTone;
   DetailFallbackIcon: LucideIcon;
-  unlockRevealClipPath: string;
+  unlockRevealClipPathRef: RefObject<string>;
   detailMaskStyle: CSSProperties | null;
   unlockAlphaMaskRef: RefObject<AlphaMaskData | null>;
   startUnlockHold: () => void;
@@ -141,7 +141,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     detailRenderSrc,
     detailTone,
     DetailFallbackIcon,
-    unlockRevealClipPath,
+    unlockRevealClipPathRef,
     detailMaskStyle,
     unlockAlphaMaskRef,
     startUnlockHold,
@@ -347,7 +347,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                         motionStartCentered:
                           optimisticUnlockedAchievementId === detailAchievement.id,
                         detailMaskStyle: detailMaskStyle,
-                        unlockRevealClipPath: unlockRevealClipPath,
+                        unlockRevealClipPathRef,
                         unlockAlphaMaskRef: unlockAlphaMaskRef,
                         enableUnlockHold: detailIsLockedUi && !readOnly,
                         onUnlockPointerDown: handleUnlockPointerDown,

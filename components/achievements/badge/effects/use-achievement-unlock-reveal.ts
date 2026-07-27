@@ -1,6 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 
 import { unlockAchievement } from "@/lib/achievements/data/achievement-db";
 import {
@@ -16,6 +24,7 @@ import {
   type AchievementCollectionEntryViewModel,
 } from "@/lib/achievements/data/achievement-view-models";
 import { useAchievementSounds } from "@/components/achievements/badge/effects/use-achievement-sounds";
+import { useRevealClipPathDriver } from "@/components/achievements/badge/effects/unlock-reveal-wave";
 import {
   buildUnlockRevealClipPath,
   buildUnlockRevealClipPathLut,
@@ -27,20 +36,20 @@ import { type createClient } from "@/lib/supabase/client";
 
 type SupabaseClient = ReturnType<typeof createClient>;
 
+const DEFAULT_HOLD_MS = 480;
+const DEFAULT_REVEAL_MS = 1200;
+
 type UseAchievementUnlockRevealArgs = {
   readOnly: boolean;
   detailAchievement: AchievementDetailViewModel | null;
   detailRenderSrc: string | null;
-  /** Bumps when detail overlay reopens so alpha-mask load can retry. */
   detailViewSessionKey: number;
   isSaving: boolean;
   setIsSaving: Dispatch<SetStateAction<boolean>>;
   setError: Dispatch<SetStateAction<string | null>>;
   setAchievements: Dispatch<SetStateAction<AchievementCollectionEntryViewModel[]>>;
   supabase: SupabaseClient;
-  /** Fired once after the user's first press-and-hold unlock reveal (before persist). */
   onFirstUnlockComplete?: () => void;
-  /** Undo {@link onFirstUnlockComplete} when the unlock API call fails. */
   onFirstUnlockReverted?: () => void;
 };
 
@@ -65,17 +74,21 @@ export function useAchievementUnlockReveal({
   useEffect(() => {
     onFirstUnlockRevertedRef.current = onFirstUnlockReverted;
   }, [onFirstUnlockReverted]);
-  const [isUnlockHolding, setIsUnlockHolding] = useState(false);
-  const [unlockingAchievementId, setUnlockingAchievementId] = useState<string | null>(null);
-  const [optimisticUnlockedAchievementId, setOptimisticUnlockedAchievementId] = useState<string | null>(null);
-  const [unlockRevealProgress, setUnlockRevealProgress] = useState(0);
 
-  const unlockHoldTimeoutRef = useRef<number | null>(null);
-  const unlockRevealRafRef = useRef<number | null>(null);
-  const unlockHoldPressedRef = useRef(false);
-  const unlockRevealProgressRef = useRef(0);
-  const unlockRevealCompleteProgressRef = useRef(1);
-  const unlockRevealResolverRef = useRef<((result: "completed" | "cancelled") => void) | null>(null);
+  const [isUnlockHolding, setIsUnlockHolding] = useState(false);
+  const [unlockingAchievementId, setUnlockingAchievementId] = useState<
+    string | null
+  >(null);
+  const [optimisticUnlockedAchievementId, setOptimisticUnlockedAchievementId] =
+    useState<string | null>(null);
+
+  const holdTimeoutRef = useRef<number | null>(null);
+  const revealRafRef = useRef<number | null>(null);
+  const holdPressedRef = useRef(false);
+  const revealCompletionScaleRef = useRef(1);
+  const revealResolverRef = useRef<
+    ((result: "completed" | "cancelled") => void) | null
+  >(null);
   const unlockAlphaMaskRef = useRef<AlphaMaskData | null>(null);
 
   const {
@@ -87,40 +100,43 @@ export function useAchievementUnlockReveal({
   } = useAchievementSounds();
 
   const detailIsUnlocking =
-    Boolean(detailAchievement?.id) && unlockingAchievementId === detailAchievement?.id;
+    Boolean(detailAchievement?.id) &&
+    unlockingAchievementId === detailAchievement?.id;
   const detailIsLockedUi =
     Boolean(detailAchievement?.isLocked) &&
     optimisticUnlockedAchievementId !== detailAchievement?.id;
   const detailFloating = !detailIsLockedUi && !detailIsUnlocking;
 
-  const unlockRevealClipPathLut = useMemo(
+  const clipPathLut = useMemo(
     () => (detailAchievement ? buildUnlockRevealClipPathLut() : null),
     [detailAchievement],
   );
-  const unlockRevealClipPath = useMemo(() => {
-    if (!unlockRevealClipPathLut || unlockRevealClipPathLut.length === 0) {
-      return buildUnlockRevealClipPath(
-        unlockRevealProgress,
-        unlockRevealProgress * Math.PI * 3.6,
-      );
-    }
-    const idx = Math.max(
-      0,
-      Math.min(
-        UNLOCK_REVEAL_LUT_STEPS,
-        Math.round(unlockRevealProgress * UNLOCK_REVEAL_LUT_STEPS),
-      ),
-    );
-    return unlockRevealClipPathLut[idx];
-  }, [unlockRevealProgress, unlockRevealClipPathLut]);
 
-  useEffect(() => {
-    unlockRevealProgressRef.current = unlockRevealProgress;
-  }, [unlockRevealProgress]);
+  const buildClipPath = useCallback(
+    (progress: number) => {
+      if (!clipPathLut || clipPathLut.length === 0) {
+        return buildUnlockRevealClipPath(
+          progress,
+          progress * Math.PI * 3.6,
+        );
+      }
+      const idx = Math.max(
+        0,
+        Math.min(
+          UNLOCK_REVEAL_LUT_STEPS,
+          Math.round(progress * UNLOCK_REVEAL_LUT_STEPS),
+        ),
+      );
+      return clipPathLut[idx];
+    },
+    [clipPathLut],
+  );
+
+  const revealClip = useRevealClipPathDriver(buildClipPath);
 
   const applyUnlockAlphaMask = useCallback((maskData: AlphaMaskData | null) => {
     unlockAlphaMaskRef.current = maskData;
-    unlockRevealCompleteProgressRef.current = maskData
+    revealCompletionScaleRef.current = maskData
       ? estimateUnlockRevealCompletionProgress(maskData)
       : 1;
   }, []);
@@ -128,15 +144,13 @@ export function useAchievementUnlockReveal({
   const refreshUnlockAlphaMask = useCallback(() => {
     const src = detailRenderSrc;
     if (readOnly || !detailIsLockedUi || !src) return;
-
     void ensureBadgeAlphaMaskData(src).then(applyUnlockAlphaMask);
   }, [applyUnlockAlphaMask, detailIsLockedUi, detailRenderSrc, readOnly]);
 
   useEffect(() => {
     unlockAlphaMaskRef.current = null;
-    unlockRevealCompleteProgressRef.current = 1;
-    if (readOnly || !detailIsLockedUi) return;
-    if (!detailRenderSrc) return;
+    revealCompletionScaleRef.current = 1;
+    if (readOnly || !detailIsLockedUi || !detailRenderSrc) return;
 
     let cancelled = false;
     void ensureBadgeAlphaMaskData(detailRenderSrc).then((maskData) => {
@@ -155,32 +169,93 @@ export function useAchievementUnlockReveal({
   ]);
 
   const cancelUnlockHold = useCallback(() => {
-    unlockHoldPressedRef.current = false;
-    if (unlockHoldTimeoutRef.current !== null) {
-      window.clearTimeout(unlockHoldTimeoutRef.current);
-      unlockHoldTimeoutRef.current = null;
+    holdPressedRef.current = false;
+    if (holdTimeoutRef.current !== null) {
+      window.clearTimeout(holdTimeoutRef.current);
+      holdTimeoutRef.current = null;
     }
     setIsUnlockHolding(false);
   }, []);
 
-  const interruptUnlockReveal = useCallback(() => {
-    if (unlockRevealRafRef.current !== null) {
-      cancelAnimationFrame(unlockRevealRafRef.current);
-      unlockRevealRafRef.current = null;
+  const stopRevealAnimation = useCallback(() => {
+    if (revealRafRef.current !== null) {
+      cancelAnimationFrame(revealRafRef.current);
+      revealRafRef.current = null;
     }
-    const resolver = unlockRevealResolverRef.current;
-    unlockRevealResolverRef.current = null;
+    const resolver = revealResolverRef.current;
+    revealResolverRef.current = null;
     resolver?.("cancelled");
   }, []);
 
   const resetUnlockWave = useCallback(() => {
-    interruptUnlockReveal();
+    stopRevealAnimation();
     stopUnlockSound();
     cancelUnlockHold();
     setUnlockingAchievementId(null);
     setOptimisticUnlockedAchievementId(null);
-    setUnlockRevealProgress(0);
-  }, [cancelUnlockHold, interruptUnlockReveal, stopUnlockSound]);
+    revealClip.reset();
+  }, [cancelUnlockHold, revealClip, stopRevealAnimation, stopUnlockSound]);
+
+  const runRevealAnimation = useCallback(
+    (
+      targetProgress: number,
+      durationMs: number,
+      options: { cancelIfHoldReleased: boolean },
+    ) =>
+      new Promise<"completed" | "cancelled">((resolve) => {
+        stopRevealAnimation();
+
+        const finish = (result: "completed" | "cancelled") => {
+          if (revealResolverRef.current === finish) {
+            revealResolverRef.current = null;
+          }
+          resolve(result);
+        };
+        revealResolverRef.current = finish;
+
+        const fromProgress = revealClip.progressRef.current;
+        if (
+          durationMs <= 0 ||
+          Math.abs(targetProgress - fromProgress) < 0.0001
+        ) {
+          revealClip.setProgress(targetProgress);
+          finish(
+            options.cancelIfHoldReleased && !holdPressedRef.current
+              ? "cancelled"
+              : "completed",
+          );
+          return;
+        }
+
+        let startTs: number | null = null;
+        const tick = (ts: number) => {
+          if (startTs === null) startTs = ts;
+          const t = Math.min((ts - startTs) / durationMs, 1);
+          const linear = fromProgress + (targetProgress - fromProgress) * t;
+          const scale = revealCompletionScaleRef.current || 1;
+          const next =
+            targetProgress >= fromProgress
+              ? Math.min(1, linear / scale)
+              : linear;
+
+          revealClip.setProgress(next);
+
+          if (options.cancelIfHoldReleased && !holdPressedRef.current) {
+            revealRafRef.current = null;
+            finish("cancelled");
+            return;
+          }
+          if (next >= 1 || t >= 1) {
+            revealRafRef.current = null;
+            finish("completed");
+            return;
+          }
+          revealRafRef.current = requestAnimationFrame(tick);
+        };
+        revealRafRef.current = requestAnimationFrame(tick);
+      }),
+    [revealClip, stopRevealAnimation],
+  );
 
   const handlePressHoldUnlock = useCallback(async () => {
     if (readOnly) return;
@@ -192,75 +267,33 @@ export function useAchievementUnlockReveal({
       return prev;
     });
 
-    const animateReveal = (
-      targetProgress: number,
-      durationMs: number,
-      requireHold: boolean,
-    ) =>
-      new Promise<"completed" | "cancelled">((resolve) => {
-        interruptUnlockReveal();
-        const finish = (result: "completed" | "cancelled") => {
-          if (unlockRevealResolverRef.current === finish) {
-            unlockRevealResolverRef.current = null;
-          }
-          resolve(result);
-        };
-        unlockRevealResolverRef.current = finish;
-        const fromProgress = unlockRevealProgressRef.current;
-        if (durationMs <= 0 || Math.abs(targetProgress - fromProgress) < 0.0001) {
-          setUnlockRevealProgress(targetProgress);
-          finish(requireHold && !unlockHoldPressedRef.current ? "cancelled" : "completed");
-          return;
-        }
-        let startTs: number | null = null;
-        const tick = (ts: number) => {
-          if (startTs === null) startTs = ts;
-          const elapsed = ts - startTs;
-          const t = Math.min(elapsed / durationMs, 1);
-          const linearProgress = fromProgress + (targetProgress - fromProgress) * t;
-          const completionScale = unlockRevealCompleteProgressRef.current || 1;
-          const nextProgress =
-            targetProgress >= fromProgress
-              ? Math.min(1, linearProgress / completionScale)
-              : linearProgress;
-          setUnlockRevealProgress(nextProgress);
-
-          if (requireHold && !unlockHoldPressedRef.current) {
-            unlockRevealRafRef.current = null;
-            finish("cancelled");
-            return;
-          }
-          if (nextProgress >= 1 || t >= 1) {
-            unlockRevealRafRef.current = null;
-            finish("completed");
-            return;
-          }
-          unlockRevealRafRef.current = requestAnimationFrame(tick);
-        };
-        unlockRevealRafRef.current = requestAnimationFrame(tick);
-      });
+    const revealMs = finiteOr(UNLOCK_REVEAL_DURATION_MS, DEFAULT_REVEAL_MS);
 
     setUnlockingAchievementId(detailAchievement.id);
     setIsSaving(true);
     setError(null);
-    const forwardDuration = Math.max(
+
+    const openMs = Math.max(
       120,
-      Math.round(
-        Math.max(0, 1 - unlockRevealProgressRef.current) * UNLOCK_REVEAL_DURATION_MS,
-      ),
+      Math.round(Math.max(0, 1 - revealClip.progressRef.current) * revealMs),
     );
-    const forwardResult = await animateReveal(1, forwardDuration, true);
-    if (forwardResult === "cancelled") {
+    const openResult = await runRevealAnimation(1, openMs, {
+      cancelIfHoldReleased: true,
+    });
+
+    if (openResult === "cancelled") {
       stopUnlockSound();
-      const closeDuration = Math.max(
+      const closeMs = Math.max(
         120,
-        Math.round(unlockRevealProgressRef.current * UNLOCK_REVEAL_DURATION_MS),
+        Math.round(revealClip.progressRef.current * revealMs),
       );
       setIsSaving(false);
-      void animateReveal(0, closeDuration, false).then((rollbackResult) => {
-        if (rollbackResult !== "completed") return;
+      void runRevealAnimation(0, closeMs, {
+        cancelIfHoldReleased: false,
+      }).then((rollback) => {
+        if (rollback !== "completed") return;
         setUnlockingAchievementId(null);
-        setUnlockRevealProgress(0);
+        revealClip.reset();
       });
       return;
     }
@@ -274,7 +307,7 @@ export function useAchievementUnlockReveal({
     );
     setOptimisticUnlockedAchievementId(targetId);
     setUnlockingAchievementId(null);
-    setUnlockRevealProgress(0);
+    revealClip.reset();
     stopUnlockSound();
     playUnlockEaseOutSound();
     setIsSaving(false);
@@ -302,7 +335,9 @@ export function useAchievementUnlockReveal({
     }
 
     const unlockedAchievement = unlockResult.value;
-    setAchievements((prev) => updateCollectionEntryDetail(prev, unlockedAchievement));
+    setAchievements((prev) =>
+      updateCollectionEntryDetail(prev, unlockedAchievement),
+    );
     setOptimisticUnlockedAchievementId(null);
 
     void fetch("/api/push/fan-out-unlock", {
@@ -312,10 +347,11 @@ export function useAchievementUnlockReveal({
     }).catch(() => undefined);
   }, [
     detailAchievement,
-    interruptUnlockReveal,
     isSaving,
     playUnlockEaseOutSound,
     readOnly,
+    revealClip,
+    runRevealAnimation,
     setAchievements,
     setError,
     setIsSaving,
@@ -325,16 +361,17 @@ export function useAchievementUnlockReveal({
 
   const startUnlockHold = useCallback(() => {
     if (readOnly) return;
-    if (!detailIsLockedUi || isSaving || unlockHoldTimeoutRef.current !== null) return;
-    unlockHoldPressedRef.current = true;
+    if (!detailIsLockedUi || isSaving || holdTimeoutRef.current !== null) return;
+    holdPressedRef.current = true;
     setIsUnlockHolding(true);
     primeUnlockAudioGestureContext();
-    unlockHoldTimeoutRef.current = window.setTimeout(() => {
-      unlockHoldTimeoutRef.current = null;
+    const holdMs = finiteOr(UNLOCK_HOLD_DURATION_MS, DEFAULT_HOLD_MS);
+    holdTimeoutRef.current = window.setTimeout(() => {
+      holdTimeoutRef.current = null;
       setIsUnlockHolding(false);
       playUnlockTimelineSound();
       void handlePressHoldUnlock();
-    }, UNLOCK_HOLD_DURATION_MS);
+    }, holdMs);
   }, [
     detailIsLockedUi,
     handlePressHoldUnlock,
@@ -346,13 +383,13 @@ export function useAchievementUnlockReveal({
 
   useEffect(() => {
     return () => {
-      if (unlockHoldTimeoutRef.current !== null) {
-        window.clearTimeout(unlockHoldTimeoutRef.current);
+      if (holdTimeoutRef.current !== null) {
+        window.clearTimeout(holdTimeoutRef.current);
       }
-      interruptUnlockReveal();
+      stopRevealAnimation();
       stopUnlockSound();
     };
-  }, [interruptUnlockReveal, stopUnlockSound]);
+  }, [stopRevealAnimation, stopUnlockSound]);
 
   useEffect(() => {
     if (!isUnlockHolding && !detailIsUnlocking) return;
@@ -372,11 +409,15 @@ export function useAchievementUnlockReveal({
     detailIsLockedUi,
     detailFloating,
     optimisticUnlockedAchievementId,
-    unlockRevealClipPath,
+    unlockRevealClipPathRef: revealClip.clipPathRef,
     unlockAlphaMaskRef,
     cancelUnlockHold,
     startUnlockHold,
     resetUnlockWave,
     refreshUnlockAlphaMask,
   };
+}
+
+function finiteOr(value: number, fallback: number) {
+  return Number.isFinite(value) ? value : fallback;
 }

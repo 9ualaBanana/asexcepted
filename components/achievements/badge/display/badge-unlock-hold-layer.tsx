@@ -35,12 +35,19 @@ export function BadgeUnlockHoldLayer({ hold, locked }: BadgeUnlockHoldLayerProps
         ) {
           return;
         }
+        capturePointerForHold(e.currentTarget, e.pointerId);
         hold.onPointerDown?.();
       }}
       onPointerUp={hold.onPointerEnd}
-      onPointerLeave={hold.onPointerEnd}
       onPointerCancel={hold.onPointerEnd}
       onContextMenu={(e) => e.preventDefault()}
     />
   );
+}
+
+// When the reveal overlay mounts (GLB/parallax under the finger),
+// the browser often fires pointerleave even though the user is still holding.
+// That called cancelUnlockHold → holdPressedRef = false → reveal aborted mid-fill.
+function capturePointerForHold(target: HTMLElement, pointerId: number) {
+  target.setPointerCapture(pointerId);
 }

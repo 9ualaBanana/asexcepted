@@ -34,7 +34,7 @@ export function BadgeLockLayer({
         <UnlockRevealWave
           isUnlocking={unlock.active}
           detailMaskStyle={unlock.maskStyle}
-          unlockRevealClipPath={unlock.clipPath}
+          clipPathRef={unlock.clipPathRef}
           reveal={unlockOverlay}
         />
       ) : null}
