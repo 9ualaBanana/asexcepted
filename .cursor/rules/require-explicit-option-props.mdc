@@ -1,0 +1,58 @@
+---
+description: Prefer required, non-nullable props and args over optional booleans/strings with silent defaults
+alwaysApply: true
+---
+
+# Require Explicit Option Props
+
+When introducing or tightening API surface for feature flags and deterministic seeds, prefer **required, non-nullable** props/arguments over optional ones with `??` / parameter defaults. Call sites should state intent; inner layers should not guess.
+
+## Prefer
+
+- `prop: boolean` / `prop: string` on options objects and component props once every caller can supply a real value.
+- Explicit `true` / `false` (or a concrete seed string) at every construction site (presets, dialogs, embed).
+- Narrowing at the boundary that owns the decision, then passing a plain required value down.
+
+## Avoid
+
+- `prop?: boolean` + `prop = false` / `options.prop ?? false` when the value is a product decision, not a true “omit means inherit” case.
+- Optional strings with `= ""` for seeds/ids that every caller already has (e.g. achievement id).
+- Parallel optional aliases that mean the same thing (`dedicatedBadgeGlitter?` vs `glitter?: "dedicated"`).
+
+## Examples
+
+```ts
+// ❌ BAD — optional + silent default hides whether callers forgot the flag
+type BadgeOptions = {
+  impressionSheen?: boolean;
+  motionSeed?: string;
+};
+
+impressionSheen: options.impressionSheen ?? false,
+// viewer: motionSeed = ""
+```
+
+```ts
+// ✅ GOOD — required; presets pass explicit values
+type BadgeOptions = {
+  impressionSheen: boolean;
+  motionSeed: string;
+};
+
+impressionSheen: detail.impressionCount > 0,
+motionSeed: detail.id,
+// grid/embed presets: impressionSheen: false
+```
+
+## When optional is still fine
+
+- Truly optional callbacks (`onReady?: () => void`).
+- Optional UI chrome that is absent by design (`className?`, `hold?` on unlock).
+- Discriminated unions where absence is a variant (`impression?` meaning “no impression interaction”).
+- External/prewarm option bags where the whole feature is skippable (`prewarm(..., { motionSeed? })`).
+
+## When editing
+
+- New boolean/string feature knobs: add as required on `BadgeOptions` (or the owning options type) and update every preset/caller in the same change.
+- Refactors that remove a union of modes: collapse to one required boolean/enum rather than leaving deprecated optional siblings.
+- Grep for `?? false`, `= false`, `= ""` on the new fields before finishing.
