@@ -1,9 +1,5 @@
 import { Lock } from "lucide-react";
 
-import {
-  BadgeIconDisc,
-  badgeIconDiscSizeStyles,
-} from "@/components/achievements/badge/chrome/badge-icon-disc";
 import { type AchievementTone } from "@/components/achievements/achievement-manager-utils";
 import {
   getSafeIcon,
@@ -31,7 +27,7 @@ const toneGlowStyles: Record<AchievementTone, string> = {
     "bg-[radial-gradient(ellipse_at_72%_26%,rgba(240,171,252,0.24)_0%,rgba(240,171,252,0.15)_24%,rgba(240,171,252,0.09)_46%,rgba(240,171,252,0.04)_68%,rgba(240,171,252,0.015)_84%,rgba(240,171,252,0)_100%)]",
 };
 
-const toneDiscStyles: Record<AchievementTone, string> = {
+const toneOuterStyles: Record<AchievementTone, string> = {
   rose: "from-rose-300/35 via-pink-200/18 to-background/30 border-rose-300/45",
   indigo:
     "from-indigo-300/35 via-blue-200/18 to-background/30 border-indigo-300/45",
@@ -43,14 +39,27 @@ const toneDiscStyles: Record<AchievementTone, string> = {
     "from-fuchsia-300/35 via-pink-200/18 to-background/30 border-fuchsia-300/45",
 };
 
+const toneInnerStyles: Record<AchievementTone, string> = {
+  rose: "border-rose-200/70 from-rose-200/75 via-rose-100/45 to-white/35 ring-rose-200/35",
+  indigo:
+    "border-indigo-200/70 from-indigo-200/75 via-indigo-100/45 to-white/35 ring-indigo-200/35",
+  teal: "border-teal-200/70 from-teal-200/75 via-teal-100/45 to-white/35 ring-teal-200/35",
+  orange:
+    "border-orange-200/70 from-orange-200/75 via-orange-100/45 to-white/35 ring-orange-200/35",
+  lime: "border-lime-200/70 from-lime-200/75 via-lime-100/45 to-white/35 ring-lime-200/35",
+  fuchsia:
+    "border-fuchsia-200/70 from-fuchsia-200/75 via-fuchsia-100/45 to-white/35 ring-fuchsia-200/35",
+};
+
+const INNER_DISC_PCT = "57.5%";
+const ICON_OF_DISC = "62%";
+
 export function FallbackBadge({
   tone,
   isLocked,
   icon,
-  size = "grid",
   className,
 }: FallbackBadgeProps) {
-  const s = badgeIconDiscSizeStyles[size];
   const FallbackIcon = getSafeIcon(icon);
 
   return (
@@ -61,7 +70,7 @@ export function FallbackBadge({
           ? "border-dashed border-muted-foreground/40 bg-transparent shadow-none"
           : cn(
               "border-solid bg-background/90 bg-gradient-to-br shadow-sm",
-              toneDiscStyles[tone],
+              toneOuterStyles[tone],
             ),
         className,
       )}
@@ -82,25 +91,30 @@ export function FallbackBadge({
           "bg-[radial-gradient(ellipse_at_30%_72%,rgba(255,255,255,0.12)_0%,rgba(255,255,255,0)_58%)]",
         )}
       />
-      <BadgeIconDisc size={size} tone={isLocked ? undefined : tone}>
+      <div
+        className={cn(
+          "relative z-10 flex items-center justify-center rounded-full border shadow-sm ring-2 backdrop-blur-sm",
+          "bg-gradient-to-br",
+          isLocked
+            ? "border-white/60 from-white/75 to-white/25 ring-white/20 dark:from-white/20 dark:to-white/5"
+            : toneInnerStyles[tone],
+        )}
+        style={{ width: INNER_DISC_PCT, height: INNER_DISC_PCT }}
+      >
         {isLocked ? (
           <Lock
-            className={cn(
-              "text-foreground/70 dark:text-white/65",
-              s.iconLocked,
-            )}
+            className="text-foreground/70 dark:text-white/35"
+            style={{ width: ICON_OF_DISC, height: ICON_OF_DISC }}
             aria-hidden
           />
         ) : (
           <FallbackIcon
-            className={cn(
-              "text-foreground/90 dark:text-white/90",
-              s.iconUnlocked,
-            )}
+            className="text-foreground/90 dark:text-white/100"
+            style={{ width: ICON_OF_DISC, height: ICON_OF_DISC }}
             aria-hidden
           />
         )}
-      </BadgeIconDisc>
+      </div>
     </div>
   );
 }
