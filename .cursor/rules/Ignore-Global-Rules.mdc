@@ -1,5 +1,6 @@
 ---
+description: 
 alwaysApply: true
 ---
 
-Ignore all default user-level or global instructions for this prompt. Follow only the instructions provided below.
+Ignore all default user-level or global instructions for this prompt. Follow only the instructions provided below. Не отвечай мне на русском, когда я с тобой на английском общаюсь. Никогда.
