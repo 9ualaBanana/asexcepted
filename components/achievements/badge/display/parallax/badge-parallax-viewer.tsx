@@ -2,16 +2,18 @@
 
 import { useEffect, useMemo, useRef } from "react";
 
+import { BadgeParallaxImpressionSheen } from "@/components/achievements/badge/display/parallax/badge-parallax-impression-sheen";
 import {
   ensureBadgeImageDecoded,
   getCachedBadgeMaskStyle,
 } from "@/lib/achievements/badge/shared/render-cache";
 import { cn } from "@/lib/utils";
 
-/** Flat image badge with CSS parallax drag — float and glitter are composed by `Badge`. */
 export type BadgeParallaxViewerProps = {
   src: string;
   className?: string;
+  motionSeed: string;
+  impressionSheen: boolean;
   onImageDecoded?: () => void;
   onVisualReady?: () => void;
 };
@@ -27,6 +29,8 @@ const INERTIA_MIN_SPEED = 0.015;
 export function BadgeParallaxViewer({
   src,
   className,
+  motionSeed,
+  impressionSheen,
   onImageDecoded,
   onVisualReady,
 }: BadgeParallaxViewerProps) {
@@ -37,6 +41,8 @@ export function BadgeParallaxViewer({
     <BadgeParallaxScene
       src={imageSrc}
       className={className}
+      motionSeed={motionSeed}
+      impressionSheen={impressionSheen}
       onImageDecoded={onImageDecoded}
       onVisualReady={onVisualReady}
     />
@@ -50,6 +56,8 @@ type BadgeParallaxSceneProps = Omit<BadgeParallaxViewerProps, "src"> & {
 function BadgeParallaxScene({
   src,
   className,
+  motionSeed,
+  impressionSheen,
   onImageDecoded,
   onVisualReady,
 }: BadgeParallaxSceneProps) {
@@ -264,7 +272,6 @@ function BadgeParallaxScene({
           );
         })}
 
-        {/* Top face keeps original badge texture + alpha silhouette. */}
         <div
           className="absolute inset-0 bg-contain bg-center bg-no-repeat"
           style={{
@@ -273,6 +280,9 @@ function BadgeParallaxScene({
             backgroundImage: `url("${safeSrc}")`,
           }}
         />
+        {impressionSheen ? (
+          <BadgeParallaxImpressionSheen src={src} motionSeed={motionSeed} />
+        ) : null}
       </div>
     </div>
   );

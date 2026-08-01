@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffectEvent, useMemo } from "react";
+import { useCallback, useEffectEvent } from "react";
 
 import { useSignedBadgeModelUrl } from "@/components/achievements/badge/display/gltf/hooks/use-signed-badge-model-url";
 import { BadgeModelCanvas } from "@/components/achievements/badge/display/gltf/r3f/badge-model-canvas";
@@ -11,7 +11,7 @@ export type BadgeGltfViewerProps = {
   model: BadgeModelAsset;
   signedModelUrl: string;
   className?: string;
-  motionSeed?: string;
+  motionSeed: string;
   motionStartCentered?: boolean;
   onVisualReady?: () => void;
   stateKey?: string;
@@ -49,10 +49,7 @@ export function BadgeGltfViewer({
     onPoseChange?.(yaw, pitch),
   );
 
-  const viewStateKey = useMemo(
-    () => resolveTrimmedKey(stateKey, motionSeed, signedModelUrl),
-    [motionSeed, signedModelUrl, stateKey],
-  );
+  const viewStateKey = stateKey?.trim() || motionSeed;
 
   const handleVisualReady = useCallback(() => {
     if (onVisualReadyFromCanvas) {
@@ -107,12 +104,4 @@ export function useBadgeGltfSignedUrl(
     onModelUrlReady,
   );
   return signedModelUrlProp?.trim() || fetchedModelUrl || null;
-}
-
-function resolveTrimmedKey(...candidates: Array<string | null | undefined>): string {
-  for (const candidate of candidates) {
-    const normalized = candidate?.trim();
-    if (normalized) return normalized;
-  }
-  return "";
 }

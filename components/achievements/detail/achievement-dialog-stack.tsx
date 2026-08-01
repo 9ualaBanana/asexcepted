@@ -359,6 +359,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                         dedicatedBadgeGlitter: dedicatedBadgeGlitter,
                         impressionGlitterRevealPulse:
                           impressionGlitterRevealPulse,
+                        impressionSheen: detailAchievement.impressionCount > 0,
                         impression: readOnly
                           ? {
                               burstEnabled: true,

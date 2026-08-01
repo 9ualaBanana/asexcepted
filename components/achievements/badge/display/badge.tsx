@@ -41,6 +41,7 @@ export function Badge({ options }: BadgeProps) {
                 motionSeed={art.motionSeed}
                 float={art.float}
                 content={art.content}
+                impressionSheen={art.impressionSheen}
               />
             ) : null
           }
@@ -69,6 +70,7 @@ export function Badge({ options }: BadgeProps) {
                     motionSeed={art.motionSeed}
                     float={art.float}
                     content={art.content}
+                    impressionSheen={art.impressionSheen}
                   />
                 ) : null
               }

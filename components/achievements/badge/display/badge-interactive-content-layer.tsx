@@ -23,9 +23,9 @@ type BadgeInteractiveContentLayerProps = {
   motionSeed: string;
   float: boolean;
   content: BadgeContent;
+  impressionSheen: boolean;
 };
 
-/** GLB / parallax / flat live content for interactive and editor badges. */
 export function BadgeInteractiveContentLayer({
   displaySrc,
   model,
@@ -33,6 +33,7 @@ export function BadgeInteractiveContentLayer({
   motionSeed,
   float,
   content,
+  impressionSheen,
 }: BadgeInteractiveContentLayerProps) {
   const { isInteractive, isEditor, isLiveViewer, interactive, editor } =
     getBadgeContentMode(content);
@@ -114,6 +115,8 @@ export function BadgeInteractiveContentLayer({
           <BadgeParallaxViewer
             src={displaySrc}
             className="p-1"
+            motionSeed={motionSeed}
+            impressionSheen={impressionSheen}
             onImageDecoded={onImageDecoded}
             onVisualReady={interactive?.onVisualReady}
           />

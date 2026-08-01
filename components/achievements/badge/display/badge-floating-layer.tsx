@@ -25,7 +25,7 @@ export function BadgeFloatingLayer({
   }
 
   const motionStyle = getCachedBadgeMotionStyle(
-    motionSeed.trim(),
+    motionSeed,
     motionStartCentered,
   );
 

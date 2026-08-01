@@ -80,6 +80,7 @@ export function DedicationResponseDialog({
                 unlockAlphaMaskRef,
                 enableUnlockHold: false,
                 dedicatedBadgeGlitter: true,
+                impressionSheen: false,
               })}
             />
           </div>

@@ -76,11 +76,12 @@ export type BadgeOptions = {
   glitter?: BadgeGlitter;
   silhouette?: boolean;
   float?: boolean;
-  /** Stable per-badge id for motion / glitter (e.g. achievement id). */
+  /** Stable per-badge id for float / glitter / sheen (usually achievement id). */
   motionSeed: string;
   allowFallback?: boolean;
   unlock?: BadgeUnlock | null;
   impression?: BadgeImpression;
+  impressionSheen: boolean;
   className?: string;
 };
 
@@ -94,6 +95,7 @@ export type BadgeArtProps = BadgeLiveVisual & {
   tone: AchievementTone;
   frame: BadgeFrame;
   glitter: BadgeGlitter;
+  impressionSheen: boolean;
 };
 
 export function badgeArtFromOptions(options: BadgeOptions): BadgeArtProps {
@@ -112,6 +114,7 @@ export function badgeArtFromOptions(options: BadgeOptions): BadgeArtProps {
     tone: options.tone,
     frame: options.frame,
     glitter: options.glitter ?? "none",
+    impressionSheen: options.impressionSheen,
   };
 }
 

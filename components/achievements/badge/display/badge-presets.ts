@@ -30,6 +30,7 @@ export function badgeOptionsForGrid(params: {
     glitter: params.showDedicatedGlitter ? "dedicated" : "none",
     silhouette: true,
     motionSeed: params.id,
+    impressionSheen: false,
   };
 }
 
@@ -55,6 +56,7 @@ export function badgeOptionsForFeedRow(params: {
     glitter: params.showDedicatedGlitter ? "dedicated" : "none",
     silhouette: true,
     motionSeed: params.achievementId,
+    impressionSheen: false,
   };
 }
 
@@ -96,11 +98,13 @@ export type DetailInteractiveBadgeOptionsParams = {
   impressionGlitter?: boolean;
   impressionGlitterRevealPulse?: number;
   dedicatedBadgeGlitter?: boolean;
+  impressionSheen: boolean;
 };
 
 export function badgeOptionsForDetailInteractive(
   params: DetailInteractiveBadgeOptionsParams,
 ): BadgeOptions {
+  const hasModel = params.detail.model != null;
   return {
     frame: {
       kind: "slot",
@@ -142,6 +146,7 @@ export function badgeOptionsForDetailInteractive(
         : undefined,
     },
     impression: params.impression,
+    impressionSheen: params.impressionSheen && !params.lockedUi && !hasModel,
   };
 }
 
@@ -175,6 +180,7 @@ export function badgeOptionsForEditor(params: {
     glitter: "none",
     silhouette: false,
     motionSeed: params.motionSeed,
+    impressionSheen: false,
   };
 }
 
@@ -201,6 +207,7 @@ export function badgeOptionsForEmbed(params: {
     float: true,
     motionSeed: params.achievementId,
     allowFallback: false,
+    impressionSheen: false,
   };
 }
 

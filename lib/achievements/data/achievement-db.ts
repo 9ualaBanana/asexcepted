@@ -70,14 +70,11 @@ export async function listAchievements(
   if (domainRows.length === 0 && rawRows.length > 0) {
     return err("Invalid achievement data received from the server.");
   }
-  let rowsWithCounts = domainRows;
-  if (process.env.NEXT_PUBLIC_IMPRESSION_GLITTER_UI_ENABLED === "true") {
-    const countMap = await fetchImpressionCountMap(
-      supabase,
-      domainRows.map((record) => record.id),
-    );
-    rowsWithCounts = attachImpressionCounts(domainRows, countMap);
-  }
+  const countMap = await fetchImpressionCountMap(
+    supabase,
+    domainRows.map((record) => record.id),
+  );
+  const rowsWithCounts = attachImpressionCounts(domainRows, countMap);
   return ok(sortCollectionEntries(domainRowsToCollectionEntries(rowsWithCounts)));
 }
 
