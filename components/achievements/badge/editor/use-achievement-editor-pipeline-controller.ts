@@ -23,6 +23,7 @@ import {
 import type { BadgeSessionController } from "@/components/achievements/badge/upload/use-badge-session-controller";
 import type { AchievementUiStateActions } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
 import { clearBadgeRenderCacheForSrc, prewarmBadgeRenderCache } from "@/lib/achievements/badge/shared/render-cache";
+import { normalizeNetworkFailureMessage } from "@/lib/client/fetch-json";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 type UseAchievementEditorPipelineControllerArgs = {
@@ -215,10 +216,13 @@ export function useAchievementEditorPipelineController({
       let formForSave = createForm;
       try {
         formForSave = await badgeSessionController.finalizeModelPoseForForm(createForm);
+        if (formForSave !== createForm) {
+          setCreateForm(formForSave);
+        }
       } catch (finalizeError) {
         setError(
           finalizeError instanceof Error
-            ? finalizeError.message
+            ? normalizeNetworkFailureMessage(finalizeError.message)
             : "Could not finalize 3D badge upload.",
         );
         setIsSaving(false);
@@ -282,10 +286,13 @@ export function useAchievementEditorPipelineController({
       let formForSave = panelForm;
       try {
         formForSave = await badgeSessionController.finalizeModelPoseForForm(panelForm);
+        if (formForSave !== panelForm) {
+          setPanelForm(formForSave);
+        }
       } catch (finalizeError) {
         setError(
           finalizeError instanceof Error
-            ? finalizeError.message
+            ? normalizeNetworkFailureMessage(finalizeError.message)
             : "Could not finalize 3D badge upload.",
         );
         setIsSaving(false);
@@ -340,6 +347,7 @@ export function useAchievementEditorPipelineController({
       setAchievements,
       setError,
       setIsSaving,
+      setPanelForm,
       supabase,
       uiActions,
     ],

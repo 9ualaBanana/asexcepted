@@ -6,6 +6,9 @@ export type FetchJsonFailure = {
   status: number;
 };
 
+const NETWORK_RETRY_ATTEMPTS = 3;
+const NETWORK_RETRY_BASE_MS = 220;
+
 function readErrorMessage(data: unknown, fallback: string): string {
   if (
     typeof data === "object" &&
@@ -19,45 +22,105 @@ function readErrorMessage(data: unknown, fallback: string): string {
   return fallback;
 }
 
+export function isTransientNetworkFailureMessage(message: string): boolean {
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes("load failed") ||
+    normalized.includes("failed to fetch") ||
+    normalized.includes("networkerror") ||
+    normalized.includes("network request failed") ||
+    normalized.includes("fetch failed") ||
+    normalized.includes("the network connection was lost")
+  );
+}
+
+export function normalizeNetworkFailureMessage(message: string): string {
+  if (isTransientNetworkFailureMessage(message)) {
+    return "Network error. Check your connection and try again.";
+  }
+  return message;
+}
+
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+export async function retryOnTransientNetworkError<T>(
+  run: () => Promise<Result<T, string>>,
+  attempts = NETWORK_RETRY_ATTEMPTS,
+): Promise<Result<T, string>> {
+  let last: Result<T, string> = err("Network error.");
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    last = await run();
+    if (last.isOk()) return last;
+    const canRetry =
+      isTransientNetworkFailureMessage(last.error) && attempt < attempts - 1;
+    if (!canRetry) {
+      return err(normalizeNetworkFailureMessage(last.error));
+    }
+    await sleep(NETWORK_RETRY_BASE_MS * (attempt + 1));
+  }
+  return err(normalizeNetworkFailureMessage(last.error));
+}
+
 /** Low-level JSON fetch; validates HTTP status only. */
 export async function fetchJson(
   url: string,
   init?: RequestInit,
 ): Promise<Result<unknown, FetchJsonFailure>> {
-  let response: Response;
-  try {
-    response = await fetch(url, init);
-  } catch (e) {
-    return err({
-      message: e instanceof Error ? e.message : "Network error.",
-      status: 0,
-    });
-  }
+  let lastNetworkFailure: FetchJsonFailure | null = null;
 
-  let data: unknown;
-  try {
-    data = await response.json();
-  } catch {
-    if (!response.ok) {
+  for (let attempt = 0; attempt < NETWORK_RETRY_ATTEMPTS; attempt++) {
+    let response: Response;
+    try {
+      response = await fetch(url, init);
+    } catch (e) {
+      const raw = e instanceof Error ? e.message : "Network error.";
+      lastNetworkFailure = {
+        message: normalizeNetworkFailureMessage(raw),
+        status: 0,
+      };
+      if (attempt < NETWORK_RETRY_ATTEMPTS - 1) {
+        await sleep(NETWORK_RETRY_BASE_MS * (attempt + 1));
+        continue;
+      }
+      return err(lastNetworkFailure);
+    }
+
+    let data: unknown;
+    try {
+      data = await response.json();
+    } catch {
+      if (!response.ok) {
+        return err({
+          message: `Request failed (${response.status}).`,
+          status: response.status,
+        });
+      }
       return err({
-        message: `Request failed (${response.status}).`,
+        message: "Invalid response from server.",
         status: response.status,
       });
     }
-    return err({
-      message: "Invalid response from server.",
-      status: response.status,
-    });
+
+    if (!response.ok) {
+      return err({
+        message: readErrorMessage(data, `Request failed (${response.status}).`),
+        status: response.status,
+      });
+    }
+
+    return ok(data);
   }
 
-  if (!response.ok) {
-    return err({
-      message: readErrorMessage(data, `Request failed (${response.status}).`),
-      status: response.status,
-    });
-  }
-
-  return ok(data);
+  return err(
+    lastNetworkFailure ?? {
+      message: "Network error. Check your connection and try again.",
+      status: 0,
+    },
+  );
 }
 
 export async function fetchJsonParsed<T>(
@@ -113,5 +176,5 @@ export async function deleteJson(
 
 /** Maps {@link FetchJsonFailure} to a plain message for UI / toasts. */
 export function fetchFailureMessage(failure: FetchJsonFailure): string {
-  return failure.message;
+  return normalizeNetworkFailureMessage(failure.message);
 }

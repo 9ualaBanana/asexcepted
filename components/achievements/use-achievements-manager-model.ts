@@ -46,6 +46,7 @@ import {
   payloadToDedicateApiBody,
   postDedicateAchievement,
 } from "@/lib/achievements/client/dedicate-api";
+import { normalizeNetworkFailureMessage } from "@/lib/client/fetch-json";
 import {
   buildAchievementAbility,
   getAchievementPermissions,
@@ -379,11 +380,13 @@ export function useAchievementsManagerModel({
     let formForDedicate = createForm;
     try {
       formForDedicate = await badgeSession.finalizeModelPoseForForm(createForm);
-      setCreateForm(formForDedicate);
+      if (formForDedicate !== createForm) {
+        setCreateForm(formForDedicate);
+      }
     } catch (finalizeError) {
       setError(
         finalizeError instanceof Error
-          ? finalizeError.message
+          ? normalizeNetworkFailureMessage(finalizeError.message)
           : "Could not finalize 3D badge upload.",
       );
       setIsSaving(false);

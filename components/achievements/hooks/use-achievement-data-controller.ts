@@ -54,7 +54,7 @@ export function useAchievementDataController({
     async (opts?: { silent?: boolean }): Promise<AchievementCollectionEntryViewModel[] | null> => {
       const silent = opts?.silent ?? false;
       if (!silent) setIsLoading(true);
-      setError(null);
+      if (!silent) setError(null);
 
       const result = await listAchievements(supabase, userId);
       if (result.isErr()) {
