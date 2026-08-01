@@ -97,11 +97,7 @@ export type AchievementDialogStackProps = {
   onRequestDedicateInviteShare: () => void;
   onEmbedLink: () => void;
   onRequestDelete: (achievementId: string) => void;
-  detailShowsImpressionGlitter: boolean;
-  dedicatedBadgeGlitter?: boolean;
-  impressionGlitterRevealPulse: number;
-  onImpressionGlitterReveal: () => void;
-  onImpressionRecorded: (added: boolean, hadImpressionsBefore: boolean) => void;
+  onImpressionRecorded: (added: boolean) => void;
   dedicationSenderDisplayName?: string | null;
   dedicationSenderNameLoading?: boolean;
   isDedicatingCreate?: boolean;
@@ -159,10 +155,6 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     onRequestDedicateInviteShare,
     onEmbedLink,
     onRequestDelete,
-    detailShowsImpressionGlitter,
-    dedicatedBadgeGlitter = false,
-    impressionGlitterRevealPulse,
-    onImpressionGlitterReveal,
     onImpressionRecorded,
     dedicationSenderDisplayName,
     dedicationSenderNameLoading = false,
@@ -240,28 +232,19 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
       return;
     }
 
-    const hadImpressionsBefore =
-      detailAchievement.impressionCount > 0 || detailShowsImpressionGlitter;
-
     impressionTutorial.dismiss();
-
-    if (!hadImpressionsBefore) {
-      onImpressionGlitterReveal();
-    }
 
     void submitImpression(detailAchievement.id).then((result) => {
       if (result.ok) {
         impressionTutorial.dismiss();
       }
-      onImpressionRecorded(result.added, hadImpressionsBefore);
+      onImpressionRecorded(result.added);
     });
   }, [
     detailAchievement,
     detailIsLockedUi,
     detailIsUnlocking,
-    detailShowsImpressionGlitter,
     impressionTutorial,
-    onImpressionGlitterReveal,
     onImpressionRecorded,
     readOnly,
   ]);
@@ -355,10 +338,8 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                         onImageDecoded: onDetailBadgeImageDecoded,
                         onModelUrlReady: onDetailBadgeModelUrlReady,
                         onVisualReady: onDetailBadgeVisualReady,
-                        impressionGlitter: detailShowsImpressionGlitter,
-                        dedicatedBadgeGlitter: dedicatedBadgeGlitter,
-                        impressionGlitterRevealPulse:
-                          impressionGlitterRevealPulse,
+                        dedicatedEffect:
+                          detailAchievement.showDedicatedEffect,
                         impressionSheen: detailAchievement.impressionCount > 0,
                         impression: readOnly
                           ? {

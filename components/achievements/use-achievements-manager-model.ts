@@ -91,8 +91,6 @@ export function useAchievementsManagerModel({
   const [error, setError] = useState<string | null>(null);
   const [createForm, setCreateForm] = useState<FormState>(createInitialForm);
   const [panelForm, setPanelForm] = useState<FormState>(createInitialForm);
-  const [impressionGlitterRevealPulse, setImpressionGlitterRevealPulse] = useState(0);
-  const [optimisticImpressionGlitter, setOptimisticImpressionGlitter] = useState(false);
   const [isDedicatingCreate, setIsDedicatingCreate] = useState(false);
   const [dedicationSenderConfirmOpen, setDedicationSenderConfirmOpen] = useState(false);
   const [dedicateInviteConfirmOpen, setDedicateInviteConfirmOpen] = useState(false);
@@ -111,20 +109,6 @@ export function useAchievementsManagerModel({
     detailAchievementId: ui.detailAchievementId,
     uiActions: ui.actions,
   });
-
-  useEffect(() => {
-    setOptimisticImpressionGlitter(false);
-    setImpressionGlitterRevealPulse(0);
-  }, [detailAchievement?.id]);
-
-  const detailShowsImpressionGlitter =
-    process.env.NEXT_PUBLIC_IMPRESSION_GLITTER_UI_ENABLED === "true" &&
-    Boolean(
-      detailAchievement &&
-        (detailAchievement.impressionCount > 0 || optimisticImpressionGlitter),
-    );
-
-  const detailShowsDedicatedGlitter = Boolean(detailAchievement?.showDedicatedGlitter);
 
   const bumpDetailImpressionCount = useCallback(() => {
     if (!detailAchievement) return;
@@ -568,20 +552,9 @@ export function useAchievementsManagerModel({
     },
     onEmbedLink: () => void embedLink.copyEmbedLink(),
     onRequestDelete: ui.actions.requestDelete,
-    detailShowsImpressionGlitter,
-    dedicatedBadgeGlitter: detailShowsDedicatedGlitter,
-    impressionGlitterRevealPulse,
-    onImpressionGlitterReveal: () => {
-      setOptimisticImpressionGlitter(true);
-      setImpressionGlitterRevealPulse((pulse) => pulse + 1);
-    },
-    onImpressionRecorded: (added: boolean, hadImpressionsBefore: boolean) => {
+    onImpressionRecorded: (added: boolean) => {
       if (added) {
         bumpDetailImpressionCount();
-        return;
-      }
-      if (!hadImpressionsBefore) {
-        setOptimisticImpressionGlitter(false);
       }
     },
     dedicationSenderDisplayName: dedicationBySenderName,

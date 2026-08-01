@@ -40,8 +40,8 @@ export type AchievementGridViewModel = {
   tone: AchievementTone;
   isLocked: boolean;
   hasImpressions: boolean;
-  /** Dedicated particle glitter (image badges only). */
-  showDedicatedGlitter: boolean;
+  /** Dedicated particle effect (image badges only). */
+  showDedicatedEffect: boolean;
 };
 
 export type AchievementDetailViewModel = {
@@ -64,7 +64,7 @@ export type AchievementDetailViewModel = {
   visibility: AchievementVisibility;
   impressionCount: number;
   hasCustomBadge: boolean;
-  showDedicatedGlitter: boolean;
+  showDedicatedEffect: boolean;
   dedicatedByUserId: string | null;
   dedicationStatus: "pending" | "accepted" | null;
 };
@@ -188,7 +188,7 @@ export function domainRowToDetailViewModel(row: AchievementDomainRow): Achieveme
     visibility: row.visibility,
     impressionCount: row.impression_count,
     hasCustomBadge: iconUrl !== null,
-    showDedicatedGlitter: showsDedicatedBadgeEffect({
+    showDedicatedEffect: showsDedicatedBadgeEffect({
       dedicatedByUserId: row.dedicated_by_user_id,
       dedicationStatus: row.dedication_status,
       model,
@@ -208,7 +208,7 @@ export function detailToGridViewModel(detail: AchievementDetailViewModel): Achie
     tone: detail.tone,
     isLocked: detail.isLocked,
     hasImpressions: detail.impressionCount > 0,
-    showDedicatedGlitter: detail.showDedicatedGlitter,
+    showDedicatedEffect: detail.showDedicatedEffect,
   };
 }
 

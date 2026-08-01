@@ -76,11 +76,10 @@ export function Badge({ options }: BadgeProps) {
               }
             />
             <BadgeGlitterLayer
-              glitter={art.glitter}
+              dedicatedEffect={art.dedicatedEffect}
               displaySrc={art.displaySrc}
               motionSeed={art.motionSeed}
               frame={art.frame}
-              content={art.content}
             />
           </div>
         </BadgeLockLayer>

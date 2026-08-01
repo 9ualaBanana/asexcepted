@@ -72,7 +72,7 @@ function AchievementGridInner({
               icon={achievement.icon}
               tone={achievement.tone}
               isLocked={achievement.isLocked}
-              showDedicatedGlitter={achievement.showDedicatedGlitter}
+              showDedicatedEffect={achievement.showDedicatedEffect}
               onClick={() => onSelectAchievement(achievement.id)}
             />
           ))}

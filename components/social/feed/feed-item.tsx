@@ -41,7 +41,7 @@ export function FeedItem({ row }: FeedItemProps) {
     displaySrc: row.displaySrc,
     icon: row.icon,
     tone: row.tone,
-    showDedicatedGlitter: row.showDedicatedGlitter,
+    dedicatedEffect: row.showDedicatedEffect,
     frameClassName: "h-full w-full max-w-none",
   });
 

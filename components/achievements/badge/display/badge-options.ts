@@ -9,8 +9,6 @@ export type BadgeFrame =
   | { kind: "slot"; size: "grid" | "detail"; className?: string }
   | { kind: "none"; className?: string };
 
-export type BadgeGlitter = "none" | "dedicated" | "impression";
-
 export type BadgeContent =
   | { mode: "thumbnail" }
   | {
@@ -20,7 +18,6 @@ export type BadgeContent =
       onModelUrlReady?: () => void;
       onVisualReady?: () => void;
       motionStartCentered?: boolean;
-      impressionGlitterRevealPulse?: number;
     }
   | {
       mode: "editor";
@@ -73,7 +70,7 @@ export type BadgeOptions = {
   model?: BadgeModelAsset | null;
   signedModelUrl?: string | null;
   locked?: boolean;
-  glitter?: BadgeGlitter;
+  dedicatedEffect: boolean;
   silhouette?: boolean;
   float?: boolean;
   /** Stable per-badge id for float / glitter / sheen (usually achievement id). */
@@ -85,7 +82,7 @@ export type BadgeOptions = {
   className?: string;
 };
 
-/** Live art + silhouette / underlay / glitter inputs for the locked core stack. */
+/** Live art + silhouette / underlay / dedicated-effect inputs for the locked core stack. */
 export type BadgeArtProps = BadgeLiveVisual & {
   className?: string;
   silhouette: boolean;
@@ -94,7 +91,7 @@ export type BadgeArtProps = BadgeLiveVisual & {
   icon: AchievementIconKey;
   tone: AchievementTone;
   frame: BadgeFrame;
-  glitter: BadgeGlitter;
+  dedicatedEffect: boolean;
   impressionSheen: boolean;
 };
 
@@ -113,12 +110,12 @@ export function badgeArtFromOptions(options: BadgeOptions): BadgeArtProps {
     icon: options.icon,
     tone: options.tone,
     frame: options.frame,
-    glitter: options.glitter ?? "none",
+    dedicatedEffect: options.dedicatedEffect,
     impressionSheen: options.impressionSheen,
   };
 }
 
-export function resolveBadgeGlitterVariant(
+export function resolveBadgeEffectDensity(
   frame: BadgeFrame,
 ): "grid" | "detail" {
   return frame.kind === "slot" && frame.size === "grid" ? "grid" : "detail";

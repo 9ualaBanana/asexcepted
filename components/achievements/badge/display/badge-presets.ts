@@ -3,7 +3,6 @@ import type { CSSProperties, RefObject } from "react";
 import type { AchievementTone } from "@/components/achievements/achievement-manager-utils";
 import type { AchievementIconKey } from "@/components/achievements/achievement-editor-shared";
 import type {
-  BadgeGlitter,
   BadgeImpression,
   BadgeOptions,
 } from "@/components/achievements/badge/display/badge-options";
@@ -18,7 +17,7 @@ export function badgeOptionsForGrid(params: {
   icon: AchievementIconKey;
   tone: AchievementTone;
   isLocked: boolean;
-  showDedicatedGlitter: boolean;
+  dedicatedEffect: boolean;
 }): BadgeOptions {
   return {
     frame: { kind: "slot", size: "grid" },
@@ -27,7 +26,7 @@ export function badgeOptionsForGrid(params: {
     icon: params.icon,
     tone: params.tone,
     locked: params.isLocked,
-    glitter: params.showDedicatedGlitter ? "dedicated" : "none",
+    dedicatedEffect: params.dedicatedEffect,
     silhouette: true,
     motionSeed: params.id,
     impressionSheen: false,
@@ -39,7 +38,7 @@ export function badgeOptionsForFeedRow(params: {
   displaySrc: string | null;
   icon: AchievementIconKey;
   tone: AchievementTone;
-  showDedicatedGlitter: boolean;
+  dedicatedEffect: boolean;
   frameClassName?: string;
 }): BadgeOptions {
   return {
@@ -53,25 +52,11 @@ export function badgeOptionsForFeedRow(params: {
     icon: params.icon,
     tone: params.tone,
     locked: false,
-    glitter: params.showDedicatedGlitter ? "dedicated" : "none",
+    dedicatedEffect: params.dedicatedEffect,
     silhouette: true,
     motionSeed: params.achievementId,
     impressionSheen: false,
   };
-}
-
-export function resolveDetailBadgeGlitter(
-  dedicatedBadgeGlitter: boolean,
-  impressionGlitter: boolean,
-): BadgeGlitter {
-  if (dedicatedBadgeGlitter) return "dedicated";
-  if (
-    process.env.NEXT_PUBLIC_IMPRESSION_GLITTER_UI_ENABLED === "true" &&
-    impressionGlitter
-  ) {
-    return "impression";
-  }
-  return "none";
 }
 
 export type DetailInteractiveBadgeOptionsParams = {
@@ -95,9 +80,7 @@ export type DetailInteractiveBadgeOptionsParams = {
   onModelUrlReady?: () => void;
   onVisualReady?: () => void;
   impression?: BadgeImpression;
-  impressionGlitter?: boolean;
-  impressionGlitterRevealPulse?: number;
-  dedicatedBadgeGlitter?: boolean;
+  dedicatedEffect: boolean;
   impressionSheen: boolean;
 };
 
@@ -118,17 +101,13 @@ export function badgeOptionsForDetailInteractive(
       onModelUrlReady: params.onModelUrlReady,
       onVisualReady: params.onVisualReady,
       motionStartCentered: params.motionStartCentered,
-      impressionGlitterRevealPulse: params.impressionGlitterRevealPulse,
     },
     displaySrc: params.renderSrc,
     icon: params.detail.icon,
     tone: params.tone,
     model: params.detail.model,
     locked: params.lockedUi,
-    glitter: resolveDetailBadgeGlitter(
-      params.dedicatedBadgeGlitter ?? false,
-      params.impressionGlitter ?? false,
-    ),
+    dedicatedEffect: params.dedicatedEffect && !hasModel,
     silhouette: false,
     float: params.floating ?? true,
     motionSeed: params.motionSeed,
@@ -177,7 +156,7 @@ export function badgeOptionsForEditor(params: {
     tone: params.tone,
     model: params.model,
     locked: params.isLocked,
-    glitter: "none",
+    dedicatedEffect: false,
     silhouette: false,
     motionSeed: params.motionSeed,
     impressionSheen: false,
@@ -202,7 +181,7 @@ export function badgeOptionsForEmbed(params: {
     tone: "teal",
     model: params.model,
     signedModelUrl: params.signedModelUrl,
-    glitter: "none",
+    dedicatedEffect: false,
     silhouette: false,
     float: true,
     motionSeed: params.achievementId,

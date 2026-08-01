@@ -4,7 +4,6 @@ export { Badge } from "./display/badge";
 export type {
   BadgeOptions,
   BadgeFrame,
-  BadgeGlitter,
   BadgeContent,
   BadgeUnlock,
   BadgeImpression,
@@ -17,7 +16,6 @@ export {
   badgeOptionsForEditor,
   badgeOptionsForEmbed,
   badgeOptionsForInvite,
-  resolveDetailBadgeGlitter,
   type DetailInteractiveBadgeOptionsParams,
 } from "./display/badge-presets";
 

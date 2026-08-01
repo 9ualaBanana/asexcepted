@@ -449,80 +449,12 @@
   );
 }
 
-/* Loved badges: warm glitter hugging the badge silhouette (moves with 3D model). */
-.impression-glitter-3d {
-  transform: translateZ(-2.75px);
-  transform-style: preserve-3d;
-}
-
-/* Glitter on top of the badge face (detail 3D viewer). */
-.impression-glitter-3d-front.impression-glitter-3d {
-  transform: translateZ(1.15px);
-}
-
-@keyframes impression-glitter-reveal {
-  0% {
-    opacity: 0;
-    filter: blur(10px);
-    transform: translateZ(-4px) scale(0.68);
-  }
-  55% {
-    opacity: 1;
-    filter: blur(0);
-  }
-  100% {
-    opacity: 1;
-    filter: blur(0);
-    transform: translateZ(-2.75px) scale(1);
-  }
-}
-
-.impression-glitter-revealing.impression-glitter-3d {
-  animation: impression-glitter-reveal 980ms cubic-bezier(0.16, 0.84, 0.22, 1) forwards;
-}
-
+/* Dedicated badge particle field (flat overlay). */
 @keyframes impression-glitter-drift {
   0%,
   100% {
     opacity: 0.15;
-    transform: translate3d(0, 0, 0) scale(0.85);
-  }
-  18% {
-    opacity: 0.95;
-    transform: translate3d(
-        calc(var(--glitter-dx) * 0.35),
-        calc(var(--glitter-dy) * 0.35),
-        calc(var(--glitter-dz) * 0.2)
-      )
-      scale(1.05);
-  }
-  52% {
-    opacity: 0.55;
-    transform: translate3d(var(--glitter-dx), var(--glitter-dy), var(--glitter-dz))
-      scale(1.12);
-  }
-  78% {
-    opacity: 0.82;
-    transform: translate3d(
-        calc(var(--glitter-dx) * 0.6),
-        calc(var(--glitter-dy) * 0.55),
-        calc(var(--glitter-dz) * 0.45)
-      )
-      scale(0.96);
-  }
-}
-
-.impression-glitter-particle {
-  animation: impression-glitter-drift var(--glitter-duration, 3s) ease-in-out
-    var(--glitter-delay, 0ms) infinite;
-}
-
-/* Flat overlay: 2D drift only, stays fixed while the 3D badge spins. */
-@keyframes impression-glitter-drift-flat {
-  0%,
-  100% {
-    opacity: 0.2;
-    transform: translate(0, 0) scale(0.88);
+    transform: translate(0, 0) scale(0.85);
   }
   18% {
     opacity: 0.95;
@@ -534,7 +466,7 @@
   }
   52% {
     opacity: 0.55;
-    transform: translate(var(--glitter-dx), var(--glitter-dy)) scale(1.08);
+    transform: translate(var(--glitter-dx), var(--glitter-dy)) scale(1.12);
   }
   78% {
     opacity: 0.82;
@@ -546,8 +478,8 @@
   }
 }
 
-.impression-glitter-particle-flat {
-  animation: impression-glitter-drift-flat var(--glitter-duration, 3s) ease-in-out
+.impression-glitter-particle {
+  animation: impression-glitter-drift var(--glitter-duration, 3s) ease-in-out
     var(--glitter-delay, 0ms) infinite;
 }
 

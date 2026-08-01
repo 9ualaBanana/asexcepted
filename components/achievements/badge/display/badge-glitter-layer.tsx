@@ -3,11 +3,8 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 
 import {
-  getBadgeContentMode,
-  resolveBadgeGlitterVariant,
-  type BadgeContent,
+  resolveBadgeEffectDensity,
   type BadgeFrame,
-  type BadgeGlitter,
 } from "@/components/achievements/badge/display/badge-options";
 import { buildGlitterParticles } from "@/lib/achievements/badge/parallax/glitter-particles";
 import {
@@ -18,11 +15,10 @@ import {
 import { cn } from "@/lib/utils";
 
 type BadgeGlitterLayerProps = {
-  glitter: BadgeGlitter;
+  dedicatedEffect: boolean;
   displaySrc: string | null;
   motionSeed: string;
   frame: BadgeFrame;
-  content: BadgeContent;
 };
 
 const paletteClass: Record<
@@ -35,21 +31,15 @@ const paletteClass: Record<
   rose: "bg-rose-200/80",
 };
 
-/** Dedicated / impression glitter particles over badge art. */
+/** Dedicated particle field over badge art (image badges). */
 export function BadgeGlitterLayer({
-  glitter,
+  dedicatedEffect,
   displaySrc,
   motionSeed,
   frame,
-  content,
 }: BadgeGlitterLayerProps) {
   const [reduceMotion, setReduceMotion] = useState(false);
-  const { interactive } = getBadgeContentMode(content);
-  const variant = resolveBadgeGlitterVariant(frame);
-  const revealPulse =
-    glitter === "impression"
-      ? (interactive?.impressionGlitterRevealPulse ?? 0)
-      : 0;
+  const density = resolveBadgeEffectDensity(frame);
 
   const maskStyle = useMemo(
     () =>
@@ -59,17 +49,17 @@ export function BadgeGlitterLayer({
     [displaySrc],
   );
 
-  const particleCount = variant === "grid" ? 22 : 44;
+  const particleCount = density === "grid" ? 22 : 44;
   const particles = useMemo(
     () =>
-      buildGlitterParticles(motionSeed, particleCount, revealPulse, {
+      buildGlitterParticles(motionSeed, particleCount, {
         marginPct: 8,
         maxDriftPx: 9,
-        ...(variant === "detail"
+        ...(density === "detail"
           ? { sizeMinPx: 3, sizeRangePx: 2.8 }
           : { sizeMinPx: 2, sizeRangePx: 2.2 }),
       }),
-    [motionSeed, particleCount, revealPulse, variant],
+    [motionSeed, particleCount, density],
   );
 
   useEffect(() => {
@@ -80,7 +70,7 @@ export function BadgeGlitterLayer({
     return () => mq.removeEventListener("change", sync);
   }, []);
 
-  if (glitter === "none" || !displaySrc) {
+  if (!dedicatedEffect || !displaySrc) {
     return null;
   }
 
@@ -88,17 +78,17 @@ export function BadgeGlitterLayer({
     <div
       aria-hidden
       className={cn(
-        "pointer-events-none absolute -inset-[11%] overflow-hidden",
-        variant === "grid" ? "z-[12]" : "z-[18]",
+        "pointer-events-none absolute -inset-[11%]",
+        density === "grid" ? "z-[12]" : "z-[18]",
       )}
       style={maskStyle}
     >
       {particles.map((particle) => (
         <span
-          key={`${revealPulse}-${particle.id}`}
+          key={particle.id}
           className={cn(
-            "impression-glitter-particle absolute rounded-full will-change-transform",
-            !reduceMotion && "impression-glitter-particle-flat",
+            "absolute rounded-full will-change-transform",
+            !reduceMotion && "impression-glitter-particle",
             paletteClass[particle.palette],
           )}
           style={
@@ -109,7 +99,6 @@ export function BadgeGlitterLayer({
               height: particle.sizePx,
               "--glitter-dx": `${particle.driftX}px`,
               "--glitter-dy": `${particle.driftY}px`,
-              "--glitter-dz": "0px",
               "--glitter-delay": `${particle.delayMs}ms`,
               "--glitter-duration": `${particle.durationMs}ms`,
             } as CSSProperties

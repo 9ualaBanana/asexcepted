@@ -50,6 +50,7 @@ export function WelcomeAchievementShowcase() {
           unlockRevealClipPathRef,
           unlockAlphaMaskRef,
           slotClassName: WELCOME_BADGE_SLOT_CLASS,
+          dedicatedEffect: false,
           impressionSheen: false,
         })}
       />

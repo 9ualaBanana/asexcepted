@@ -111,7 +111,7 @@ type AchievementGridItemProps = {
   icon: AchievementIconKey;
   tone: AchievementTone;
   isLocked: boolean;
-  showDedicatedGlitter: boolean;
+  showDedicatedEffect: boolean;
   onClick: () => void;
 };
 
@@ -123,7 +123,7 @@ export function AchievementGridItem({
   icon,
   tone,
   isLocked,
-  showDedicatedGlitter,
+  showDedicatedEffect,
   onClick,
 }: AchievementGridItemProps) {
   const displayTitle = title?.trim() || (isLocked ? "Locked" : "Untitled");
@@ -134,7 +134,7 @@ export function AchievementGridItem({
     icon,
     tone,
     isLocked,
-    showDedicatedGlitter,
+    dedicatedEffect: showDedicatedEffect,
   });
 
   return (

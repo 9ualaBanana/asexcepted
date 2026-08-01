@@ -79,7 +79,7 @@ export function DedicationResponseDialog({
                 unlockRevealClipPathRef,
                 unlockAlphaMaskRef,
                 enableUnlockHold: false,
-                dedicatedBadgeGlitter: true,
+                dedicatedEffect: true,
                 impressionSheen: false,
               })}
             />

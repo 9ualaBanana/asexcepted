@@ -7,7 +7,6 @@ export type GlitterParticleSpec = {
   durationMs: number;
   driftX: number;
   driftY: number;
-  driftZ: number;
   palette: "gold" | "rose" | "cream" | "champagne";
 };
 
@@ -40,7 +39,6 @@ const PALETTES: GlitterParticleSpec["palette"][] = [
 export function buildGlitterParticles(
   seed: string,
   count: number,
-  salt = 0,
   options?: {
     marginPct?: number;
     maxDriftPx?: number;
@@ -54,7 +52,7 @@ export function buildGlitterParticles(
   const sizeRange = options?.sizeRangePx ?? 2.2;
   const span = 100 - margin * 2;
 
-  let state = hashSeed(`${seed}:${salt}`);
+  let state = hashSeed(seed);
   const particles: GlitterParticleSpec[] = [];
   const cols = Math.max(1, Math.ceil(Math.sqrt(count * 1.15)));
   const rows = Math.max(1, Math.ceil(count / cols));
@@ -85,7 +83,6 @@ export function buildGlitterParticles(
       durationMs: 2200 + Math.floor(r5 * 2800),
       driftX: (r3 - 0.5) * maxDrift * 2,
       driftY: (r4 - 0.5) * maxDrift * 2,
-      driftZ: (r5 - 0.5) * maxDrift * 0.35,
       palette: PALETTES[i % PALETTES.length]!,
     });
   }

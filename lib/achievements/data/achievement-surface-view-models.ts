@@ -33,7 +33,7 @@ export type AchievementFeedItemViewModel = {
   icon: AchievementIconKey;
   displaySrc: string | null;
   tone: AchievementTone;
-  showDedicatedGlitter: boolean;
+  showDedicatedEffect: boolean;
   isDedicated: boolean;
   achievedAt: string | null;
   createdAt: string;
@@ -115,7 +115,7 @@ export function feedRowSourceToViewModel(row: FeedRowSource): AchievementFeedIte
     icon: getSafeIconKey(row.icon),
     displaySrc,
     tone: getSafeTone(row.tone),
-    showDedicatedGlitter:
+    showDedicatedEffect:
       isDedicated && !isModelBadgeAssetKind(row.icon_asset_kind) && iconUrl !== null,
     isDedicated,
     achievedAt: row.achieved_at,
