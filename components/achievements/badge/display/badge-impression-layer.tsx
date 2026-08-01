@@ -36,7 +36,7 @@ export function BadgeImpressionLayer({
   return (
     <div
       className={cn(
-        "relative",
+        "relative h-full w-full",
         !impression.activateDisabled && "no-tap-highlight",
       )}
       onDoubleClick={doubleActivate.onDoubleClick}

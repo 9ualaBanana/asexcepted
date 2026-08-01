@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useEffectEvent, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { LoopRepeat, type AnimationAction, type AnimationMixer } from "three";
 import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
@@ -48,6 +48,11 @@ export function useBadgeModelAnimation({
   playAnimationRef.current = playAnimation;
   animationSpeedRef.current = animationSpeed;
 
+  const notifyVisualReady = useEffectEvent(() => onVisualReady?.());
+  const notifyHasAnimationChange = useEffectEvent((hasAnimation: boolean) =>
+    onHasAnimationChange?.(hasAnimation),
+  );
+
   useEffect(() => {
     visualReadyRef.current = false;
     allowAnimationAdvanceRef.current = false;
@@ -62,7 +67,7 @@ export function useBadgeModelAnimation({
 
     const clip = pickPrimaryAnimationClip(gltf);
     const hasAnimation = Boolean(clip);
-    onHasAnimationChange?.(hasAnimation);
+    notifyHasAnimationChange(hasAnimation);
 
     if (!clip || !actions[clip.name]) {
       actionRef.current = null;
@@ -74,7 +79,9 @@ export function useBadgeModelAnimation({
     action.reset();
     action.play();
     action.paused = !playAnimationRef.current;
-    action.setEffectiveTimeScale(clampBadgeAnimationSpeed(animationSpeedRef.current));
+    action.setEffectiveTimeScale(
+      clampBadgeAnimationSpeed(animationSpeedRef.current),
+    );
     if (mixer) {
       mixer.setTime(cachedMixerTime);
     }
@@ -94,7 +101,7 @@ export function useBadgeModelAnimation({
       visualReadyRef.current = true;
       cancelVisualReady = scheduleBadgeVisualReady({
         hasCache: Boolean(cached) || motionStartCentered,
-        onReady: () => onVisualReady?.(),
+        onReady: () => notifyVisualReady(),
         onAllowAdvance: () => {
           allowAnimationAdvanceRef.current = true;
         },
@@ -111,8 +118,8 @@ export function useBadgeModelAnimation({
     gltf,
     mixer,
     motionStartCentered,
-    onHasAnimationChange,
-    onVisualReady,
+    notifyHasAnimationChange,
+    notifyVisualReady,
     viewStateKey,
   ]);
 
@@ -144,7 +151,9 @@ export function useBadgeModelAnimation({
     if (mixer) {
       mixer.setTime(0);
     }
-    action.setEffectiveTimeScale(clampBadgeAnimationSpeed(animationSpeedRef.current));
+    action.setEffectiveTimeScale(
+      clampBadgeAnimationSpeed(animationSpeedRef.current),
+    );
     invalidate();
   }, [invalidate, mixer, playAnimation]);
 

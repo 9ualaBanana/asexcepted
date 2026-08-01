@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useAnimations } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import { Group, PerspectiveCamera } from "three";
@@ -68,7 +68,7 @@ export function BadgeModelContent({
     invalidate();
   }, [gltf, gl, invalidate, modelObject, scene]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!modelObject || !orbitRootRef.current) return;
     frameCameraForBadgeModel(orbitRootRef.current, camera);
     camera.fov = badgeModelConfig.camera.fov;

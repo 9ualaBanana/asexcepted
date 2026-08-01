@@ -1,7 +1,6 @@
 "use client";
 
 import type { AchievementTone } from "@/components/achievements/achievement-manager-utils";
-import { useBadgeLiveContent } from "@/components/achievements/badge/display/badge-live-content";
 import type { AchievementIconKey } from "@/components/achievements/achievement-editor-shared";
 import { BadgePreviewLayer } from "@/components/achievements/badge/display/badge-preview-layer";
 import { FallbackBadge } from "@/components/achievements/badge/display/fallback-badge";
@@ -12,6 +11,7 @@ import {
   type BadgeFrame,
 } from "@/components/achievements/badge/display/badge-options";
 import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
 
 type BadgeUnderlayLayerProps = {
   locked: boolean;
@@ -21,9 +21,11 @@ type BadgeUnderlayLayerProps = {
   icon: AchievementIconKey;
   tone: AchievementTone;
   frame: BadgeFrame;
+  /** Unlocked live art (GLB / parallax / flat). Omitted while locked. */
+  liveArt?: ReactNode;
 };
 
-/** Underlay: fallback, locked flat thumbnail, or interactive content when unlocked. */
+/** Underlay: fallback, locked flat thumbnail, or live art when unlocked. */
 export function BadgeUnderlayLayer({
   locked,
   thumbnailSrc,
@@ -32,8 +34,8 @@ export function BadgeUnderlayLayer({
   icon,
   tone,
   frame,
+  liveArt,
 }: BadgeUnderlayLayerProps) {
-  const liveContent = useBadgeLiveContent();
   const { interactive } = getBadgeContentMode(content);
   const slotSize = slotSizeFromFrame(frame);
 
@@ -55,7 +57,7 @@ export function BadgeUnderlayLayer({
     return (
       <div
         className={cn(
-          "relative h-full w-full",
+          "absolute inset-0",
           "opacity-70 grayscale",
         )}
       >
@@ -68,5 +70,15 @@ export function BadgeUnderlayLayer({
     );
   }
 
-  return <div className="relative h-full w-full">{liveContent}</div>;
+  return (
+    <div className="absolute inset-0">
+      {liveArt ?? (
+        <BadgePreviewLayer
+          src={thumbnailSrc}
+          variant="flat"
+          onDecoded={interactive?.onImageDecoded}
+        />
+      )}
+    </div>
+  );
 }

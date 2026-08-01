@@ -96,17 +96,6 @@ export type BadgeArtProps = BadgeLiveVisual & {
   glitter: BadgeGlitter;
 };
 
-export function badgeLiveVisualFromArt(art: BadgeArtProps): BadgeLiveVisual {
-  return {
-    displaySrc: art.displaySrc,
-    model: art.model,
-    signedModelUrl: art.signedModelUrl,
-    motionSeed: art.motionSeed,
-    float: art.float,
-    content: art.content,
-  };
-}
-
 export function badgeArtFromOptions(options: BadgeOptions): BadgeArtProps {
   return {
     displaySrc: options.displaySrc,

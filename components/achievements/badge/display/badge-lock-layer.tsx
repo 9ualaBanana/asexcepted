@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 
-import { useBadgeLiveContent } from "@/components/achievements/badge/display/badge-live-content";
 import type { BadgeUnlock } from "@/components/achievements/badge/display/badge-options";
 import { BadgeUnlockHoldLayer } from "@/components/achievements/badge/display/badge-unlock-hold-layer";
 import { UnlockRevealWave } from "@/components/achievements/badge/effects/unlock-reveal-wave";
@@ -11,6 +10,8 @@ type BadgeLockLayerProps = {
   unlock?: BadgeUnlock | null;
   locked: boolean;
   children: ReactNode;
+  /** Live art shown inside the unlock wipe (only while unlocking). */
+  revealArt?: ReactNode;
 };
 
 /** Unlock hold + reveal wave around the badge art stack. */
@@ -18,24 +19,18 @@ export function BadgeLockLayer({
   unlock,
   locked,
   children,
+  revealArt,
 }: BadgeLockLayerProps) {
-  const liveContent = useBadgeLiveContent();
-
-  const unlockOverlay =
-    unlock && liveContent ? (
-      <div className="relative h-full w-full">{liveContent}</div>
-    ) : null;
-
   return (
     <div className="relative h-full w-full">
       <BadgeUnlockHoldLayer hold={unlock?.hold} locked={locked} />
       {children}
-      {unlock && unlockOverlay ? (
+      {unlock?.active && revealArt ? (
         <UnlockRevealWave
-          isUnlocking={unlock.active}
+          isUnlocking
           detailMaskStyle={unlock.maskStyle}
           clipPathRef={unlock.clipPathRef}
-          reveal={unlockOverlay}
+          reveal={<div className="relative h-full w-full">{revealArt}</div>}
         />
       ) : null}
     </div>
