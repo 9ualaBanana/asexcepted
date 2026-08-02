@@ -51,7 +51,7 @@ export function WelcomeAchievementShowcase() {
           unlockAlphaMaskRef,
           slotClassName: WELCOME_BADGE_SLOT_CLASS,
           dedicatedEffect: false,
-          impressionSheen: false,
+          impressionEffect: false,
         })}
       />
 

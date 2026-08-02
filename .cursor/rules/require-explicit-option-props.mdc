@@ -24,24 +24,24 @@ When introducing or tightening API surface for feature flags and deterministic s
 ```ts
 // ❌ BAD — optional + silent default hides whether callers forgot the flag
 type BadgeOptions = {
-  impressionSheen?: boolean;
+  impressionEffect?: boolean;
   motionSeed?: string;
 };
 
-impressionSheen: options.impressionSheen ?? false,
+impressionEffect: options.impressionEffect ?? false,
 // viewer: motionSeed = ""
 ```
 
 ```ts
 // ✅ GOOD — required; presets pass explicit values
 type BadgeOptions = {
-  impressionSheen: boolean;
+  impressionEffect: boolean;
   motionSeed: string;
 };
 
-impressionSheen: detail.impressionCount > 0,
+impressionEffect: detail.impressionCount > 0,
 motionSeed: detail.id,
-// grid/embed presets: impressionSheen: false
+// grid/embed presets: impressionEffect: false
 ```
 
 ## When optional is still fine

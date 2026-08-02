@@ -29,7 +29,7 @@ export function badgeOptionsForGrid(params: {
     dedicatedEffect: params.dedicatedEffect,
     silhouette: true,
     motionSeed: params.id,
-    impressionSheen: false,
+    impressionEffect: false,
   };
 }
 
@@ -55,7 +55,7 @@ export function badgeOptionsForFeedRow(params: {
     dedicatedEffect: params.dedicatedEffect,
     silhouette: true,
     motionSeed: params.achievementId,
-    impressionSheen: false,
+    impressionEffect: false,
   };
 }
 
@@ -81,7 +81,7 @@ export type DetailInteractiveBadgeOptionsParams = {
   onVisualReady?: () => void;
   impression?: BadgeImpression;
   dedicatedEffect: boolean;
-  impressionSheen: boolean;
+  impressionEffect: boolean;
 };
 
 export function badgeOptionsForDetailInteractive(
@@ -125,7 +125,7 @@ export function badgeOptionsForDetailInteractive(
         : undefined,
     },
     impression: params.impression,
-    impressionSheen: params.impressionSheen && !params.lockedUi && !hasModel,
+    impressionEffect: params.impressionEffect && !params.lockedUi && !hasModel,
   };
 }
 
@@ -159,7 +159,7 @@ export function badgeOptionsForEditor(params: {
     dedicatedEffect: false,
     silhouette: false,
     motionSeed: params.motionSeed,
-    impressionSheen: false,
+    impressionEffect: false,
   };
 }
 
@@ -186,7 +186,7 @@ export function badgeOptionsForEmbed(params: {
     float: true,
     motionSeed: params.achievementId,
     allowFallback: false,
-    impressionSheen: false,
+    impressionEffect: false,
   };
 }
 

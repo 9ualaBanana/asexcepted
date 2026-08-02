@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 
-import { BadgeParallaxImpressionSheen } from "@/components/achievements/badge/display/parallax/badge-parallax-impression-sheen";
+import { BadgeParallaxImpressionEffect } from "@/components/achievements/badge/display/parallax/badge-parallax-impression-effect";
 import {
   ensureBadgeImageDecoded,
   getCachedBadgeMaskStyle,
@@ -12,8 +12,7 @@ import { cn } from "@/lib/utils";
 export type BadgeParallaxViewerProps = {
   src: string;
   className?: string;
-  motionSeed: string;
-  impressionSheen: boolean;
+  impressionEffect: string | null;
   onImageDecoded?: () => void;
   onVisualReady?: () => void;
 };
@@ -29,8 +28,7 @@ const INERTIA_MIN_SPEED = 0.015;
 export function BadgeParallaxViewer({
   src,
   className,
-  motionSeed,
-  impressionSheen,
+  impressionEffect,
   onImageDecoded,
   onVisualReady,
 }: BadgeParallaxViewerProps) {
@@ -41,8 +39,7 @@ export function BadgeParallaxViewer({
     <BadgeParallaxScene
       src={imageSrc}
       className={className}
-      motionSeed={motionSeed}
-      impressionSheen={impressionSheen}
+      impressionEffect={impressionEffect}
       onImageDecoded={onImageDecoded}
       onVisualReady={onVisualReady}
     />
@@ -56,8 +53,7 @@ type BadgeParallaxSceneProps = Omit<BadgeParallaxViewerProps, "src"> & {
 function BadgeParallaxScene({
   src,
   className,
-  motionSeed,
-  impressionSheen,
+  impressionEffect,
   onImageDecoded,
   onVisualReady,
 }: BadgeParallaxSceneProps) {
@@ -280,8 +276,12 @@ function BadgeParallaxScene({
             backgroundImage: `url("${safeSrc}")`,
           }}
         />
-        {impressionSheen ? (
-          <BadgeParallaxImpressionSheen src={src} motionSeed={motionSeed} />
+        {impressionEffect ? (
+          <BadgeParallaxImpressionEffect
+            key={impressionEffect}
+            src={src}
+            sessionKey={impressionEffect}
+          />
         ) : null}
       </div>
     </div>

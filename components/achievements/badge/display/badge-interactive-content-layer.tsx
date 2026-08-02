@@ -23,7 +23,7 @@ type BadgeInteractiveContentLayerProps = {
   motionSeed: string;
   float: boolean;
   content: BadgeContent;
-  impressionSheen: boolean;
+  impressionEffect: boolean;
 };
 
 export function BadgeInteractiveContentLayer({
@@ -33,7 +33,7 @@ export function BadgeInteractiveContentLayer({
   motionSeed,
   float,
   content,
-  impressionSheen,
+  impressionEffect,
 }: BadgeInteractiveContentLayerProps) {
   const { isInteractive, isEditor, isLiveViewer, interactive, editor } =
     getBadgeContentMode(content);
@@ -115,8 +115,11 @@ export function BadgeInteractiveContentLayer({
           <BadgeParallaxViewer
             src={displaySrc}
             className="p-1"
-            motionSeed={motionSeed}
-            impressionSheen={impressionSheen}
+            impressionEffect={
+              impressionEffect
+                ? (interactive?.viewerStateKey ?? motionSeed)
+                : null
+            }
             onImageDecoded={onImageDecoded}
             onVisualReady={interactive?.onVisualReady}
           />

@@ -416,7 +416,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                         onVisualReady: onDetailBadgeVisualReady,
                         dedicatedEffect:
                           detailAchievement.showDedicatedEffect,
-                        impressionSheen: detailAchievement.impressionCount > 0,
+                        impressionEffect: detailAchievement.impressionCount > 0,
                         impression: readOnly
                           ? {
                               burstEnabled: true,
