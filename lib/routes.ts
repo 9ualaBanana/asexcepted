@@ -8,6 +8,7 @@ export const ROUTES = {
   social: "/social",
   profile: "/profile",
   login: "/auth/login",
+  /** @deprecated Use login. Kept for redirects from old links. */
   signUp: "/auth/sign-up",
   signUpSuccess: "/auth/sign-up-success",
   confirm: "/auth/confirm",
@@ -85,8 +86,6 @@ function rewriteInviteClaimNext(
 
   if (mode === "signup") {
     url.searchParams.set("auto", "1");
-  } else {
-    url.searchParams.delete("auto");
   }
 
   return `${url.pathname}${url.search}${url.hash}`;
@@ -105,9 +104,13 @@ export function loginWithNext(next: string): string {
   return `${ROUTES.login}?next=${encodeURIComponent(path)}`;
 }
 
+/**
+ * @deprecated Use {@link loginWithNext}. Sign-up is the same Google sign-in screen.
+ * Still forces invite `auto=1` when rewriting claim links.
+ */
 export function signUpWithNext(next: string): string {
   const path = rewriteInviteClaimNext(next, "signup");
-  return `${ROUTES.signUp}?next=${encodeURIComponent(path)}`;
+  return `${ROUTES.login}?next=${encodeURIComponent(path)}`;
 }
 
 export function authCallbackUrl(origin: string, next?: string): string {

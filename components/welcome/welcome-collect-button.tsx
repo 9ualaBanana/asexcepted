@@ -44,7 +44,7 @@ function CollectButtonInner() {
   );
 }
 
-/** Aceternity noise-background demo style CTA → sign up. */
+/** Aceternity noise-background demo style CTA → sign in. */
 export function WelcomeCollectButton(props: WelcomeCollectButtonProps = {}) {
   if ("onClick" in props && props.onClick) {
     return (
@@ -55,7 +55,7 @@ export function WelcomeCollectButton(props: WelcomeCollectButtonProps = {}) {
   }
 
   return (
-    <Link href={props.href ?? ROUTES.signUp} className="inline-flex justify-center">
+    <Link href={props.href ?? ROUTES.login} className="inline-flex justify-center">
       <CollectButtonInner />
     </Link>
   );

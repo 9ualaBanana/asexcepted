@@ -4,16 +4,13 @@ import type { Provider } from "@supabase/supabase-js";
 export const OAUTH_PROVIDERS = [
   {
     id: "google",
-    signInLabel: "Continue with Google",
-    signUpLabel: "Sign up with Google",
+    label: "Continue with Google",
     supabaseProvider: "google" as Provider,
     enabled: true,
   },
 ] as const;
 
 export type OAuthProviderId = (typeof OAUTH_PROVIDERS)[number]["id"];
-
-export type OAuthButtonIntent = "sign-in" | "sign-up";
 
 export function getEnabledOAuthProviders() {
   return OAUTH_PROVIDERS.filter((p) => p.enabled);
@@ -23,13 +20,9 @@ export function hasEnabledOAuthProviders(): boolean {
   return getEnabledOAuthProviders().length > 0;
 }
 
-export function oauthProviderButtonLabel(
-  id: OAuthProviderId,
-  intent: OAuthButtonIntent,
-): string {
+export function oauthProviderButtonLabel(id: OAuthProviderId): string {
   const provider = OAUTH_PROVIDERS.find((p) => p.id === id && p.enabled);
-  if (!provider) return "Continue";
-  return intent === "sign-up" ? provider.signUpLabel : provider.signInLabel;
+  return provider?.label ?? "Continue";
 }
 
 export async function signInWithOAuthProvider(

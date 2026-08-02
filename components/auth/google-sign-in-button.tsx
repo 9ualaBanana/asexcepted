@@ -4,7 +4,6 @@ import { useState } from "react";
 import {
   oauthProviderButtonLabel,
   signInWithOAuthProvider,
-  type OAuthButtonIntent,
 } from "@/lib/auth/oauth-providers";
 import { authCallbackUrl } from "@/lib/routes";
 import { createClient } from "@/lib/supabase/client";
@@ -12,13 +11,9 @@ import { useErrorToast } from "@/lib/toast";
 
 type GoogleSignInButtonProps = {
   next?: string;
-  intent?: OAuthButtonIntent;
 };
 
-export function GoogleSignInButton({
-  next,
-  intent = "sign-in",
-}: GoogleSignInButtonProps) {
+export function GoogleSignInButton({ next }: GoogleSignInButtonProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,7 +43,7 @@ export function GoogleSignInButton({
     >
       <GoogleGLogo />
       <span>
-        {busy ? "Redirecting…" : oauthProviderButtonLabel("google", intent)}
+        {busy ? "Redirecting…" : oauthProviderButtonLabel("google")}
       </span>
     </button>
   );

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { WelcomeCollectButton } from "@/components/welcome/welcome-collect-button";
 import {
   achievementShareInvitePath,
+  loginWithNext,
   ROUTES,
   userCollection,
 } from "@/lib/routes";
@@ -92,13 +93,11 @@ export function ShareInviteClaimPanel({
   }
 
   if (!authState.userId) {
-    const signUpNext =
+    const authNext =
       pageKind === "showcase" ? senderFallbackPath : `${pathname}?claim=1&auto=1`;
     return (
       <div className="flex w-full max-w-sm flex-col gap-3 pt-2">
-        <WelcomeCollectButton
-          href={`${ROUTES.signUp}?next=${encodeURIComponent(signUpNext)}`}
-        />
+        <WelcomeCollectButton href={loginWithNext(authNext)} />
       </div>
     );
   }

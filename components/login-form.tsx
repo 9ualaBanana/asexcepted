@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { OAuthProviderButtons } from "@/components/auth/oauth-provider-buttons";
 import { hasEnabledOAuthProviders } from "@/lib/auth/oauth-providers";
-import { ROUTES, safeRedirectPath, signUpWithNext } from "@/lib/routes";
+import { ROUTES, safeRedirectPath } from "@/lib/routes";
 import { useErrorToast } from "@/lib/toast";
 
 type LoginFormProps = React.ComponentPropsWithoutRef<"div"> & {
@@ -60,16 +60,14 @@ export function LoginForm({ className, next, ...props }: LoginFormProps) {
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
+          <CardTitle className="text-2xl">Sign in</CardTitle>
           <CardDescription>
-            Continue with Google, or use email if you already have a password
-            account
+            Continue with Google to sign in or create an account. Email is for
+            existing password accounts only.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {showOAuth ? (
-            <OAuthProviderButtons next={next} intent="sign-in" />
-          ) : null}
+          {showOAuth ? <OAuthProviderButtons next={next} /> : null}
           {showOAuth ? (
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
@@ -114,17 +112,8 @@ export function LoginForm({ className, next, ...props }: LoginFormProps) {
                 />
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Login"}
+                {isLoading ? "Signing in..." : "Sign in"}
               </Button>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
-              <Link
-                href={next ? signUpWithNext(next) : ROUTES.signUp}
-                className="underline underline-offset-4"
-              >
-                Sign up with Google
-              </Link>
             </div>
           </form>
         </CardContent>
