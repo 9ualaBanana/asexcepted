@@ -1,6 +1,7 @@
 "use client";
 
 import { Code2, Gift, Loader2, Share2 } from "lucide-react";
+import type { CSSProperties } from "react";
 
 import { achievementDialogIconBtn } from "@/components/achievements/achievement-editor-shared";
 import { ACHIEVEMENT_UI_COPY } from "@/components/achievements/share/achievement-ui-copy";
@@ -23,6 +24,8 @@ type AchievementDetailShareMenuProps = {
   showEmbedOption?: boolean;
   /** When set, showcase share is disabled (e.g. badge still uploading). */
   showcaseDisabledReason?: string | null;
+  triggerClassName?: string;
+  triggerStyle?: CSSProperties;
   onShareShowcase: () => void;
   onRequestDedicateInvite: () => void;
   onEmbed: () => void;
@@ -35,6 +38,8 @@ export function AchievementDetailShareMenu({
   dedicateDisabledReason = null,
   showEmbedOption = true,
   showcaseDisabledReason = null,
+  triggerClassName,
+  triggerStyle,
   onShareShowcase,
   onRequestDedicateInvite,
   onEmbed,
@@ -49,7 +54,12 @@ export function AchievementDetailShareMenu({
         <button
           type="button"
           aria-label="Share achievement"
-          className={cn(achievementDialogIconBtn, "data-[state=open]:bg-white/10")}
+          className={cn(
+            achievementDialogIconBtn,
+            "data-[state=open]:bg-white/10",
+            triggerClassName,
+          )}
+          style={triggerStyle}
           disabled={isDisabled}
           onClick={(event) => event.stopPropagation()}
           onPointerDown={(event) => event.stopPropagation()}

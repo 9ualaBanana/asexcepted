@@ -40,13 +40,16 @@ import { DedicationBylineChromeRow } from "@/components/achievements/dedication/
 import { AchievementDetailShareMenu } from "@/components/achievements/share/achievement-detail-share-menu";
 import { EditableAchievementCard } from "@/components/achievements/detail/editable-achievement-card";
 import { AchievementOverlayTransitionFlyer } from "@/components/achievements/detail/achievement-overlay-transition-flyer";
+import { useDetailChromeButtonMotion } from "@/components/achievements/detail/use-detail-chrome-button-motion";
 import { useOverlayTransitionPresentation } from "@/components/achievements/detail/use-overlay-transition-presentation";
 import { AchievementVisibilityToggle } from "@/components/achievements/detail/achievement-visibility-toggle";
 import {
   canEditDedicatedVisibility,
   isDedicatedAchievement,
+  isDedicatedVisibilityDirty,
 } from "@/lib/achievements/dedication/dedication-utils";
 import {
+  isAchievementFormDirty,
   type AchievementDetailViewModel,
 } from "@/lib/achievements/data/achievement-view-models";
 import type { OverlayTransitionSession } from "@/lib/achievements/ui/overlay-transition";
@@ -205,7 +208,61 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
   );
   const lockedRefuse = useLockedBadgeRefuseMotion(badgeGestureSurface);
   const unlockedPoke = useUnlockedBadgePokeMotion(badgeGestureSurface);
+  const chromeMotionActive =
+    transitionUi.chrome.opaque &&
+    overlayTransition.phase !== "closing" &&
+    (isCreating || detailMode === "edit" || showDetailContent);
+  const chromeSurfaceKey = isCreating
+    ? "create"
+    : detailAchievement == null
+      ? "none"
+      : detailMode === "edit"
+        ? isVisibilityOnlyEdit
+          ? `visibility:${detailAchievement.id}`
+          : `edit:${detailAchievement.id}`
+        : `view:${detailAchievement.id}:${detailViewSessionKey}`;
+  const chromeMotion = useDetailChromeButtonMotion(
+    chromeMotionActive,
+    chromeSurfaceKey,
+  );
   const unlockHoldSessionRef = useRef(false);
+
+  const panelEditIsDirty =
+    detailMode === "edit" &&
+    detailAchievement != null &&
+    (isVisibilityOnlyEdit
+      ? isDedicatedVisibilityDirty(panelForm, detailAchievement)
+      : isAchievementFormDirty(panelForm, detailAchievement));
+
+  const requestChromeClose = useCallback(() => {
+    if (editorUploadInProgress) return;
+    if (panelEditIsDirty) {
+      closeDetailPanel();
+      return;
+    }
+    chromeMotion.defer(closeDetailPanel);
+  }, [
+    chromeMotion,
+    closeDetailPanel,
+    editorUploadInProgress,
+    panelEditIsDirty,
+  ]);
+
+  const requestChromeEnterEdit = useCallback(() => {
+    chromeMotion.defer(onRequestPanelEdit);
+  }, [chromeMotion, onRequestPanelEdit]);
+
+  const requestChromeEnterVisibilityEdit = useCallback(() => {
+    chromeMotion.defer(onRequestPanelVisibilityEdit);
+  }, [chromeMotion, onRequestPanelVisibilityEdit]);
+
+  const requestChromeCancelEdit = useCallback(() => {
+    if (panelEditIsDirty) {
+      onCancelPanelEdit();
+      return;
+    }
+    chromeMotion.defer(onCancelPanelEdit);
+  }, [chromeMotion, onCancelPanelEdit, panelEditIsDirty]);
 
   useEffect(() => {
     if (detailIsUnlocking || !lockedRefuse.armed) {
@@ -323,9 +380,8 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
         )}
         style={{ transitionDuration: `${transitionUi.chrome.durationMs}ms` }}
         onClick={() => {
-          if (editorUploadInProgress) return;
           if (!transitionUi.isInteractive) return;
-          closeDetailPanel();
+          requestChromeClose();
         }}
       />
       <div
@@ -355,11 +411,12 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
               onCancel={onCancelCreate}
               onUploadInProgressChange={setCreateUploadInProgress}
               badgeAssetSessionRef={createBadgeAssetSessionRef}
-              onClosePanel={() => closeDetailPanel()}
+              onClosePanel={requestChromeClose}
               dedicateMode={isDedicatingCreate}
               canToggleLocked={isAdmin}
               badgeSessionController={badgeSessionController}
               badgeHost={transitionUi.badgeHost}
+              chromeButtonMotion={chromeMotion}
               isCreatingFlow
             />
           ) : showDetailContent ? (
@@ -374,11 +431,9 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                   <button
                     type="button"
                     aria-label="Close"
-                    className={achievementDialogIconBtn}
-                    onClick={() => {
-                      if (editorUploadInProgress) return;
-                      closeDetailPanel();
-                    }}
+                    className={cn(achievementDialogIconBtn, chromeMotion.className)}
+                    style={chromeMotion.delayStyle(0)}
+                    onClick={requestChromeClose}
                   >
                     <X className="h-4 w-4" aria-hidden />
                   </button>
@@ -485,7 +540,9 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                           className={cn(
                             achievementDialogIconBtn,
                             "bg-white/10 text-white hover:bg-white/15",
+                            chromeMotion.className,
                           )}
+                          style={chromeMotion.delayStyle(1)}
                           disabled={isSaving}
                           onClick={() => void onSubmitPanelVisibilitySave()}
                         >
@@ -499,12 +556,16 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                         <button
                           type="button"
                           aria-label="Edit"
-                          className={achievementDialogIconBtn}
+                          className={cn(
+                            achievementDialogIconBtn,
+                            chromeMotion.className,
+                          )}
+                          style={chromeMotion.delayStyle(1)}
                           disabled={isSaving}
                           onClick={
                             dedicatedVisibilityEditable
-                              ? onRequestPanelVisibilityEdit
-                              : onRequestPanelEdit
+                              ? requestChromeEnterVisibilityEdit
+                              : requestChromeEnterEdit
                           }
                         >
                           <PenLine className="h-4 w-4" aria-hidden />
@@ -544,6 +605,8 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                           dedicateDisabledReason={dedicateShareDisabledReason}
                           showcaseDisabledReason={showcaseShareDisabledReason}
                           showEmbedOption
+                          triggerClassName={chromeMotion.className}
+                          triggerStyle={chromeMotion.delayStyle(2)}
                           onShareShowcase={onShareShowcase}
                           onRequestDedicateInvite={onRequestDedicateInviteShare}
                           onEmbed={onEmbedLink}
@@ -569,6 +632,8 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                           showDedicateOption={false}
                           showEmbedOption={false}
                           showcaseDisabledReason={showcaseShareDisabledReason}
+                          triggerClassName={chromeMotion.className}
+                          triggerStyle={chromeMotion.delayStyle(2)}
                           onShareShowcase={onShareShowcase}
                           onRequestDedicateInvite={onRequestDedicateInviteShare}
                           onEmbed={onEmbedLink}
@@ -591,6 +656,8 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       showDedicateOption={false}
                       showEmbedOption={false}
                       showcaseDisabledReason={showcaseShareDisabledReason}
+                      triggerClassName={chromeMotion.className}
+                      triggerStyle={chromeMotion.delayStyle(2)}
                       onShareShowcase={onShareShowcase}
                       onRequestDedicateInvite={onRequestDedicateInviteShare}
                       onEmbed={onEmbedLink}
@@ -607,10 +674,10 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
               setForm={setPanelForm}
               isSaving={isSaving}
               onSubmit={onSubmitPanelSave}
-              onCancel={onCancelPanelEdit}
+              onCancel={requestChromeCancelEdit}
               onUploadInProgressChange={setPanelUploadInProgress}
               badgeAssetSessionRef={panelBadgeAssetSessionRef}
-              onClosePanel={() => closeDetailPanel()}
+              onClosePanel={requestChromeClose}
               showEditChrome
               onRequestDelete={
                 detailAchievement
@@ -620,6 +687,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
               canToggleLocked={isAdmin}
               badgeSessionController={badgeSessionController}
               badgeHost={transitionUi.badgeHost}
+              chromeButtonMotion={chromeMotion}
             />
           ) : null}
         </div>

@@ -5,6 +5,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  type CSSProperties,
   type Dispatch,
   type FormEvent,
   type RefObject,
@@ -59,6 +60,10 @@ export type EditorCardProps = {
   badgeSessionController?: BadgeSessionController;
   isCreatingFlow?: boolean;
   badgeHost: OverlayBadgeHostBinding;
+  chromeButtonMotion?: {
+    className?: string;
+    delayStyle: (step: number) => CSSProperties | undefined;
+  };
 };
 
 export function EditableAchievementCard({
@@ -77,6 +82,7 @@ export function EditableAchievementCard({
   badgeSessionController,
   isCreatingFlow = false,
   badgeHost,
+  chromeButtonMotion,
 }: EditorCardProps) {
   const formId = useId();
   const showDialogChrome = Boolean(onClosePanel);
@@ -150,7 +156,11 @@ export function EditableAchievementCard({
               <button
                 type="button"
                 aria-label="Back"
-                className={achievementDialogIconBtn}
+                className={cn(
+                  achievementDialogIconBtn,
+                  chromeButtonMotion?.className,
+                )}
+                style={chromeButtonMotion?.delayStyle(0)}
                 disabled={closeDisabled}
                 onClick={() => onCancel()}
               >
@@ -162,7 +172,11 @@ export function EditableAchievementCard({
             <button
               type="button"
               aria-label="Close"
-              className={achievementDialogIconBtn}
+              className={cn(
+                achievementDialogIconBtn,
+                chromeButtonMotion?.className,
+              )}
+              style={chromeButtonMotion?.delayStyle(showEditChrome ? 1 : 0)}
               disabled={closeDisabled}
               onClick={() => onClosePanel?.()}
             >
@@ -314,7 +328,9 @@ export function EditableAchievementCard({
               className={cn(
                 achievementDialogIconBtn,
                 "bg-white/10 text-white hover:bg-white/15",
+                chromeButtonMotion?.className,
               )}
+              style={chromeButtonMotion?.delayStyle(2)}
             >
               {isSaving ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -337,7 +353,11 @@ export function EditableAchievementCard({
               <button
                 type="button"
                 aria-label="Delete"
-                className={achievementDialogIconBtn}
+                className={cn(
+                  achievementDialogIconBtn,
+                  chromeButtonMotion?.className,
+                )}
+                style={chromeButtonMotion?.delayStyle(3)}
                 disabled={isSaving || isBadgeUploadInProgress}
                 onClick={() => onRequestDelete()}
               >
@@ -364,7 +384,9 @@ export function EditableAchievementCard({
               className={cn(
                 achievementDialogIconBtn,
                 "bg-white/10 text-white hover:bg-white/15",
+                chromeButtonMotion?.className,
               )}
+              style={chromeButtonMotion?.delayStyle(1)}
             >
               {isSaving ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
