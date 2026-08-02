@@ -338,7 +338,6 @@ export function BadgeEditor({
           disabled={disabled}
           busy={busy}
           hasRemote={hasRemote}
-          isLocked={isLocked}
           ringHaloClassName={ringHalo}
           onOpenMenu={() => setMenuOpen((o) => !o)}
           onDragOver={onDragOver}

@@ -14,12 +14,17 @@ import {
 } from "@/lib/achievements/badge/parallax/shape-utils";
 import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
 
+const decodeSettled = new LRUCache<string, true>({
+  max: 300,
+});
+
 const decodeReady = new LRUCache<string, Promise<void>>({
   max: 300,
   memoMethod: (_key, _value, { context }) => {
     const src = context as string;
     return decodeImageReadyPromise(src).then(() => {
       logCdnDeliveryOnce(src, "decode");
+      decodeSettled.set(src, true);
     });
   },
 });
@@ -49,6 +54,11 @@ export function ensureBadgeImageDecoded(src: string): Promise<void> {
 /** True when decode is already in flight or completed for this URL. */
 export function hasBadgeDecodeCached(src: string): boolean {
   return decodeReady.has(src);
+}
+
+/** True when decode has finished — safe to paint without a loading fallback. */
+export function isBadgeImageDecodeSettled(src: string): boolean {
+  return Boolean(src.trim()) && decodeSettled.has(src);
 }
 
 export function getCachedBadgeMaskStyle(src: string): CSSProperties {
@@ -104,6 +114,7 @@ export function prewarmBadgeRenderCache(
 
 export function clearBadgeRenderCacheForSrc(src: string): void {
   decodeReady.delete(src);
+  decodeSettled.delete(src);
   alphaMaskReady.delete(src);
   maskStyleCache.delete(src);
 }

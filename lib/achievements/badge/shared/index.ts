@@ -35,6 +35,7 @@ export {
   getCachedBadgeMotionStyle,
   getCachedAlphaMaskData,
   hasBadgeDecodeCached,
+  isBadgeImageDecodeSettled,
   prewarmBadgeRenderCache,
   useBadgeRenderSrc,
 } from "./render-cache";

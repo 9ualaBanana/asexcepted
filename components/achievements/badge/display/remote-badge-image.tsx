@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { ensureBadgeImageDecoded } from "@/lib/achievements/badge/shared/render-cache";
+import {
+  ensureBadgeImageDecoded,
+  isBadgeImageDecodeSettled,
+} from "@/lib/achievements/badge/shared/render-cache";
 import { cn } from "@/lib/utils";
 
-/** Suspends until the remote badge URL has loaded, with a slot-sized shimmer fallback. */
 export function RemoteBadgeImage({
   src,
   className,
@@ -15,12 +17,19 @@ export function RemoteBadgeImage({
   className?: string;
   onDecoded?: () => void;
 }) {
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(() => isBadgeImageDecodeSettled(src));
   const onDecodedRef = useRef(onDecoded);
   onDecodedRef.current = onDecoded;
 
   useEffect(() => {
     let cancelled = false;
+
+    if (isBadgeImageDecodeSettled(src)) {
+      setReady(true);
+      onDecodedRef.current?.();
+      return;
+    }
+
     setReady(false);
     void ensureBadgeImageDecoded(src).then(() => {
       if (!cancelled) {

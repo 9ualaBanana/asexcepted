@@ -148,7 +148,6 @@ export function resolveLiveVisualMode(params: {
   hasDisplaySrc: boolean;
   hasModel: boolean;
   hasSignedModelUrl: boolean;
-  isInteractive: boolean;
   isLiveViewer: boolean;
 }): BadgeLiveVisualMode {
   const useGlbStack =
@@ -159,9 +158,7 @@ export function resolveLiveVisualMode(params: {
 
   if (useGlbStack) return "glb";
 
-  const modelUrlPending =
-    params.isLiveViewer && params.hasModel && !params.hasSignedModelUrl;
-  if (params.isInteractive && !modelUrlPending) return "parallax";
+  if (params.isLiveViewer && params.hasDisplaySrc) return "parallax";
 
   return "flat";
 }

@@ -158,6 +158,7 @@ export function badgeOptionsForEditor(params: {
     locked: params.isLocked,
     dedicatedEffect: false,
     silhouette: false,
+    float: true,
     motionSeed: params.motionSeed,
     impressionEffect: false,
   };

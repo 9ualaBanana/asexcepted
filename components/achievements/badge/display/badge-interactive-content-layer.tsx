@@ -35,7 +35,7 @@ export function BadgeInteractiveContentLayer({
   content,
   impressionEffect,
 }: BadgeInteractiveContentLayerProps) {
-  const { isInteractive, isEditor, isLiveViewer, interactive, editor } =
+  const { isEditor, isLiveViewer, interactive, editor } =
     getBadgeContentMode(content);
 
   const signedModelUrl = useBadgeGltfSignedUrl(
@@ -48,7 +48,6 @@ export function BadgeInteractiveContentLayer({
     hasDisplaySrc: !!displaySrc,
     hasModel: !!model,
     hasSignedModelUrl: !!signedModelUrl,
-    isInteractive,
     isLiveViewer,
   });
 
@@ -64,7 +63,7 @@ export function BadgeInteractiveContentLayer({
   const onImageDecoded = interactive?.onImageDecoded;
 
   const floatingLayerProps = {
-    enabled: isInteractive,
+    enabled: isLiveViewer,
     float,
     motionSeed,
     motionStartCentered: interactive?.motionStartCentered,

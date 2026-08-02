@@ -9,7 +9,6 @@ type BadgeEditorUploadTargetProps = {
   disabled: boolean;
   busy: boolean;
   hasRemote: boolean;
-  isLocked: boolean;
   ringHaloClassName: string;
   onOpenMenu: () => void;
   onDragOver: (e: DragEvent) => void;
@@ -23,7 +22,6 @@ export function BadgeEditorUploadTarget({
   disabled,
   busy,
   hasRemote,
-  isLocked,
   ringHaloClassName,
   onOpenMenu,
   onDragOver,
@@ -44,7 +42,6 @@ export function BadgeEditorUploadTarget({
         hasRemote ? "overflow-hidden" : "overflow-visible",
         "focus-visible:outline-none",
         ringHaloClassName,
-        isLocked && "opacity-75 grayscale",
       )}
       aria-label="Badge"
     >
