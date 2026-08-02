@@ -1,3 +1,7 @@
+"use client";
+
+import type { MouseEvent } from "react";
+
 import {
   AchievementGridItem,
   AchievementGridItemAdd,
@@ -12,9 +16,9 @@ type AchievementGridProps = {
   readOnly: boolean;
   canDedicate?: boolean;
   items: AchievementGridViewModel[];
-  onAddAchievement: () => void;
-  onAddDedicatedAchievement?: () => void;
-  onSelectAchievement: (id: string) => void;
+  onAddAchievement: (event: MouseEvent) => void;
+  onAddDedicatedAchievement?: (event: MouseEvent) => void;
+  onSelectAchievement: (id: string, event: MouseEvent) => void;
 };
 
 const SKELETON_CELL_COUNT = 18;
@@ -73,7 +77,7 @@ function AchievementGridInner({
               tone={achievement.tone}
               isLocked={achievement.isLocked}
               showDedicatedEffect={achievement.showDedicatedEffect}
-              onClick={() => onSelectAchievement(achievement.id)}
+              onClick={(event) => onSelectAchievement(achievement.id, event)}
             />
           ))}
         </div>

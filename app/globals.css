@@ -449,6 +449,11 @@
   );
 }
 
+/* Hide grid badge while overlay zoom flyer is active. */
+[data-badge-transition-source] {
+  opacity: 0 !important;
+}
+
 /* Dedicated badge particle field (flat overlay). */
 @keyframes impression-glitter-drift {
   0%,

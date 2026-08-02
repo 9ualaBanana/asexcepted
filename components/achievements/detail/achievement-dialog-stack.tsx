@@ -33,6 +33,8 @@ import { DedicationByline } from "@/components/achievements/dedication/dedicatio
 import { DedicationBylineChromeRow } from "@/components/achievements/dedication/dedication-byline-chrome-row";
 import { AchievementDetailShareMenu } from "@/components/achievements/share/achievement-detail-share-menu";
 import { EditableAchievementCard } from "@/components/achievements/detail/editable-achievement-card";
+import { AchievementOverlayTransitionFlyer } from "@/components/achievements/detail/achievement-overlay-transition-flyer";
+import { useOverlayTransitionPresentation } from "@/components/achievements/detail/use-overlay-transition-presentation";
 import { AchievementVisibilityToggle } from "@/components/achievements/detail/achievement-visibility-toggle";
 import {
   canEditDedicatedVisibility,
@@ -41,6 +43,7 @@ import {
 import {
   type AchievementDetailViewModel,
 } from "@/lib/achievements/data/achievement-view-models";
+import type { OverlayTransitionSession } from "@/lib/achievements/ui/overlay-transition";
 import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
 import { getTutorial, TUTORIAL_IDS, useTutorial, useTutorialToast } from "@/lib/tutorials";
 import { cn } from "@/lib/utils";
@@ -62,6 +65,7 @@ export type AchievementDialogStackProps = {
   detailMode: "view" | "edit";
   isVisibilityOnlyEdit?: boolean;
   detailViewSessionKey: number;
+  overlayTransition: OverlayTransitionSession;
   detailAchievement: AchievementDetailViewModel | null;
   panelForm: FormState;
   setPanelForm: Dispatch<SetStateAction<FormState>>;
@@ -122,6 +126,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     detailMode,
     isVisibilityOnlyEdit = false,
     detailViewSessionKey,
+    overlayTransition,
     detailAchievement,
     panelForm,
     setPanelForm,
@@ -163,6 +168,8 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     showBadgeSpinAfterFirstUnlock = false,
     setShowBadgeSpinAfterFirstUnlock,
   } = props;
+
+  const transitionUi = useOverlayTransitionPresentation(overlayTransition);
 
   const detailIsDedicated =
     detailAchievement != null && isDedicatedAchievement(detailAchievement);
@@ -262,21 +269,37 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
       aria-labelledby="achievement-detail-title"
       className="fixed inset-0 z-[200] flex min-h-0 w-full min-w-0 flex-col overscroll-contain min-h-screen min-h-[100dvh]"
     >
+      {transitionUi.flyer ? (
+        <AchievementOverlayTransitionFlyer {...transitionUi.flyer} />
+      ) : null}
       <div
         aria-hidden
-        className="absolute inset-0 z-0 bg-black/[65.5%] backdrop-blur-sm"
+        className={cn(
+          "absolute inset-0 z-0 bg-black/[65.5%] backdrop-blur-sm transition-opacity ease-out",
+          transitionUi.chrome.opaque ? "opacity-100" : "opacity-0",
+        )}
+        style={{ transitionDuration: `${transitionUi.chrome.durationMs}ms` }}
         onClick={() => {
           if (editorUploadInProgress) return;
+          if (!transitionUi.isInteractive) return;
           closeDetailPanel();
         }}
       />
-      <div className="pointer-events-none relative z-10 flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden px-4 pt-[max(0.5rem,env(safe-area-inset-top))] pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-6">
+      <div
+        className={cn(
+          "pointer-events-none relative z-10 flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden px-4 pt-[max(0.5rem,env(safe-area-inset-top))] pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-6 transition-opacity ease-out",
+          transitionUi.chrome.opaque ? "opacity-100" : "opacity-0",
+          !transitionUi.chrome.opaque && "pointer-events-none",
+        )}
+        style={{ transitionDuration: `${transitionUi.chrome.durationMs}ms` }}
+      >
         <div
           className={cn(
             "pointer-events-auto relative mx-auto my-auto flex w-full max-w-lg max-h-[min(92dvh,56rem)] min-h-0 flex-col overflow-x-hidden overflow-y-auto overscroll-y-contain rounded-3xl border border-white/12 bg-card p-4 pb-6 text-card-foreground sm:p-6 sm:pb-6",
             "shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12),inset_0_1px_0_0_rgba(255,255,255,0.08),inset_0_-1px_0_0_rgba(0,0,0,0.12),inset_1px_0_0_0_rgba(255,255,255,0.05),inset_-1px_0_0_0_rgba(255,255,255,0.05),inset_0_0_12px_rgba(0,0,0,0.1),0_4px_14px_-3px_rgba(0,0,0,0.24),0_16px_44px_-12px_rgba(0,0,0,0.32)]",
             "outline-none focus-visible:outline-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
             (isCreating || detailMode === "edit") && "overflow-x-hidden",
+            !transitionUi.chrome.opaque && "pointer-events-none",
           )}
           onClick={(e) => e.stopPropagation()}
         >
@@ -293,6 +316,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
               dedicateMode={isDedicatingCreate}
               canToggleLocked={isAdmin}
               badgeSessionController={badgeSessionController}
+              badgeHost={transitionUi.badgeHost}
               isCreatingFlow
             />
           ) : showDetailContent ? (
@@ -317,7 +341,13 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                   </button>
                 </div>
                 <div className="flex justify-center">
-                  <div className="relative">
+                  <div
+                    ref={transitionUi.badgeHost.containerRef}
+                    className={cn(
+                      "relative",
+                      transitionUi.badgeHost.hideBadge && "opacity-0",
+                    )}
+                  >
                     <Badge
                       options={badgeOptionsForDetailInteractive({
                         renderSrc: detailRenderSrc,
@@ -538,6 +568,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
               }
               canToggleLocked={isAdmin}
               badgeSessionController={badgeSessionController}
+              badgeHost={transitionUi.badgeHost}
             />
           ) : null}
         </div>

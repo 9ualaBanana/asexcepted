@@ -28,6 +28,7 @@ import {
 } from "@/lib/share-invites/eligibility";
 import { showErrorToast } from "@/lib/toast";
 import { useAchievementUiStateMachine } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
+import { clearBadgeTransitionSource } from "@/lib/achievements/ui/overlay-transition";
 import {
   markTutorialCompleted,
   resetHideLockedPreferenceForNewAccount,
@@ -255,6 +256,12 @@ export function useAchievementsManagerModel({
   const achievementOverlayOpen = ui.achievementOverlayOpen;
   useBadgeChunkedPrewarm({ achievements, pause: achievementOverlayOpen });
 
+  useEffect(() => {
+    if (!achievementOverlayOpen) {
+      clearBadgeTransitionSource();
+    }
+  }, [achievementOverlayOpen]);
+
   const deepLinkAchievementId = useMemo(() => {
     const fromQuery = searchParams.get("achievement")?.trim() ?? "";
     if (fromQuery && UUID_RE.test(fromQuery)) return fromQuery;
@@ -343,7 +350,7 @@ export function useAchievementsManagerModel({
     if (lastDeepLinkedIdRef.current === deepLinkAchievementId) return;
     lastDeepLinkedIdRef.current = deepLinkAchievementId;
     markDetailOpenStart(deepLinkAchievementId);
-    openDetailView(deepLinkAchievementId);
+    openDetailView(deepLinkAchievementId, null);
   }, [
     achievements,
     achievementsLoading,
@@ -491,6 +498,23 @@ export function useAchievementsManagerModel({
     editorPipeline.actions.cancelPanelEdit();
   }, [editorPipeline.actions, ui.actions, ui.discardEditIntent]);
 
+  const handleOverlaySettledClose = useCallback(() => {
+    clearBadgeTransitionSource();
+    ui.actions.settleOverlayClose();
+    resetUnlockWave();
+    setIsSaving(false);
+    setShowBadgeSpinAfterFirstUnlock(false);
+  }, [resetUnlockWave, setIsSaving, ui.actions]);
+
+  const overlayTransitionSession = useMemo(
+    () => ({
+      ...ui.overlayTransition,
+      onSettledOpen: ui.actions.settleOverlayOpen,
+      onSettledClose: handleOverlaySettledClose,
+    }),
+    [handleOverlaySettledClose, ui.actions.settleOverlayOpen, ui.overlayTransition],
+  );
+
   const dialogStackProps: AchievementDialogStackProps = {
     readOnly: !canEditAchievements,
     isAdmin: canToggleBadgeLock,
@@ -502,10 +526,13 @@ export function useAchievementsManagerModel({
     setCreateUploadInProgress: badgeSession.setCreateUploadInProgress,
     createBadgeAssetSessionRef: badgeSession.createBadgeAssetSessionRef,
     onSubmitCreate: editorPipeline.actions.submitCreate,
-    onCancelCreate: editorPipeline.actions.closeOverlayFlow,
+    onCancelCreate: () => {
+      editorPipeline.actions.closeOverlayFlow();
+    },
     detailMode: ui.detailMode,
     isVisibilityOnlyEdit: ui.isVisibilityOnlyEdit,
     detailViewSessionKey: ui.detailViewSessionKey,
+    overlayTransition: overlayTransitionSession,
     detailAchievement,
     panelForm,
     setPanelForm,

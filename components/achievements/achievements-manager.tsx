@@ -12,6 +12,7 @@ import { DedicationResponseDialog } from "@/components/achievements/dedication/d
 import { DedicateInviteConfirmDialog } from "@/components/achievements/dedication/dedicate-invite-confirm-dialog";
 import { DedicationSenderConfirmDialog } from "@/components/achievements/dedication/dedication-sender-confirm-dialog";
 import { useAchievementsManagerModel } from "@/components/achievements/use-achievements-manager-model";
+import { originRectFromClick } from "@/lib/achievements/ui/overlay-transition";
 import { resetBodyScrollLock } from "@/lib/dom/body-scroll-lock";
 import type { AchievementAuthContext } from "@/lib/auth/achievement-ability";
 import { useErrorToast } from "@/lib/toast";
@@ -81,11 +82,18 @@ export function AchievementsManager({
         readOnly={model.readOnly}
         canDedicate={model.canDedicate}
         items={model.gridItems}
-        onAddAchievement={editorPipeline.actions.startCreateFlow}
-        onAddDedicatedAchievement={editorPipeline.actions.startDedicateFlow}
-        onSelectAchievement={(achievementId) => {
+        onAddAchievement={() => {
+          editorPipeline.actions.startCreateFlow(null);
+        }}
+        onAddDedicatedAchievement={() => {
+          editorPipeline.actions.startDedicateFlow(null);
+        }}
+        onSelectAchievement={(achievementId, event) => {
           badgeMetrics.markDetailOpenStart(achievementId);
-          ui.actions.openDetailView(achievementId);
+          ui.actions.openDetailView(
+            achievementId,
+            originRectFromClick(event),
+          );
         }}
       />
 

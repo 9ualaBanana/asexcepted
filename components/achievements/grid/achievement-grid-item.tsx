@@ -1,5 +1,5 @@
 import { Gift, Sparkles } from "lucide-react";
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 
 import { Badge } from "@/components/achievements/badge/display/badge";
 import { badgeOptionsForGrid } from "@/components/achievements/badge/display/badge-presets";
@@ -18,7 +18,11 @@ const gridItemButtonClass =
 const gridItemTitleClass =
   "line-clamp-2 w-full shrink-0 overflow-hidden text-[11px] font-medium leading-[1.35] h-[2.7em] max-h-[2.7em] sm:text-xs";
 
-export function AchievementGridItemDedicate({ onClick }: { onClick: () => void }) {
+export function AchievementGridItemDedicate({
+  onClick,
+}: {
+  onClick: (event: MouseEvent) => void;
+}) {
   return (
     <AchievementGridItemContainer
       onClick={onClick}
@@ -61,7 +65,11 @@ export function AchievementGridItemDedicate({ onClick }: { onClick: () => void }
   );
 }
 
-export function AchievementGridItemAdd({ onClick }: { onClick: () => void }) {
+export function AchievementGridItemAdd({
+  onClick,
+}: {
+  onClick: (event: MouseEvent) => void;
+}) {
   return (
     <AchievementGridItemContainer
       onClick={onClick}
@@ -112,7 +120,7 @@ type AchievementGridItemProps = {
   tone: AchievementTone;
   isLocked: boolean;
   showDedicatedEffect: boolean;
-  onClick: () => void;
+  onClick: (event: MouseEvent) => void;
 };
 
 export function AchievementGridItem({
@@ -156,7 +164,7 @@ export function AchievementGridItem({
 }
 
 type AchievementGridItemContainerProps = {
-  onClick: () => void;
+  onClick: (event: MouseEvent) => void;
   buttonClassName?: string;
   badge: ReactNode;
   title: ReactNode;

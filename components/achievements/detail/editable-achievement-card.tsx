@@ -37,6 +37,7 @@ import {
   applyBadgeModelToForm,
   badgeModelFromForm,
 } from "@/lib/achievements/badge/shared/badge-model-asset";
+import type { OverlayBadgeHostBinding } from "@/lib/achievements/ui/overlay-transition";
 import { createRemoteAssetStorageRef } from "@/lib/upload/remote-asset-storage";
 import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
 
@@ -57,6 +58,7 @@ export type EditorCardProps = {
   canToggleLocked?: boolean;
   badgeSessionController?: BadgeSessionController;
   isCreatingFlow?: boolean;
+  badgeHost: OverlayBadgeHostBinding;
 };
 
 export function EditableAchievementCard({
@@ -74,6 +76,7 @@ export function EditableAchievementCard({
   canToggleLocked = true,
   badgeSessionController,
   isCreatingFlow = false,
+  badgeHost,
 }: EditorCardProps) {
   const formId = useId();
   const showDialogChrome = Boolean(onClosePanel);
@@ -168,57 +171,62 @@ export function EditableAchievementCard({
           </div>
         ) : null}
         <div className={cn(showDialogChrome && "flex justify-center")}>
-          <BadgeEditor
-            imageUrl={form.iconUrl}
-            renderSrc={toOptimizedRenderUrl(form.iconUrl)}
-            iconFileId={form.iconFileId}
-            model={badgeModel}
-            baselineRef={badgeAssetSessionRef.current.baseline}
-            tone={form.tone}
-            isLocked={form.isLocked}
-            icon={form.icon}
-            onToneChange={(tone) => setForm((prev) => ({ ...prev, tone }))}
-            canToggleLocked={canToggleLocked}
-            onToggleLocked={() => {
-              if (!canToggleLocked) return;
-              setForm((prev) => ({ ...prev, isLocked: !prev.isLocked }));
-            }}
-            onIconChange={(icon) => setForm((prev) => ({ ...prev, icon }))}
-            onModelChange={(model) =>
-              setForm((prev) => applyBadgeModelToForm(prev, model))
-            }
-            allowModelRotation={isCreatingFlow}
-            onUploadStorageCommit={(ref) => {
-              rollbackBadgeUploadSession(badgeAssetSessionRef.current);
-              setSessionStagedUpload(badgeAssetSessionRef.current, ref);
-              setForm((prev) =>
-                applyBadgeModelToForm({ ...prev, iconFileId: ref.iconFileId ?? "" }, null),
-              );
-            }}
-            onModelUploadStaged={(staged) => {
-              rollbackBadgeUploadSession(badgeAssetSessionRef.current);
-              badgeSessionController?.setModelPoseSession(
-                staged.poseSession,
-                isCreatingFlow ? "create" : "panel",
-              );
-              setSessionStagedUpload(
-                badgeAssetSessionRef.current,
-                createRemoteAssetStorageRef({ modelAssetPath: staged.modelPath }),
-              );
-              setForm((prev) => applyBadgeModelPoseSessionToForm(prev, staged));
-            }}
-            onImageUrlChange={(url) =>
-              setForm((prev) => ({ ...prev, iconUrl: url }))
-            }
-            onIconFileIdChange={(fid) =>
-              setForm((prev) => ({ ...prev, iconFileId: fid }))
-            }
-            onStagedUploadCleared={() => {
-              clearSessionStagedUpload(badgeAssetSessionRef.current);
-            }}
-            onUploadInProgressChange={setIsBadgeUploadInProgress}
-            disabled={isSaving}
-          />
+          <div
+            ref={badgeHost.containerRef}
+            className={cn(badgeHost.hideBadge && "opacity-0")}
+          >
+            <BadgeEditor
+              imageUrl={form.iconUrl}
+              renderSrc={toOptimizedRenderUrl(form.iconUrl)}
+              iconFileId={form.iconFileId}
+              model={badgeModel}
+              baselineRef={badgeAssetSessionRef.current.baseline}
+              tone={form.tone}
+              isLocked={form.isLocked}
+              icon={form.icon}
+              onToneChange={(tone) => setForm((prev) => ({ ...prev, tone }))}
+              canToggleLocked={canToggleLocked}
+              onToggleLocked={() => {
+                if (!canToggleLocked) return;
+                setForm((prev) => ({ ...prev, isLocked: !prev.isLocked }));
+              }}
+              onIconChange={(icon) => setForm((prev) => ({ ...prev, icon }))}
+              onModelChange={(model) =>
+                setForm((prev) => applyBadgeModelToForm(prev, model))
+              }
+              allowModelRotation={isCreatingFlow}
+              onUploadStorageCommit={(ref) => {
+                rollbackBadgeUploadSession(badgeAssetSessionRef.current);
+                setSessionStagedUpload(badgeAssetSessionRef.current, ref);
+                setForm((prev) =>
+                  applyBadgeModelToForm({ ...prev, iconFileId: ref.iconFileId ?? "" }, null),
+                );
+              }}
+              onModelUploadStaged={(staged) => {
+                rollbackBadgeUploadSession(badgeAssetSessionRef.current);
+                badgeSessionController?.setModelPoseSession(
+                  staged.poseSession,
+                  isCreatingFlow ? "create" : "panel",
+                );
+                setSessionStagedUpload(
+                  badgeAssetSessionRef.current,
+                  createRemoteAssetStorageRef({ modelAssetPath: staged.modelPath }),
+                );
+                setForm((prev) => applyBadgeModelPoseSessionToForm(prev, staged));
+              }}
+              onImageUrlChange={(url) =>
+                setForm((prev) => ({ ...prev, iconUrl: url }))
+              }
+              onIconFileIdChange={(fid) =>
+                setForm((prev) => ({ ...prev, iconFileId: fid }))
+              }
+              onStagedUploadCleared={() => {
+                clearSessionStagedUpload(badgeAssetSessionRef.current);
+              }}
+              onUploadInProgressChange={setIsBadgeUploadInProgress}
+              disabled={isSaving}
+            />
+          </div>
         </div>
       </div>
 

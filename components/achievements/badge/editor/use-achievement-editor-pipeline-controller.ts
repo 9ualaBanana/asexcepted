@@ -22,6 +22,7 @@ import {
 } from "@/lib/achievements/data/achievement-view-models";
 import type { BadgeSessionController } from "@/components/achievements/badge/upload/use-badge-session-controller";
 import type { AchievementUiStateActions } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
+import type { DomRectLite } from "@/lib/achievements/ui/overlay-transition";
 import { clearBadgeRenderCacheForSrc, prewarmBadgeRenderCache } from "@/lib/achievements/badge/shared/render-cache";
 import { normalizeNetworkFailureMessage } from "@/lib/client/fetch-json";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -58,8 +59,8 @@ type UseAchievementEditorPipelineControllerArgs = {
 };
 
 export type AchievementEditorPipelineActions = {
-  startCreateFlow: () => void;
-  startDedicateFlow: () => void;
+  startCreateFlow: (originRect: DomRectLite | null) => void;
+  startDedicateFlow: (originRect: DomRectLite | null) => void;
   startPanelEditFlow: () => void;
   startPanelVisibilityEditFlow: () => void;
   submitCreate: (e: FormEvent) => Promise<void>;
@@ -139,7 +140,7 @@ export function useAchievementEditorPipelineController({
         uiActions.exitDetailEdit();
       }
     }
-    uiActions.closeOverlay();
+    uiActions.requestCloseOverlay();
     return true;
   }, [
     badgeSessionController,
@@ -153,24 +154,36 @@ export function useAchievementEditorPipelineController({
     uiActions,
   ]);
 
-  const startCreateFlow = useCallback(() => {
-    setIsDedicatingCreate(false);
-    badgeSessionController.beginCreateBadgeSession();
-    uiActions.openCreate();
-    setCreateForm(createInitialForm());
-  }, [badgeSessionController, setCreateForm, setIsDedicatingCreate, uiActions]);
+  const startCreateFlow = useCallback(
+    (originRect: DomRectLite | null) => {
+      setIsDedicatingCreate(false);
+      badgeSessionController.beginCreateBadgeSession();
+      uiActions.openCreate(originRect);
+      setCreateForm(createInitialForm());
+    },
+    [badgeSessionController, setCreateForm, setIsDedicatingCreate, uiActions],
+  );
 
-  const startDedicateFlow = useCallback(() => {
-    if (!canDedicate) return;
-    setIsDedicatingCreate(true);
-    badgeSessionController.beginCreateBadgeSession();
-    uiActions.openCreate();
-    setCreateForm({
-      ...createInitialForm(),
-      isLocked: true,
-      visibility: "public",
-    });
-  }, [badgeSessionController, canDedicate, setCreateForm, setIsDedicatingCreate, uiActions]);
+  const startDedicateFlow = useCallback(
+    (originRect: DomRectLite | null) => {
+      if (!canDedicate) return;
+      setIsDedicatingCreate(true);
+      badgeSessionController.beginCreateBadgeSession();
+      uiActions.openCreate(originRect);
+      setCreateForm({
+        ...createInitialForm(),
+        isLocked: true,
+        visibility: "public",
+      });
+    },
+    [
+      badgeSessionController,
+      canDedicate,
+      setCreateForm,
+      setIsDedicatingCreate,
+      uiActions,
+    ],
+  );
 
   const startPanelEditFlow = useCallback(() => {
     if (!detailAchievement) return;
@@ -188,11 +201,8 @@ export function useAchievementEditorPipelineController({
   }, [detailAchievement, setPanelForm, uiActions]);
 
   const closeDetailPanel = useCallback(() => {
-    const closed = closeOverlayFlow();
-    if (!closed) return;
-    resetUnlockWave();
-    setIsSaving(false);
-  }, [closeOverlayFlow, resetUnlockWave, setIsSaving]);
+    closeOverlayFlow();
+  }, [closeOverlayFlow]);
 
   const submitCreate = useCallback(
     async (e: FormEvent) => {

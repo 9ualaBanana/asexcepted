@@ -51,6 +51,8 @@ export function BadgeSlot(props: BadgeSlotProps) {
 
   const { size, className, children } = props;
   return (
-    <div className={cn(sizeClass[size], className)}>{children}</div>
+    <div data-badge-container="" className={cn(sizeClass[size], className)}>
+      {children}
+    </div>
   );
 }
