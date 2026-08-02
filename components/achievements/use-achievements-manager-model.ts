@@ -142,6 +142,7 @@ export function useAchievementsManagerModel({
 
   const {
     playSavePop,
+    isUnlockHolding,
     detailIsUnlocking,
     detailIsLockedUi,
     detailFloating,
@@ -544,6 +545,7 @@ export function useAchievementsManagerModel({
     onRequestPanelEdit: editorPipeline.actions.startPanelEditFlow,
     onRequestPanelVisibilityEdit: editorPipeline.actions.startPanelVisibilityEditFlow,
     detailIsUnlocking,
+    isUnlockHolding,
     detailIsLockedUi,
     detailRenderSrc,
     detailTone,

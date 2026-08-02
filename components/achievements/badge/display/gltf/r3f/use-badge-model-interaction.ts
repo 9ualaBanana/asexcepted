@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type RefObject } from "react";
+import { useDrag } from "@use-gesture/react";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { Group } from "three";
 
@@ -53,8 +54,9 @@ export function useBadgeModelInteraction({
   );
   const inertiaYawRef = useRef(cachedState?.inertiaYaw ?? 0);
   const inertiaPitchRef = useRef(cachedState?.inertiaPitch ?? 0);
-  const dragPointerIdRef = useRef<number | null>(null);
-  const lastPointerRef = useRef({ x: 0, y: 0 });
+  const draggingRef = useRef(false);
+  const onPoseChangeRef = useRef(onPoseChange);
+  onPoseChangeRef.current = onPoseChange;
 
   const persistViewState = (mixerTime: number) => {
     badgeModelViewStateStore.write(viewStateKey, {
@@ -88,89 +90,68 @@ export function useBadgeModelInteraction({
   }, [enabled, viewStateKey, motionStartCentered]);
 
   useEffect(() => {
-    if (!interactive) return;
-
-    const element = glDomElement;
-
-    const beginDrag = (pointerId: number, clientX: number, clientY: number) => {
-      dragPointerIdRef.current = pointerId;
-      lastPointerRef.current = { x: clientX, y: clientY };
-      inertiaYawRef.current = 0;
-      inertiaPitchRef.current = 0;
-    };
-
-    const updateDrag = (clientX: number, clientY: number) => {
-      if (dragPointerIdRef.current == null) return;
-      const dx = clientX - lastPointerRef.current.x;
-      const dy = clientY - lastPointerRef.current.y;
-      lastPointerRef.current = { x: clientX, y: clientY };
-      const dragYaw = dx * DRAG_YAW_SENSITIVITY;
-      const dragPitch = dy * DRAG_PITCH_SENSITIVITY;
-      if (allowInertia) {
-        inertiaYawRef.current = dragYaw;
-        inertiaPitchRef.current = dragPitch;
-      } else {
-        inertiaYawRef.current = 0;
-        inertiaPitchRef.current = 0;
-      }
-      yawRef.current += dragYaw;
-      pitchRef.current = Math.max(
-        -MAX_PITCH_RAD,
-        Math.min(MAX_PITCH_RAD, pitchRef.current + dragPitch),
-      );
-      applyRotation();
-    };
-
-    const endDrag = () => {
-      dragPointerIdRef.current = null;
-      if (!allowInertia) {
-        inertiaYawRef.current = 0;
-        inertiaPitchRef.current = 0;
-      }
-      onPoseChange?.(yawRef.current, pitchRef.current);
-    };
-
-    const onPointerDown = (event: PointerEvent) => {
-      element.setPointerCapture(event.pointerId);
-      beginDrag(event.pointerId, event.clientX, event.clientY);
-    };
-    const onPointerMove = (event: PointerEvent) => {
-      if (dragPointerIdRef.current !== event.pointerId) return;
-      updateDrag(event.clientX, event.clientY);
-    };
-    const onPointerUp = (event: PointerEvent) => {
-      if (dragPointerIdRef.current !== event.pointerId) return;
-      if (element.hasPointerCapture(event.pointerId)) {
-        element.releasePointerCapture(event.pointerId);
-      }
-      endDrag();
-    };
-
-    element.addEventListener("pointerdown", onPointerDown);
-    element.addEventListener("pointermove", onPointerMove);
-    element.addEventListener("pointerup", onPointerUp);
-    element.addEventListener("pointercancel", onPointerUp);
-    element.addEventListener("pointerleave", onPointerUp);
-
+    if (!interactive || !enabled) return;
+    const previous = glDomElement.style.touchAction;
+    glDomElement.style.touchAction = "none";
     return () => {
-      element.removeEventListener("pointerdown", onPointerDown);
-      element.removeEventListener("pointermove", onPointerMove);
-      element.removeEventListener("pointerup", onPointerUp);
-      element.removeEventListener("pointercancel", onPointerUp);
-      element.removeEventListener("pointerleave", onPointerUp);
+      glDomElement.style.touchAction = previous;
     };
-  }, [
-    allowInertia,
-    glDomElement,
-    interactive,
-    onPoseChange,
-    orbitRootRef,
-  ]);
+  }, [enabled, glDomElement, interactive]);
 
-  useFrame((_, delta) => {
+  useDrag(
+    ({ active, first, last, tap, delta: [dx, dy] }) => {
+      if (tap) {
+        draggingRef.current = false;
+        return;
+      }
+
+      if (first) {
+        inertiaYawRef.current = 0;
+        inertiaPitchRef.current = 0;
+      }
+
+      draggingRef.current = active;
+
+      if (active) {
+        const dragYaw = dx * DRAG_YAW_SENSITIVITY;
+        const dragPitch = dy * DRAG_PITCH_SENSITIVITY;
+        if (allowInertia) {
+          inertiaYawRef.current = dragYaw;
+          inertiaPitchRef.current = dragPitch;
+        } else {
+          inertiaYawRef.current = 0;
+          inertiaPitchRef.current = 0;
+        }
+        yawRef.current += dragYaw;
+        pitchRef.current = Math.max(
+          -MAX_PITCH_RAD,
+          Math.min(MAX_PITCH_RAD, pitchRef.current + dragPitch),
+        );
+        applyRotation();
+      }
+
+      if (last) {
+        draggingRef.current = false;
+        if (!allowInertia) {
+          inertiaYawRef.current = 0;
+          inertiaPitchRef.current = 0;
+        }
+        onPoseChangeRef.current?.(yawRef.current, pitchRef.current);
+      }
+    },
+    {
+      target: glDomElement,
+      enabled: interactive && enabled,
+      filterTaps: true,
+      threshold: 6,
+      pointer: { capture: true },
+    },
+  );
+
+  useFrame(() => {
     if (
       allowInertia &&
-      dragPointerIdRef.current == null &&
+      !draggingRef.current &&
       orbitRootRef.current &&
       Math.abs(inertiaYawRef.current) + Math.abs(inertiaPitchRef.current) >=
         INERTIA_MIN_SPEED

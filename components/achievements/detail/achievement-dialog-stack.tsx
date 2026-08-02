@@ -3,6 +3,9 @@
 import { createPortal } from "react-dom";
 import {
   useCallback,
+  useEffect,
+  useMemo,
+  useRef,
   type CSSProperties,
   type Dispatch,
   type FormEvent,
@@ -19,6 +22,9 @@ import {
   submitImpression,
   type BadgeSessionController,
 } from "@/components/achievements/badge";
+import { LockedBadgeRefuseHitLayer } from "@/components/achievements/badge/effects/locked-badge-refuse-hit-layer";
+import { useLockedBadgeRefuseMotion } from "@/components/achievements/badge/effects/use-locked-badge-refuse-motion";
+import { useUnlockedBadgePokeMotion } from "@/components/achievements/badge/effects/use-unlocked-badge-poke-motion";
 import type { AlphaMaskData } from "@/lib/achievements/badge/parallax/shape-utils";
 import {
   badgeChromeWidth,
@@ -78,6 +84,7 @@ export type AchievementDialogStackProps = {
   onRequestPanelVisibilityEdit: () => void;
 
   detailIsUnlocking: boolean;
+  isUnlockHolding: boolean;
   detailIsLockedUi: boolean;
   detailRenderSrc: string | null;
   detailTone: AchievementTone;
@@ -138,6 +145,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     onRequestPanelEdit,
     onRequestPanelVisibilityEdit,
     detailIsUnlocking,
+    isUnlockHolding,
     detailIsLockedUi,
     detailRenderSrc,
     detailTone,
@@ -179,6 +187,31 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
   const showDetailContent =
     detailAchievement != null &&
     (detailMode === "view" || isVisibilityOnlyEdit);
+  const badgeGestureSurface = useMemo(
+    () => ({
+      detailMode,
+      locked: detailIsLockedUi,
+      unlocking: detailIsUnlocking,
+      present: detailAchievement != null,
+      readOnly,
+    }),
+    [
+      detailAchievement,
+      detailIsLockedUi,
+      detailIsUnlocking,
+      detailMode,
+      readOnly,
+    ],
+  );
+  const lockedRefuse = useLockedBadgeRefuseMotion(badgeGestureSurface);
+  const unlockedPoke = useUnlockedBadgePokeMotion(badgeGestureSurface);
+  const unlockHoldSessionRef = useRef(false);
+
+  useEffect(() => {
+    if (detailIsUnlocking || !lockedRefuse.armed) {
+      unlockHoldSessionRef.current = false;
+    }
+  }, [detailIsUnlocking, lockedRefuse.armed]);
 
   const impressionTutorial = useTutorial(TUTORIAL_IDS.impressionDoubleTap);
   const unlockHoldTutorial = useTutorial(TUTORIAL_IDS.unlockHold);
@@ -226,8 +259,18 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
   });
 
   const handleUnlockPointerDown = useCallback(() => {
+    unlockHoldSessionRef.current = true;
     startUnlockHold();
   }, [startUnlockHold]);
+
+  const handleUnlockPointerEnd = useCallback(() => {
+    const shortPress = unlockHoldSessionRef.current && isUnlockHolding;
+    unlockHoldSessionRef.current = false;
+    cancelUnlockHold();
+    if (shortPress) {
+      lockedRefuse.trigger();
+    }
+  }, [cancelUnlockHold, isUnlockHolding, lockedRefuse]);
 
   const handleLeaveImpression = useCallback(() => {
     if (
@@ -346,7 +389,10 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                     className={cn(
                       "relative",
                       transitionUi.badgeHost.hideBadge && "opacity-0",
+                      lockedRefuse.className,
+                      unlockedPoke.className,
                     )}
+                    {...unlockedPoke.bind()}
                   >
                     <Badge
                       options={badgeOptionsForDetailInteractive({
@@ -364,7 +410,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                         unlockAlphaMaskRef: unlockAlphaMaskRef,
                         enableUnlockHold: detailIsLockedUi && !readOnly,
                         onUnlockPointerDown: handleUnlockPointerDown,
-                        onUnlockPointerEnd: cancelUnlockHold,
+                        onUnlockPointerEnd: handleUnlockPointerEnd,
                         onImageDecoded: onDetailBadgeImageDecoded,
                         onModelUrlReady: onDetailBadgeModelUrlReady,
                         onVisualReady: onDetailBadgeVisualReady,
@@ -380,6 +426,11 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                             }
                           : undefined,
                       })}
+                    />
+                    <LockedBadgeRefuseHitLayer
+                      enabled={lockedRefuse.showHitLayer}
+                      onRefuse={lockedRefuse.trigger}
+                      alphaMaskRef={unlockAlphaMaskRef}
                     />
                     {detailAchievement.model != null && (
                       <BadgeAttributionPopover
