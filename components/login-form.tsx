@@ -62,18 +62,23 @@ export function LoginForm({ className, next, ...props }: LoginFormProps) {
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Continue with Google, or use email if you already have a password
+            account
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {showOAuth ? <OAuthProviderButtons next={next} /> : null}
+          {showOAuth ? (
+            <OAuthProviderButtons next={next} intent="sign-in" />
+          ) : null}
           {showOAuth ? (
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t border-border/60" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">or</span>
+                <span className="bg-card px-2 text-muted-foreground">
+                  or email
+                </span>
               </div>
             </div>
           ) : null}
@@ -118,7 +123,7 @@ export function LoginForm({ className, next, ...props }: LoginFormProps) {
                 href={next ? signUpWithNext(next) : ROUTES.signUp}
                 className="underline underline-offset-4"
               >
-                Sign up
+                Sign up with Google
               </Link>
             </div>
           </form>
