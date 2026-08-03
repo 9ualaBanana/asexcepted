@@ -3,6 +3,7 @@ import type { CSSProperties, RefObject } from "react";
 import type { AchievementTone } from "@/components/achievements/achievement-manager-utils";
 import type { AchievementIconKey } from "@/components/achievements/achievement-editor-shared";
 import type {
+  BadgeGesture,
   BadgeImpression,
   BadgeOptions,
 } from "@/components/achievements/badge/display/badge-options";
@@ -76,6 +77,8 @@ export type DetailInteractiveBadgeOptionsParams = {
   enableUnlockHold?: boolean;
   onUnlockPointerDown?: () => void;
   onUnlockPointerEnd?: () => void;
+  onRefuseTap?: () => void;
+  onPokeTap?: () => void;
   onImageDecoded?: () => void;
   onModelUrlReady?: () => void;
   onVisualReady?: () => void;
@@ -115,18 +118,43 @@ export function badgeOptionsForDetailInteractive(
       active: params.unlocking,
       clipPathRef: params.unlockRevealClipPathRef,
       maskStyle: params.detailMaskStyle,
-      hold: params.enableUnlockHold
-        ? {
-            enabled: true,
-            onPointerDown: params.onUnlockPointerDown,
-            onPointerEnd: params.onUnlockPointerEnd,
-            alphaMaskRef: params.unlockAlphaMaskRef,
-          }
-        : undefined,
     },
+    gesture: resolveDetailBadgeGesture(params),
     impression: params.impression,
     impressionEffect: params.impressionEffect && !params.lockedUi && !hasModel,
   };
+}
+
+function resolveDetailBadgeGesture(
+  params: DetailInteractiveBadgeOptionsParams,
+): BadgeGesture | null {
+  if (params.enableUnlockHold && params.lockedUi) {
+    return {
+      kind: "unlock-hold",
+      alphaMaskRef: params.unlockAlphaMaskRef,
+      onPointerDown: params.onUnlockPointerDown,
+      onPointerEnd: params.onUnlockPointerEnd,
+    };
+  }
+
+  if (params.unlocking) return null;
+
+  if (params.lockedUi && params.onRefuseTap) {
+    return {
+      kind: "refuse-tap",
+      alphaMaskRef: params.unlockAlphaMaskRef,
+      onTap: params.onRefuseTap,
+    };
+  }
+
+  if (!params.lockedUi && params.onPokeTap) {
+    return {
+      kind: "poke-tap",
+      onTap: params.onPokeTap,
+    };
+  }
+
+  return null;
 }
 
 export function badgeOptionsForEditor(params: {

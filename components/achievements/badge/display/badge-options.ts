@@ -53,13 +53,28 @@ export type BadgeUnlock = {
   /** Updated imperatively during reveal — avoids re-rendering Badge every frame. */
   clipPathRef: RefObject<string>;
   maskStyle: CSSProperties | null;
-  hold?: {
-    enabled: boolean;
-    onPointerDown?: () => void;
-    onPointerEnd?: () => void;
-    alphaMaskRef: RefObject<AlphaMaskData | null>;
-  };
 };
+
+/**
+ * Single in-badge gesture surface (owned by {@link BadgeGestureLayer}).
+ * Mutually exclusive modes — set by detail presets from surface state.
+ */
+export type BadgeGesture =
+  | {
+      kind: "unlock-hold";
+      alphaMaskRef: RefObject<AlphaMaskData | null>;
+      onPointerDown?: () => void;
+      onPointerEnd?: () => void;
+    }
+  | {
+      kind: "refuse-tap";
+      alphaMaskRef: RefObject<AlphaMaskData | null>;
+      onTap: () => void;
+    }
+  | {
+      kind: "poke-tap";
+      onTap: () => void;
+    };
 
 export type BadgeOptions = {
   frame: BadgeFrame;
@@ -77,6 +92,7 @@ export type BadgeOptions = {
   motionSeed: string;
   allowFallback?: boolean;
   unlock?: BadgeUnlock | null;
+  gesture?: BadgeGesture | null;
   impression?: BadgeImpression;
   impressionEffect: boolean;
   className?: string;

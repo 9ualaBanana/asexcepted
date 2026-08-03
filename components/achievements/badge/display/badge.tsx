@@ -9,10 +9,12 @@ import { BadgeUnderlayLayer } from "@/components/achievements/badge/display/badg
 import {
   badgeArtFromOptions,
   getBadgeContentMode,
+  slotSizeFromFrame,
   type BadgeArtProps,
   type BadgeOptions,
 } from "@/components/achievements/badge/display/badge-options";
 import { BadgeSilhouetteLayer } from "@/components/achievements/badge/display/badge-silhouette-layer";
+import { FallbackBadge } from "@/components/achievements/badge/display/fallback-badge";
 import { cn } from "@/lib/utils";
 
 type BadgeProps = {
@@ -30,19 +32,28 @@ export function Badge({ options }: BadgeProps) {
       <BadgeImpressionLayer impression={options.impression}>
         <BadgeLockLayer
           unlock={options.unlock}
-          locked={art.locked}
+          gesture={options.gesture}
           revealArt={
-            unlocking && isLiveViewer ? (
-              <BadgeInteractiveContentLayer
-                key={`${liveKey}:reveal`}
-                displaySrc={art.displaySrc}
-                model={art.model}
-                signedModelUrlProp={art.signedModelUrl}
-                motionSeed={art.motionSeed}
-                float={art.float}
-                content={art.content}
-                impressionEffect={art.impressionEffect}
-              />
+            unlocking ? (
+              art.displaySrc && isLiveViewer ? (
+                <BadgeInteractiveContentLayer
+                  key={`${liveKey}:reveal`}
+                  displaySrc={art.displaySrc}
+                  model={art.model}
+                  signedModelUrlProp={art.signedModelUrl}
+                  motionSeed={art.motionSeed}
+                  float={art.float}
+                  content={art.content}
+                  impressionEffect={art.impressionEffect}
+                />
+              ) : art.allowFallback ? (
+                <FallbackBadge
+                  tone={art.tone}
+                  isLocked={false}
+                  icon={art.icon}
+                  size={slotSizeFromFrame(art.frame)}
+                />
+              ) : null
             ) : null
           }
         >

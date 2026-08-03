@@ -20,10 +20,6 @@ function isRefuseArmed(surface: DetailBadgeGestureSurface): boolean {
   );
 }
 
-/**
- * Presentation-only locked badge refuse gesture.
- * Feature gate + arming live inside the hook.
- */
 export function useLockedBadgeRefuseMotion(surface: DetailBadgeGestureSurface) {
   const armed = isRefuseArmed(surface);
   const [playing, setPlaying] = useState(false);
@@ -50,8 +46,8 @@ export function useLockedBadgeRefuseMotion(surface: DetailBadgeGestureSurface) {
     () => ({
       trigger,
       className: playing ? REFUSE_MOTION_CLASS : undefined,
-      showHitLayer: armed && surface.readOnly,
       armed,
+      enableHit: armed && surface.readOnly,
     }),
     [armed, playing, surface.readOnly, trigger],
   );

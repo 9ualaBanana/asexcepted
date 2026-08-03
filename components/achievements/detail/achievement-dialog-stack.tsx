@@ -22,7 +22,6 @@ import {
   submitImpression,
   type BadgeSessionController,
 } from "@/components/achievements/badge";
-import { LockedBadgeRefuseHitLayer } from "@/components/achievements/badge/effects/locked-badge-refuse-hit-layer";
 import { useLockedBadgeRefuseMotion } from "@/components/achievements/badge/effects/use-locked-badge-refuse-motion";
 import { useUnlockedBadgePokeMotion } from "@/components/achievements/badge/effects/use-unlocked-badge-poke-motion";
 import type { AlphaMaskData } from "@/lib/achievements/badge/parallax/shape-utils";
@@ -447,7 +446,6 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       lockedRefuse.className,
                       unlockedPoke.className,
                     )}
-                    {...unlockedPoke.bind()}
                   >
                     <Badge
                       options={badgeOptionsForDetailInteractive({
@@ -466,26 +464,26 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                         enableUnlockHold: detailIsLockedUi && !readOnly,
                         onUnlockPointerDown: handleUnlockPointerDown,
                         onUnlockPointerEnd: handleUnlockPointerEnd,
+                        onRefuseTap: lockedRefuse.enableHit
+                          ? lockedRefuse.trigger
+                          : undefined,
+                        onPokeTap: unlockedPoke.armed
+                          ? unlockedPoke.trigger
+                          : undefined,
                         onImageDecoded: onDetailBadgeImageDecoded,
                         onModelUrlReady: onDetailBadgeModelUrlReady,
                         onVisualReady: onDetailBadgeVisualReady,
                         dedicatedEffect:
                           detailAchievement.showDedicatedEffect,
                         impressionEffect: detailAchievement.impressionCount > 0,
-                        impression: readOnly
+                        impression: readOnly && !detailIsLockedUi
                           ? {
                               burstEnabled: true,
-                              activateDisabled:
-                                detailIsUnlocking || detailIsLockedUi,
+                              activateDisabled: detailIsUnlocking,
                               onActivate: handleLeaveImpression,
                             }
                           : undefined,
                       })}
-                    />
-                    <LockedBadgeRefuseHitLayer
-                      enabled={lockedRefuse.showHitLayer}
-                      onRefuse={lockedRefuse.trigger}
-                      alphaMaskRef={unlockAlphaMaskRef}
                     />
                     {detailAchievement.model != null && (
                       <BadgeAttributionPopover

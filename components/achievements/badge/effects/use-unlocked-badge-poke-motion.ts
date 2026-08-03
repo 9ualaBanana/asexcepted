@@ -1,14 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useDrag } from "@use-gesture/react";
 
 import type { DetailBadgeGestureSurface } from "@/lib/achievements/ui/detail-badge-gesture-surface";
 import {
   UNLOCKED_BADGE_POKE_MS,
   isUnlockedBadgePokeMotionEnabled,
 } from "@/lib/achievements/ui/unlocked-badge-poke-motion";
-import { cn } from "@/lib/utils";
 
 const POKE_MOTION_CLASS = "badge-unlocked-poke-motion";
 
@@ -22,10 +20,6 @@ function isPokeArmed(surface: DetailBadgeGestureSurface): boolean {
   );
 }
 
-/**
- * Presentation-only unlocked badge poke (scale dip/rise wave).
- * Feature gate + arming live inside the hook; tap → poke, drag left for spin.
- */
 export function useUnlockedBadgePokeMotion(surface: DetailBadgeGestureSurface) {
   const armed = isPokeArmed(surface);
   const [playing, setPlaying] = useState(false);
@@ -48,24 +42,12 @@ export function useUnlockedBadgePokeMotion(surface: DetailBadgeGestureSurface) {
     });
   }, [armed]);
 
-  const bind = useDrag(
-    ({ tap }) => {
-      if (tap) trigger();
-    },
-    {
-      enabled: armed,
-      filterTaps: true,
-      threshold: 6,
-      pointer: { capture: false },
-      preventScroll: false,
-    },
-  );
-
   return useMemo(
     () => ({
-      className: cn(armed && "touch-none", playing && POKE_MOTION_CLASS),
-      bind,
+      trigger,
+      className: playing ? POKE_MOTION_CLASS : undefined,
+      armed,
     }),
-    [armed, bind, playing],
+    [armed, playing, trigger],
   );
 }

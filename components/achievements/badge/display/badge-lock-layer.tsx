@@ -2,29 +2,31 @@
 
 import type { ReactNode } from "react";
 
-import type { BadgeUnlock } from "@/components/achievements/badge/display/badge-options";
-import { BadgeUnlockHoldLayer } from "@/components/achievements/badge/display/badge-unlock-hold-layer";
+import type {
+  BadgeGesture,
+  BadgeUnlock,
+} from "@/components/achievements/badge/display/badge-options";
+import { BadgeGestureLayer } from "@/components/achievements/badge/display/badge-gesture-layer";
 import { UnlockRevealWave } from "@/components/achievements/badge/effects/unlock-reveal-wave";
 
 type BadgeLockLayerProps = {
   unlock?: BadgeUnlock | null;
-  locked: boolean;
+  gesture?: BadgeGesture | null;
   children: ReactNode;
-  /** Live art shown inside the unlock wipe (only while unlocking). */
   revealArt?: ReactNode;
 };
 
-/** Unlock hold + reveal wave around the badge art stack. */
 export function BadgeLockLayer({
   unlock,
-  locked,
+  gesture,
   children,
   revealArt,
 }: BadgeLockLayerProps) {
   return (
     <div className="relative h-full w-full">
-      <BadgeUnlockHoldLayer hold={unlock?.hold} locked={locked} />
-      {children}
+      <BadgeGestureLayer gesture={gesture}>
+        {children}
+      </BadgeGestureLayer>
       {unlock?.active && revealArt ? (
         <UnlockRevealWave
           isUnlocking

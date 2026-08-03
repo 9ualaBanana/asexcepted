@@ -6,6 +6,7 @@ export type {
   BadgeFrame,
   BadgeContent,
   BadgeUnlock,
+  BadgeGesture,
   BadgeImpression,
 } from "./display/badge-options";
 
