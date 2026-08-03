@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 
 import { AddToHomeScreenInstallBlock } from "@/components/pwa/add-to-home-screen-instructions";
-import { Label } from "@/components/ui/label";
+import {
+  ProfilePreferenceRow,
+  ProfilePreferenceRowSkeleton,
+} from "@/components/profile/profile-preference-row";
 import { needsHomeScreenInstallForPush } from "@/lib/pwa/install-context";
-import { cn } from "@/lib/utils";
 
 type ProfileNotificationsSectionProps = {
   pushEnabled: boolean;
@@ -21,35 +23,34 @@ export function ProfileNotificationsSection({
   onToggle,
 }: ProfileNotificationsSectionProps) {
   const [installRequired, setInstallRequired] = useState(false);
+  const [installChecked, setInstallChecked] = useState(false);
 
   useEffect(() => {
     setInstallRequired(needsHomeScreenInstallForPush());
+    setInstallChecked(true);
   }, []);
 
-  return (
-    <div className="space-y-2 rounded-lg border border-border/60 bg-muted/20 p-3">
-      <Label htmlFor="profile-notifications-enabled">Notifications</Label>
+  if (!installChecked || pushStatusLoading) {
+    return <ProfilePreferenceRowSkeleton />;
+  }
 
-      {installRequired ? (
+  if (installRequired) {
+    return (
+      <div className="space-y-2 rounded-lg border border-border/60 bg-muted/20 p-3">
+        <p className="text-sm font-medium leading-none">Notifications</p>
         <AddToHomeScreenInstallBlock variant="profile" />
-      ) : (
-        <label
-          htmlFor="profile-notifications-enabled"
-          className={cn("flex cursor-pointer items-center justify-between gap-3")}
-        >
-          <p className="text-xs text-muted-foreground">
-            Receive push notifications on this device when you enable them here.
-          </p>
-          <input
-            id="profile-notifications-enabled"
-            type="checkbox"
-            checked={pushEnabled}
-            disabled={pushBusy || pushStatusLoading}
-            onChange={(e) => onToggle(e.target.checked)}
-            className="h-4 w-4 shrink-0 accent-foreground disabled:opacity-50"
-          />
-        </label>
-      )}
-    </div>
+      </div>
+    );
+  }
+
+  return (
+    <ProfilePreferenceRow
+      id="profile-notifications-enabled"
+      title="Notifications"
+      description="Receive push notifications on this device"
+      checked={pushEnabled}
+      disabled={pushBusy}
+      onCheckedChange={onToggle}
+    />
   );
 }

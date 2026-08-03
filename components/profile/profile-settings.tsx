@@ -6,6 +6,10 @@ import { useRouter } from "next/navigation";
 import { AdminProfileTools } from "@/components/admin/admin-profile-tools";
 import { normalizeImageKitFileId } from "@/components/achievements/badge";
 import { ProfileNotificationsSection } from "@/components/profile/profile-notifications-section";
+import {
+  ProfilePreferenceRow,
+  ProfilePreferenceRowSkeleton,
+} from "@/components/profile/profile-preference-row";
 import { ProfileAvatarSlot } from "@/components/profile/profile-avatar-slot";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,10 +46,6 @@ type ProfileSettingsProps = {
   registerDiscardHandler?: (handler: () => Promise<void>) => void;
 };
 
-/**
- * Profile fields backed by Supabase Auth `user_metadata` (display name) and
- * `public.profile` (avatar).
- */
 export function ProfileSettings({
   isAdmin = false,
   onDirtyChange,
@@ -72,7 +72,6 @@ export function ProfileSettings({
   const [pushEnabled, setPushEnabled] = useState(false);
   const [pushStatusLoading, setPushStatusLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [savedHint, setSavedHint] = useState(false);
   const [pushHint, setPushHint] = useState<string | null>(null);
 
   useErrorToast(error, { id: "profile-settings" });
@@ -94,7 +93,6 @@ export function ProfileSettings({
     setAvatarFileId(savedAvatarFileId);
     setDisplayName(savedDisplayName);
     setError(null);
-    setSavedHint(false);
   }, [savedAvatarFileId, savedAvatarUrl, savedDisplayName]);
 
   useEffect(() => {
@@ -117,7 +115,6 @@ export function ProfileSettings({
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    setSavedHint(false);
     const { data, error: userError } = await supabase.auth.getUser();
     if (userError || !data.user) {
       setError(userError?.message ?? "Not signed in.");
@@ -158,64 +155,65 @@ export function ProfileSettings({
     stageProfileAvatarUpload(avatarSessionRef.current, fileId);
     setAvatarPreviewUrl(url);
     setAvatarFileId(fileId);
-    setSavedHint(false);
+    setError(null);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!userId) return;
+  async function handleSave() {
+    if (!userId || !isDirty || saving) return;
     setSaving(true);
     setError(null);
-    setSavedHint(false);
+
     const trimmed = displayName.trim();
-    const { error: updErr } = await supabase.auth.updateUser({
-      data: trimmed
-        ? {
-            display_name: trimmed,
-            full_name: trimmed,
-            name: trimmed,
-          }
-        : {
-            display_name: "",
-            full_name: "",
-            name: "",
-          },
-    });
-    if (updErr) {
-      setError(updErr.message);
-      setSaving(false);
-      return;
+    if (displayNameDirty) {
+      const { error: updErr } = await supabase.auth.updateUser({
+        data: trimmed
+          ? {
+              display_name: trimmed,
+              full_name: trimmed,
+              name: trimmed,
+            }
+          : {
+              display_name: "",
+              full_name: "",
+              name: "",
+            },
+      });
+      if (updErr) {
+        setError(updErr.message);
+        setSaving(false);
+        return;
+      }
+      setSavedDisplayName(trimmed);
+      setDisplayName(trimmed);
     }
 
-    const nextUrl = avatarPreviewUrl.trim() || null;
-    const nextFileId = normalizeImageKitFileId(avatarFileId);
-    const avatarUpdate = await updateProfileAvatar(supabase, userId, {
-      avatar_url: nextUrl,
-      avatar_file_id: nextFileId,
-    });
-    if (avatarUpdate.isErr()) {
-      setError(avatarUpdate.error);
-      setSaving(false);
-      return;
+    if (avatarDirty) {
+      const nextUrl = avatarPreviewUrl.trim() || null;
+      const nextFileId = normalizeImageKitFileId(avatarFileId);
+      const avatarUpdate = await updateProfileAvatar(supabase, userId, {
+        avatar_url: nextUrl,
+        avatar_file_id: nextFileId,
+      });
+      if (avatarUpdate.isErr()) {
+        setError(avatarUpdate.error);
+        setSaving(false);
+        return;
+      }
+
+      const replacedOnSave = commitProfileAvatarUploadSession(
+        avatarSessionRef.current,
+        nextFileId ?? "",
+      );
+      await deleteImageKitFileQuietly(replacedOnSave);
+
+      setSavedAvatarUrl(nextUrl ?? "");
+      setSavedAvatarFileId(nextFileId ?? "");
+      setAvatarPreviewUrl(nextUrl ?? "");
+      setAvatarFileId(nextFileId ?? "");
     }
-
-    const replacedOnSave = commitProfileAvatarUploadSession(
-      avatarSessionRef.current,
-      nextFileId ?? "",
-    );
-    await deleteImageKitFileQuietly(replacedOnSave);
-
-    setSavedAvatarUrl(nextUrl ?? "");
-    setSavedAvatarFileId(nextFileId ?? "");
-    setAvatarPreviewUrl(nextUrl ?? "");
-    setAvatarFileId(nextFileId ?? "");
-    setSavedDisplayName(trimmed);
-    setDisplayName(trimmed);
 
     setSaving(false);
-    setSavedHint(true);
     router.refresh();
-    await load();
   }
 
   async function handlePushToggle(next: boolean) {
@@ -257,93 +255,117 @@ export function ProfileSettings({
   }
 
   if (loading) {
-    return (
-      <p className="py-8 text-center text-sm text-muted-foreground">Loading…</p>
-    );
+    return <ProfileSettingsSkeleton />;
   }
 
   return (
-    <form
-      onSubmit={(e) => void handleSubmit(e)}
-      className="mx-auto w-full max-w-md space-y-6 text-left"
-    >
-      {savedHint ? (
-        <p className="text-sm text-muted-foreground">Saved.</p>
-      ) : null}
+    <div className="mx-auto w-full max-w-md space-y-6 text-left">
       {pushHint ? (
         <p className="text-sm text-muted-foreground">{pushHint}</p>
       ) : null}
 
-      <div className="flex justify-center pb-2">
-        <ProfileAvatarSlot
-          layout="profile"
-          editable
-          disabled={saving}
-          imageUrl={avatarPreviewUrl}
-          onUploadSuccess={handleAvatarUploadSuccess}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="profile-email">Email</Label>
-        <Input
-          id="profile-email"
-          type="email"
-          value={email}
-          readOnly
-          className="bg-muted/40"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="profile-display-name">Display name</Label>
-        <Input
-          id="profile-display-name"
-          value={displayName}
-          onChange={(e) => {
-            setDisplayName(e.target.value);
-            setSavedHint(false);
-          }}
-          placeholder="Shown in the app header and Supabase Auth"
-          autoComplete="name"
-        />
-      </div>
-
-      <div className="space-y-2 rounded-lg border border-border/60 bg-muted/20 p-3">
-        <Label htmlFor="profile-sounds-enabled">Sounds</Label>
-        <label
-          htmlFor="profile-sounds-enabled"
-          className="flex cursor-pointer items-center justify-between gap-3"
-        >
-          <p className="text-xs text-muted-foreground">
-            Play unlock and save sounds in the achievements experience.
-          </p>
-          <input
-            id="profile-sounds-enabled"
-            type="checkbox"
-            checked={soundsEnabled}
-            onChange={(e) => setSoundsEnabled(e.target.checked)}
-            className="h-4 w-4 shrink-0 accent-foreground"
+      <div className="space-y-6">
+        <div className="flex justify-center pb-2">
+          <ProfileAvatarSlot
+            layout="profile"
+            editable
+            disabled={saving}
+            imageUrl={avatarPreviewUrl}
+            onUploadSuccess={handleAvatarUploadSuccess}
           />
-        </label>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="profile-email">Email</Label>
+          <Input
+            id="profile-email"
+            type="email"
+            value={email}
+            readOnly
+            className="bg-muted/40"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="profile-display-name">Display name</Label>
+          <Input
+            id="profile-display-name"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                void handleSave();
+              }
+            }}
+            placeholder="Shown in the app header and Supabase Auth"
+            autoComplete="name"
+            disabled={saving}
+          />
+        </div>
+
+        <div className="flex justify-center">
+          <Button
+            type="button"
+            disabled={saving || !isDirty}
+            onClick={() => void handleSave()}
+          >
+            {saving ? "Saving…" : "Save"}
+          </Button>
+        </div>
       </div>
 
-      <ProfileNotificationsSection
-        pushEnabled={pushEnabled}
-        pushBusy={pushBusy}
-        pushStatusLoading={pushStatusLoading}
-        onToggle={(next) => void handlePushToggle(next)}
-      />
+      <div className="border-t border-border/50 pt-6">
+        <div className="space-y-3">
+          <ProfilePreferenceRow
+            id="profile-sounds-enabled"
+            title="Sounds"
+            description="Play unlock and save sounds"
+            checked={soundsEnabled}
+            onCheckedChange={setSoundsEnabled}
+          />
 
-      {isAdmin ? (
-        <AdminProfileTools onError={setError} onPushHint={setPushHint} />
-      ) : null}
+          <ProfileNotificationsSection
+            pushEnabled={pushEnabled}
+            pushBusy={pushBusy}
+            pushStatusLoading={pushStatusLoading}
+            onToggle={(next) => void handlePushToggle(next)}
+          />
 
+          {isAdmin ? (
+            <AdminProfileTools onError={setError} onPushHint={setPushHint} />
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProfileSettingsSkeleton() {
+  return (
+    <div
+      className="mx-auto w-full max-w-md space-y-6 text-left"
+      aria-busy
+      aria-label="Loading profile"
+    >
+      <div className="flex justify-center pb-2">
+        <div className="h-24 w-24 animate-pulse rounded-full bg-muted/50" />
+      </div>
+      <div className="space-y-2">
+        <div className="h-4 w-14 animate-pulse rounded bg-muted/45" />
+        <div className="h-9 w-full animate-pulse rounded-md bg-muted/35" />
+      </div>
+      <div className="space-y-2">
+        <div className="h-4 w-24 animate-pulse rounded bg-muted/45" />
+        <div className="h-9 w-full animate-pulse rounded-md bg-muted/35" />
+      </div>
       <div className="flex justify-center">
-        <Button type="submit" disabled={saving || !isDirty}>
-          {saving ? "Saving…" : "Save"}
-        </Button>
+        <div className="h-9 w-20 animate-pulse rounded-md bg-muted/40" />
       </div>
-    </form>
+      <div className="space-y-3 border-t border-border/50 pt-6">
+        <ProfilePreferenceRowSkeleton />
+        <ProfilePreferenceRowSkeleton />
+      </div>
+    </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { ProfilePreferenceRow } from "@/components/profile/profile-preference-row";
 import { useBadgeDebugOverlayPreference } from "@/lib/local-storage";
 import { ensurePushRegistered } from "@/lib/push/ensure-push-registered";
 
@@ -58,26 +58,15 @@ export function AdminProfileTools({ onError, onPushHint }: AdminProfileToolsProp
 
   return (
     <>
-      <div className="space-y-2 rounded-lg border border-border/60 bg-muted/20 p-3">
-        <Label htmlFor="profile-badge-debug-overlay">Badge debug overlay</Label>
-        <label
-          htmlFor="profile-badge-debug-overlay"
-          className="flex cursor-pointer items-center justify-between gap-3"
-        >
-          <p className="text-xs text-muted-foreground">
-            Show performance telemetry overlay on achievements pages.
-          </p>
-          <input
-            id="profile-badge-debug-overlay"
-            type="checkbox"
-            checked={badgeDebugOverlay}
-            onChange={(e) => setBadgeDebugOverlay(e.target.checked)}
-            className="h-4 w-4 shrink-0 accent-foreground"
-          />
-        </label>
-      </div>
+      <ProfilePreferenceRow
+        id="profile-badge-debug-overlay"
+        title="Badge debug overlay"
+        description="Show performance telemetry overlay on achievements pages."
+        checked={badgeDebugOverlay}
+        onCheckedChange={setBadgeDebugOverlay}
+      />
 
-      <div className="flex justify-center">
+      <div className="flex justify-center pt-1">
         <Button
           type="button"
           variant="outline"
