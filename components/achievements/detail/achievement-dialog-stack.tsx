@@ -279,7 +279,16 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     detailAchievement != null && detailAchievement.hasCustomBadge;
   useTutorialToast({
     tutorial: impressionTutorialDefinition,
-    active: readOnly && !detailIsLockedUi && impressionTutorial.active,
+    active:
+      impressionTutorial.active &&
+      readOnly &&
+      !detailIsLockedUi &&
+      !isCreating &&
+      !isDedicatingCreate &&
+      showDetailContent &&
+      detailMode === "view" &&
+      !isVisibilityOnlyEdit &&
+      overlayTransition.phase === "open",
     onDismiss: impressionTutorial.dismiss,
   });
 
@@ -290,7 +299,11 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
       !readOnly &&
       detailIsLockedUi &&
       !detailIsUnlocking &&
+      !isCreating &&
+      showDetailContent &&
       detailMode === "view" &&
+      !isVisibilityOnlyEdit &&
+      overlayTransition.phase === "open" &&
       detailAchievement != null,
     onDismiss: unlockHoldTutorial.dismiss,
   });
@@ -323,7 +336,11 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
       !readOnly &&
       !detailIsLockedUi &&
       !detailIsUnlocking &&
+      !isCreating &&
+      showDetailContent &&
       detailMode === "view" &&
+      !isVisibilityOnlyEdit &&
+      overlayTransition.phase === "open" &&
       detailAchievement != null,
     onDismiss: dismissBadgeSpinTutorial,
   });
@@ -355,16 +372,13 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     impressionTutorial.dismiss();
 
     void submitImpression(detailAchievement.id).then((result) => {
-      if (result.ok) {
-        impressionTutorial.dismiss();
-      }
       onImpressionRecorded(result.added);
     });
   }, [
     detailAchievement,
     detailIsLockedUi,
     detailIsUnlocking,
-    impressionTutorial,
+    impressionTutorial.dismiss,
     onImpressionRecorded,
     readOnly,
   ]);
