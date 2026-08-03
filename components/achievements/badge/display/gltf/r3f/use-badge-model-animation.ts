@@ -69,9 +69,37 @@ export function useBadgeModelAnimation({
     const hasAnimation = Boolean(clip);
     notifyHasAnimationChange(hasAnimation);
 
-    if (!clip || !actions[clip.name]) {
-      actionRef.current = null;
+    let cancelVisualReady: (() => void) | undefined;
+    let readyScheduled = false;
+
+    const ensureVisualReady = () => {
+      if (visualReadyRef.current || readyScheduled) return;
+      readyScheduled = true;
+      const cached = badgeModelViewStateStore.read(viewStateKey);
+      allowAnimationAdvanceRef.current =
+        Boolean(cached) || motionStartCentered;
+      cancelVisualReady = scheduleBadgeVisualReady({
+        hasCache: Boolean(cached) || motionStartCentered,
+        onReady: () => {
+          visualReadyRef.current = true;
+          notifyVisualReady();
+        },
+        onAllowAdvance: () => {
+          allowAnimationAdvanceRef.current = true;
+        },
+      });
+    };
+
+    if (clip && !actions[clip.name]) {
       return;
+    }
+
+    if (!clip) {
+      actionRef.current = null;
+      ensureVisualReady();
+      return () => {
+        cancelVisualReady?.();
+      };
     }
 
     const action = actions[clip.name]!;
@@ -92,21 +120,7 @@ export function useBadgeModelAnimation({
       mixer?.setTime(0);
     }
     actionRef.current = action;
-
-    const cached = badgeModelViewStateStore.read(viewStateKey);
-    allowAnimationAdvanceRef.current = Boolean(cached) || motionStartCentered;
-
-    let cancelVisualReady: (() => void) | undefined;
-    if (!visualReadyRef.current) {
-      visualReadyRef.current = true;
-      cancelVisualReady = scheduleBadgeVisualReady({
-        hasCache: Boolean(cached) || motionStartCentered,
-        onReady: () => notifyVisualReady(),
-        onAllowAdvance: () => {
-          allowAnimationAdvanceRef.current = true;
-        },
-      });
-    }
+    ensureVisualReady();
 
     return () => {
       cancelVisualReady?.();
