@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Suspense } from "react";
+import { EmailAuthUpgradeGate } from "@/components/auth/email-auth-upgrade-gate";
 import { AppNavigationProvider } from "@/components/navigation/app-navigation-provider";
 import { AppToaster } from "@/components/toasts/app-toaster";
 import { LiveUpdateProvider } from "@/lib/live-updates";
@@ -80,6 +82,9 @@ export default function RootLayout({
               <ScreenOrientationLock />
               <PushRegistration />
               <AppToaster />
+              <Suspense fallback={null}>
+                <EmailAuthUpgradeGate />
+              </Suspense>
               {children}
             </LiveUpdateProvider>
           </AppNavigationProvider>
