@@ -295,6 +295,20 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     onDismiss: unlockHoldTutorial.dismiss,
   });
 
+  useEffect(() => {
+    if (
+      optimisticUnlockedAchievementId == null ||
+      detailAchievement?.id !== optimisticUnlockedAchievementId
+    ) {
+      return;
+    }
+    unlockHoldTutorial.dismiss();
+  }, [
+    detailAchievement?.id,
+    optimisticUnlockedAchievementId,
+    unlockHoldTutorial.dismiss,
+  ]);
+
   const dismissBadgeSpinTutorial = useCallback(() => {
     badgeSpinTutorial.dismiss();
     setShowBadgeSpinAfterFirstUnlock?.(false);
