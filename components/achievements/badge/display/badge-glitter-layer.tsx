@@ -13,6 +13,7 @@ import {
   paddedBadgeMaskStyle,
 } from "@/lib/achievements/badge/parallax/badge-mask-style";
 import { cn } from "@/lib/utils";
+import { prefersReducedMotion } from "@/lib/dom/prefers-reduced-motion";
 
 type BadgeGlitterLayerProps = {
   dedicatedEffect: boolean;
@@ -63,11 +64,7 @@ export function BadgeGlitterLayer({
   );
 
   useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const sync = () => setReduceMotion(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
+    setReduceMotion(prefersReducedMotion());
   }, []);
 
   if (!dedicatedEffect || !displaySrc) {

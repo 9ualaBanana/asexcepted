@@ -8,6 +8,7 @@ import {
 } from "react";
 
 import { getCachedBadgeMaskStyle } from "@/lib/achievements/badge/shared/render-cache";
+import { prefersReducedMotion } from "@/lib/dom/prefers-reduced-motion";
 
 type BadgeParallaxImpressionEffectProps = {
   src: string;
@@ -104,11 +105,7 @@ export function BadgeParallaxImpressionEffect({
   }, [sessionKey, src]);
 
   useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const sync = () => setReduceMotion(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
+    setReduceMotion(prefersReducedMotion());
   }, []);
 
   useEffect(() => {

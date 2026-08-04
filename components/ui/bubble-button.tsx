@@ -5,6 +5,7 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
+import { prefersReducedMotion } from "@/lib/dom/prefers-reduced-motion";
 
 const ENTER_MS = 780;
 const EXIT_MS = 500;
@@ -16,11 +17,6 @@ const EXIT_CLASS = "bubble-button-exit";
 const PENDING_CLASS = "bubble-button-pending";
 
 type Phase = "hidden" | "enter" | "shown" | "exit" | "exited";
-
-function prefersReducedMotion(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
 
 function exitTotalMs(): number {
   return EXIT_MS + STAGGER_MS * STAGGER_SPAN;

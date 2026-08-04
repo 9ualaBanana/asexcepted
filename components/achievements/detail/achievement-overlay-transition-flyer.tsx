@@ -13,10 +13,10 @@ import {
   OVERLAY_ZOOM_MS,
   cloneBadgeContainerVisual,
   getBadgeTransitionSource,
-  prefersReducedMotion,
   toDomRectLite,
   type OverlayTransitionSession,
 } from "@/lib/achievements/ui/overlay-transition";
+import { prefersReducedMotion } from "@/lib/dom/prefers-reduced-motion";
 
 type AchievementOverlayTransitionFlyerProps = {
   session: OverlayTransitionSession;
