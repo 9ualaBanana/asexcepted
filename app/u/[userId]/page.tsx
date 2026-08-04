@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import { AuthButton } from "@/components/auth-button";
+import { AccountMenu } from "@/components/layout/account-menu";
 import { AchievementsManager } from "@/components/achievements/achievements-manager";
 import { FollowButtonWrapper } from "@/components/social/follow-button";
 import { buildAchievementAuthContext } from "@/lib/auth/achievement-ability";
@@ -82,7 +82,7 @@ async function UserAchievementsContent({ params, searchParams }: PageProps) {
         <nav className="w-full flex justify-center border-b border-b-foreground/10 h-14">
           <div className="relative w-full max-w-5xl flex justify-center items-center p-3 px-5 text-sm">
             <Suspense>
-              <AuthButton />
+              <AccountMenu />
             </Suspense>
           </div>
         </nav>

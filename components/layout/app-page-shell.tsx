@@ -1,5 +1,6 @@
 import { Suspense, type ReactNode } from "react";
-import { AuthButton } from "@/components/auth-button";
+
+import { AccountMenu } from "@/components/layout/account-menu";
 import { cn } from "@/lib/utils";
 
 type AppPageShellProps = {
@@ -24,7 +25,7 @@ export function AppPageShell({
         <nav className="w-full flex shrink-0 justify-center border-b border-b-foreground/10 h-14">
           <div className="relative w-full max-w-5xl flex justify-center items-center p-3 px-5 text-sm">
             <Suspense>
-              <AuthButton />
+              <AccountMenu />
             </Suspense>
           </div>
         </nav>

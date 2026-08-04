@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 
 import { AchievementDiscardEditConfirmDialog } from "@/components/achievements/dialogs/achievement-discard-edit-confirm-dialog";
-import { LogoutButton } from "@/components/logout-button";
+import { LogoutButton } from "@/components/auth/logout-button";
 import { ProfileSettings } from "@/components/profile/profile-settings";
 import { useUnsavedProfileGuard } from "@/components/profile/use-unsaved-profile-guard";
 import { ROUTES } from "@/lib/routes";

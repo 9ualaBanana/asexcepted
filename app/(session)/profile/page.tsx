@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import { AuthButton } from "@/components/auth-button";
+import { AccountMenu } from "@/components/layout/account-menu";
 import { ProfilePageShell } from "@/components/profile/profile-page-shell";
 import { requireSessionUser } from "@/lib/auth/require-session-user";
 import { isAdmin } from "@/lib/admin";
@@ -14,7 +14,7 @@ async function ProfilePageInner() {
         <nav className="flex h-14 w-full shrink-0 justify-center border-b border-b-foreground/10">
           <div className="flex w-full max-w-5xl items-center justify-center p-3 px-5 text-sm">
             <Suspense>
-              <AuthButton />
+              <AccountMenu />
             </Suspense>
           </div>
         </nav>

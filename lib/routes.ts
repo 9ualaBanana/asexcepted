@@ -6,8 +6,6 @@ export const ROUTES = {
   confirm: "/auth/confirm",
   callback: "/auth/callback",
   invite: "/invite",
-  forgotPassword: "/auth/forgot-password",
-  updatePassword: "/auth/update-password",
   authError: "/auth/error",
   firebaseMessagingSw: "/firebase-messaging-sw.js",
   firebasePushConfig: "/firebase-push-config.js",
@@ -21,7 +19,7 @@ export function safeRedirectPath(next: string | null | undefined): string {
   if (!trimmed.startsWith("/") || trimmed.startsWith("//")) {
     return DEFAULT_POST_AUTH;
   }
-  if (trimmed.startsWith("/auth/") && trimmed !== ROUTES.updatePassword) {
+  if (trimmed.startsWith("/auth/")) {
     return DEFAULT_POST_AUTH;
   }
   return trimmed;

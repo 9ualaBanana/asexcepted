@@ -2,19 +2,21 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useId, useRef, useState } from "react";
+import { useEventListener } from "usehooks-ts";
+
 import { ROUTES, userCollection } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 const linkClass =
   "text-xs font-medium text-muted-foreground/90 tracking-tight hover:text-foreground hover:underline underline-offset-2";
 
-export type AccountMenuProps = {
+type AccountMenuNavProps = {
   label: string;
   userId: string;
 };
 
-export function AccountMenu({ label, userId }: AccountMenuProps) {
+export function AccountMenuNav({ label, userId }: AccountMenuNavProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const panelId = useId().replace(/:/g, "");
@@ -24,22 +26,20 @@ export function AccountMenu({ label, userId }: AccountMenuProps) {
 
   const close = useCallback(() => setOpen(false), []);
 
-  useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (e: PointerEvent) => {
+  useEventListener(
+    "pointerdown",
+    (event) => {
+      if (!open) return;
       const el = rootRef.current;
-      if (el && !el.contains(e.target as Node)) close();
-    };
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-    };
-    document.addEventListener("pointerdown", onPointerDown, true);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown, true);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [open, close]);
+      if (el && !el.contains(event.target as Node)) close();
+    },
+    undefined,
+    { capture: true },
+  );
+
+  useEventListener("keydown", (event) => {
+    if (open && event.key === "Escape") close();
+  });
 
   return (
     <div

@@ -21,8 +21,8 @@ describe("safeRedirectPath", () => {
     expect(safeRedirectPath("/auth/login")).toBe(ROUTES.inspa);
   });
 
-  it("allows update-password and internal absolute paths", () => {
-    expect(safeRedirectPath(ROUTES.updatePassword)).toBe(ROUTES.updatePassword);
+  it("allows internal absolute paths and blocks auth next", () => {
+    expect(safeRedirectPath("/auth/update-password")).toBe(ROUTES.inspa);
     expect(safeRedirectPath("/u/user-1")).toBe("/u/user-1");
     expect(safeRedirectPath("/invite/t?claim=1")).toBe("/invite/t?claim=1");
   });
