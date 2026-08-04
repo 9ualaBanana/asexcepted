@@ -5,7 +5,6 @@ import {
   useEffect,
   useMemo,
   useState,
-  type CSSProperties,
   type Dispatch,
   type FormEvent,
   type RefObject,
@@ -25,7 +24,6 @@ import { AchievementVisibilityToggle } from "@/components/achievements/detail/ac
 import {
   badgeChromeWidth,
   achievementDialogChromeInset,
-  achievementDialogIconBtn,
   achievementDialogIconSideSlot,
   type RemoteAssetStorageSession,
   type FormState,
@@ -33,6 +31,10 @@ import {
 } from "@/components/achievements/achievement-editor-shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  BubbleButton,
+  type BubbleButtonMotion,
+} from "@/components/ui/bubble-button";
 import { cn } from "@/lib/utils";
 import {
   applyBadgeModelToForm,
@@ -50,20 +52,15 @@ export type EditorCardProps = {
   onCancel?: () => void;
   badgeAssetSessionRef: RefObject<RemoteAssetStorageSession>;
   onClosePanel?: () => void;
-  /** Panel edit (not create): top back, bottom save / visibility / delete. */
   showEditChrome?: boolean;
   onUploadInProgressChange?: (inProgress: boolean) => void;
   onRequestDelete?: () => void;
-  /** Admin dedicating to another user: always locked + private. */
   dedicateMode?: boolean;
   canToggleLocked?: boolean;
   badgeSessionController?: BadgeSessionController;
   isCreatingFlow?: boolean;
   badgeHost: OverlayBadgeHostBinding;
-  chromeButtonMotion?: {
-    className?: string;
-    delayStyle: (step: number) => CSSProperties | undefined;
-  };
+  motion?: BubbleButtonMotion | null;
 };
 
 export function EditableAchievementCard({
@@ -82,7 +79,7 @@ export function EditableAchievementCard({
   badgeSessionController,
   isCreatingFlow = false,
   badgeHost,
-  chromeButtonMotion,
+  motion,
 }: EditorCardProps) {
   const formId = useId();
   const showDialogChrome = Boolean(onClosePanel);
@@ -153,35 +150,27 @@ export function EditableAchievementCard({
             )}
           >
             {showEditChrome && onCancel ? (
-              <button
-                type="button"
+              <BubbleButton
                 aria-label="Back"
-                className={cn(
-                  achievementDialogIconBtn,
-                  chromeButtonMotion?.className,
-                )}
-                style={chromeButtonMotion?.delayStyle(0)}
+                motion={motion}
+                index={0}
                 disabled={closeDisabled}
                 onClick={() => onCancel()}
               >
                 <ArrowLeft className="h-4 w-4" aria-hidden />
-              </button>
+              </BubbleButton>
             ) : (
               <span className={achievementDialogIconSideSlot} aria-hidden />
             )}
-            <button
-              type="button"
+            <BubbleButton
               aria-label="Close"
-              className={cn(
-                achievementDialogIconBtn,
-                chromeButtonMotion?.className,
-              )}
-              style={chromeButtonMotion?.delayStyle(showEditChrome ? 1 : 0)}
+              motion={motion}
+              index={showEditChrome ? 1 : 0}
               disabled={closeDisabled}
               onClick={() => onClosePanel?.()}
             >
               <X className="h-4 w-4" aria-hidden />
-            </button>
+            </BubbleButton>
           </div>
         ) : null}
         <div className={cn(showDialogChrome && "flex justify-center")}>
@@ -321,23 +310,20 @@ export function EditableAchievementCard({
           )}
         >
           <div className={cn(achievementDialogIconSideSlot, "justify-start")}>
-            <button
+            <BubbleButton
               type="submit"
               aria-label={isSaving ? "Saving" : "Save changes"}
               disabled={isSaveDisabled}
-              className={cn(
-                achievementDialogIconBtn,
-                "bg-white/10 text-white hover:bg-white/15",
-                chromeButtonMotion?.className,
-              )}
-              style={chromeButtonMotion?.delayStyle(2)}
+              emphasis="solid"
+              motion={motion}
+              index={2}
             >
               {isSaving ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
               ) : (
                 <Check className="h-4 w-4" aria-hidden />
               )}
-            </button>
+            </BubbleButton>
           </div>
           <div className="flex min-w-0 flex-1 justify-center">
             <AchievementVisibilityToggle
@@ -350,19 +336,15 @@ export function EditableAchievementCard({
           </div>
           <div className={cn(achievementDialogIconSideSlot, "justify-end")}>
             {onRequestDelete ? (
-              <button
-                type="button"
+              <BubbleButton
                 aria-label="Delete"
-                className={cn(
-                  achievementDialogIconBtn,
-                  chromeButtonMotion?.className,
-                )}
-                style={chromeButtonMotion?.delayStyle(3)}
+                motion={motion}
+                index={3}
                 disabled={isSaving || isBadgeUploadInProgress}
                 onClick={() => onRequestDelete()}
               >
                 <Trash2 className="h-4 w-4" aria-hidden />
-              </button>
+              </BubbleButton>
             ) : null}
           </div>
         </div>
@@ -375,25 +357,22 @@ export function EditableAchievementCard({
           )}
         >
           <div className={cn(achievementDialogIconSideSlot, "justify-start")}>
-            <button
+            <BubbleButton
               type="submit"
               aria-label={
                 isSaving ? "Saving" : dedicateMode ? "Dedicate achievement" : "Save"
               }
               disabled={isSaveDisabled}
-              className={cn(
-                achievementDialogIconBtn,
-                "bg-white/10 text-white hover:bg-white/15",
-                chromeButtonMotion?.className,
-              )}
-              style={chromeButtonMotion?.delayStyle(1)}
+              emphasis="solid"
+              motion={motion}
+              index={1}
             >
               {isSaving ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
               ) : (
                 <Check className="h-4 w-4" aria-hidden />
               )}
-            </button>
+            </BubbleButton>
           </div>
           <div className="flex min-w-0 flex-1 justify-center">
             {dedicateMode ? null : (

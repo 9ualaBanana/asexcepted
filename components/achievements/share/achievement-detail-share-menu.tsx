@@ -1,9 +1,7 @@
 "use client";
 
 import { Code2, Gift, Loader2, Share2 } from "lucide-react";
-import type { CSSProperties } from "react";
 
-import { achievementDialogIconBtn } from "@/components/achievements/achievement-editor-shared";
 import { ACHIEVEMENT_UI_COPY } from "@/components/achievements/share/achievement-ui-copy";
 import {
   DropdownMenu,
@@ -11,21 +9,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+import {
+  BubbleButton,
+  type BubbleButtonMotion,
+} from "@/components/ui/bubble-button";
 
 type AchievementDetailShareMenuProps = {
   disabled?: boolean;
   busy?: boolean;
-  /** When false, Dedicate is hidden (received / claimed dedications). */
   showDedicateOption?: boolean;
-  /** When set, Dedicate is disabled (e.g. 3D badge still uploading). */
   dedicateDisabledReason?: string | null;
-  /** When false, embed copy is hidden (e.g. viewing someone else's achievement). */
   showEmbedOption?: boolean;
-  /** When set, showcase share is disabled (e.g. badge still uploading). */
   showcaseDisabledReason?: string | null;
-  triggerClassName?: string;
-  triggerStyle?: CSSProperties;
+  motion?: BubbleButtonMotion | null;
+  index?: number;
   onShareShowcase: () => void;
   onRequestDedicateInvite: () => void;
   onEmbed: () => void;
@@ -38,8 +35,8 @@ export function AchievementDetailShareMenu({
   dedicateDisabledReason = null,
   showEmbedOption = true,
   showcaseDisabledReason = null,
-  triggerClassName,
-  triggerStyle,
+  motion,
+  index = 0,
   onShareShowcase,
   onRequestDedicateInvite,
   onEmbed,
@@ -51,15 +48,11 @@ export function AchievementDetailShareMenu({
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <button
-          type="button"
+        <BubbleButton
           aria-label="Share achievement"
-          className={cn(
-            achievementDialogIconBtn,
-            "data-[state=open]:bg-white/10",
-            triggerClassName,
-          )}
-          style={triggerStyle}
+          className="data-[state=open]:bg-white/10"
+          motion={motion}
+          index={index}
           disabled={isDisabled}
           onClick={(event) => event.stopPropagation()}
           onPointerDown={(event) => event.stopPropagation()}
@@ -69,7 +62,7 @@ export function AchievementDetailShareMenu({
           ) : (
             <Share2 className="h-4 w-4" aria-hidden />
           )}
-        </button>
+        </BubbleButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
@@ -79,7 +72,9 @@ export function AchievementDetailShareMenu({
       >
         <DropdownMenuItem
           disabled={isDisabled || showcaseBlocked}
-          title={showcaseBlocked ? showcaseDisabledReason ?? undefined : undefined}
+          title={
+            showcaseBlocked ? (showcaseDisabledReason ?? undefined) : undefined
+          }
           onSelect={() => {
             if (showcaseBlocked) return;
             onShareShowcase();
@@ -91,7 +86,11 @@ export function AchievementDetailShareMenu({
         {showDedicateOption ? (
           <DropdownMenuItem
             disabled={isDisabled || dedicateBlocked}
-            title={dedicateBlocked ? dedicateDisabledReason ?? undefined : undefined}
+            title={
+              dedicateBlocked
+                ? (dedicateDisabledReason ?? undefined)
+                : undefined
+            }
             onSelect={() => {
               if (dedicateBlocked) return;
               onRequestDedicateInvite();

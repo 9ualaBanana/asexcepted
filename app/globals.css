@@ -518,7 +518,7 @@
   animation: badge-unlocked-poke 1200ms cubic-bezier(0.33, 0.12, 0.2, 1);
 }
 
-@keyframes detail-chrome-button-enter {
+@keyframes bubble-button-pop {
   0% {
     opacity: 0;
     transform: scale(0);
@@ -545,25 +545,24 @@
   }
 }
 
-.detail-chrome-button-motion-pending {
+.bubble-button-pending {
   opacity: 0;
   transform: scale(0);
   transform-origin: center center;
   pointer-events: none;
 }
 
-.detail-chrome-button-enter-motion {
+.bubble-button-enter {
   transform-origin: center center;
-  animation: detail-chrome-button-enter 780ms cubic-bezier(0.33, 0.12, 0.2, 1)
-    both;
-  animation-delay: var(--detail-chrome-button-delay, 0ms);
+  animation: bubble-button-pop 780ms cubic-bezier(0.33, 0.12, 0.2, 1) both;
+  animation-delay: var(--bubble-button-delay, 0ms);
 }
 
-.detail-chrome-button-exit-motion {
+.bubble-button-exit {
   transform-origin: center center;
-  animation: detail-chrome-button-enter 480ms cubic-bezier(0.33, 0.12, 0.2, 1)
-    reverse both;
-  animation-delay: var(--detail-chrome-button-delay, 0ms);
+  animation: bubble-button-pop 480ms cubic-bezier(0.33, 0.12, 0.2, 1) reverse
+    both;
+  animation-delay: var(--bubble-button-delay, 0ms);
   pointer-events: none;
 }
 

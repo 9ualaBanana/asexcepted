@@ -28,7 +28,6 @@ import type { AlphaMaskData } from "@/lib/achievements/badge/parallax/shape-util
 import {
   badgeChromeWidth,
   achievementDialogChromeInset,
-  achievementDialogIconBtn,
   achievementDialogIconSideSlot,
   type RemoteAssetStorageSession,
   formatAchievedAt,
@@ -39,7 +38,6 @@ import { DedicationBylineChromeRow } from "@/components/achievements/dedication/
 import { AchievementDetailShareMenu } from "@/components/achievements/share/achievement-detail-share-menu";
 import { EditableAchievementCard } from "@/components/achievements/detail/editable-achievement-card";
 import { AchievementOverlayTransitionFlyer } from "@/components/achievements/detail/achievement-overlay-transition-flyer";
-import { useDetailChromeButtonMotion } from "@/components/achievements/detail/use-detail-chrome-button-motion";
 import { useOverlayTransitionPresentation } from "@/components/achievements/detail/use-overlay-transition-presentation";
 import { AchievementVisibilityToggle } from "@/components/achievements/detail/achievement-visibility-toggle";
 import {
@@ -55,6 +53,10 @@ import type { OverlayTransitionSession } from "@/lib/achievements/ui/overlay-tra
 import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
 import { getTutorial, TUTORIAL_IDS, useTutorial, useTutorialToast } from "@/lib/tutorials";
 import { cn } from "@/lib/utils";
+import {
+  BubbleButton,
+  useBubbleButtonMotion,
+} from "@/components/ui/bubble-button";
 
 export type AchievementDialogStackProps = {
   readOnly: boolean;
@@ -220,7 +222,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
           ? `visibility:${detailAchievement.id}`
           : `edit:${detailAchievement.id}`
         : `view:${detailAchievement.id}:${detailViewSessionKey}`;
-  const chromeMotion = useDetailChromeButtonMotion(
+  const chromeMotion = useBubbleButtonMotion(
     chromeMotionActive,
     chromeSurfaceKey,
   );
@@ -443,7 +445,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
               canToggleLocked={isAdmin}
               badgeSessionController={badgeSessionController}
               badgeHost={transitionUi.badgeHost}
-              chromeButtonMotion={chromeMotion}
+              motion={chromeMotion}
               isCreatingFlow
             />
           ) : showDetailContent ? (
@@ -455,15 +457,14 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                     achievementDialogChromeInset,
                   )}
                 >
-                  <button
-                    type="button"
+                  <BubbleButton
                     aria-label="Close"
-                    className={cn(achievementDialogIconBtn, chromeMotion.className)}
-                    style={chromeMotion.delayStyle(0)}
+                    motion={chromeMotion}
+                    index={0}
                     onClick={requestChromeClose}
                   >
                     <X className="h-4 w-4" aria-hidden />
-                  </button>
+                  </BubbleButton>
                 </div>
                 <div className="flex justify-center">
                   <div
@@ -560,15 +561,11 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       className={cn(achievementDialogIconSideSlot, "justify-start")}
                     >
                       {isVisibilityOnlyEdit ? (
-                        <button
-                          type="button"
+                        <BubbleButton
                           aria-label={isSaving ? "Saving" : "Save visibility"}
-                          className={cn(
-                            achievementDialogIconBtn,
-                            "bg-white/10 text-white hover:bg-white/15",
-                            chromeMotion.className,
-                          )}
-                          style={chromeMotion.delayStyle(1)}
+                          emphasis="solid"
+                          motion={chromeMotion}
+                          index={1}
                           disabled={isSaving}
                           onClick={() => void onSubmitPanelVisibilitySave()}
                         >
@@ -577,16 +574,12 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                           ) : (
                             <Check className="h-4 w-4" aria-hidden />
                           )}
-                        </button>
+                        </BubbleButton>
                       ) : (
-                        <button
-                          type="button"
+                        <BubbleButton
                           aria-label="Edit"
-                          className={cn(
-                            achievementDialogIconBtn,
-                            chromeMotion.className,
-                          )}
-                          style={chromeMotion.delayStyle(1)}
+                          motion={chromeMotion}
+                          index={1}
                           disabled={isSaving}
                           onClick={
                             dedicatedVisibilityEditable
@@ -595,7 +588,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                           }
                         >
                           <PenLine className="h-4 w-4" aria-hidden />
-                        </button>
+                        </BubbleButton>
                       )}
                     </div>
                     <div className="flex min-w-0 flex-1 justify-center">
@@ -631,8 +624,8 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                           dedicateDisabledReason={dedicateShareDisabledReason}
                           showcaseDisabledReason={showcaseShareDisabledReason}
                           showEmbedOption
-                          triggerClassName={chromeMotion.className}
-                          triggerStyle={chromeMotion.delayStyle(2)}
+                          motion={chromeMotion}
+                          index={2}
                           onShareShowcase={onShareShowcase}
                           onRequestDedicateInvite={onRequestDedicateInviteShare}
                           onEmbed={onEmbedLink}
@@ -658,8 +651,8 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                           showDedicateOption={false}
                           showEmbedOption={false}
                           showcaseDisabledReason={showcaseShareDisabledReason}
-                          triggerClassName={chromeMotion.className}
-                          triggerStyle={chromeMotion.delayStyle(2)}
+                          motion={chromeMotion}
+                          index={2}
                           onShareShowcase={onShareShowcase}
                           onRequestDedicateInvite={onRequestDedicateInviteShare}
                           onEmbed={onEmbedLink}
@@ -682,8 +675,8 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       showDedicateOption={false}
                       showEmbedOption={false}
                       showcaseDisabledReason={showcaseShareDisabledReason}
-                      triggerClassName={chromeMotion.className}
-                      triggerStyle={chromeMotion.delayStyle(2)}
+                      motion={chromeMotion}
+                      index={2}
                       onShareShowcase={onShareShowcase}
                       onRequestDedicateInvite={onRequestDedicateInviteShare}
                       onEmbed={onEmbedLink}
@@ -713,7 +706,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
               canToggleLocked={isAdmin}
               badgeSessionController={badgeSessionController}
               badgeHost={transitionUi.badgeHost}
-              chromeButtonMotion={chromeMotion}
+              motion={chromeMotion}
             />
           ) : null}
         </div>
