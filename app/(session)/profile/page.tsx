@@ -1,18 +1,12 @@
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { AuthButton } from "@/components/auth-button";
 import { ProfilePageShell } from "@/components/profile/profile-page-shell";
+import { getRequiredSessionUser } from "@/lib/auth/require-session-user";
 import { isAdmin } from "@/lib/admin";
-import { loginWithNext, ROUTES } from "@/lib/routes";
-import { createServerSupabase } from "@/lib/supabase/clients/server";
 
 async function ProfilePageInner() {
-  const supabase = await createServerSupabase();
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) {
-    return redirect(loginWithNext(ROUTES.profile));
-  }
+  const { user } = await getRequiredSessionUser();
 
   return (
     <main className="relative flex min-h-[100dvh] flex-col items-center overflow-x-hidden pb-[calc(3.25rem+env(safe-area-inset-bottom,0px))]">
@@ -25,7 +19,7 @@ async function ProfilePageInner() {
           </div>
         </nav>
 
-        <ProfilePageShell isAdmin={isAdmin(userData.user.id)} />
+        <ProfilePageShell isAdmin={isAdmin(user.id)} />
       </div>
     </main>
   );

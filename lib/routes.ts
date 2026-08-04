@@ -1,7 +1,3 @@
-/**
- * Central route map — avoid scattering path string literals.
- */
-
 export const ROUTES = {
   home: "/",
   inspa: "/inspa",
@@ -17,14 +13,8 @@ export const ROUTES = {
   firebasePushConfig: "/firebase-push-config.js",
 } as const;
 
-export const PROTECTED_PREFIXES = [
-  ROUTES.inspa,
-  ROUTES.profile,
-] as const;
-
 const DEFAULT_POST_AUTH = ROUTES.inspa;
 
-/** Internal paths only — blocks open redirects. */
 export function safeRedirectPath(next: string | null | undefined): string {
   if (!next || typeof next !== "string") return DEFAULT_POST_AUTH;
   const trimmed = next.trim();
@@ -77,12 +67,6 @@ export function authCallbackUrl(origin: string, next?: string): string {
   const base = `${origin.replace(/\/$/, "")}${ROUTES.callback}`;
   if (!next) return base;
   return `${base}?next=${encodeURIComponent(safeRedirectPath(next))}`;
-}
-
-export function isProtectedPath(pathname: string): boolean {
-  return PROTECTED_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-  );
 }
 
 export function isAuthPath(pathname: string): boolean {

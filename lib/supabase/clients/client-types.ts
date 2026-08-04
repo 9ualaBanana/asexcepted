@@ -10,6 +10,7 @@ import type { Database } from "@/lib/supabase/database.types";
  * - {@link createServerSupabase}
  * - {@link createAnonSupabase}
  * - {@link createServiceRoleSupabase}
+ * - {@link createEdgeSupabase}
  *
  * RlsScoped and ServiceRole are not assignable to each other without cast.
  */

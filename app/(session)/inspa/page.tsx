@@ -1,13 +1,11 @@
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { FeedList } from "@/components/social/feed/feed-list";
 import { AppPageShell } from "@/components/layout/app-page-shell";
 import { FriendsPanel } from "@/components/social/friends-panel";
 import { SocialPageSkeleton } from "@/components/social/inspa-page-skeleton";
+import { getRequiredSessionUser } from "@/lib/auth/require-session-user";
 import { fetchFollowingUnlockFeed } from "@/lib/achievements/data/feed-db";
-import { createServerSupabase } from "@/lib/supabase/clients/server";
-import { loginWithNext, ROUTES } from "@/lib/routes";
 
 export default function InspaPage() {
   return (
@@ -18,11 +16,7 @@ export default function InspaPage() {
 }
 
 async function InspaPageInner() {
-  const supabase = await createServerSupabase();
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) {
-    return redirect(loginWithNext(ROUTES.inspa));
-  }
+  const { supabase, user } = await getRequiredSessionUser();
 
   const feedResult = await fetchFollowingUnlockFeed(supabase, { limit: 20 });
   const initialPage = feedResult.isOk()
@@ -32,7 +26,7 @@ async function InspaPageInner() {
   return (
     <AppPageShell className="pb-[calc(3.75rem+env(safe-area-inset-bottom,0px))]">
       <div className="space-y-8 sm:space-y-10">
-        <FriendsPanel viewerId={userData.user.id} />
+        <FriendsPanel viewerId={user.id} />
         <FeedList
           initialPage={initialPage}
           initialError={feedResult.isOk() ? null : feedResult.error}

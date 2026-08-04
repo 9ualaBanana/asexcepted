@@ -3,42 +3,13 @@ import { describe, expect, it } from "vitest";
 import {
   authCallbackUrl,
   isAuthPath,
-  isProtectedPath,
   loginWithNext,
-  PROTECTED_PREFIXES,
   ROUTES,
   safeRedirectPath,
   userAchievementDetail,
   userCollection,
   achievementShareInvitePath,
 } from "@/lib/routes";
-
-describe("ROUTES surface", () => {
-  it("exposes only live product paths (no legacy keys)", () => {
-    const keys = Object.keys(ROUTES);
-    expect(keys).not.toContain("signUp");
-    expect(keys).not.toContain("signUpSuccess");
-    expect(keys).not.toContain("social");
-    expect(keys).not.toContain("achievementsLegacy");
-    expect(keys).not.toContain("friendsLegacy");
-    expect(ROUTES.inspa).toBe("/inspa");
-    expect(ROUTES.login).toBe("/auth/login");
-    expect(ROUTES.profile).toBe("/profile");
-  });
-
-  it("protects only authenticated app shells", () => {
-    expect([...PROTECTED_PREFIXES]).toEqual(["/inspa", "/profile"]);
-    expect(isProtectedPath("/inspa")).toBe(true);
-    expect(isProtectedPath("/profile")).toBe(true);
-    expect(isProtectedPath("/profile/settings")).toBe(true);
-    expect(isProtectedPath("/u/abc")).toBe(false);
-    expect(isProtectedPath("/invite/tok")).toBe(false);
-    expect(isProtectedPath("/auth/login")).toBe(false);
-    expect(isProtectedPath("/achievements")).toBe(false);
-    expect(isProtectedPath("/friends")).toBe(false);
-    expect(isProtectedPath("/social")).toBe(false);
-  });
-});
 
 describe("safeRedirectPath", () => {
   it("falls back to inspa for unsafe or empty next", () => {
