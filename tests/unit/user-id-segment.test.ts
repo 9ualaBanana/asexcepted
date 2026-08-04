@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isAuthUserIdSegment } from "@/lib/user-achievements-page";
+import { isAuthUserIdSegment } from "@/lib/achievements/data/user-profile-db";
 
 describe("isAuthUserIdSegment", () => {
   it("accepts supabase-style uuids", () => {

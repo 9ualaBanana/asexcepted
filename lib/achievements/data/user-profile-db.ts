@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { err, ok, type Result } from "neverthrow";
+import { z } from "zod";
 
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -9,9 +10,12 @@ export type FollowCountResult = Result<number, string>;
 export type PublicUserDisplayNameResult = Result<string, string>;
 export type AuthUserExistsResult = Result<boolean, string>;
 
-/**
- * Whether {@link targetUserId} is a row in `auth.users` (via RPC).
- */
+const authUserIdSchema = z.string().uuid();
+
+export function isAuthUserIdSegment(value: string): boolean {
+  return authUserIdSchema.safeParse(value.trim()).success;
+}
+
 export async function authUserExists(
   supabase: SupabaseClient<Database>,
   targetUserId: string,
@@ -27,9 +31,6 @@ export async function authUserExists(
   return ok(data === true);
 }
 
-/**
- * Whether {@link followerId} follows {@link followingId} (row exists in `profile_follow`).
- */
 export async function isUserFollowingProfile(
   supabase: SupabaseClient<Database>,
   followerId: string,
@@ -94,9 +95,6 @@ export async function countProfileFollowsForFollower(
   return ok(count ?? 0);
 }
 
-/**
- * Public display name for a user id (RPC). Returns trimmed non-empty string.
- */
 export async function fetchPublicUserDisplayName(
   supabase: SupabaseClient<Database>,
   targetUserId: string,

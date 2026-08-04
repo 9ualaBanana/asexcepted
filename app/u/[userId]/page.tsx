@@ -3,68 +3,64 @@ import { Suspense } from "react";
 
 import { AuthButton } from "@/components/auth-button";
 import { AchievementsManager } from "@/components/achievements/achievements-manager";
-import { ErrorToastOnce } from "@/components/toasts/error-toast-once";
 import { FollowButtonWrapper } from "@/components/social/follow-button";
 import { buildAchievementAuthContext } from "@/lib/auth/achievement-ability";
 import { createServerSupabase } from "@/lib/supabase/clients/server";
-import { isUserFollowingProfile } from "@/lib/achievements/data/user-profile-db";
-import { resolveAchievementsProfileUser } from "@/lib/user-achievements-page";
+import {
+  authUserExists,
+  fetchPublicUserDisplayName,
+  isAuthUserIdSegment,
+  isUserFollowingProfile,
+} from "@/lib/achievements/data/user-profile-db";
 
 type PageProps = {
   params: Promise<{ userId: string }>;
   searchParams: Promise<{ achievement?: string; dedication?: string }>;
 };
 
-function UserAchievementsErrorState() {
+export default function UserAchievementsPage(props: PageProps) {
   return (
-    <main className="min-h-screen flex flex-col items-center overflow-x-hidden">
-      <ErrorToastOnce
-        id="user-achievements-load"
-        message="Could not load this profile right now. Please try again."
-      />
-      <div className="flex-1 w-full flex flex-col gap-10 items-center">
-        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-14">
-          <div className="relative w-full max-w-5xl flex justify-center items-center p-3 px-5 text-sm">
-            <Suspense>
-              <AuthButton />
-            </Suspense>
-          </div>
-        </nav>
-        <section className="w-full max-w-5xl px-5 pb-8">
-          <div className="py-12 text-center">
-            <p className="text-sm text-muted-foreground">
-              Could not load this profile right now. Please try again.
-            </p>
-          </div>
-        </section>
-      </div>
-    </main>
+    <Suspense
+      fallback={
+        <main className="min-h-screen flex flex-col items-center justify-center overflow-x-hidden">
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        </main>
+      }
+    >
+      <UserAchievementsContent {...props} />
+    </Suspense>
   );
 }
 
-/** `userId` is Supabase Auth user id (`auth.users.id`). Owners edit; everyone else (including signed out) can view. */
 async function UserAchievementsContent({ params, searchParams }: PageProps) {
-  const { userId: _userId } = await params;
+  const { userId: rawUserId } = await params;
   const { achievement: achievementParam } = await searchParams;
 
-  const supabase = await createServerSupabase();
-  const { data: userData } = await supabase.auth.getUser();
-  const viewer = userData.user;
-
-  const profile = await resolveAchievementsProfileUser(
-    supabase,
-    _userId,
-    viewer?.id ?? null,
-  );
-
-  if (profile.status === "invalid-id" || profile.status === "not-found") {
+  const userId = rawUserId.trim();
+  if (!isAuthUserIdSegment(userId)) {
     notFound();
   }
-  if (profile.status === "error") {
-    return <UserAchievementsErrorState />;
+
+  const supabase = await createServerSupabase();
+  const {
+    data: { user: viewer },
+  } = await supabase.auth.getUser();
+
+  const existsResult = await authUserExists(supabase, userId);
+  if (existsResult.isErr() || !existsResult.value) {
+    notFound();
   }
 
-  const { userId, isOwner, publicDisplayName: ownerPublicLabel } = profile;
+  const isOwner = viewer?.id === userId;
+  let ownerPublicLabel: string | null = null;
+  if (!isOwner) {
+    const labelResult = await fetchPublicUserDisplayName(supabase, userId);
+    if (labelResult.isErr()) {
+      notFound();
+    }
+    ownerPublicLabel = labelResult.value;
+  }
+
   const auth = buildAchievementAuthContext({
     isOwner,
     viewerUserId: viewer?.id,
@@ -135,19 +131,5 @@ async function UserAchievementsContent({ params, searchParams }: PageProps) {
         </section>
       </div>
     </main>
-  );
-}
-
-export default function UserAchievementsPage(props: PageProps) {
-  return (
-    <Suspense
-      fallback={
-        <main className="min-h-screen flex flex-col items-center justify-center overflow-x-hidden">
-          <p className="text-sm text-muted-foreground">Loading…</p>
-        </main>
-      }
-    >
-      <UserAchievementsContent {...props} />
-    </Suspense>
   );
 }
