@@ -57,6 +57,3 @@ function welcomeIntroDomainRow(): AchievementDomainRow {
 export function getWelcomeIntroDetailViewModel(): AchievementDetailViewModel {
   return domainRowToDetailViewModel(welcomeIntroDomainRow());
 }
-
-/** @deprecated Use {@link getWelcomeIntroDetailViewModel}. */
-export const getWelcomeIntroAchievementRecord = getWelcomeIntroDetailViewModel;

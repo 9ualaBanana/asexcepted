@@ -69,10 +69,3 @@ export async function ensurePushRegistered({
 
   return "registered";
 }
-
-/** @deprecated Use ensurePushRegistered */
-export async function registerBrowserPushToken(
-  options: EnsurePushOptions = {},
-): Promise<EnsurePushResult> {
-  return ensurePushRegistered(options);
-}

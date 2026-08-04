@@ -5,30 +5,21 @@
 export const ROUTES = {
   home: "/",
   inspa: "/inspa",
-  social: "/social",
   profile: "/profile",
   login: "/auth/login",
-  /** @deprecated Use login. Kept for redirects from old links. */
-  signUp: "/auth/sign-up",
-  signUpSuccess: "/auth/sign-up-success",
   confirm: "/auth/confirm",
   callback: "/auth/callback",
   invite: "/invite",
   forgotPassword: "/auth/forgot-password",
   updatePassword: "/auth/update-password",
   authError: "/auth/error",
-  /** Legacy; redirects to user collection */
-  achievementsLegacy: "/achievements",
-  friendsLegacy: "/friends",
   firebaseMessagingSw: "/firebase-messaging-sw.js",
   firebasePushConfig: "/firebase-push-config.js",
 } as const;
 
 export const PROTECTED_PREFIXES = [
   ROUTES.inspa,
-  ROUTES.social,
   ROUTES.profile,
-  ROUTES.achievementsLegacy,
 ] as const;
 
 const DEFAULT_POST_AUTH = ROUTES.inspa;
@@ -70,27 +61,6 @@ export function achievementShareInviteOgImagePath(token: string): string {
   return `${ROUTES.invite}/${encodeURIComponent(token)}/opengraph-image`;
 }
 
-function rewriteInviteClaimNext(
-  next: string,
-  mode: "login" | "signup",
-): string {
-  const path = safeRedirectPath(next);
-  if (!path.startsWith(`${ROUTES.invite}/`)) {
-    return path;
-  }
-
-  const url = new URL(path, "https://asexcepted.local");
-  if (url.searchParams.get("claim") !== "1") {
-    return path;
-  }
-
-  if (mode === "signup") {
-    url.searchParams.set("auto", "1");
-  }
-
-  return `${url.pathname}${url.search}${url.hash}`;
-}
-
 export function userAchievementDetail(
   userId: string,
   achievementId: string,
@@ -100,17 +70,7 @@ export function userAchievementDetail(
 }
 
 export function loginWithNext(next: string): string {
-  const path = rewriteInviteClaimNext(next, "login");
-  return `${ROUTES.login}?next=${encodeURIComponent(path)}`;
-}
-
-/**
- * @deprecated Use {@link loginWithNext}. Sign-up is the same Google sign-in screen.
- * Still forces invite `auto=1` when rewriting claim links.
- */
-export function signUpWithNext(next: string): string {
-  const path = rewriteInviteClaimNext(next, "signup");
-  return `${ROUTES.login}?next=${encodeURIComponent(path)}`;
+  return `${ROUTES.login}?next=${encodeURIComponent(safeRedirectPath(next))}`;
 }
 
 export function authCallbackUrl(origin: string, next?: string): string {
@@ -127,8 +87,4 @@ export function isProtectedPath(pathname: string): boolean {
 
 export function isAuthPath(pathname: string): boolean {
   return pathname.startsWith("/auth/");
-}
-
-export function defaultPostAuthPath(): string {
-  return ROUTES.inspa;
 }

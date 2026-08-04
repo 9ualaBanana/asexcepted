@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/lib/supabase/database.types";
-import { isProtectedPath, loginWithNext, ROUTES } from "@/lib/routes";
+import { isProtectedPath, ROUTES } from "@/lib/routes";
 
 /**
  * Supabase session refresh + lightweight auth gating for the root `proxy.ts`.

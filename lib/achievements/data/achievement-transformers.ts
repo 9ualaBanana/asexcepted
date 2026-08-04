@@ -13,9 +13,6 @@ import {
   getSafeVisibility,
 } from "@/components/achievements/achievement-editor-shared";
 import { normalizeBadgeIconUrl } from "@/lib/achievements/badge/shared/badge-assets";
-import type {
-  AchievementDbRow,
-} from "@/lib/achievements/data/achievement-db-schema";
 
 /** Normalized DB row — map to view models before leaving the data layer. */
 export type AchievementDomainRow = {
@@ -101,12 +98,4 @@ export function tryNormalizeAchievement(
   } catch (error) {
     return err(error instanceof Error ? error.message : "Invalid achievement row.");
   }
-}
-
-export function normalizeAchievement(record: AchievementDbRow): AchievementDomainRow {
-  const result = tryNormalizeAchievement(record);
-  if (result.isErr()) {
-    throw new Error(result.error);
-  }
-  return result.value;
 }

@@ -19,7 +19,7 @@ import {
   Badge,
   BadgeAttributionPopover,
   badgeOptionsForDetailInteractive,
-  submitImpression,
+  postAchievementImpression,
   type BadgeSessionController,
 } from "@/components/achievements/badge";
 import { useLockedBadgeRefuseMotion } from "@/components/achievements/badge/effects/use-locked-badge-refuse-motion";
@@ -371,7 +371,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
 
     impressionTutorial.dismiss();
 
-    void submitImpression(detailAchievement.id).then((result) => {
+    void postAchievementImpression(detailAchievement.id).then((result) => {
       onImpressionRecorded(result.added);
     });
   }, [

@@ -49,11 +49,3 @@ export async function validateImageEdgeBounds(
 
   return null;
 }
-
-/** @deprecated Use validateImageEdgeBounds with maxEdgePx */
-export async function validateImageMaxEdgePx(
-  file: File,
-  maxEdgePx: number,
-): Promise<string | null> {
-  return validateImageEdgeBounds(file, { maxEdgePx });
-}

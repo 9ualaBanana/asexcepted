@@ -1,0 +1,1701 @@
+{
+  "count": 212,
+  "nodes": [
+    {
+      "id": "app_api_achievements_badge_asset_route_delete",
+      "label": "DELETE",
+      "source_file": "app/api/achievements/badge-asset/route.ts",
+      "source_location": "L13",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_api_achievements_badge_model_complete_route_post",
+      "label": "POST",
+      "source_file": "app/api/achievements/badge-model/complete/route.ts",
+      "source_location": "L10",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_api_achievements_badge_model_route_post",
+      "label": "POST",
+      "source_file": "app/api/achievements/badge-model/route.ts",
+      "source_location": "L7",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_api_achievements_badge_model_upload_url_route_post",
+      "label": "POST",
+      "source_file": "app/api/achievements/badge-model/upload-url/route.ts",
+      "source_location": "L6",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_api_achievements_badge_model_url_route_post",
+      "label": "POST",
+      "source_file": "app/api/achievements/badge-model-url/route.ts",
+      "source_location": "L10",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_api_achievements_dedicate_route_post",
+      "label": "POST",
+      "source_file": "app/api/achievements/dedicate/route.ts",
+      "source_location": "L14",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_api_achievements_dedication_accept_route_post",
+      "label": "POST",
+      "source_file": "app/api/achievements/dedication/accept/route.ts",
+      "source_location": "L12",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_api_achievements_impression_route_post",
+      "label": "POST",
+      "source_file": "app/api/achievements/impression/route.ts",
+      "source_location": "L17",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_api_achievements_share_invite_claim_route_post",
+      "label": "POST",
+      "source_file": "app/api/achievements/share-invite/claim/route.ts",
+      "source_location": "L12",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_api_achievements_share_invite_route_post",
+      "label": "POST",
+      "source_file": "app/api/achievements/share-invite/route.ts",
+      "source_location": "L42",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_api_embed_badge_token_route_post",
+      "label": "POST",
+      "source_file": "app/api/embed/badge-token/route.ts",
+      "source_location": "L19",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_api_imagekit_auth_route_post",
+      "label": "POST",
+      "source_file": "app/api/imagekit/auth/route.ts",
+      "source_location": "L43",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_api_imagekit_file_route_delete",
+      "label": "DELETE",
+      "source_file": "app/api/imagekit/file/route.ts",
+      "source_location": "L23",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_api_onboarding_intro_achievement_route_post",
+      "label": "POST",
+      "source_file": "app/api/onboarding/intro-achievement/route.ts",
+      "source_location": "L6",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_api_push_fan_out_unlock_route_post",
+      "label": "POST",
+      "source_file": "app/api/push/fan-out-unlock/route.ts",
+      "source_location": "L12",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_api_push_notify_new_follower_route_post",
+      "label": "POST",
+      "source_file": "app/api/push/notify-new-follower/route.ts",
+      "source_location": "L12",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_api_push_register_route_post",
+      "label": "POST",
+      "source_file": "app/api/push/register/route.ts",
+      "source_location": "L13",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_api_push_signup_route_post",
+      "label": "POST",
+      "source_file": "app/api/push/signup/route.ts",
+      "source_location": "L12",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_api_push_status_route_get",
+      "label": "GET",
+      "source_file": "app/api/push/status/route.ts",
+      "source_location": "L4",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_api_push_test_route_post",
+      "label": "POST",
+      "source_file": "app/api/push/test/route.ts",
+      "source_location": "L7",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_api_push_unregister_route_post",
+      "label": "POST",
+      "source_file": "app/api/push/unregister/route.ts",
+      "source_location": "L12",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_api_sentry_example_api_route_get",
+      "label": "GET",
+      "source_file": "app/api/sentry-example-api/route.ts",
+      "source_location": "L12",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_auth_callback_route_get",
+      "label": "GET",
+      "source_file": "app/auth/callback/route.ts",
+      "source_location": "L7",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_auth_confirm_route_get",
+      "label": "GET",
+      "source_file": "app/auth/confirm/route.ts",
+      "source_location": "L9",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_auth_error_page_page",
+      "label": "Page",
+      "source_file": "app/auth/error/page.tsx",
+      "source_location": "L31",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_auth_forgot_password_page_page",
+      "label": "Page",
+      "source_file": "app/auth/forgot-password/page.tsx",
+      "source_location": "L3",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_auth_login_page_page",
+      "label": "Page",
+      "source_file": "app/auth/login/page.tsx",
+      "source_location": "L7",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_auth_sign_up_page_page",
+      "label": "Page",
+      "source_file": "app/auth/sign-up/page.tsx",
+      "source_location": "L8",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_auth_sign_up_success_page_page",
+      "label": "Page",
+      "source_file": "app/auth/sign-up-success/page.tsx",
+      "source_location": "L9",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_auth_update_password_page_page",
+      "label": "Page",
+      "source_file": "app/auth/update-password/page.tsx",
+      "source_location": "L3",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_e_token_route_get",
+      "label": "GET",
+      "source_file": "app/e/[token]/route.ts",
+      "source_location": "L9",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_embed_badge_token_page_embedbadgepage",
+      "label": "EmbedBadgePage",
+      "source_file": "app/embed/badge/[token]/page.tsx",
+      "source_location": "L15",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_firebase_push_config_js_route_get",
+      "label": "GET",
+      "source_file": "app/firebase-push-config.js/route.ts",
+      "source_location": "L7",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_global_error_globalerror",
+      "label": "GlobalError",
+      "source_file": "app/global-error.tsx",
+      "source_location": "L11",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_inspa_page_inspapage",
+      "label": "InspaPage",
+      "source_file": "app/inspa/page.tsx",
+      "source_location": "L12",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_invite_token_opengraph_image_image",
+      "label": "Image",
+      "source_file": "app/invite/[token]/opengraph-image.tsx",
+      "source_location": "L45",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_invite_token_page_generatemetadata",
+      "label": "generateMetadata",
+      "source_file": "app/invite/[token]/page.tsx",
+      "source_location": "L69",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_invite_token_page_page",
+      "label": "Page",
+      "source_file": "app/invite/[token]/page.tsx",
+      "source_location": "L125",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_layout_rootlayout",
+      "label": "RootLayout",
+      "source_file": "app/layout.tsx",
+      "source_location": "L55",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_loading_loading",
+      "label": "Loading",
+      "source_file": "app/loading.tsx",
+      "source_location": "L5",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_manifest_manifest",
+      "label": "manifest",
+      "source_file": "app/manifest.ts",
+      "source_location": "L5",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_page_homepage",
+      "label": "HomePage",
+      "source_file": "app/page.tsx",
+      "source_location": "L17",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_profile_page_profilepage",
+      "label": "ProfilePage",
+      "source_file": "app/profile/page.tsx",
+      "source_location": "L34",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_sentry_example_page_page_page",
+      "label": "Page",
+      "source_file": "app/sentry-example-page/page.tsx",
+      "source_location": "L14",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "app_u_userid_page_userachievementspage",
+      "label": "UserAchievementsPage",
+      "source_file": "app/u/[userId]/page.tsx",
+      "source_location": "L141",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_account_menu_accountmenuprops",
+      "label": "AccountMenuProps",
+      "source_file": "components/account-menu.tsx",
+      "source_location": "L12",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_achievements_manager_achievementsmanagerprops",
+      "label": "AchievementsManagerProps",
+      "source_file": "components/achievements/achievements-manager.tsx",
+      "source_location": "L20",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_badge_chrome_badge_icon_disc_badgeicondiscsize",
+      "label": "BadgeIconDiscSize",
+      "source_file": "components/achievements/badge/chrome/badge-icon-disc.tsx",
+      "source_location": "L18",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_badge_chrome_badge_slot_badgeslotprops",
+      "label": "BadgeSlotProps",
+      "source_file": "components/achievements/badge/chrome/badge-slot.tsx",
+      "source_location": "L27",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_badge_chrome_badge_slot_badgeslotsize",
+      "label": "BadgeSlotSize",
+      "source_file": "components/achievements/badge/chrome/badge-slot.tsx",
+      "source_location": "L7",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_badge_display_badge_options_badgelivevisual",
+      "label": "BadgeLiveVisual",
+      "source_file": "components/achievements/badge/display/badge-options.ts",
+      "source_location": "L42",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_badge_display_badge_options_badgelivevisualmode",
+      "label": "BadgeLiveVisualMode",
+      "source_file": "components/achievements/badge/display/badge-options.ts",
+      "source_location": "L147",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_badge_display_badge_presets_detailinteractivebadgeoptionsparams",
+      "label": "DetailInteractiveBadgeOptionsParams",
+      "source_file": "components/achievements/badge/display/badge-presets.ts",
+      "source_location": "L63",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_badge_display_badge_preview_layer_badgepreviewlayervariant",
+      "label": "BadgePreviewLayerVariant",
+      "source_file": "components/achievements/badge/display/badge-preview-layer.tsx",
+      "source_location": "L6",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_badge_display_badge_silhouette_layer_badgesilhouettemaskstyle",
+      "label": "badgeSilhouetteMaskStyle",
+      "source_file": "components/achievements/badge/display/badge-silhouette-layer.tsx",
+      "source_location": "L3",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_badge_display_gltf_badge_gltf_viewer_badgegltfviewerprops",
+      "label": "BadgeGltfViewerProps",
+      "source_file": "components/achievements/badge/display/gltf/badge-gltf-viewer.tsx",
+      "source_location": "L10",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_badge_display_gltf_r3f_badge_model_canvas_badgemodelcanvasprops",
+      "label": "BadgeModelCanvasProps",
+      "source_file": "components/achievements/badge/display/gltf/r3f/badge-model-canvas.tsx",
+      "source_location": "L12",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_badge_display_gltf_r3f_use_badge_mixer_persistence_usebadgemixerpersistenceargs",
+      "label": "UseBadgeMixerPersistenceArgs",
+      "source_file": "components/achievements/badge/display/gltf/r3f/use-badge-mixer-persistence.ts",
+      "source_location": "L9",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_badge_display_gltf_r3f_use_badge_model_animation_usebadgemodelanimationargs",
+      "label": "UseBadgeModelAnimationArgs",
+      "source_file": "components/achievements/badge/display/gltf/r3f/use-badge-model-animation.ts",
+      "source_location": "L15",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_badge_display_gltf_r3f_use_badge_model_interaction_usebadgemodelinteractionargs",
+      "label": "UseBadgeModelInteractionArgs",
+      "source_file": "components/achievements/badge/display/gltf/r3f/use-badge-model-interaction.ts",
+      "source_location": "L20",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_badge_display_parallax_badge_parallax_viewer_badgeparallaxviewerprops",
+      "label": "BadgeParallaxViewerProps",
+      "source_file": "components/achievements/badge/display/parallax/badge-parallax-viewer.tsx",
+      "source_location": "L12",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_badge_editor_use_achievement_editor_pipeline_controller_achievementeditorpipelineactions",
+      "label": "AchievementEditorPipelineActions",
+      "source_file": "components/achievements/badge/editor/use-achievement-editor-pipeline-controller.ts",
+      "source_location": "L61",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_badge_upload_model_badge_model_upload_client_preparedbadgemodelupload",
+      "label": "PreparedBadgeModelUpload",
+      "source_file": "components/achievements/badge/upload/model/badge-model-upload-client.ts",
+      "source_location": "L6",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_badge_upload_profile_avatar_session_deleteprofileavatarfilequietly",
+      "label": "deleteProfileAvatarFileQuietly",
+      "source_file": "components/achievements/badge/upload/profile-avatar-session.ts",
+      "source_location": "L60",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_badge_upload_session_badge_model_pose_session_badgemodelposesessionapi",
+      "label": "BadgeModelPoseSessionApi",
+      "source_file": "components/achievements/badge/upload/session/badge-model-pose-session.ts",
+      "source_location": "L14",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_detail_achievement_detail_meta_achievementdetailmeta",
+      "label": "AchievementDetailMeta",
+      "source_file": "components/achievements/detail/achievement-detail-meta.tsx",
+      "source_location": "L12",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_detail_editable_achievement_card_editorcardprops",
+      "label": "EditorCardProps",
+      "source_file": "components/achievements/detail/editable-achievement-card.tsx",
+      "source_location": "L45",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_hooks_use_achievement_data_controller_achievementdatacontrolleractions",
+      "label": "AchievementDataControllerActions",
+      "source_file": "components/achievements/hooks/use-achievement-data-controller.ts",
+      "source_location": "L32",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_hooks_use_achievement_ui_state_machine_achievementuistatemachine",
+      "label": "AchievementUiStateMachine",
+      "source_file": "components/achievements/hooks/use-achievement-ui-state-machine.ts",
+      "source_location": "L287",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_achievements_hooks_use_achievement_ui_state_machine_discardeditintent",
+      "label": "DiscardEditIntent",
+      "source_file": "components/achievements/hooks/use-achievement-ui-state-machine.ts",
+      "source_location": "L22",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_profile_profile_avatar_slot_profileavatarslotlayout",
+      "label": "ProfileAvatarSlotLayout",
+      "source_file": "components/profile/profile-avatar-slot.tsx",
+      "source_location": "L13",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_profile_use_unsaved_profile_guard_profileleaveintent",
+      "label": "ProfileLeaveIntent",
+      "source_file": "components/profile/use-unsaved-profile-guard.ts",
+      "source_location": "L6",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_pwa_add_to_home_screen_instructions_addtohomescreeninstructions",
+      "label": "AddToHomeScreenInstructions",
+      "source_file": "components/pwa/add-to-home-screen-instructions.tsx",
+      "source_location": "L84",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_social_follow_button_followbutton",
+      "label": "FollowButton",
+      "source_file": "components/social/follow-button.tsx",
+      "source_location": "L44",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_social_inspa_page_skeleton_skeletonfeedrow",
+      "label": "SkeletonFeedRow",
+      "source_file": "components/social/inspa-page-skeleton.tsx",
+      "source_location": "L35",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_social_use_inspa_ui_state_machine_socialview",
+      "label": "SocialView",
+      "source_file": "components/social/use-inspa-ui-state-machine.ts",
+      "source_location": "L5",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "components_ui_button_buttonprops",
+      "label": "ButtonProps",
+      "source_file": "components/ui/button.tsx",
+      "source_location": "L37",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "instrumentation_register",
+      "label": "register",
+      "source_file": "instrumentation.ts",
+      "source_location": "L5",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_badge_model_gltf_tuning_badgemodelgltftuningprofile",
+      "label": "BadgeModelGltfTuningProfile",
+      "source_file": "lib/achievements/badge/model/gltf-tuning.ts",
+      "source_location": "L24",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_badge_model_rendering_badgemodelframemetrics",
+      "label": "BadgeModelFrameMetrics",
+      "source_file": "lib/achievements/badge/model/rendering.ts",
+      "source_location": "L5",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_badge_model_rendering_framebadgemodelforcamera",
+      "label": "frameBadgeModelForCamera",
+      "source_file": "lib/achievements/badge/model/rendering.ts",
+      "source_location": "L159",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_badge_model_scene_graph_badgemodelscenegraph",
+      "label": "BadgeModelSceneGraph",
+      "source_file": "lib/achievements/badge/model/scene-graph.ts",
+      "source_location": "L20",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_badge_model_scene_graph_preparebadgegltfoptions",
+      "label": "PrepareBadgeGltfOptions",
+      "source_file": "lib/achievements/badge/model/scene-graph.ts",
+      "source_location": "L59",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_badge_model_studio_environment_getbadgemodelstudioenvironment",
+      "label": "getBadgeModelStudioEnvironment",
+      "source_file": "lib/achievements/badge/model/studio-environment.ts",
+      "source_location": "L40",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_badge_model_view_state_badgemodelviewstate",
+      "label": "BadgeModelViewState",
+      "source_file": "lib/achievements/badge/model/view-state.ts",
+      "source_location": "L3",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_badge_parallax_badge_mask_style_badgeimagemaskstyle",
+      "label": "badgeImageMaskStyle",
+      "source_file": "lib/achievements/badge/parallax/badge-mask-style.ts",
+      "source_location": "L5",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_badge_parallax_glitter_particles_glitterparticlespec",
+      "label": "GlitterParticleSpec",
+      "source_file": "lib/achievements/badge/parallax/glitter-particles.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_badge_shared_badge_assets_extractpublicbucketobjectpath",
+      "label": "extractPublicBucketObjectPath",
+      "source_file": "lib/achievements/badge/shared/badge-assets.ts",
+      "source_location": "L89",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_badge_shared_badge_assets_server_badgemodeluploadtarget",
+      "label": "BadgeModelUploadTarget",
+      "source_file": "lib/achievements/badge/shared/badge-assets-server.ts",
+      "source_location": "L21",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_badge_shared_badge_assets_server_clonebadgemodelforclaimer",
+      "label": "cloneBadgeModelForClaimer",
+      "source_file": "lib/achievements/badge/shared/badge-assets-server.ts",
+      "source_location": "L313",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_badge_shared_badge_assets_server_clonedbadgemodelasset",
+      "label": "ClonedBadgeModelAsset",
+      "source_file": "lib/achievements/badge/shared/badge-assets-server.ts",
+      "source_location": "L172",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_badge_shared_badge_assets_server_isbadgepreviewtoolarge",
+      "label": "isBadgePreviewTooLarge",
+      "source_file": "lib/achievements/badge/shared/badge-assets-server.ts",
+      "source_location": "L168",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_badge_shared_badge_model_asset_badgemodelassetfields",
+      "label": "BadgeModelAssetFields",
+      "source_file": "lib/achievements/badge/shared/badge-model-asset.ts",
+      "source_location": "L23",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_badge_shared_badge_model_asset_badgemodelassetfieldsfrommodel",
+      "label": "badgeModelAssetFieldsFromModel",
+      "source_file": "lib/achievements/badge/shared/badge-model-asset.ts",
+      "source_location": "L229",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_badge_shared_badge_model_asset_badgemodelassetkind",
+      "label": "BadgeModelAssetKind",
+      "source_file": "lib/achievements/badge/shared/badge-model-asset.ts",
+      "source_location": "L10",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_badge_shared_badge_model_asset_badgemodelformfields",
+      "label": "BadgeModelFormFields",
+      "source_file": "lib/achievements/badge/shared/badge-model-asset.ts",
+      "source_location": "L145",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_badge_shared_badge_model_asset_badgestoragerefdeletepayload",
+      "label": "badgeStorageRefDeletePayload",
+      "source_file": "lib/achievements/badge/shared/badge-model-asset.ts",
+      "source_location": "L143",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_badge_shared_render_cache_getcachedalphamaskdata",
+      "label": "getCachedAlphaMaskData",
+      "source_file": "lib/achievements/badge/shared/render-cache.ts",
+      "source_location": "L76",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_badge_shared_render_cache_usebadgerendersrc",
+      "label": "useBadgeRenderSrc",
+      "source_file": "lib/achievements/badge/shared/render-cache.ts",
+      "source_location": "L123",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_client_badge_asset_api_badgemodeluploadtarget",
+      "label": "BadgeModelUploadTarget",
+      "source_file": "lib/achievements/client/badge-asset-api.ts",
+      "source_location": "L20",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_client_badge_model_upload_uploadbadgemodelasset",
+      "label": "uploadBadgeModelAsset",
+      "source_file": "lib/achievements/client/badge-model-upload.ts",
+      "source_location": "L58",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_client_dedicate_api_dedicateachievementapibody",
+      "label": "DedicateAchievementApiBody",
+      "source_file": "lib/achievements/client/dedicate-api.ts",
+      "source_location": "L7",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_client_dedication_api_acceptdedicationresult",
+      "label": "AcceptDedicationResult",
+      "source_file": "lib/achievements/client/dedication-api.ts",
+      "source_location": "L15",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_client_impression_api_impressionresult",
+      "label": "ImpressionResult",
+      "source_file": "lib/achievements/client/impression-api.ts",
+      "source_location": "L12",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_client_impression_api_postachievementimpressionresult",
+      "label": "postAchievementImpressionResult",
+      "source_file": "lib/achievements/client/impression-api.ts",
+      "source_location": "L39",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_achievement_db_achievementdeleteresult",
+      "label": "AchievementDeleteResult",
+      "source_file": "lib/achievements/data/achievement-db.ts",
+      "source_location": "L36",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_achievement_db_achievementlistresult",
+      "label": "AchievementListResult",
+      "source_file": "lib/achievements/data/achievement-db.ts",
+      "source_location": "L34",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_achievement_db_achievementsingleresult",
+      "label": "AchievementSingleResult",
+      "source_file": "lib/achievements/data/achievement-db.ts",
+      "source_location": "L35",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_achievement_queries_achievementdedicationnotifyrow",
+      "label": "AchievementDedicationNotifyRow",
+      "source_file": "lib/achievements/data/achievement-queries.ts",
+      "source_location": "L31",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_achievement_queries_achievementembedbadgerow",
+      "label": "AchievementEmbedBadgeRow",
+      "source_file": "lib/achievements/data/achievement-queries.ts",
+      "source_location": "L26",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_achievement_queries_achievementembedmintrow",
+      "label": "AchievementEmbedMintRow",
+      "source_file": "lib/achievements/data/achievement-queries.ts",
+      "source_location": "L29",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_achievement_queries_achievementunlockpushrow",
+      "label": "AchievementUnlockPushRow",
+      "source_file": "lib/achievements/data/achievement-queries.ts",
+      "source_location": "L15",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_achievement_surface_view_models_achievementshareinvitebadgeviewmodel",
+      "label": "AchievementShareInviteBadgeViewModel",
+      "source_file": "lib/achievements/data/achievement-surface-view-models.ts",
+      "source_location": "L57",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_achievement_surface_view_models_feedrow",
+      "label": "FeedRow",
+      "source_file": "lib/achievements/data/achievement-surface-view-models.ts",
+      "source_location": "L183",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_achievement_surface_view_models_feedunlockrow",
+      "label": "FeedUnlockRow",
+      "source_file": "lib/achievements/data/achievement-surface-view-models.ts",
+      "source_location": "L186",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_achievement_transformers_normalizeachievement",
+      "label": "normalizeAchievement",
+      "source_file": "lib/achievements/data/achievement-transformers.ts",
+      "source_location": "L106",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_achievement_view_models_achievementtoform",
+      "label": "achievementToForm",
+      "source_file": "lib/achievements/data/achievement-view-models.ts",
+      "source_location": "L315",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_achievement_view_models_achievementtogriditem",
+      "label": "achievementToGridItem",
+      "source_file": "lib/achievements/data/achievement-view-models.ts",
+      "source_location": "L318",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_achievement_view_models_collectionentryfromdetail",
+      "label": "collectionEntryFromDetail",
+      "source_file": "lib/achievements/data/achievement-view-models.ts",
+      "source_location": "L215",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_achievement_view_models_detailtogridviewmodel",
+      "label": "detailToGridViewModel",
+      "source_file": "lib/achievements/data/achievement-view-models.ts",
+      "source_location": "L201",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_achievement_view_models_domainrowtocollectionentry",
+      "label": "domainRowToCollectionEntry",
+      "source_file": "lib/achievements/data/achievement-view-models.ts",
+      "source_location": "L224",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_achievement_view_models_sortdetailviewmodels",
+      "label": "sortDetailViewModels",
+      "source_file": "lib/achievements/data/achievement-view-models.ts",
+      "source_location": "L138",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_dedicate_achievement_dedicateachievementbody",
+      "label": "DedicateAchievementBody",
+      "source_file": "lib/achievements/data/dedicate-achievement.ts",
+      "source_location": "L39",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_dedicate_achievement_dedicateachievementfailure",
+      "label": "DedicateAchievementFailure",
+      "source_file": "lib/achievements/data/dedicate-achievement.ts",
+      "source_location": "L41",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_feed_db_feedcursor",
+      "label": "FeedCursor",
+      "source_file": "lib/achievements/data/feed-db.ts",
+      "source_location": "L15",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_profile_db_profileavatarupdate",
+      "label": "ProfileAvatarUpdate",
+      "source_file": "lib/achievements/data/profile-db.ts",
+      "source_location": "L12",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_profile_db_profilerow",
+      "label": "ProfileRow",
+      "source_file": "lib/achievements/data/profile-db.ts",
+      "source_location": "L6",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_user_profile_db_authuserexistsresult",
+      "label": "AuthUserExistsResult",
+      "source_file": "lib/achievements/data/user-profile-db.ts",
+      "source_location": "L10",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_user_profile_db_followcountresult",
+      "label": "FollowCountResult",
+      "source_file": "lib/achievements/data/user-profile-db.ts",
+      "source_location": "L8",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_user_profile_db_followmutationresult",
+      "label": "FollowMutationResult",
+      "source_file": "lib/achievements/data/user-profile-db.ts",
+      "source_location": "L7",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_user_profile_db_followrelationshipresult",
+      "label": "FollowRelationshipResult",
+      "source_file": "lib/achievements/data/user-profile-db.ts",
+      "source_location": "L6",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_data_user_profile_db_publicuserdisplaynameresult",
+      "label": "PublicUserDisplayNameResult",
+      "source_file": "lib/achievements/data/user-profile-db.ts",
+      "source_location": "L9",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_ui_detail_chrome_button_motion_detail_chrome_button_enter_motion_enabled",
+      "label": "DETAIL_CHROME_BUTTON_ENTER_MOTION_ENABLED",
+      "source_file": "lib/achievements/ui/detail-chrome-button-motion.ts",
+      "source_location": "L32",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_ui_detail_chrome_button_motion_detail_chrome_button_enter_stagger_ms",
+      "label": "DETAIL_CHROME_BUTTON_ENTER_STAGGER_MS",
+      "source_file": "lib/achievements/ui/detail-chrome-button-motion.ts",
+      "source_location": "L36",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_ui_detail_chrome_button_motion_isdetailchromebuttonentermotionenabled",
+      "label": "isDetailChromeButtonEnterMotionEnabled",
+      "source_file": "lib/achievements/ui/detail-chrome-button-motion.ts",
+      "source_location": "L40",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_ui_overlay_transition_markbadgetransitionsource",
+      "label": "markBadgeTransitionSource",
+      "source_file": "lib/achievements/ui/overlay-transition.ts",
+      "source_location": "L73",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_achievements_ui_overlay_transition_overlaytransitionmotion",
+      "label": "OverlayTransitionMotion",
+      "source_file": "lib/achievements/ui/overlay-transition.ts",
+      "source_location": "L12",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_auth_achievement_ability_achievementability",
+      "label": "AchievementAbility",
+      "source_file": "lib/auth/achievement-ability.ts",
+      "source_location": "L26",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_auth_achievement_ability_achievementaction",
+      "label": "AchievementAction",
+      "source_file": "lib/auth/achievement-ability.ts",
+      "source_location": "L9",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_auth_achievement_ability_achievementauthbundle",
+      "label": "AchievementAuthBundle",
+      "source_file": "lib/auth/achievement-ability.ts",
+      "source_location": "L53",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_auth_achievement_ability_achievementpermissions",
+      "label": "AchievementPermissions",
+      "source_file": "lib/auth/achievement-ability.ts",
+      "source_location": "L65",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_auth_achievement_ability_achievementsubject",
+      "label": "AchievementSubject",
+      "source_file": "lib/auth/achievement-ability.ts",
+      "source_location": "L20",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_auth_achievement_ability_buildachievementauthbundle",
+      "label": "buildAchievementAuthBundle",
+      "source_file": "lib/auth/achievement-ability.ts",
+      "source_location": "L58",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_auth_achievement_ability_buildachievementauthcontextargs",
+      "label": "BuildAchievementAuthContextArgs",
+      "source_file": "lib/auth/achievement-ability.ts",
+      "source_location": "L37",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_auth_oauth_providers_oauthproviderid",
+      "label": "OAuthProviderId",
+      "source_file": "lib/auth/oauth-providers.ts",
+      "source_location": "L13",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_client_fetch_json_fetchjsonfailure",
+      "label": "FetchJsonFailure",
+      "source_file": "lib/client/fetch-json.ts",
+      "source_location": "L4",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_client_fetch_json_istransientnetworkfailuremessage",
+      "label": "isTransientNetworkFailureMessage",
+      "source_file": "lib/client/fetch-json.ts",
+      "source_location": "L25",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_embed_client_embed_api_mintembedbadgetokensuccessbody",
+      "label": "MintEmbedBadgeTokenSuccessBody",
+      "source_file": "lib/embed/client/embed-api.ts",
+      "source_location": "L10",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_embed_embed_api_types_mintembedbadgetokenerrorjson",
+      "label": "MintEmbedBadgeTokenErrorJson",
+      "source_file": "lib/embed/embed-api-types.ts",
+      "source_location": "L10",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_embed_embed_api_types_mintembedbadgetokensuccessbody",
+      "label": "MintEmbedBadgeTokenSuccessBody",
+      "source_file": "lib/embed/embed-api-types.ts",
+      "source_location": "L6",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_embed_embed_badge_token_embedbadgetokenpayload",
+      "label": "EmbedBadgeTokenPayload",
+      "source_file": "lib/embed/embed-badge-token.ts",
+      "source_location": "L3",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_imagekit_client_imagekit_api_deleteimagekitfile",
+      "label": "deleteImageKitFile",
+      "source_file": "lib/imagekit/client/imagekit-api.ts",
+      "source_location": "L26",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_imagekit_client_imagekit_api_imagekituploadauth",
+      "label": "ImageKitUploadAuth",
+      "source_file": "lib/imagekit/client/imagekit-api.ts",
+      "source_location": "L17",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_imagekit_telemetry_imagekittelemetryop",
+      "label": "ImageKitTelemetryOp",
+      "source_file": "lib/imagekit/telemetry.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_imagekit_telemetry_imagekittelemetrypayload",
+      "label": "ImageKitTelemetryPayload",
+      "source_file": "lib/imagekit/telemetry.ts",
+      "source_location": "L8",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_imagekit_telemetry_readcdndeliverybytes",
+      "label": "readCdnDeliveryBytes",
+      "source_file": "lib/imagekit/telemetry.ts",
+      "source_location": "L76",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_imagekit_use_imagekit_image_uploader_useimagekitimageuploaderoptions",
+      "label": "UseImageKitImageUploaderOptions",
+      "source_file": "lib/imagekit/use-imagekit-image-uploader.ts",
+      "source_location": "L29",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_imagekit_validate_image_file_imageedgebounds",
+      "label": "ImageEdgeBounds",
+      "source_file": "lib/imagekit/validate-image-file.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_imagekit_validate_image_file_validateimagemaxedgepx",
+      "label": "validateImageMaxEdgePx",
+      "source_file": "lib/imagekit/validate-image-file.ts",
+      "source_location": "L54",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_live_updates_domains_achievements_create_user_achievements_live_update_source_createuserachievementsliveupdatesourceoptions",
+      "label": "CreateUserAchievementsLiveUpdateSourceOptions",
+      "source_file": "lib/live-updates/domains/achievements/create-user-achievements-live-update-source.ts",
+      "source_location": "L8",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_live_updates_domains_feed_create_feed_live_update_source_createfeedliveupdatesourceoptions",
+      "label": "CreateFeedLiveUpdateSourceOptions",
+      "source_file": "lib/live-updates/domains/feed/create-feed-live-update-source.ts",
+      "source_location": "L11",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_live_updates_drivers_supabase_postgres_change_source_createsupabasepostgreschangesourceoptions",
+      "label": "CreateSupabasePostgresChangeSourceOptions",
+      "source_file": "lib/live-updates/drivers/supabase/postgres-change-source.ts",
+      "source_location": "L26",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_live_updates_drivers_supabase_postgres_change_source_createsupabasepostgresinsertsource",
+      "label": "createSupabasePostgresInsertSource",
+      "source_file": "lib/live-updates/drivers/supabase/postgres-change-source.ts",
+      "source_location": "L96",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_live_updates_drivers_supabase_postgres_change_source_postgreschangeevent",
+      "label": "PostgresChangeEvent",
+      "source_file": "lib/live-updates/drivers/supabase/postgres-change-source.ts",
+      "source_location": "L10",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_live_updates_drivers_supabase_postgres_change_source_postgreschangelistener",
+      "label": "PostgresChangeListener",
+      "source_file": "lib/live-updates/drivers/supabase/postgres-change-source.ts",
+      "source_location": "L12",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_live_updates_drivers_supabase_postgres_change_source_postgreschangepayload",
+      "label": "PostgresChangePayload",
+      "source_file": "lib/live-updates/drivers/supabase/postgres-change-source.ts",
+      "source_location": "L19",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_live_updates_drivers_supabase_postgres_change_source_postgresinsertlistener",
+      "label": "PostgresInsertListener",
+      "source_file": "lib/live-updates/drivers/supabase/postgres-change-source.ts",
+      "source_location": "L98",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_local_storage_boolean_preference_deserializestoredboolean",
+      "label": "deserializeStoredBoolean",
+      "source_file": "lib/local-storage/boolean-preference.ts",
+      "source_location": "L8",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_local_storage_client_removestorageitem",
+      "label": "removeStorageItem",
+      "source_file": "lib/local-storage/client.ts",
+      "source_location": "L11",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_local_storage_keys_storagekey",
+      "label": "StorageKey",
+      "source_file": "lib/local-storage/keys.ts",
+      "source_location": "L10",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_local_storage_preferences_achievementvisibilityfilter",
+      "label": "AchievementVisibilityFilter",
+      "source_file": "lib/local-storage/preferences.ts",
+      "source_location": "L36",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_local_storage_preferences_cyclevisibilityfilter",
+      "label": "cycleVisibilityFilter",
+      "source_file": "lib/local-storage/preferences.ts",
+      "source_location": "L55",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_local_storage_preferences_readvisibilityfilterpreference",
+      "label": "readVisibilityFilterPreference",
+      "source_file": "lib/local-storage/preferences.ts",
+      "source_location": "L45",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_local_storage_preferences_writevisibilityfilterpreference",
+      "label": "writeVisibilityFilterPreference",
+      "source_file": "lib/local-storage/preferences.ts",
+      "source_location": "L49",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_notifications_activity_text_activitytextcopy",
+      "label": "ActivityTextCopy",
+      "source_file": "lib/notifications/activity-text.ts",
+      "source_location": "L8",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_notifications_send_sendpushresult",
+      "label": "SendPushResult",
+      "source_file": "lib/notifications/send.ts",
+      "source_location": "L18",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_notifications_templates_adminnewsignupparams",
+      "label": "AdminNewSignupParams",
+      "source_file": "lib/notifications/templates.ts",
+      "source_location": "L55",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_notifications_templates_dedicationacceptedparams",
+      "label": "DedicationAcceptedParams",
+      "source_file": "lib/notifications/templates.ts",
+      "source_location": "L46",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_notifications_templates_dedicationparams",
+      "label": "DedicationParams",
+      "source_file": "lib/notifications/templates.ts",
+      "source_location": "L39",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_notifications_templates_impressionparams",
+      "label": "ImpressionParams",
+      "source_file": "lib/notifications/templates.ts",
+      "source_location": "L32",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_notifications_templates_newfollowerparams",
+      "label": "NewFollowerParams",
+      "source_file": "lib/notifications/templates.ts",
+      "source_location": "L28",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_notifications_templates_notificationcontent",
+      "label": "NotificationContent",
+      "source_file": "lib/notifications/templates.ts",
+      "source_location": "L14",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_notifications_templates_notificationlinks",
+      "label": "notificationLinks",
+      "source_file": "lib/notifications/templates.ts",
+      "source_location": "L70",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_notifications_templates_testparams",
+      "label": "TestParams",
+      "source_file": "lib/notifications/templates.ts",
+      "source_location": "L53",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_notifications_templates_unlockparams",
+      "label": "UnlockParams",
+      "source_file": "lib/notifications/templates.ts",
+      "source_location": "L21",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_public_site_origin_islocalhostorloopbackorigin",
+      "label": "isLocalhostOrLoopbackOrigin",
+      "source_file": "lib/public-site-origin.ts",
+      "source_location": "L34",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_push_device_push_status_devicefcmtokenresult",
+      "label": "DeviceFcmTokenResult",
+      "source_file": "lib/push/device-push-status.ts",
+      "source_location": "L9",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_push_ensure_push_registered_ensurepushresult",
+      "label": "EnsurePushResult",
+      "source_file": "lib/push/ensure-push-registered.ts",
+      "source_location": "L10",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_push_ensure_push_registered_registerbrowserpushtoken",
+      "label": "registerBrowserPushToken",
+      "source_file": "lib/push/ensure-push-registered.ts",
+      "source_location": "L74",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_push_firebase_sw_config_firebasepushconfig",
+      "label": "FirebasePushConfig",
+      "source_file": "lib/push/firebase-sw-config.ts",
+      "source_location": "L2",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_push_notification_navigation_ispushnotificationclickmessage",
+      "label": "isPushNotificationClickMessage",
+      "source_file": "lib/push/notification-navigation.ts",
+      "source_location": "L54",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_push_notification_navigation_pathfrompushnotificationurl",
+      "label": "pathFromPushNotificationUrl",
+      "source_file": "lib/push/notification-navigation.ts",
+      "source_location": "L11",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_push_notification_navigation_pushnotificationclickmessage",
+      "label": "PushNotificationClickMessage",
+      "source_file": "lib/push/notification-navigation.ts",
+      "source_location": "L5",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_pwa_install_context_isiosdevice",
+      "label": "isIosDevice",
+      "source_file": "lib/pwa/install-context.ts",
+      "source_location": "L11",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_routes_defaultpostauthpath",
+      "label": "defaultPostAuthPath",
+      "source_file": "lib/routes.ts",
+      "source_location": "L132",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_routes_signupwithnext",
+      "label": "signUpWithNext",
+      "source_file": "lib/routes.ts",
+      "source_location": "L111",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_share_invites_eligibility_isachievementeligibleforshareinvite",
+      "label": "isAchievementEligibleForShareInvite",
+      "source_file": "lib/share-invites/eligibility.ts",
+      "source_location": "L10",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_share_invites_server_achievementshareinviteintent",
+      "label": "AchievementShareInviteIntent",
+      "source_file": "lib/share-invites/server.ts",
+      "source_location": "L56",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_share_invites_server_achievementshareinvitepresentation",
+      "label": "AchievementShareInvitePresentation",
+      "source_file": "lib/share-invites/server.ts",
+      "source_location": "L45",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_share_invites_server_achievementsharepagekind",
+      "label": "AchievementSharePageKind",
+      "source_file": "lib/share-invites/server.ts",
+      "source_location": "L53",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_share_invites_server_claimachievementshareinvitesuccess",
+      "label": "ClaimAchievementShareInviteSuccess",
+      "source_file": "lib/share-invites/server.ts",
+      "source_location": "L58",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_supabase_database_types_compositetypes",
+      "label": "CompositeTypes",
+      "source_file": "lib/supabase/database.types.ts",
+      "source_location": "L420",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_supabase_database_types_enums",
+      "label": "Enums",
+      "source_file": "lib/supabase/database.types.ts",
+      "source_location": "L403",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_supabase_database_types_json",
+      "label": "Json",
+      "source_file": "lib/supabase/database.types.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_supabase_database_types_tablesinsert",
+      "label": "TablesInsert",
+      "source_file": "lib/supabase/database.types.ts",
+      "source_location": "L353",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_supabase_database_types_tablesupdate",
+      "label": "TablesUpdate",
+      "source_file": "lib/supabase/database.types.ts",
+      "source_location": "L378",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_supabase_postgrest_errors_ispostgrestsinglerowcoercionerror",
+      "label": "isPostgrestSingleRowCoercionError",
+      "source_file": "lib/supabase/postgrest-errors.ts",
+      "source_location": "L4",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_upload_staging_session_stagingeffects",
+      "label": "StagingEffects",
+      "source_file": "lib/upload/staging-session.ts",
+      "source_location": "L12",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_user_achievements_page_isauthuseridsegment",
+      "label": "isAuthUserIdSegment",
+      "source_file": "lib/user-achievements-page.ts",
+      "source_location": "L64",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_user_achievements_page_resolveachievementsprofileuserresult",
+      "label": "ResolveAchievementsProfileUserResult",
+      "source_file": "lib/user-achievements-page.ts",
+      "source_location": "L9",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_welcome_complete_onboarding_completeonboardingaftersignup",
+      "label": "completeOnboardingAfterSignup",
+      "source_file": "lib/welcome/complete-onboarding.ts",
+      "source_location": "L15",
+      "_origin": "ast",
+      "file_type": "code"
+    },
+    {
+      "id": "lib_welcome_intro_achievement_getwelcomeintroachievementrecord",
+      "label": "getWelcomeIntroAchievementRecord",
+      "source_file": "lib/welcome/intro-achievement.ts",
+      "source_location": "L62",
+      "_origin": "ast",
+      "file_type": "code"
+    }
+  ]
+}

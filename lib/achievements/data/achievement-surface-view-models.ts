@@ -178,9 +178,3 @@ export function shareInviteRowToBadgeViewModel(
     showAttributionPopover: Boolean(model?.ccAttribution),
   };
 }
-
-/** @deprecated Use {@link AchievementFeedItemViewModel}. */
-export type FeedRow = AchievementFeedItemViewModel;
-
-/** @deprecated Use {@link AchievementFeedItemViewModel}. */
-export type FeedUnlockRow = AchievementFeedItemViewModel;

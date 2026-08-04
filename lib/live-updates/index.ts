@@ -14,7 +14,6 @@ export { useLiveUpdateSubscription } from "@/lib/live-updates/react/use-live-upd
 
 export {
   createSupabasePostgresChangeSource,
-  createSupabasePostgresInsertSource,
 } from "@/lib/live-updates/drivers/supabase/postgres-change-source";
 export { createFeedLiveUpdateSource } from "@/lib/live-updates/domains/feed/create-feed-live-update-source";
 export { useFeedLiveUpdates } from "@/lib/live-updates/domains/feed/use-feed-live-updates";

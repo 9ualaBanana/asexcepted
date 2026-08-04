@@ -57,13 +57,6 @@ export function commitProfileAvatarUploadSession(
   return replacedBaseline?.iconFileId ?? null;
 }
 
-export async function deleteProfileAvatarFileQuietly(
-  fileId: string | null | undefined,
-  onError?: (error: unknown) => void,
-): Promise<void> {
-  await deleteImageKitFileQuietly(fileId, onError);
-}
-
 export {
   clearSessionStagedUpload as clearProfileAvatarStagedUpload,
   deleteImageKitFileQuietly,

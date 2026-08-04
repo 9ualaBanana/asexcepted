@@ -91,8 +91,3 @@ export function createSupabasePostgresChangeSource(
     },
   };
 }
-
-/** @deprecated Use createSupabasePostgresChangeSource */
-export const createSupabasePostgresInsertSource = createSupabasePostgresChangeSource;
-
-export type PostgresInsertListener = PostgresChangeListener;

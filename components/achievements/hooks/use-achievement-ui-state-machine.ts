@@ -284,9 +284,6 @@ export function useAchievementUiStateMachine() {
   ]);
 }
 
-export type AchievementUiStateMachine = ReturnType<
-  typeof useAchievementUiStateMachine
->;
 export type AchievementUiStateActions = {
   openCreate: (originRect: DomRectLite | null) => void;
   openDetailView: (

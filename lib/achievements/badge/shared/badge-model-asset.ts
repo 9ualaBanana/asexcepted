@@ -139,9 +139,6 @@ export function remoteAssetStorageRefDeletePayload(ref: {
   };
 }
 
-/** @deprecated Use {@link remoteAssetStorageRefDeletePayload} */
-export const badgeStorageRefDeletePayload = remoteAssetStorageRefDeletePayload;
-
 export type BadgeModelFormFields = Pick<
   FormState,
   | "iconAssetKind"

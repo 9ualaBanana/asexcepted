@@ -1,7 +1,6 @@
-import { err, ok, type Result } from "neverthrow";
 import { z } from "zod";
 
-import { fetchFailureMessage, postJson } from "@/lib/client/fetch-json";
+import { postJson } from "@/lib/client/fetch-json";
 import { createClient } from "@/lib/supabase/client";
 
 const impressionResponseSchema = z.object({
@@ -33,25 +32,4 @@ export async function postAchievementImpression(
   }
 
   return { ok: true, added: Boolean(result.value.added) };
-}
-
-/** Same as {@link postAchievementImpression} but returns neverthrow for callers that need errors. */
-export async function postAchievementImpressionResult(
-  achievementId: string,
-): Promise<Result<{ added: boolean }, string>> {
-  const supabase = createClient();
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) {
-    return err("Not authenticated");
-  }
-
-  const result = await postJson(
-    "/api/achievements/impression",
-    { achievementId },
-    impressionResponseSchema,
-  );
-  if (result.isErr()) {
-    return err(fetchFailureMessage(result.error));
-  }
-  return ok({ added: Boolean(result.value.added) });
 }

@@ -12,7 +12,6 @@ export {
   badgeModelFromForm,
   badgeModelFromStagedUpload,
   remoteAssetStorageRefDeletePayload,
-  badgeStorageRefDeletePayload,
   patchBadgeModelAsset,
   isModelBadgeAssetKind,
   isModelGlbAsset,
@@ -84,24 +83,6 @@ export function sanitizeBadgeAssetPath(
   if (!trimmed) return "";
   if (trimmed.includes("..")) return "";
   return trimmed.replace(/^\/+/, "");
-}
-
-export function extractPublicBucketObjectPath(
-  publicUrl: string | null | undefined,
-  bucketName: string,
-): string {
-  const trimmed = publicUrl?.trim() ?? "";
-  if (!trimmed) return "";
-
-  try {
-    const url = new URL(trimmed);
-    const marker = `/storage/v1/object/public/${bucketName}/`;
-    const idx = url.pathname.indexOf(marker);
-    if (idx === -1) return "";
-    return decodeURIComponent(url.pathname.slice(idx + marker.length));
-  } catch {
-    return "";
-  }
 }
 
 export function looksLikeGlbUpload(fileName: string, mimeType: string): boolean {

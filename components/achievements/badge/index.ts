@@ -41,8 +41,7 @@ export { useSignedBadgeModelUrl } from "./display/gltf";
 export {
   revokeBadgeModelPoseSession,
   type BadgeModelPoseSession,
-  type BadgeModelPoseSessionApi,
-} from "./upload/session/badge-model-pose-session";
+} from "./upload/model/badge-model-pose-session";
 export {
   prepareBadgeModelUpload,
   type PreparedBadgeModelUpload,
@@ -75,8 +74,10 @@ export { useBadgeImageUploader } from "./upload/image/use-badge-image-uploader";
 export { useBadgeMetricsController } from "./hooks/use-badge-metrics-controller";
 export { useBadgeChunkedPrewarm } from "./hooks/use-badge-chunked-prewarm";
 
-export { submitImpression } from "./effects/use-impression-on-badge";
-export type { ImpressionResult } from "./effects/use-impression-on-badge";
+export {
+  postAchievementImpression,
+  type ImpressionResult,
+} from "@/lib/achievements/client/impression-api";
 
 export {
   useBadgeSessionController,

@@ -70,7 +70,6 @@ export type NotificationParams = {
 export function notificationLinks() {
   return {
     feed: ROUTES.inspa,
-    social: ROUTES.inspa,
     profile: ROUTES.profile,
     home: ROUTES.home,
     userCollection: (userId: string) => `/u/${userId}`,
@@ -106,7 +105,7 @@ export function buildNotificationContent<K extends NotificationKind>(
       return {
         title: "New inspiration",
         body: formatNewInspirationActivityMessage(p.followerName),
-        url: links.social,
+        url: links.feed,
         type: "new_follower",
       };
     }

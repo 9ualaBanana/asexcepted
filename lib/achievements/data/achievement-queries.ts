@@ -22,12 +22,6 @@ export type AchievementUnlockPushRow = {
 
 export type { AchievementEmbedBadgeViewModel, AchievementEmbedMintViewModel } from "@/lib/achievements/data/achievement-surface-view-models";
 
-/** @deprecated Use AchievementEmbedBadgeViewModel */
-export type AchievementEmbedBadgeRow = AchievementEmbedBadgeViewModel;
-
-/** @deprecated Use AchievementEmbedMintViewModel */
-export type AchievementEmbedMintRow = AchievementEmbedMintViewModel;
-
 export type AchievementDedicationNotifyRow = Pick<
   Database["public"]["Tables"]["achievements"]["Row"],
   "id" | "user_id" | "title" | "dedicated_by_user_id" | "dedication_status"

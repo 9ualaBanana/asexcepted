@@ -27,16 +27,3 @@ function prefersReducedMotion(): boolean {
   if (typeof window === "undefined") return false;
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
-
-/** @deprecated Use {@link DETAIL_CHROME_BUTTON_MOTION_ENABLED}. */
-export const DETAIL_CHROME_BUTTON_ENTER_MOTION_ENABLED =
-  DETAIL_CHROME_BUTTON_MOTION_ENABLED;
-
-/** @deprecated Use {@link DETAIL_CHROME_BUTTON_STAGGER_MS}. */
-export const DETAIL_CHROME_BUTTON_ENTER_STAGGER_MS =
-  DETAIL_CHROME_BUTTON_STAGGER_MS;
-
-/** @deprecated Use {@link isDetailChromeButtonMotionEnabled}. */
-export function isDetailChromeButtonEnterMotionEnabled(): boolean {
-  return isDetailChromeButtonMotionEnabled();
-}

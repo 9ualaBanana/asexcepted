@@ -1,11 +1,16 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
+import { LEGACY_REDIRECTS } from "./lib/routing/legacy-redirects";
+
 const nextConfig: NextConfig = {
   cacheComponents: true,
   env: {
     // Stable per deployment/build; used for cache-busting static audio URLs.
     NEXT_PUBLIC_BUILD_ID: `local-${Date.now().toString(36)}`
+  },
+  async redirects() {
+    return [...LEGACY_REDIRECTS];
   },
 };
 

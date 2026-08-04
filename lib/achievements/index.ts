@@ -14,8 +14,6 @@ export {
   type AchievementDetailViewModel,
   type AchievementGridViewModel,
   achievementDetailToForm,
-  achievementToForm,
-  achievementToGridItem,
   collectionEntryFromDetail,
   detailToShareInviteSnapshotSource,
   domainRowToCollectionEntry,

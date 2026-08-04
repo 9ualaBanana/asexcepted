@@ -49,19 +49,6 @@ export function buildAchievementAuthContext({
   return { readOnly, isAdmin, canDedicate };
 }
 
-/** Auth facts + CASL ability; safe on server (API routes) and client. */
-export type AchievementAuthBundle = {
-  auth: AchievementAuthContext;
-  ability: AchievementAbility;
-};
-
-export function buildAchievementAuthBundle(
-  args: BuildAchievementAuthContextArgs,
-): AchievementAuthBundle {
-  const auth = buildAchievementAuthContext(args);
-  return { auth, ability: buildAchievementAbility(auth) };
-}
-
 export type AchievementPermissions = {
   canEditAchievements: boolean;
   canFilterVisibility: boolean;

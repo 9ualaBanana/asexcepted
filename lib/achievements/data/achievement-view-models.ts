@@ -6,14 +6,10 @@ import {
 } from "@/components/achievements/achievement-manager-utils";
 import {
   type AchievementIconKey,
-  type IconAssetKind,
   type AchievementVisibility,
   type FormState,
   formatGridDate,
   getSafeIcon,
-  getSafeIconAssetKind,
-  getSafeIconKey,
-  getSafeVisibility,
   toNullable,
 } from "@/components/achievements/achievement-editor-shared";
 import { normalizeImageKitFileId } from "@/components/achievements/badge";
@@ -133,17 +129,6 @@ function detailSortKey(detail: AchievementDetailViewModel): [number, number, num
   if (!dated && detail.isLocked) return [0, 0, -createdAtMs(detail)];
   if (!dated && !detail.isLocked) return [1, 0, -createdAtMs(detail)];
   return [2, -achievedAtMs(detail), -createdAtMs(detail)];
-}
-
-export function sortDetailViewModels(details: AchievementDetailViewModel[]): AchievementDetailViewModel[] {
-  return [...details].sort((a, b) => {
-    const ak = detailSortKey(a);
-    const bk = detailSortKey(b);
-    for (let i = 0; i < ak.length; i++) {
-      if (ak[i] !== bk[i]) return ak[i] - bk[i];
-    }
-    return 0;
-  });
 }
 
 export function sortCollectionEntries(
@@ -309,14 +294,6 @@ export function isAchievementFormDirty(
     current.achieved_at !== baseline.achieved_at ||
     current.visibility !== baseline.visibility
   );
-}
-
-/** @deprecated Use {@link achievementDetailToForm}. */
-export const achievementToForm = achievementDetailToForm;
-
-/** @deprecated Use {@link domainRowToDetailViewModel} + {@link detailToGridViewModel}. */
-export function achievementToGridItem(row: AchievementDomainRow): AchievementGridViewModel {
-  return detailToGridViewModel(domainRowToDetailViewModel(row));
 }
 
 export { showsDedicatedBadgeAura };

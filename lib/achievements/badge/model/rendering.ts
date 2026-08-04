@@ -154,13 +154,3 @@ export function frameCameraForBadgeModel(
 
   return { size: analysis.size, maxDim: frameMaxDim };
 }
-
-/** Centers the mesh then frames it (legacy single-node helper). */
-export function frameBadgeModelForCamera(
-  model: Object3D,
-  camera: PerspectiveCamera,
-): BadgeModelFrameMetrics {
-  const metrics = centerBadgeModelAtOrigin(model);
-  frameCameraForBadgeModel(model, camera);
-  return metrics;
-}

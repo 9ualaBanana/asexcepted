@@ -1,0 +1,1862 @@
+{
+  "app/api/achievements/badge-asset/route.ts": {
+    "mtime": 1785643740.899611,
+    "ast_hash": "e8880b75276779c340ee08324bcb6805",
+    "semantic_hash": "e8880b75276779c340ee08324bcb6805"
+  },
+  "app/api/achievements/badge-model-url/route.ts": {
+    "mtime": 1785643740.901613,
+    "ast_hash": "76dac36e436628bedf70de316fdb5413",
+    "semantic_hash": "76dac36e436628bedf70de316fdb5413"
+  },
+  "app/api/achievements/badge-model/complete/route.ts": {
+    "mtime": 1785643740.9026086,
+    "ast_hash": "b584dbbab5bd048842e8ab2079f4f21b",
+    "semantic_hash": "b584dbbab5bd048842e8ab2079f4f21b"
+  },
+  "app/api/achievements/badge-model/route.ts": {
+    "mtime": 1780320743.4053955,
+    "ast_hash": "b32699ac3d97de22650e6ab6993f0ad0",
+    "semantic_hash": "b32699ac3d97de22650e6ab6993f0ad0"
+  },
+  "app/api/achievements/badge-model/upload-url/route.ts": {
+    "mtime": 1785643740.9046118,
+    "ast_hash": "89ca60c763c4f0843f703f0fb277dd07",
+    "semantic_hash": "89ca60c763c4f0843f703f0fb277dd07"
+  },
+  "app/api/achievements/dedicate/route.ts": {
+    "mtime": 1785643740.9066093,
+    "ast_hash": "602e360b58cf3f1c9f803a28f781caff",
+    "semantic_hash": "602e360b58cf3f1c9f803a28f781caff"
+  },
+  "app/api/achievements/dedication/accept/route.ts": {
+    "mtime": 1785643740.9096124,
+    "ast_hash": "fb0f4535672fdf6220f95963448842b0",
+    "semantic_hash": "fb0f4535672fdf6220f95963448842b0"
+  },
+  "app/api/achievements/impression/route.ts": {
+    "mtime": 1779821404.4590485,
+    "ast_hash": "cdbd41820ecd569421455ec7e498729c",
+    "semantic_hash": "cdbd41820ecd569421455ec7e498729c"
+  },
+  "app/api/achievements/share-invite/claim/route.ts": {
+    "mtime": 1779777828.5651004,
+    "ast_hash": "9c17612d006c9f0e7992a33fb04b35c2",
+    "semantic_hash": "9c17612d006c9f0e7992a33fb04b35c2"
+  },
+  "app/api/achievements/share-invite/route.ts": {
+    "mtime": 1780235293.1785252,
+    "ast_hash": "1ca5c20bc46db29bbf898a79580a012f",
+    "semantic_hash": "1ca5c20bc46db29bbf898a79580a012f"
+  },
+  "app/api/embed/badge-token/route.ts": {
+    "mtime": 1785643740.9116087,
+    "ast_hash": "ca31fe13ffeeb54ff71e087062ee353e",
+    "semantic_hash": "ca31fe13ffeeb54ff71e087062ee353e"
+  },
+  "app/api/imagekit/auth/route.ts": {
+    "mtime": 1785643740.913609,
+    "ast_hash": "71edf080035daab701f7e8454437044e",
+    "semantic_hash": "71edf080035daab701f7e8454437044e"
+  },
+  "app/api/imagekit/file/route.ts": {
+    "mtime": 1785643740.915609,
+    "ast_hash": "e818e33a11847d4df44428c1cca45321",
+    "semantic_hash": "e818e33a11847d4df44428c1cca45321"
+  },
+  "app/api/onboarding/intro-achievement/route.ts": {
+    "mtime": 1779621907.9852445,
+    "ast_hash": "1d81fc9322106fbf0df7447237f85f69",
+    "semantic_hash": "1d81fc9322106fbf0df7447237f85f69"
+  },
+  "app/api/push/fan-out-unlock/route.ts": {
+    "mtime": 1785643740.917609,
+    "ast_hash": "5816ee4f8cb8ff82b91d6b4efa8e8a7b",
+    "semantic_hash": "5816ee4f8cb8ff82b91d6b4efa8e8a7b"
+  },
+  "app/api/push/notify-new-follower/route.ts": {
+    "mtime": 1779352351.0570042,
+    "ast_hash": "dda6db41dcb9bb88ef3202f69ffcbd3d",
+    "semantic_hash": "dda6db41dcb9bb88ef3202f69ffcbd3d"
+  },
+  "app/api/push/register/route.ts": {
+    "mtime": 1779702775.1963437,
+    "ast_hash": "2c05bfa4e20a3d034392be4ab27bb853",
+    "semantic_hash": "2c05bfa4e20a3d034392be4ab27bb853"
+  },
+  "app/api/push/signup/route.ts": {
+    "mtime": 1779621907.9872446,
+    "ast_hash": "f69620ebab91dd5fbe2eb751a6cc504e",
+    "semantic_hash": "f69620ebab91dd5fbe2eb751a6cc504e"
+  },
+  "app/api/push/status/route.ts": {
+    "mtime": 1779352351.059001,
+    "ast_hash": "4245afd6b1e45fa93b7d579b76d3514a",
+    "semantic_hash": "4245afd6b1e45fa93b7d579b76d3514a"
+  },
+  "app/api/push/test/route.ts": {
+    "mtime": 1779352351.0720012,
+    "ast_hash": "075d58590fbca0a3d731c1efe836c344",
+    "semantic_hash": "075d58590fbca0a3d731c1efe836c344"
+  },
+  "app/api/push/unregister/route.ts": {
+    "mtime": 1779702775.198344,
+    "ast_hash": "54ffb9dae52658e2b3584effd53201d8",
+    "semantic_hash": "54ffb9dae52658e2b3584effd53201d8"
+  },
+  "app/auth/callback/route.ts": {
+    "mtime": 1785722080.4130595,
+    "ast_hash": "ba16f874ecf7792079bff691959d2f4f",
+    "semantic_hash": "ba16f874ecf7792079bff691959d2f4f"
+  },
+  "app/auth/confirm/route.ts": {
+    "mtime": 1785722080.4130595,
+    "ast_hash": "59ef6716a1229efc4d8e94ec95f1db7b",
+    "semantic_hash": "59ef6716a1229efc4d8e94ec95f1db7b"
+  },
+  "app/auth/error/page.tsx": {
+    "mtime": 1779717569.8454287,
+    "ast_hash": "c2ef9e752b70efae6afaa6a89992f027",
+    "semantic_hash": "c2ef9e752b70efae6afaa6a89992f027"
+  },
+  "app/auth/forgot-password/page.tsx": {
+    "mtime": 1776845751.0,
+    "ast_hash": "2753af0e127a9acf2ab80f142a9ad801",
+    "semantic_hash": "2753af0e127a9acf2ab80f142a9ad801"
+  },
+  "app/auth/login/page.tsx": {
+    "mtime": 1779285982.7241948,
+    "ast_hash": "cf57dc79b61a739c6a303f1f293be83f",
+    "semantic_hash": "cf57dc79b61a739c6a303f1f293be83f"
+  },
+  "app/auth/sign-up-success/page.tsx": {
+    "mtime": 1785722080.4130595,
+    "ast_hash": "7b16c8bbbcae820709d7743da311af6b",
+    "semantic_hash": "7b16c8bbbcae820709d7743da311af6b"
+  },
+  "app/auth/sign-up/page.tsx": {
+    "mtime": 1785729808.1093304,
+    "ast_hash": "2deb6fab0f705c9474dc3ebc52e715fb",
+    "semantic_hash": "2deb6fab0f705c9474dc3ebc52e715fb"
+  },
+  "app/auth/update-password/page.tsx": {
+    "mtime": 1776845751.0,
+    "ast_hash": "404e60c531ec32ca88a9e689585ac984",
+    "semantic_hash": "404e60c531ec32ca88a9e689585ac984"
+  },
+  "app/e/[token]/route.ts": {
+    "mtime": 1785643740.9186082,
+    "ast_hash": "f162531d806c6fe2db12e5c9f3293e00",
+    "semantic_hash": "f162531d806c6fe2db12e5c9f3293e00"
+  },
+  "app/embed/badge/[token]/embed-badge-content.tsx": {
+    "mtime": 1785643740.920607,
+    "ast_hash": "bea05e6c40d6f1edfeec90aaabc2236a",
+    "semantic_hash": "bea05e6c40d6f1edfeec90aaabc2236a"
+  },
+  "app/embed/badge/[token]/embed-transparent-surface.tsx": {
+    "mtime": 1777392171.0027747,
+    "ast_hash": "ab1e4de3d3b3c73dc5e88f755b1c1c1c",
+    "semantic_hash": "ab1e4de3d3b3c73dc5e88f755b1c1c1c"
+  },
+  "app/embed/badge/[token]/page.tsx": {
+    "mtime": 1777457745.231397,
+    "ast_hash": "ef665bc4993435a162ff66d67f2d60c8",
+    "semantic_hash": "ef665bc4993435a162ff66d67f2d60c8"
+  },
+  "app/firebase-push-config.js/route.ts": {
+    "mtime": 1779285982.7311964,
+    "ast_hash": "ddf1a548561537379e14c88497417c22",
+    "semantic_hash": "ddf1a548561537379e14c88497417c22"
+  },
+  "app/global-error.tsx": {
+    "mtime": 1779717569.8464272,
+    "ast_hash": "612abc8657944ebc9495a2ac67383863",
+    "semantic_hash": "612abc8657944ebc9495a2ac67383863"
+  },
+  "app/inspa/page.tsx": {
+    "mtime": 1785643740.9246063,
+    "ast_hash": "43f23d04fd5d8edf52ac8b04c2dda5b9",
+    "semantic_hash": "43f23d04fd5d8edf52ac8b04c2dda5b9"
+  },
+  "app/invite/[token]/opengraph-image.tsx": {
+    "mtime": 1785643740.9266067,
+    "ast_hash": "5d8642a9ca5017ccc9a5c1ae34afa089",
+    "semantic_hash": "5d8642a9ca5017ccc9a5c1ae34afa089"
+  },
+  "app/invite/[token]/page.tsx": {
+    "mtime": 1785643740.9276073,
+    "ast_hash": "d8bf97add79bf2d07c09319ffeea09c2",
+    "semantic_hash": "d8bf97add79bf2d07c09319ffeea09c2"
+  },
+  "app/invite/[token]/share-invite-claim-panel.tsx": {
+    "mtime": 1785729808.1113322,
+    "ast_hash": "0a33f4c936205b1952173293b8dcc69d",
+    "semantic_hash": "0a33f4c936205b1952173293b8dcc69d"
+  },
+  "app/layout.tsx": {
+    "mtime": 1785729808.1123316,
+    "ast_hash": "e0f78a63c9eca188d4e51eb023ef78fa",
+    "semantic_hash": "e0f78a63c9eca188d4e51eb023ef78fa"
+  },
+  "app/loading.tsx": {
+    "mtime": 1779692708.8612628,
+    "ast_hash": "3202831e297e53afdbceda65022744c0",
+    "semantic_hash": "3202831e297e53afdbceda65022744c0"
+  },
+  "app/manifest.ts": {
+    "mtime": 1780235293.1875234,
+    "ast_hash": "7b280590efb842d414103c12a84e45ab",
+    "semantic_hash": "7b280590efb842d414103c12a84e45ab"
+  },
+  "app/page.tsx": {
+    "mtime": 1779702775.2048807,
+    "ast_hash": "da85c523c77c4676e80d28f6a7891cad",
+    "semantic_hash": "da85c523c77c4676e80d28f6a7891cad"
+  },
+  "app/u/[userId]/page.tsx": {
+    "mtime": 1785643740.9306083,
+    "ast_hash": "541355c6becdbceb560087669a304579",
+    "semantic_hash": "541355c6becdbceb560087669a304579"
+  },
+  "components.json": {
+    "mtime": 1779621907.996248,
+    "ast_hash": "014f11d59bd2e0d4bb69bd3c90494403",
+    "semantic_hash": "014f11d59bd2e0d4bb69bd3c90494403"
+  },
+  "components/account-menu.tsx": {
+    "mtime": 1779702775.2113855,
+    "ast_hash": "ddf3f3fbef33610a48c26101fde66aac",
+    "semantic_hash": "ddf3f3fbef33610a48c26101fde66aac"
+  },
+  "components/achievements/achievement-editor-shared.ts": {
+    "mtime": 1785643740.9326048,
+    "ast_hash": "f8f3db76ca09eddb30640cdf01d49f7d",
+    "semantic_hash": "f8f3db76ca09eddb30640cdf01d49f7d"
+  },
+  "components/achievements/achievement-manager-utils.ts": {
+    "mtime": 1785643740.933606,
+    "ast_hash": "25663c806e052ad09511a15c6a96c6e2",
+    "semantic_hash": "25663c806e052ad09511a15c6a96c6e2"
+  },
+  "components/achievements/achievements-manager.tsx": {
+    "mtime": 1785643740.9346068,
+    "ast_hash": "99fb4f35d58999ea9359d166a8e1e0a2",
+    "semantic_hash": "99fb4f35d58999ea9359d166a8e1e0a2"
+  },
+  "components/achievements/badge/chrome/badge-attribution-popover.tsx": {
+    "mtime": 1785643740.935607,
+    "ast_hash": "a80b690c872e6bd2e72d7ab0e67086c5",
+    "semantic_hash": "a80b690c872e6bd2e72d7ab0e67086c5"
+  },
+  "components/achievements/badge/chrome/badge-icon-disc.tsx": {
+    "mtime": 1785643740.9366071,
+    "ast_hash": "152899858fef49d064c9a1ff424a974e",
+    "semantic_hash": "152899858fef49d064c9a1ff424a974e"
+  },
+  "components/achievements/badge/chrome/badge-slot.tsx": {
+    "mtime": 1785643740.9376063,
+    "ast_hash": "7e13e83613f6854a105b08549cba0446",
+    "semantic_hash": "7e13e83613f6854a105b08549cba0446"
+  },
+  "components/achievements/badge/display/badge-floating-layer.tsx": {
+    "mtime": 1785643740.938607,
+    "ast_hash": "e42f49cde7e81ce090bc83fa58c9f427",
+    "semantic_hash": "e42f49cde7e81ce090bc83fa58c9f427"
+  },
+  "components/achievements/badge/display/badge-gesture-layer.tsx": {
+    "mtime": 1785750331.7613235,
+    "ast_hash": "16d8e8bf2c1c611b1350e852296db258",
+    "semantic_hash": "16d8e8bf2c1c611b1350e852296db258"
+  },
+  "components/achievements/badge/display/badge-glitter-layer.tsx": {
+    "mtime": 1785644466.13774,
+    "ast_hash": "3d7ca6a58410f88576738836e4319bf8",
+    "semantic_hash": "3d7ca6a58410f88576738836e4319bf8"
+  },
+  "components/achievements/badge/display/badge-impression-layer.tsx": {
+    "mtime": 1785644466.1362274,
+    "ast_hash": "c09c2bd80d967cdb3857de226ecf9eb0",
+    "semantic_hash": "c09c2bd80d967cdb3857de226ecf9eb0"
+  },
+  "components/achievements/badge/display/badge-interactive-content-layer.tsx": {
+    "mtime": 1785652715.8543105,
+    "ast_hash": "0c3a3c3fd5c1ab05b2371ccc879d5fa3",
+    "semantic_hash": "0c3a3c3fd5c1ab05b2371ccc879d5fa3"
+  },
+  "components/achievements/badge/display/badge-lock-layer.tsx": {
+    "mtime": 1785750331.762322,
+    "ast_hash": "c376e8072c82a84c88511a9255b276c2",
+    "semantic_hash": "c376e8072c82a84c88511a9255b276c2"
+  },
+  "components/achievements/badge/display/badge-options.ts": {
+    "mtime": 1785750331.7633224,
+    "ast_hash": "c59ea11b79aacb4c39f9e61d99871e31",
+    "semantic_hash": "c59ea11b79aacb4c39f9e61d99871e31"
+  },
+  "components/achievements/badge/display/badge-presets.ts": {
+    "mtime": 1785750331.7643232,
+    "ast_hash": "818233b9c3d73edf7a8b81609614f7d4",
+    "semantic_hash": "818233b9c3d73edf7a8b81609614f7d4"
+  },
+  "components/achievements/badge/display/badge-preview-layer.tsx": {
+    "mtime": 1785643740.9446058,
+    "ast_hash": "3898766c8b05b9a928db4651a7c45dc9",
+    "semantic_hash": "3898766c8b05b9a928db4651a7c45dc9"
+  },
+  "components/achievements/badge/display/badge-silhouette-layer.tsx": {
+    "mtime": 1785643740.9446058,
+    "ast_hash": "437ad5ff2bb8aabdc03dc4f2fec0dc46",
+    "semantic_hash": "437ad5ff2bb8aabdc03dc4f2fec0dc46"
+  },
+  "components/achievements/badge/display/badge-underlay-layer.tsx": {
+    "mtime": 1785644466.1367328,
+    "ast_hash": "7fbf50be23a870bb5a0f8ae42cf86707",
+    "semantic_hash": "7fbf50be23a870bb5a0f8ae42cf86707"
+  },
+  "components/achievements/badge/display/badge.tsx": {
+    "mtime": 1785750331.7658317,
+    "ast_hash": "28af3d37e9b907898d1b3c2ecdb9e47c",
+    "semantic_hash": "28af3d37e9b907898d1b3c2ecdb9e47c"
+  },
+  "components/achievements/badge/display/fallback-badge.tsx": {
+    "mtime": 1785643740.9486127,
+    "ast_hash": "0ccf41dbeea24d68c5eee684e34903de",
+    "semantic_hash": "0ccf41dbeea24d68c5eee684e34903de"
+  },
+  "components/achievements/badge/display/gltf/badge-gltf-viewer.tsx": {
+    "mtime": 1785643740.9496112,
+    "ast_hash": "89ec56e4f1ac87d7e5b1b667671220c2",
+    "semantic_hash": "89ec56e4f1ac87d7e5b1b667671220c2"
+  },
+  "components/achievements/badge/display/gltf/hooks/use-badge-gltf-source.ts": {
+    "mtime": 1785643740.950611,
+    "ast_hash": "1c40ed86ea91535e2e7c0bd3e13cc92f",
+    "semantic_hash": "1c40ed86ea91535e2e7c0bd3e13cc92f"
+  },
+  "components/achievements/badge/display/gltf/hooks/use-badge-model-preview-overlay.ts": {
+    "mtime": 1785643740.9516106,
+    "ast_hash": "b4c641e3e38975d7316faaad4a423a32",
+    "semantic_hash": "b4c641e3e38975d7316faaad4a423a32"
+  },
+  "components/achievements/badge/display/gltf/hooks/use-signed-badge-model-url.ts": {
+    "mtime": 1785643740.9526117,
+    "ast_hash": "84f2100aab46f75b85fa54ad0dcd165a",
+    "semantic_hash": "84f2100aab46f75b85fa54ad0dcd165a"
+  },
+  "components/achievements/badge/display/gltf/index.ts": {
+    "mtime": 1785643740.9536126,
+    "ast_hash": "7f7600eb40998807ae8d435fb7fed638",
+    "semantic_hash": "7f7600eb40998807ae8d435fb7fed638"
+  },
+  "components/achievements/badge/display/gltf/r3f/badge-model-canvas.tsx": {
+    "mtime": 1785643740.954613,
+    "ast_hash": "b8ecd36f42d797f4d6b8c4bd6988cad5",
+    "semantic_hash": "b8ecd36f42d797f4d6b8c4bd6988cad5"
+  },
+  "components/achievements/badge/display/gltf/r3f/badge-model-content.tsx": {
+    "mtime": 1785643740.9556115,
+    "ast_hash": "a01fb555a490398d1e7cef7e76b76495",
+    "semantic_hash": "a01fb555a490398d1e7cef7e76b76495"
+  },
+  "components/achievements/badge/display/gltf/r3f/badge-model-scene.tsx": {
+    "mtime": 1785643740.9566114,
+    "ast_hash": "4f646c0c641619fb5d937c7b7d8f369c",
+    "semantic_hash": "4f646c0c641619fb5d937c7b7d8f369c"
+  },
+  "components/achievements/badge/display/gltf/r3f/use-badge-mixer-persistence.ts": {
+    "mtime": 1785643740.9576116,
+    "ast_hash": "6485de845940bb165a9e47c1625da516",
+    "semantic_hash": "6485de845940bb165a9e47c1625da516"
+  },
+  "components/achievements/badge/display/gltf/r3f/use-badge-model-animation.ts": {
+    "mtime": 1785750331.7668388,
+    "ast_hash": "c061e10f7ea6b9d5a98e5636b27a4c6f",
+    "semantic_hash": "c061e10f7ea6b9d5a98e5636b27a4c6f"
+  },
+  "components/achievements/badge/display/gltf/r3f/use-badge-model-interaction.ts": {
+    "mtime": 1785643740.9596112,
+    "ast_hash": "3ce44d2009dad2f5c9dc87b84ba6dc55",
+    "semantic_hash": "3ce44d2009dad2f5c9dc87b84ba6dc55"
+  },
+  "components/achievements/badge/display/parallax/badge-parallax-impression-effect.tsx": {
+    "mtime": 1785643740.961116,
+    "ast_hash": "4eac8492b9c348dd10ef67def11cf72a",
+    "semantic_hash": "4eac8492b9c348dd10ef67def11cf72a"
+  },
+  "components/achievements/badge/display/parallax/badge-parallax-viewer.tsx": {
+    "mtime": 1785652715.8543105,
+    "ast_hash": "9eecc2ec164b07308e919736b8fa341e",
+    "semantic_hash": "9eecc2ec164b07308e919736b8fa341e"
+  },
+  "components/achievements/badge/display/remote-badge-image.tsx": {
+    "mtime": 1785643740.962122,
+    "ast_hash": "ce946f8f4a3ef1444bd2e9d3095b7702",
+    "semantic_hash": "ce946f8f4a3ef1444bd2e9d3095b7702"
+  },
+  "components/achievements/badge/editor/badge-editor-upload-target.tsx": {
+    "mtime": 1785643740.9631221,
+    "ast_hash": "f4f0e0e61495792b4fee998bedef779c",
+    "semantic_hash": "f4f0e0e61495792b4fee998bedef779c"
+  },
+  "components/achievements/badge/editor/badge-editor.tsx": {
+    "mtime": 1785643740.964122,
+    "ast_hash": "121d14dba07b5922b42175e15a34ba02",
+    "semantic_hash": "121d14dba07b5922b42175e15a34ba02"
+  },
+  "components/achievements/badge/editor/use-achievement-editor-pipeline-controller.ts": {
+    "mtime": 1785643740.965122,
+    "ast_hash": "520942d0d9d2ef9aca26b81d0cfaa839",
+    "semantic_hash": "520942d0d9d2ef9aca26b81d0cfaa839"
+  },
+  "components/achievements/badge/effects/impression-burst.tsx": {
+    "mtime": 1785643740.966122,
+    "ast_hash": "eae91230b9fd8727b1dc63ba90de9f3c",
+    "semantic_hash": "eae91230b9fd8727b1dc63ba90de9f3c"
+  },
+  "components/achievements/badge/effects/unlock-reveal-wave.tsx": {
+    "mtime": 1785643740.9681246,
+    "ast_hash": "dadefbc4b2b006c8a8667c47eb305ed0",
+    "semantic_hash": "dadefbc4b2b006c8a8667c47eb305ed0"
+  },
+  "components/achievements/badge/effects/use-achievement-sounds.ts": {
+    "mtime": 1785643740.9691243,
+    "ast_hash": "56232ef6a74bc7823d842ea61864d10a",
+    "semantic_hash": "56232ef6a74bc7823d842ea61864d10a"
+  },
+  "components/achievements/badge/effects/use-achievement-unlock-reveal.ts": {
+    "mtime": 1785643740.9711237,
+    "ast_hash": "725dca4fcdd6d73c32c43a1e62c583ef",
+    "semantic_hash": "725dca4fcdd6d73c32c43a1e62c583ef"
+  },
+  "components/achievements/badge/effects/use-impression-on-badge.ts": {
+    "mtime": 1785643740.9711237,
+    "ast_hash": "d04cc6e3789f1076cb8632475e674f20",
+    "semantic_hash": "d04cc6e3789f1076cb8632475e674f20"
+  },
+  "components/achievements/badge/effects/use-locked-badge-refuse-motion.ts": {
+    "mtime": 1785750331.76784,
+    "ast_hash": "13b8651e03242a28e2c20846f0a06dcd",
+    "semantic_hash": "13b8651e03242a28e2c20846f0a06dcd"
+  },
+  "components/achievements/badge/effects/use-unlocked-badge-poke-motion.ts": {
+    "mtime": 1785750331.7688465,
+    "ast_hash": "010d5e53d5177a12765b6a74e92148be",
+    "semantic_hash": "010d5e53d5177a12765b6a74e92148be"
+  },
+  "components/achievements/badge/hooks/use-badge-chunked-prewarm.ts": {
+    "mtime": 1785643740.9741235,
+    "ast_hash": "4bd70059709d3b66cabcfa362b21fa85",
+    "semantic_hash": "4bd70059709d3b66cabcfa362b21fa85"
+  },
+  "components/achievements/badge/hooks/use-badge-metrics-controller.ts": {
+    "mtime": 1785643740.9761238,
+    "ast_hash": "05553596cf8618e55f6e489554d0566a",
+    "semantic_hash": "05553596cf8618e55f6e489554d0566a"
+  },
+  "components/achievements/badge/index.ts": {
+    "mtime": 1785750331.769845,
+    "ast_hash": "8365755ff4584cec87e35018d314fe01",
+    "semantic_hash": "8365755ff4584cec87e35018d314fe01"
+  },
+  "components/achievements/badge/upload/badge-asset-session.ts": {
+    "mtime": 1785643740.9781213,
+    "ast_hash": "ad8bac1fde12e9faa5b88fd47e39b7a8",
+    "semantic_hash": "ad8bac1fde12e9faa5b88fd47e39b7a8"
+  },
+  "components/achievements/badge/upload/image/use-badge-image-uploader.ts": {
+    "mtime": 1785643740.979122,
+    "ast_hash": "9a802ecc5471b5d8a5f0748d8820a1d8",
+    "semantic_hash": "9a802ecc5471b5d8a5f0748d8820a1d8"
+  },
+  "components/achievements/badge/upload/model/badge-model-pose-session.ts": {
+    "mtime": 1785643740.9801238,
+    "ast_hash": "5e8872cc8f0aec88f0cae748a0b7791d",
+    "semantic_hash": "5e8872cc8f0aec88f0cae748a0b7791d"
+  },
+  "components/achievements/badge/upload/model/badge-model-upload-client.ts": {
+    "mtime": 1785643740.9811218,
+    "ast_hash": "15f073028682c1dd08d33d76f0886369",
+    "semantic_hash": "15f073028682c1dd08d33d76f0886369"
+  },
+  "components/achievements/badge/upload/model/use-badge-model-uploader.ts": {
+    "mtime": 1785643740.9821222,
+    "ast_hash": "6b4a49ac67bec2d0d2d706b20fa7f5d0",
+    "semantic_hash": "6b4a49ac67bec2d0d2d706b20fa7f5d0"
+  },
+  "components/achievements/badge/upload/profile-avatar-session.ts": {
+    "mtime": 1785757963.773127,
+    "ast_hash": "9b529b03fdf3dfa4032d17a927b75e27",
+    "semantic_hash": "9b529b03fdf3dfa4032d17a927b75e27"
+  },
+  "components/achievements/badge/upload/session/badge-model-pose-session.ts": {
+    "mtime": 1785643740.9841237,
+    "ast_hash": "a995e600d7094abfed12882e03800b2a",
+    "semantic_hash": "a995e600d7094abfed12882e03800b2a"
+  },
+  "components/achievements/badge/upload/use-badge-session-controller.ts": {
+    "mtime": 1785643740.9851224,
+    "ast_hash": "e48e3730153f13795c794e326a0c8858",
+    "semantic_hash": "e48e3730153f13795c794e326a0c8858"
+  },
+  "components/achievements/badge/upload/use-badge-uploader.ts": {
+    "mtime": 1785643740.9861238,
+    "ast_hash": "069b3aafd98ce0bf3358d15d713a9211",
+    "semantic_hash": "069b3aafd98ce0bf3358d15d713a9211"
+  },
+  "components/achievements/dedication/dedicate-invite-confirm-dialog.tsx": {
+    "mtime": 1780235293.2315204,
+    "ast_hash": "e9679a6ef4267f359d33f88886b10fa7",
+    "semantic_hash": "e9679a6ef4267f359d33f88886b10fa7"
+  },
+  "components/achievements/dedication/dedication-byline-chrome-row.tsx": {
+    "mtime": 1785643740.9871225,
+    "ast_hash": "9557f583786f485a7cc8aa91bd0009d4",
+    "semantic_hash": "9557f583786f485a7cc8aa91bd0009d4"
+  },
+  "components/achievements/dedication/dedication-byline.tsx": {
+    "mtime": 1780235293.2355206,
+    "ast_hash": "e814686fcc1e9596e25bd260720117a0",
+    "semantic_hash": "e814686fcc1e9596e25bd260720117a0"
+  },
+  "components/achievements/dedication/dedication-response-dialog.tsx": {
+    "mtime": 1785643740.988123,
+    "ast_hash": "833c3af55377c8c8e696b0843baae069",
+    "semantic_hash": "833c3af55377c8c8e696b0843baae069"
+  },
+  "components/achievements/dedication/dedication-sender-confirm-dialog.tsx": {
+    "mtime": 1779621908.0172439,
+    "ast_hash": "c4f398a4f4bdebc5c35d846e95d7e9b6",
+    "semantic_hash": "c4f398a4f4bdebc5c35d846e95d7e9b6"
+  },
+  "components/achievements/dedication/use-dedication-queue-controller.ts": {
+    "mtime": 1785643740.989122,
+    "ast_hash": "ebe92070b751304a7d073ae5351126c9",
+    "semantic_hash": "ebe92070b751304a7d073ae5351126c9"
+  },
+  "components/achievements/detail/achievement-dialog-stack.tsx": {
+    "mtime": 1785750331.7708454,
+    "ast_hash": "5c96e213f5a9552cc6a3a58daa2ac0e1",
+    "semantic_hash": "5c96e213f5a9552cc6a3a58daa2ac0e1"
+  },
+  "components/achievements/detail/achievement-overlay-transition-flyer.tsx": {
+    "mtime": 1785643740.9921348,
+    "ast_hash": "4271cdfcf9138e37fb3820d9524885af",
+    "semantic_hash": "4271cdfcf9138e37fb3820d9524885af"
+  },
+  "components/achievements/detail/achievement-visibility-toggle.tsx": {
+    "mtime": 1785643740.9931326,
+    "ast_hash": "ff77297ee52d12c89c376b91cd2a1351",
+    "semantic_hash": "ff77297ee52d12c89c376b91cd2a1351"
+  },
+  "components/achievements/detail/editable-achievement-card.tsx": {
+    "mtime": 1785643740.9941244,
+    "ast_hash": "2943e4e651b7f8ec74a32ba6aa156b2f",
+    "semantic_hash": "2943e4e651b7f8ec74a32ba6aa156b2f"
+  },
+  "components/achievements/detail/use-achievement-detail-view-model.ts": {
+    "mtime": 1785643740.9941244,
+    "ast_hash": "3130ed261d39e409e80fa8dff8687308",
+    "semantic_hash": "3130ed261d39e409e80fa8dff8687308"
+  },
+  "components/achievements/detail/use-detail-chrome-button-motion.ts": {
+    "mtime": 1785643740.9951227,
+    "ast_hash": "023757ad8f140f2faf0f6351281b8075",
+    "semantic_hash": "023757ad8f140f2faf0f6351281b8075"
+  },
+  "components/achievements/detail/use-overlay-transition-presentation.ts": {
+    "mtime": 1785643740.9961245,
+    "ast_hash": "b5951d85177333d18c2b0d32dee5f880",
+    "semantic_hash": "b5951d85177333d18c2b0d32dee5f880"
+  },
+  "components/achievements/dialogs/achievement-delete-confirm-dialog.tsx": {
+    "mtime": 1785643740.9971228,
+    "ast_hash": "9880fdf49f2fa4ec6ac1413fb53f208e",
+    "semantic_hash": "9880fdf49f2fa4ec6ac1413fb53f208e"
+  },
+  "components/achievements/dialogs/achievement-discard-edit-confirm-dialog.tsx": {
+    "mtime": 1785643740.9981234,
+    "ast_hash": "58978f4d72ea9eb222d1e5ffa9708a7c",
+    "semantic_hash": "58978f4d72ea9eb222d1e5ffa9708a7c"
+  },
+  "components/achievements/grid/achievement-grid-item.tsx": {
+    "mtime": 1785643740.999123,
+    "ast_hash": "dab37179d368b5a2f174b619ea3c70f7",
+    "semantic_hash": "dab37179d368b5a2f174b619ea3c70f7"
+  },
+  "components/achievements/grid/achievement-grid.tsx": {
+    "mtime": 1785643741.0001228,
+    "ast_hash": "a04646fb7e843eb359f2276f59b643bd",
+    "semantic_hash": "a04646fb7e843eb359f2276f59b643bd"
+  },
+  "components/achievements/hooks/use-achievement-data-controller.ts": {
+    "mtime": 1785643741.0011215,
+    "ast_hash": "41d5a27447a7a287f2f4b7cbde4cd4bd",
+    "semantic_hash": "41d5a27447a7a287f2f4b7cbde4cd4bd"
+  },
+  "components/achievements/hooks/use-achievement-detail-selection-controller.ts": {
+    "mtime": 1785643741.002122,
+    "ast_hash": "b4360bdbab46e2f49ea59c8b1255cb8b",
+    "semantic_hash": "b4360bdbab46e2f49ea59c8b1255cb8b"
+  },
+  "components/achievements/hooks/use-achievement-ui-state-machine.ts": {
+    "mtime": 1785758038.5750933,
+    "ast_hash": "7493fb875ae7c4e517e5389e7f7e8bcd",
+    "semantic_hash": "7493fb875ae7c4e517e5389e7f7e8bcd"
+  },
+  "components/achievements/share/achievement-detail-share-menu.tsx": {
+    "mtime": 1785643741.0041256,
+    "ast_hash": "a9586b7928c1f57cc4267294bbb7e1f2",
+    "semantic_hash": "a9586b7928c1f57cc4267294bbb7e1f2"
+  },
+  "components/achievements/share/achievement-manual-embed-dialog.tsx": {
+    "mtime": 1785643741.0051224,
+    "ast_hash": "0d57d545591ab7037605ee2aa95ba7f9",
+    "semantic_hash": "0d57d545591ab7037605ee2aa95ba7f9"
+  },
+  "components/achievements/share/achievement-ui-copy.ts": {
+    "mtime": 1785643741.0061228,
+    "ast_hash": "1be79b8f82f2c303c61e97cca330b18b",
+    "semantic_hash": "1be79b8f82f2c303c61e97cca330b18b"
+  },
+  "components/achievements/share/use-achievement-embed-link-controller.ts": {
+    "mtime": 1785643741.0071228,
+    "ast_hash": "a350a2b2508bb7d7847375e845b79359",
+    "semantic_hash": "a350a2b2508bb7d7847375e845b79359"
+  },
+  "components/achievements/share/use-achievement-share-invite-controller.ts": {
+    "mtime": 1785643741.008124,
+    "ast_hash": "0a7eea9a34921b412e4b017c3264e51a",
+    "semantic_hash": "0a7eea9a34921b412e4b017c3264e51a"
+  },
+  "components/achievements/use-achievements-manager-model.ts": {
+    "mtime": 1785643741.009135,
+    "ast_hash": "664ceaab19e0f24262b450bfb2aad495",
+    "semantic_hash": "664ceaab19e0f24262b450bfb2aad495"
+  },
+  "components/admin/admin-profile-tools.tsx": {
+    "mtime": 1785750331.772849,
+    "ast_hash": "613f58cde77a5ff929897052346abbbc",
+    "semantic_hash": "613f58cde77a5ff929897052346abbbc"
+  },
+  "components/admin/badge-debug-overlay.tsx": {
+    "mtime": 1785643741.0111237,
+    "ast_hash": "6f964189568822caed472b42b453f6bd",
+    "semantic_hash": "6f964189568822caed472b42b453f6bd"
+  },
+  "components/auth-button.tsx": {
+    "mtime": 1785729808.1133323,
+    "ast_hash": "6fed7956df162231cd81774819159d33",
+    "semantic_hash": "6fed7956df162231cd81774819159d33"
+  },
+  "components/auth/email-auth-upgrade-gate.tsx": {
+    "mtime": 1785729808.1153295,
+    "ast_hash": "e0bcf0d389a9d91a03fdfa71ff459503",
+    "semantic_hash": "e0bcf0d389a9d91a03fdfa71ff459503"
+  },
+  "components/auth/google-sign-in-button.tsx": {
+    "mtime": 1785729808.1163309,
+    "ast_hash": "b0406b9b475e6216b747416d9efb2303",
+    "semantic_hash": "b0406b9b475e6216b747416d9efb2303"
+  },
+  "components/auth/oauth-provider-buttons.tsx": {
+    "mtime": 1785729808.117331,
+    "ast_hash": "fcc5e7ddb7e258d2d0e889498c2178d2",
+    "semantic_hash": "fcc5e7ddb7e258d2d0e889498c2178d2"
+  },
+  "components/forgot-password-form.tsx": {
+    "mtime": 1779717569.856428,
+    "ast_hash": "480ac84044854aa8a5f4be42bbdecdca",
+    "semantic_hash": "480ac84044854aa8a5f4be42bbdecdca"
+  },
+  "components/layout/app-page-shell.tsx": {
+    "mtime": 1785643741.0121233,
+    "ast_hash": "e03529f653c32dec3f90ae5475387c13",
+    "semantic_hash": "e03529f653c32dec3f90ae5475387c13"
+  },
+  "components/login-form.tsx": {
+    "mtime": 1785729808.1183305,
+    "ast_hash": "2366e917a047ba5002f51a9d7f7544f5",
+    "semantic_hash": "2366e917a047ba5002f51a9d7f7544f5"
+  },
+  "components/logout-button.tsx": {
+    "mtime": 1779621908.0302541,
+    "ast_hash": "1d80dba2361ed890746cb1970cf2f905",
+    "semantic_hash": "1d80dba2361ed890746cb1970cf2f905"
+  },
+  "components/navigation/app-navigation-provider.tsx": {
+    "mtime": 1779718198.7680862,
+    "ast_hash": "dbbccd6245afe7906dccb5709273c1ef",
+    "semantic_hash": "dbbccd6245afe7906dccb5709273c1ef"
+  },
+  "components/profile/profile-avatar-slot.tsx": {
+    "mtime": 1785643741.0141215,
+    "ast_hash": "584ac1e24fa3646bb4713ae8ad2f83c8",
+    "semantic_hash": "584ac1e24fa3646bb4713ae8ad2f83c8"
+  },
+  "components/profile/profile-notifications-section.tsx": {
+    "mtime": 1785750331.7738488,
+    "ast_hash": "58e41c18a467b58538cb6c431865baf7",
+    "semantic_hash": "58e41c18a467b58538cb6c431865baf7"
+  },
+  "components/profile/profile-page-shell.tsx": {
+    "mtime": 1785643741.0151255,
+    "ast_hash": "7db5fc50803a7ef878e88bfef870bbf1",
+    "semantic_hash": "7db5fc50803a7ef878e88bfef870bbf1"
+  },
+  "components/profile/profile-preference-row.tsx": {
+    "mtime": 1785750331.774845,
+    "ast_hash": "f152eead33900d04d457cef3a05bc176",
+    "semantic_hash": "f152eead33900d04d457cef3a05bc176"
+  },
+  "components/profile/profile-settings.tsx": {
+    "mtime": 1785750331.7758467,
+    "ast_hash": "8a16c7bdfbdd85de70836b606244652e",
+    "semantic_hash": "8a16c7bdfbdd85de70836b606244652e"
+  },
+  "components/profile/use-unsaved-profile-guard.ts": {
+    "mtime": 1779621908.0342546,
+    "ast_hash": "8e38574638b2702de842b56100127935",
+    "semantic_hash": "8e38574638b2702de842b56100127935"
+  },
+  "components/push/push-registration.tsx": {
+    "mtime": 1779692708.9052577,
+    "ast_hash": "30383cdae0bb2c9137ff0af7ab3f3414",
+    "semantic_hash": "30383cdae0bb2c9137ff0af7ab3f3414"
+  },
+  "components/pwa/add-to-home-screen-instructions.tsx": {
+    "mtime": 1785757994.2784193,
+    "ast_hash": "dbef64a153e6e15ce27f092e615c9574",
+    "semantic_hash": "dbef64a153e6e15ce27f092e615c9574"
+  },
+  "components/pwa/pwa-init.tsx": {
+    "mtime": 1779285982.8187225,
+    "ast_hash": "22357bd30e1ba9f9ffb3dcaaea4b1b15",
+    "semantic_hash": "22357bd30e1ba9f9ffb3dcaaea4b1b15"
+  },
+  "components/pwa/pwa-install-tutorial-toast.tsx": {
+    "mtime": 1780235293.2605195,
+    "ast_hash": "0c64c5a575b9832fab986a7f6cf78e34",
+    "semantic_hash": "0c64c5a575b9832fab986a7f6cf78e34"
+  },
+  "components/pwa/screen-orientation-lock.tsx": {
+    "mtime": 1780235293.2615256,
+    "ast_hash": "84974a98140775acf7b7479b203a8d64",
+    "semantic_hash": "84974a98140775acf7b7479b203a8d64"
+  },
+  "components/pwa/startup-splash.tsx": {
+    "mtime": 1777895596.8831725,
+    "ast_hash": "d59e670316ac7c5ccca5e71ab78adec1",
+    "semantic_hash": "d59e670316ac7c5ccca5e71ab78adec1"
+  },
+  "components/social/feed/feed-activity-text.tsx": {
+    "mtime": 1785643741.0181222,
+    "ast_hash": "76eb9245d33bedd299bb514d6e41ec4e",
+    "semantic_hash": "76eb9245d33bedd299bb514d6e41ec4e"
+  },
+  "components/social/feed/feed-item.tsx": {
+    "mtime": 1785643741.0181222,
+    "ast_hash": "76a1968c4384ee84b63c1c163fd9b03d",
+    "semantic_hash": "76a1968c4384ee84b63c1c163fd9b03d"
+  },
+  "components/social/feed/feed-list.tsx": {
+    "mtime": 1785643741.020124,
+    "ast_hash": "a4b1b788a9f4cda68c485971721fba49",
+    "semantic_hash": "a4b1b788a9f4cda68c485971721fba49"
+  },
+  "components/social/follow-button.tsx": {
+    "mtime": 1785643741.021122,
+    "ast_hash": "aaa6e84a55f7836d5d00465ed2d269bd",
+    "semantic_hash": "aaa6e84a55f7836d5d00465ed2d269bd"
+  },
+  "components/social/friends-panel.tsx": {
+    "mtime": 1780232697.636786,
+    "ast_hash": "8a551fd662d08127d456941e6c9e62fe",
+    "semantic_hash": "8a551fd662d08127d456941e6c9e62fe"
+  },
+  "components/social/inspa-page-skeleton.tsx": {
+    "mtime": 1785643741.022122,
+    "ast_hash": "980d336552e7bebd49a32acffb85699c",
+    "semantic_hash": "980d336552e7bebd49a32acffb85699c"
+  },
+  "components/social/use-inspa-ui-state-machine.ts": {
+    "mtime": 1779821404.4650512,
+    "ast_hash": "951db81d1aea9c840dd17235f5b2f8d2",
+    "semantic_hash": "951db81d1aea9c840dd17235f5b2f8d2"
+  },
+  "components/toasts/app-toaster.tsx": {
+    "mtime": 1779717569.8669431,
+    "ast_hash": "fbfad4f8a9b61d52cfbd7f275ea6cafe",
+    "semantic_hash": "fbfad4f8a9b61d52cfbd7f275ea6cafe"
+  },
+  "components/toasts/error-toast-once.tsx": {
+    "mtime": 1779717569.8679457,
+    "ast_hash": "fc3e4289b6b3cefe91cc6342848efdda",
+    "semantic_hash": "fc3e4289b6b3cefe91cc6342848efdda"
+  },
+  "components/tutorials/tutorial-toast.tsx": {
+    "mtime": 1780235293.266519,
+    "ast_hash": "edcec2bf3766cb41a179e03e5c9221f1",
+    "semantic_hash": "edcec2bf3766cb41a179e03e5c9221f1"
+  },
+  "components/ui/button.tsx": {
+    "mtime": 1776845751.0,
+    "ast_hash": "6e19e000bdefe5d7358b360fb4eb0556",
+    "semantic_hash": "6e19e000bdefe5d7358b360fb4eb0556"
+  },
+  "components/ui/card.tsx": {
+    "mtime": 1776845751.0,
+    "ast_hash": "9569f167267e5201544904760ccb165c",
+    "semantic_hash": "9569f167267e5201544904760ccb165c"
+  },
+  "components/ui/checkbox.tsx": {
+    "mtime": 1785750331.7768717,
+    "ast_hash": "61c978bebc4317c53d3dcc01286379e6",
+    "semantic_hash": "61c978bebc4317c53d3dcc01286379e6"
+  },
+  "components/ui/dropdown-menu.tsx": {
+    "mtime": 1776845751.0,
+    "ast_hash": "5b1d42fdebe55872fbff8a23d50a08f2",
+    "semantic_hash": "5b1d42fdebe55872fbff8a23d50a08f2"
+  },
+  "components/ui/encrypted-text.tsx": {
+    "mtime": 1780235293.2675202,
+    "ast_hash": "115d76c4ec9bbf473c802262be2a25f6",
+    "semantic_hash": "115d76c4ec9bbf473c802262be2a25f6"
+  },
+  "components/ui/input.tsx": {
+    "mtime": 1776845751.0,
+    "ast_hash": "1d4cc52a4cd8afb3e18e45bda942bb8a",
+    "semantic_hash": "1d4cc52a4cd8afb3e18e45bda942bb8a"
+  },
+  "components/ui/label.tsx": {
+    "mtime": 1776845751.0,
+    "ast_hash": "49ec723b023c9b1b57dd73cc64e92bb0",
+    "semantic_hash": "49ec723b023c9b1b57dd73cc64e92bb0"
+  },
+  "components/ui/noise-background.tsx": {
+    "mtime": 1779621908.0372517,
+    "ast_hash": "b213f6164da99537474a55cd7a5c0372",
+    "semantic_hash": "b213f6164da99537474a55cd7a5c0372"
+  },
+  "components/ui/spiral-icon.tsx": {
+    "mtime": 1785643741.022122,
+    "ast_hash": "06300ab58549cb3cbc7d0e48c3cb27cc",
+    "semantic_hash": "06300ab58549cb3cbc7d0e48c3cb27cc"
+  },
+  "components/ui/spotlight-new.tsx": {
+    "mtime": 1779621908.0382535,
+    "ast_hash": "a2787d55f197b35dfad47fd871b8b759",
+    "semantic_hash": "a2787d55f197b35dfad47fd871b8b759"
+  },
+  "components/update-password-form.tsx": {
+    "mtime": 1779717569.8699431,
+    "ast_hash": "fd4a54a3731006e8a4376927dfed4ac7",
+    "semantic_hash": "fd4a54a3731006e8a4376927dfed4ac7"
+  },
+  "components/welcome/welcome-achievement-showcase.tsx": {
+    "mtime": 1785643741.0241256,
+    "ast_hash": "359593a8a4fb5e862b46a03e8d891535",
+    "semantic_hash": "359593a8a4fb5e862b46a03e8d891535"
+  },
+  "components/welcome/welcome-collect-button.tsx": {
+    "mtime": 1785729808.12033,
+    "ast_hash": "7165eef87be60a55d9c7dc441b1f64bf",
+    "semantic_hash": "7165eef87be60a55d9c7dc441b1f64bf"
+  },
+  "components/welcome/welcome-page-skeleton.tsx": {
+    "mtime": 1779621908.0412564,
+    "ast_hash": "a56f03a4a27b9c62c946bea52cf88051",
+    "semantic_hash": "a56f03a4a27b9c62c946bea52cf88051"
+  },
+  "components/welcome/welcome-page.tsx": {
+    "mtime": 1779621908.0423,
+    "ast_hash": "72831b8ba9e937572a65f8d8e09f51d6",
+    "semantic_hash": "72831b8ba9e937572a65f8d8e09f51d6"
+  },
+  "eslint.config.mjs": {
+    "mtime": 1777650820.5112855,
+    "ast_hash": "f683611267a5beeb852751c5f6d47df5",
+    "semantic_hash": "f683611267a5beeb852751c5f6d47df5"
+  },
+  "instrumentation-client.ts": {
+    "mtime": 1779361480.0791185,
+    "ast_hash": "a3c49e79b0b92428b7099d2a1d861ca6",
+    "semantic_hash": "a3c49e79b0b92428b7099d2a1d861ca6"
+  },
+  "instrumentation.ts": {
+    "mtime": 1779361480.0791185,
+    "ast_hash": "d5a73245e2ef190c0873a82620f0ab04",
+    "semantic_hash": "d5a73245e2ef190c0873a82620f0ab04"
+  },
+  "lib/achievements/badge/index.ts": {
+    "mtime": 1785643741.0251222,
+    "ast_hash": "b797dee67f34c3289a9079d98cfedbb0",
+    "semantic_hash": "b797dee67f34c3289a9079d98cfedbb0"
+  },
+  "lib/achievements/badge/model/badge-model-animation.ts": {
+    "mtime": 1785643741.027133,
+    "ast_hash": "57e9aa181c400e9aa55037b2b1528de1",
+    "semantic_hash": "57e9aa181c400e9aa55037b2b1528de1"
+  },
+  "lib/achievements/badge/model/badge-model-config.ts": {
+    "mtime": 1785643741.0281346,
+    "ast_hash": "a958800369890e031775a8dbf7444be1",
+    "semantic_hash": "a958800369890e031775a8dbf7444be1"
+  },
+  "lib/achievements/badge/model/gltf-tuning.ts": {
+    "mtime": 1785643741.029134,
+    "ast_hash": "14e51f52740b66a83566f6c6cd663da7",
+    "semantic_hash": "14e51f52740b66a83566f6c6cd663da7"
+  },
+  "lib/achievements/badge/model/index.ts": {
+    "mtime": 1785643741.0301232,
+    "ast_hash": "38b4dc7caff907b006ac451527e79dcc",
+    "semantic_hash": "38b4dc7caff907b006ac451527e79dcc"
+  },
+  "lib/achievements/badge/model/load/gltf-loader.ts": {
+    "mtime": 1785643741.031124,
+    "ast_hash": "8290fa6828e4f506be78d18b2fefbcfb",
+    "semantic_hash": "8290fa6828e4f506be78d18b2fefbcfb"
+  },
+  "lib/achievements/badge/model/load/load-gltf.ts": {
+    "mtime": 1785643741.032133,
+    "ast_hash": "a7826e9a049865c5fce90aa3e7524259",
+    "semantic_hash": "a7826e9a049865c5fce90aa3e7524259"
+  },
+  "lib/achievements/badge/model/poster-snapshot.ts": {
+    "mtime": 1785643741.0331328,
+    "ast_hash": "ed0f6155edf242f07b6a1c27712dc1b0",
+    "semantic_hash": "ed0f6155edf242f07b6a1c27712dc1b0"
+  },
+  "lib/achievements/badge/model/rendering.ts": {
+    "mtime": 1785643741.034126,
+    "ast_hash": "3d6c666821f88f927a298f16b2a77ecf",
+    "semantic_hash": "3d6c666821f88f927a298f16b2a77ecf"
+  },
+  "lib/achievements/badge/model/scene-graph.ts": {
+    "mtime": 1785643741.0351298,
+    "ast_hash": "c665b283c5ffe8330569d65fb96eefc6",
+    "semantic_hash": "c665b283c5ffe8330569d65fb96eefc6"
+  },
+  "lib/achievements/badge/model/studio-environment.ts": {
+    "mtime": 1785643741.0361328,
+    "ast_hash": "274d7c8a8de86004c3bf3296d34336e9",
+    "semantic_hash": "274d7c8a8de86004c3bf3296d34336e9"
+  },
+  "lib/achievements/badge/model/view-state.ts": {
+    "mtime": 1785643741.0371227,
+    "ast_hash": "ab6a55b8f85827f6310dc5f83d4bb12f",
+    "semantic_hash": "ab6a55b8f85827f6310dc5f83d4bb12f"
+  },
+  "lib/achievements/badge/parallax/badge-mask-style.ts": {
+    "mtime": 1785643741.0381224,
+    "ast_hash": "2f100de308aa64fb128ccbd4501e9d93",
+    "semantic_hash": "2f100de308aa64fb128ccbd4501e9d93"
+  },
+  "lib/achievements/badge/parallax/glitter-particles.ts": {
+    "mtime": 1785644466.1367328,
+    "ast_hash": "8d3c2d61ca8b278841a5db48050214b4",
+    "semantic_hash": "8d3c2d61ca8b278841a5db48050214b4"
+  },
+  "lib/achievements/badge/parallax/index.ts": {
+    "mtime": 1785643741.0401306,
+    "ast_hash": "2a654584b80ed8f4dcbd0899b37f68ca",
+    "semantic_hash": "2a654584b80ed8f4dcbd0899b37f68ca"
+  },
+  "lib/achievements/badge/parallax/shape-utils.ts": {
+    "mtime": 1785643741.0411274,
+    "ast_hash": "b330f6c504edcd7074e368e5afd6c631",
+    "semantic_hash": "b330f6c504edcd7074e368e5afd6c631"
+  },
+  "lib/achievements/badge/shared/badge-assets-server.ts": {
+    "mtime": 1785643741.0421226,
+    "ast_hash": "7f9a9bbb08c18a3eb14c8e6b1c94321a",
+    "semantic_hash": "7f9a9bbb08c18a3eb14c8e6b1c94321a"
+  },
+  "lib/achievements/badge/shared/badge-assets.ts": {
+    "mtime": 1785757966.4585087,
+    "ast_hash": "23541346f111628edb534ffe91404ef6",
+    "semantic_hash": "23541346f111628edb534ffe91404ef6"
+  },
+  "lib/achievements/badge/shared/badge-model-asset.ts": {
+    "mtime": 1785757966.6687446,
+    "ast_hash": "ac067ff1167df319a249c1bafbf782f7",
+    "semantic_hash": "ac067ff1167df319a249c1bafbf782f7"
+  },
+  "lib/achievements/badge/shared/image-decode.ts": {
+    "mtime": 1785643741.0451221,
+    "ast_hash": "cdca0b5bf71e43013a475975ad85ef60",
+    "semantic_hash": "cdca0b5bf71e43013a475975ad85ef60"
+  },
+  "lib/achievements/badge/shared/index.ts": {
+    "mtime": 1785643741.0461233,
+    "ast_hash": "bcfdb1b438a0d247659dd7b9c0e0529a",
+    "semantic_hash": "bcfdb1b438a0d247659dd7b9c0e0529a"
+  },
+  "lib/achievements/badge/shared/motion.ts": {
+    "mtime": 1785643741.0461233,
+    "ast_hash": "e68f299360d5c46b92b790287a2dce5c",
+    "semantic_hash": "e68f299360d5c46b92b790287a2dce5c"
+  },
+  "lib/achievements/badge/shared/render-cache.ts": {
+    "mtime": 1785643741.0471294,
+    "ast_hash": "456128c7d7d0deac1ec1c352d0a8de1a",
+    "semantic_hash": "456128c7d7d0deac1ec1c352d0a8de1a"
+  },
+  "lib/achievements/client/badge-asset-api.ts": {
+    "mtime": 1785643741.049141,
+    "ast_hash": "ab84ee47df24582f0944b564963e05a6",
+    "semantic_hash": "ab84ee47df24582f0944b564963e05a6"
+  },
+  "lib/achievements/client/badge-asset.ts": {
+    "mtime": 1785643741.049141,
+    "ast_hash": "30a7b81f3f2695c17eed9351e92dbcf7",
+    "semantic_hash": "30a7b81f3f2695c17eed9351e92dbcf7"
+  },
+  "lib/achievements/client/badge-model-upload.ts": {
+    "mtime": 1785643741.0511417,
+    "ast_hash": "1faf02ea3186b93d9a14593214288a71",
+    "semantic_hash": "1faf02ea3186b93d9a14593214288a71"
+  },
+  "lib/achievements/client/dedicate-api.ts": {
+    "mtime": 1785643741.0521317,
+    "ast_hash": "39e2e1d24546a0e0aff710eea4d13f7c",
+    "semantic_hash": "39e2e1d24546a0e0aff710eea4d13f7c"
+  },
+  "lib/achievements/client/dedication-api.ts": {
+    "mtime": 1785643741.053133,
+    "ast_hash": "2f7b85ef9c339b337c73241f95817469",
+    "semantic_hash": "2f7b85ef9c339b337c73241f95817469"
+  },
+  "lib/achievements/client/impression-api.ts": {
+    "mtime": 1785757963.1465106,
+    "ast_hash": "b82f4938ca5cb9fad0a1ee66bd54c654",
+    "semantic_hash": "b82f4938ca5cb9fad0a1ee66bd54c654"
+  },
+  "lib/achievements/client/share-invite-api.ts": {
+    "mtime": 1785643741.0551395,
+    "ast_hash": "a2b88b76cc6ab89ffa6c1081b6d65941",
+    "semantic_hash": "a2b88b76cc6ab89ffa6c1081b6d65941"
+  },
+  "lib/achievements/data/achievement-db-schema.ts": {
+    "mtime": 1785643741.0561314,
+    "ast_hash": "b3512c68b5add68563c139e6456dbc58",
+    "semantic_hash": "b3512c68b5add68563c139e6456dbc58"
+  },
+  "lib/achievements/data/achievement-db.ts": {
+    "mtime": 1785643741.0571408,
+    "ast_hash": "fa584f970c4c4d9a150a59007522be19",
+    "semantic_hash": "fa584f970c4c4d9a150a59007522be19"
+  },
+  "lib/achievements/data/achievement-queries.ts": {
+    "mtime": 1785757982.8396597,
+    "ast_hash": "2c38d66bd13d19c47db39f7a726d66f4",
+    "semantic_hash": "2c38d66bd13d19c47db39f7a726d66f4"
+  },
+  "lib/achievements/data/achievement-surface-view-models.ts": {
+    "mtime": 1785757985.4301054,
+    "ast_hash": "d196a96fd4fc1ccbba88602036993256",
+    "semantic_hash": "d196a96fd4fc1ccbba88602036993256"
+  },
+  "lib/achievements/data/achievement-transformers.ts": {
+    "mtime": 1785757960.5624208,
+    "ast_hash": "72e06e38bc0e0bd2e8b4cf9518f49e81",
+    "semantic_hash": "72e06e38bc0e0bd2e8b4cf9518f49e81"
+  },
+  "lib/achievements/data/achievement-view-models.ts": {
+    "mtime": 1785757959.4178698,
+    "ast_hash": "e6126147834d40dc3ca08561dc1f058f",
+    "semantic_hash": "e6126147834d40dc3ca08561dc1f058f"
+  },
+  "lib/achievements/data/dedicate-achievement.ts": {
+    "mtime": 1785643741.0623899,
+    "ast_hash": "51b6b2ed246b219aaecf0bd177b7360a",
+    "semantic_hash": "51b6b2ed246b219aaecf0bd177b7360a"
+  },
+  "lib/achievements/data/dedication-db.ts": {
+    "mtime": 1785643741.063402,
+    "ast_hash": "45f3aeefbb4a7f043e88604db9bae8d3",
+    "semantic_hash": "45f3aeefbb4a7f043e88604db9bae8d3"
+  },
+  "lib/achievements/data/feed-db.ts": {
+    "mtime": 1785757984.2307386,
+    "ast_hash": "e9446482add79e0e87c6a7b21f2a3a4b",
+    "semantic_hash": "e9446482add79e0e87c6a7b21f2a3a4b"
+  },
+  "lib/achievements/data/impression-counts.ts": {
+    "mtime": 1785643741.0653899,
+    "ast_hash": "20710be5f839a37ec2d7580b181bf785",
+    "semantic_hash": "20710be5f839a37ec2d7580b181bf785"
+  },
+  "lib/achievements/data/profile-db.ts": {
+    "mtime": 1785643741.0663967,
+    "ast_hash": "381f7f8ecae212e9ef986994fd3278af",
+    "semantic_hash": "381f7f8ecae212e9ef986994fd3278af"
+  },
+  "lib/achievements/data/user-profile-db.ts": {
+    "mtime": 1785643741.0663967,
+    "ast_hash": "bf5e639fef389dbdf876678ca1bb0ffe",
+    "semantic_hash": "bf5e639fef389dbdf876678ca1bb0ffe"
+  },
+  "lib/achievements/dedication/dedication-utils.ts": {
+    "mtime": 1785643741.0683973,
+    "ast_hash": "732fb6dfab6354120e3df2c681ed5dcd",
+    "semantic_hash": "732fb6dfab6354120e3df2c681ed5dcd"
+  },
+  "lib/achievements/index.ts": {
+    "mtime": 1785757958.85988,
+    "ast_hash": "9058e855a14829f46d1d0b6ae9515903",
+    "semantic_hash": "9058e855a14829f46d1d0b6ae9515903"
+  },
+  "lib/achievements/ui/detail-badge-gesture-surface.ts": {
+    "mtime": 1785727296.026297,
+    "ast_hash": "8282dba241642531be3a05589dae4587",
+    "semantic_hash": "8282dba241642531be3a05589dae4587"
+  },
+  "lib/achievements/ui/detail-chrome-button-motion.ts": {
+    "mtime": 1785757975.4597974,
+    "ast_hash": "6591b3aadb00d957706b59ea6b4007f2",
+    "semantic_hash": "6591b3aadb00d957706b59ea6b4007f2"
+  },
+  "lib/achievements/ui/locked-badge-refuse-motion.ts": {
+    "mtime": 1785643741.0723915,
+    "ast_hash": "2e965b60b36c48bd00821d2092e56fd8",
+    "semantic_hash": "2e965b60b36c48bd00821d2092e56fd8"
+  },
+  "lib/achievements/ui/overlay-transition.ts": {
+    "mtime": 1785643741.0733995,
+    "ast_hash": "4b7b6a01cc86b779a3cccdf715f13ca7",
+    "semantic_hash": "4b7b6a01cc86b779a3cccdf715f13ca7"
+  },
+  "lib/achievements/ui/unlocked-badge-poke-motion.ts": {
+    "mtime": 1785643741.0733995,
+    "ast_hash": "2e03b93bb4ef1c840e5eb31bec67d4fd",
+    "semantic_hash": "2e03b93bb4ef1c840e5eb31bec67d4fd"
+  },
+  "lib/admin/index.ts": {
+    "mtime": 1779702775.227491,
+    "ast_hash": "fd986dab8fb6c1649b97f06148b42f65",
+    "semantic_hash": "fd986dab8fb6c1649b97f06148b42f65"
+  },
+  "lib/auth/achievement-ability.ts": {
+    "mtime": 1785758030.7023866,
+    "ast_hash": "c9930a4748f5c48443b1281572b58351",
+    "semantic_hash": "c9930a4748f5c48443b1281572b58351"
+  },
+  "lib/auth/is-email-only-auth-user.ts": {
+    "mtime": 1785729808.1213305,
+    "ast_hash": "953a98a7f27e6efe571c1e1e6c834276",
+    "semantic_hash": "953a98a7f27e6efe571c1e1e6c834276"
+  },
+  "lib/auth/oauth-providers.ts": {
+    "mtime": 1785729808.1223304,
+    "ast_hash": "4141e3410e294a06c1915029ad4b6d05",
+    "semantic_hash": "4141e3410e294a06c1915029ad4b6d05"
+  },
+  "lib/auth/password-policy.ts": {
+    "mtime": 1785643741.0764053,
+    "ast_hash": "ba1822f616793c2eb4813eba02741a4f",
+    "semantic_hash": "ba1822f616793c2eb4813eba02741a4f"
+  },
+  "lib/brand.ts": {
+    "mtime": 1785746471.8431182,
+    "ast_hash": "cb766708e985b77b4ec7c90bb2b2a242",
+    "semantic_hash": "cb766708e985b77b4ec7c90bb2b2a242"
+  },
+  "lib/client/fetch-json.ts": {
+    "mtime": 1785643741.077393,
+    "ast_hash": "5e3c130c8f7cf1b64a44398a7810622c",
+    "semantic_hash": "5e3c130c8f7cf1b64a44398a7810622c"
+  },
+  "lib/copy-text-to-clipboard.ts": {
+    "mtime": 1777650820.5162873,
+    "ast_hash": "dcb261d05cb15cdd5f8e559a912234fa",
+    "semantic_hash": "dcb261d05cb15cdd5f8e559a912234fa"
+  },
+  "lib/dom/body-scroll-lock.ts": {
+    "mtime": 1785643741.0783908,
+    "ast_hash": "ff2215c9ddb0c3d457def85f9539ce68",
+    "semantic_hash": "ff2215c9ddb0c3d457def85f9539ce68"
+  },
+  "lib/embed/client/embed-api.ts": {
+    "mtime": 1785643741.0804014,
+    "ast_hash": "3b157c6e14d87f253150748ce64cc8c0",
+    "semantic_hash": "3b157c6e14d87f253150748ce64cc8c0"
+  },
+  "lib/embed/embed-api-types.ts": {
+    "mtime": 1785757981.4270735,
+    "ast_hash": "b08a78357d2c5c148b67f774ea8eec7f",
+    "semantic_hash": "b08a78357d2c5c148b67f774ea8eec7f"
+  },
+  "lib/embed/embed-badge-token.ts": {
+    "mtime": 1785643741.081391,
+    "ast_hash": "d1763720d6fef9ec735cb4da103bcb7c",
+    "semantic_hash": "d1763720d6fef9ec735cb4da103bcb7c"
+  },
+  "lib/embed/embed-rate-limit.ts": {
+    "mtime": 1785643741.0823903,
+    "ast_hash": "28b2f78f75cde57f12d68fa8b95a3819",
+    "semantic_hash": "28b2f78f75cde57f12d68fa8b95a3819"
+  },
+  "lib/embed/embed-vercel-bypass-url.ts": {
+    "mtime": 1785643741.0833893,
+    "ast_hash": "2aba1479c86e222cf386219da1a5c370",
+    "semantic_hash": "2aba1479c86e222cf386219da1a5c370"
+  },
+  "lib/feed/feed-row-layout.ts": {
+    "mtime": 1779702775.2284896,
+    "ast_hash": "3298991dc542f54a07b1f243578f750b",
+    "semantic_hash": "3298991dc542f54a07b1f243578f750b"
+  },
+  "lib/feed/format-feed-event-time.ts": {
+    "mtime": 1779621908.0562994,
+    "ast_hash": "67f2bff002367f92f67cac58d1e14ccd",
+    "semantic_hash": "67f2bff002367f92f67cac58d1e14ccd"
+  },
+  "lib/hooks/use-double-activate.ts": {
+    "mtime": 1779361480.082118,
+    "ast_hash": "b5b3944ad116e538c402689ab918558c",
+    "semantic_hash": "b5b3944ad116e538c402689ab918558c"
+  },
+  "lib/imagekit/avatar-upload-file-name.ts": {
+    "mtime": 1779621908.059301,
+    "ast_hash": "d9d5d09c2ae51482f1034a4950c83564",
+    "semantic_hash": "d9d5d09c2ae51482f1034a4950c83564"
+  },
+  "lib/imagekit/client/imagekit-api.ts": {
+    "mtime": 1785643741.0843947,
+    "ast_hash": "181a88591f0b8d96fc8e72c89f104b77",
+    "semantic_hash": "181a88591f0b8d96fc8e72c89f104b77"
+  },
+  "lib/imagekit/imagekit-route-errors.ts": {
+    "mtime": 1785643741.0853908,
+    "ast_hash": "7cbcad503f05281b2560b733c43a97df",
+    "semantic_hash": "7cbcad503f05281b2560b733c43a97df"
+  },
+  "lib/imagekit/render-src.ts": {
+    "mtime": 1785643741.086401,
+    "ast_hash": "ef4241553229368832787efc9b22c7b0",
+    "semantic_hash": "ef4241553229368832787efc9b22c7b0"
+  },
+  "lib/imagekit/server-client.ts": {
+    "mtime": 1779621908.0602968,
+    "ast_hash": "0715739d2674f9d384cd6d8dd62c2e8c",
+    "semantic_hash": "0715739d2674f9d384cd6d8dd62c2e8c"
+  },
+  "lib/imagekit/telemetry.ts": {
+    "mtime": 1779621908.061298,
+    "ast_hash": "4733cd471fcc8168d0ca13dafe811127",
+    "semantic_hash": "4733cd471fcc8168d0ca13dafe811127"
+  },
+  "lib/imagekit/use-imagekit-image-uploader.ts": {
+    "mtime": 1785643741.0874004,
+    "ast_hash": "bafa9efd8ee6521af9e55ce4a9da7ee3",
+    "semantic_hash": "bafa9efd8ee6521af9e55ce4a9da7ee3"
+  },
+  "lib/imagekit/validate-image-file.ts": {
+    "mtime": 1785757979.7032354,
+    "ast_hash": "fb9046c6aeb451d01445cc333868794a",
+    "semantic_hash": "fb9046c6aeb451d01445cc333868794a"
+  },
+  "lib/live-updates/core/debounce-notify.ts": {
+    "mtime": 1779621908.0652993,
+    "ast_hash": "f5a728cf8c7679acb269647371e8e61b",
+    "semantic_hash": "f5a728cf8c7679acb269647371e8e61b"
+  },
+  "lib/live-updates/core/types.ts": {
+    "mtime": 1779621908.0652993,
+    "ast_hash": "399f73c9d20af57b8cfc1d52e07e2d0e",
+    "semantic_hash": "399f73c9d20af57b8cfc1d52e07e2d0e"
+  },
+  "lib/live-updates/domains/achievements/create-user-achievements-live-update-source.ts": {
+    "mtime": 1779621908.0673015,
+    "ast_hash": "152160a6fa9f172bf9921839e9847c14",
+    "semantic_hash": "152160a6fa9f172bf9921839e9847c14"
+  },
+  "lib/live-updates/domains/achievements/use-user-achievements-live-updates.ts": {
+    "mtime": 1779621908.0683024,
+    "ast_hash": "d8db9f72bb2d7e150f8b875b02adb6ef",
+    "semantic_hash": "d8db9f72bb2d7e150f8b875b02adb6ef"
+  },
+  "lib/live-updates/domains/feed/create-feed-live-update-source.ts": {
+    "mtime": 1779621908.0693007,
+    "ast_hash": "ea158a32aa7b1b5c80c22d152fa0e476",
+    "semantic_hash": "ea158a32aa7b1b5c80c22d152fa0e476"
+  },
+  "lib/live-updates/domains/feed/fetch-following-user-ids.ts": {
+    "mtime": 1779621908.0693007,
+    "ast_hash": "33f70e984711b100f16f65f97a638cdd",
+    "semantic_hash": "33f70e984711b100f16f65f97a638cdd"
+  },
+  "lib/live-updates/domains/feed/use-feed-live-updates.ts": {
+    "mtime": 1779621908.070302,
+    "ast_hash": "84296b49e350b95c3352e07338d7de2f",
+    "semantic_hash": "84296b49e350b95c3352e07338d7de2f"
+  },
+  "lib/live-updates/drivers/noop/noop-live-update-driver.ts": {
+    "mtime": 1779621908.071301,
+    "ast_hash": "46624f4826d061ab59a57ee501c3e7a0",
+    "semantic_hash": "46624f4826d061ab59a57ee501c3e7a0"
+  },
+  "lib/live-updates/drivers/supabase/postgres-change-source.ts": {
+    "mtime": 1785757987.0907586,
+    "ast_hash": "c996401ee9b9dbdeb433faab5a7b5ce1",
+    "semantic_hash": "c996401ee9b9dbdeb433faab5a7b5ce1"
+  },
+  "lib/live-updates/drivers/supabase/supabase-live-update-driver.ts": {
+    "mtime": 1779621908.0732987,
+    "ast_hash": "f36945c93c7ba3c20a43c91f464d6ba1",
+    "semantic_hash": "f36945c93c7ba3c20a43c91f464d6ba1"
+  },
+  "lib/live-updates/get-default-live-update-driver.ts": {
+    "mtime": 1779621908.0732987,
+    "ast_hash": "00883096873e8a8da3d03ed18e062186",
+    "semantic_hash": "00883096873e8a8da3d03ed18e062186"
+  },
+  "lib/live-updates/index.ts": {
+    "mtime": 1785757986.173779,
+    "ast_hash": "70ff6c55f456afff9adeec1edbece4de",
+    "semantic_hash": "70ff6c55f456afff9adeec1edbece4de"
+  },
+  "lib/live-updates/react/live-update-provider.tsx": {
+    "mtime": 1779621908.075297,
+    "ast_hash": "a8b86c7bc78335d77043085ec8494867",
+    "semantic_hash": "a8b86c7bc78335d77043085ec8494867"
+  },
+  "lib/live-updates/react/use-live-update-subscription.ts": {
+    "mtime": 1779621908.075297,
+    "ast_hash": "523b877c45c8a6981bdd0da9ff4cd69d",
+    "semantic_hash": "523b877c45c8a6981bdd0da9ff4cd69d"
+  },
+  "lib/local-storage/boolean-preference.ts": {
+    "mtime": 1785643741.0883899,
+    "ast_hash": "9b0e9086d32dc63830307f68db802558",
+    "semantic_hash": "9b0e9086d32dc63830307f68db802558"
+  },
+  "lib/local-storage/client.ts": {
+    "mtime": 1785643741.0894017,
+    "ast_hash": "edeac8d524145f62b267b2c2be07e637",
+    "semantic_hash": "edeac8d524145f62b267b2c2be07e637"
+  },
+  "lib/local-storage/index.ts": {
+    "mtime": 1785643741.0903916,
+    "ast_hash": "91706464e7cbd3383dff58ce273fa6e8",
+    "semantic_hash": "91706464e7cbd3383dff58ce273fa6e8"
+  },
+  "lib/local-storage/json-preference.ts": {
+    "mtime": 1785643741.0913925,
+    "ast_hash": "d60308ff32f9e215a95f9a969109fd7c",
+    "semantic_hash": "d60308ff32f9e215a95f9a969109fd7c"
+  },
+  "lib/local-storage/keys.ts": {
+    "mtime": 1785643741.092393,
+    "ast_hash": "ea89def05ed4ca9862f897747aaf7ee4",
+    "semantic_hash": "ea89def05ed4ca9862f897747aaf7ee4"
+  },
+  "lib/local-storage/preferences.ts": {
+    "mtime": 1785643741.093403,
+    "ast_hash": "da367c5c9edd3e38c8a2347f2bbc97aa",
+    "semantic_hash": "da367c5c9edd3e38c8a2347f2bbc97aa"
+  },
+  "lib/notifications/activity-text.ts": {
+    "mtime": 1785643741.094403,
+    "ast_hash": "44fb43282e11361623725fa21e0dc037",
+    "semantic_hash": "44fb43282e11361623725fa21e0dc037"
+  },
+  "lib/notifications/dedication-accepted.ts": {
+    "mtime": 1785643741.0963902,
+    "ast_hash": "0d46b82f23a643535ebcc55480372bf3",
+    "semantic_hash": "0d46b82f23a643535ebcc55480372bf3"
+  },
+  "lib/notifications/fcm.ts": {
+    "mtime": 1780297203.0369952,
+    "ast_hash": "8ea25c4bff447bdf53fa238ac42185c2",
+    "semantic_hash": "8ea25c4bff447bdf53fa238ac42185c2"
+  },
+  "lib/notifications/index.ts": {
+    "mtime": 1779702775.2317712,
+    "ast_hash": "84b83f51e15f465c057993be6773c736",
+    "semantic_hash": "84b83f51e15f465c057993be6773c736"
+  },
+  "lib/notifications/kinds.ts": {
+    "mtime": 1780235293.2995257,
+    "ast_hash": "7fcd45306c7f32a600a1f4a94a99f95f",
+    "semantic_hash": "7fcd45306c7f32a600a1f4a94a99f95f"
+  },
+  "lib/notifications/send.ts": {
+    "mtime": 1779821404.4650512,
+    "ast_hash": "40ed3692fbc346840da7edddbbb0571a",
+    "semantic_hash": "40ed3692fbc346840da7edddbbb0571a"
+  },
+  "lib/notifications/templates.ts": {
+    "mtime": 1785643741.0973942,
+    "ast_hash": "1ac6bc624defbfe2cbfd3632e3cf17b5",
+    "semantic_hash": "1ac6bc624defbfe2cbfd3632e3cf17b5"
+  },
+  "lib/profile-label.ts": {
+    "mtime": 1777387245.9384353,
+    "ast_hash": "4431d08d46187deffb2e321e705692eb",
+    "semantic_hash": "4431d08d46187deffb2e321e705692eb"
+  },
+  "lib/public-site-origin.ts": {
+    "mtime": 1777650820.5232847,
+    "ast_hash": "9c8c5888fc5174bcc7d3def668ec517c",
+    "semantic_hash": "9c8c5888fc5174bcc7d3def668ec517c"
+  },
+  "lib/push/client/push-api.ts": {
+    "mtime": 1785643741.0983903,
+    "ast_hash": "9093468741026dd6cfb1b283808564aa",
+    "semantic_hash": "9093468741026dd6cfb1b283808564aa"
+  },
+  "lib/push/device-push-status.ts": {
+    "mtime": 1785643741.099391,
+    "ast_hash": "bb96ee4e679504352be82315add4d579",
+    "semantic_hash": "bb96ee4e679504352be82315add4d579"
+  },
+  "lib/push/ensure-push-registered.ts": {
+    "mtime": 1785757988.0524325,
+    "ast_hash": "9a66a89e431f3ae30eecdf665c7d03d1",
+    "semantic_hash": "9a66a89e431f3ae30eecdf665c7d03d1"
+  },
+  "lib/push/firebase-admin.ts": {
+    "mtime": 1779285982.8452446,
+    "ast_hash": "99013d00ac766ed4ab5816e259f510a7",
+    "semantic_hash": "99013d00ac766ed4ab5816e259f510a7"
+  },
+  "lib/push/firebase-client.ts": {
+    "mtime": 1779285982.8462448,
+    "ast_hash": "c5a2bcec285c174cb27188be95e3a947",
+    "semantic_hash": "c5a2bcec285c174cb27188be95e3a947"
+  },
+  "lib/push/firebase-sw-config.ts": {
+    "mtime": 1779285982.847245,
+    "ast_hash": "2e702b78f676780a26a8355c6a3c9ad2",
+    "semantic_hash": "2e702b78f676780a26a8355c6a3c9ad2"
+  },
+  "lib/push/notification-navigation.ts": {
+    "mtime": 1779702775.2357733,
+    "ast_hash": "9733ce0ef8620e7d258e45a46eab4785",
+    "semantic_hash": "9733ce0ef8620e7d258e45a46eab4785"
+  },
+  "lib/pwa/install-context.ts": {
+    "mtime": 1780235293.304519,
+    "ast_hash": "d3c711c9485f4ed9dad4bb8ad9bc401b",
+    "semantic_hash": "d3c711c9485f4ed9dad4bb8ad9bc401b"
+  },
+  "lib/pwa/use-pwa-install-tutorial.tsx": {
+    "mtime": 1780235293.3065338,
+    "ast_hash": "bf84277af2ce522b4bab5733a3343479",
+    "semantic_hash": "bf84277af2ce522b4bab5733a3343479"
+  },
+  "lib/routes.ts": {
+    "mtime": 1785758118.5994499,
+    "ast_hash": "b7dd362e1be1771473c7ca2a918ade71",
+    "semantic_hash": "b7dd362e1be1771473c7ca2a918ade71"
+  },
+  "lib/sentry/enabled.ts": {
+    "mtime": 1779361480.0851195,
+    "ast_hash": "56513ea6480c61f1e89203a9f0551003",
+    "semantic_hash": "56513ea6480c61f1e89203a9f0551003"
+  },
+  "lib/sentry/init-options.ts": {
+    "mtime": 1779361480.0861175,
+    "ast_hash": "0082b6cc0323247c7f7a40e5e4f5b415",
+    "semantic_hash": "0082b6cc0323247c7f7a40e5e4f5b415"
+  },
+  "lib/share-invites/eligibility.ts": {
+    "mtime": 1785643741.1034007,
+    "ast_hash": "cf29b8b4018c227681dbb48dce7fba5c",
+    "semantic_hash": "cf29b8b4018c227681dbb48dce7fba5c"
+  },
+  "lib/share-invites/invite-og-badge-image.ts": {
+    "mtime": 1785643741.1044002,
+    "ast_hash": "dad197953da650f7aac74a22c83d2fac",
+    "semantic_hash": "dad197953da650f7aac74a22c83d2fac"
+  },
+  "lib/share-invites/invite-rollback.ts": {
+    "mtime": 1785643741.1053982,
+    "ast_hash": "86b1ddf16d1fbb17340955f7e6469d1f",
+    "semantic_hash": "86b1ddf16d1fbb17340955f7e6469d1f"
+  },
+  "lib/share-invites/invite-share-title.ts": {
+    "mtime": 1780235293.3115177,
+    "ast_hash": "346d53c1b345eb2dfb9fb2855fd8ab07",
+    "semantic_hash": "346d53c1b345eb2dfb9fb2855fd8ab07"
+  },
+  "lib/share-invites/invite-snapshot.ts": {
+    "mtime": 1785643741.1063907,
+    "ast_hash": "71b8b9568f3712846823810db6fc10f6",
+    "semantic_hash": "71b8b9568f3712846823810db6fc10f6"
+  },
+  "lib/share-invites/server.ts": {
+    "mtime": 1785643741.108391,
+    "ast_hash": "11b981b1af62b571546f23c61a596a4d",
+    "semantic_hash": "11b981b1af62b571546f23c61a596a4d"
+  },
+  "lib/share-invites/token.ts": {
+    "mtime": 1779777828.595143,
+    "ast_hash": "96c36c3af39028660ec2d69e3762a965",
+    "semantic_hash": "96c36c3af39028660ec2d69e3762a965"
+  },
+  "lib/supabase/client.ts": {
+    "mtime": 1777650820.525286,
+    "ast_hash": "b4f4bebbaf0918f5c0f810b9448b2207",
+    "semantic_hash": "b4f4bebbaf0918f5c0f810b9448b2207"
+  },
+  "lib/supabase/database.types.ts": {
+    "mtime": 1780235293.3195193,
+    "ast_hash": "64495b50fbe5d3e7905b5edd0be6b980",
+    "semantic_hash": "64495b50fbe5d3e7905b5edd0be6b980"
+  },
+  "lib/supabase/postgrest-errors.ts": {
+    "mtime": 1780235293.3205192,
+    "ast_hash": "35cd63803c928895e4aeebe52eebcabf",
+    "semantic_hash": "35cd63803c928895e4aeebe52eebcabf"
+  },
+  "lib/supabase/server-anon.ts": {
+    "mtime": 1777650820.5282834,
+    "ast_hash": "19c546caddfed42256bba57654ae6b9e",
+    "semantic_hash": "19c546caddfed42256bba57654ae6b9e"
+  },
+  "lib/supabase/server.ts": {
+    "mtime": 1777650820.5302868,
+    "ast_hash": "b04a667ca64ae308c228f7d5a38eb112",
+    "semantic_hash": "b04a667ca64ae308c228f7d5a38eb112"
+  },
+  "lib/supabase/service-role.ts": {
+    "mtime": 1779300817.8802686,
+    "ast_hash": "ff43017deee176d767306aafe1849f4d",
+    "semantic_hash": "ff43017deee176d767306aafe1849f4d"
+  },
+  "lib/supabase/update-session.ts": {
+    "mtime": 1779285982.8512459,
+    "ast_hash": "926bdaaaaed0d2e9b4f396eb700e65a4",
+    "semantic_hash": "926bdaaaaed0d2e9b4f396eb700e65a4"
+  },
+  "lib/toast.ts": {
+    "mtime": 1779717569.8709438,
+    "ast_hash": "b285a982d4a93d3275ac20d95cf7d301",
+    "semantic_hash": "b285a982d4a93d3275ac20d95cf7d301"
+  },
+  "lib/tutorials/index.ts": {
+    "mtime": 1785643741.1094,
+    "ast_hash": "54c793c334729776ae0bba10bf8888f6",
+    "semantic_hash": "54c793c334729776ae0bba10bf8888f6"
+  },
+  "lib/tutorials/registry.ts": {
+    "mtime": 1780235293.321519,
+    "ast_hash": "84d10795feecc267f7fead6744fd98ca",
+    "semantic_hash": "84d10795feecc267f7fead6744fd98ca"
+  },
+  "lib/tutorials/use-tutorial-toast.tsx": {
+    "mtime": 1780235293.3235185,
+    "ast_hash": "a5fd7e94c14443807330f660858cfbb5",
+    "semantic_hash": "a5fd7e94c14443807330f660858cfbb5"
+  },
+  "lib/tutorials/use-tutorial.ts": {
+    "mtime": 1785643741.1103995,
+    "ast_hash": "9f1a371d6d1354388d6706c6d1c3c901",
+    "semantic_hash": "9f1a371d6d1354388d6706c6d1c3c901"
+  },
+  "lib/upload/remote-asset-storage.ts": {
+    "mtime": 1785643741.1113944,
+    "ast_hash": "2bff83807ff34a23401f4c9b2e4d68a8",
+    "semantic_hash": "2bff83807ff34a23401f4c9b2e4d68a8"
+  },
+  "lib/upload/staging-session.ts": {
+    "mtime": 1785643741.1123953,
+    "ast_hash": "11520f2450c45e7239122d0af787d8ad",
+    "semantic_hash": "11520f2450c45e7239122d0af787d8ad"
+  },
+  "lib/user-achievements-page.ts": {
+    "mtime": 1785643741.1133952,
+    "ast_hash": "d4595527db5227ef51df8fdaa015d363",
+    "semantic_hash": "d4595527db5227ef51df8fdaa015d363"
+  },
+  "lib/utils.ts": {
+    "mtime": 1777650820.5362866,
+    "ast_hash": "e3f848f1b39f863e6164cf58b5a8e752",
+    "semantic_hash": "e3f848f1b39f863e6164cf58b5a8e752"
+  },
+  "lib/welcome/intro-achievement.ts": {
+    "mtime": 1785757978.7112582,
+    "ast_hash": "85380bfb96a0277268b600d07c3d0990",
+    "semantic_hash": "85380bfb96a0277268b600d07c3d0990"
+  },
+  "lib/welcome/onboarding-redirect.ts": {
+    "mtime": 1779621908.0853014,
+    "ast_hash": "1868e59520bcb9406dc0887bb7317947",
+    "semantic_hash": "1868e59520bcb9406dc0887bb7317947"
+  },
+  "lib/welcome/seed-intro-achievement.ts": {
+    "mtime": 1785643741.1173904,
+    "ast_hash": "fab8fa13491fc8ecf3af804786af11c2",
+    "semantic_hash": "fab8fa13491fc8ecf3af804786af11c2"
+  },
+  "next.config.ts": {
+    "mtime": 1785659707.464973,
+    "ast_hash": "37a8e9033c1534a4faba982d0265ee02",
+    "semantic_hash": "37a8e9033c1534a4faba982d0265ee02"
+  },
+  "package.json": {
+    "mtime": 1785660209.0733004,
+    "ast_hash": "735d88156ea4852b6f9cb918a9d4e4fb",
+    "semantic_hash": "735d88156ea4852b6f9cb918a9d4e4fb"
+  },
+  "postcss.config.mjs": {
+    "mtime": 1776845751.0,
+    "ast_hash": "c56b5f3c12f777a86e2513f45daab56a",
+    "semantic_hash": "c56b5f3c12f777a86e2513f45daab56a"
+  },
+  "proxy.ts": {
+    "mtime": 1785643741.1264012,
+    "ast_hash": "26f93db2dacb4ef316c1b13a5630d177",
+    "semantic_hash": "26f93db2dacb4ef316c1b13a5630d177"
+  },
+  "public/app-brand.js": {
+    "mtime": 1779692708.9522526,
+    "ast_hash": "67b909b1a33d3cecadf5f47e0c3ecbb7",
+    "semantic_hash": "67b909b1a33d3cecadf5f47e0c3ecbb7"
+  },
+  "public/firebase-messaging-sw.js": {
+    "mtime": 1779702775.2453182,
+    "ast_hash": "98484adfdab4a0759a00723a1017f878",
+    "semantic_hash": "98484adfdab4a0759a00723a1017f878"
+  },
+  "public/sw.js": {
+    "mtime": 1779285982.8632476,
+    "ast_hash": "a110c70c17e2f9113ad744113a2c50cc",
+    "semantic_hash": "a110c70c17e2f9113ad744113a2c50cc"
+  },
+  "sentry.edge.config.ts": {
+    "mtime": 1779361480.0921254,
+    "ast_hash": "3459840e7978e77b0548e6c07430222c",
+    "semantic_hash": "3459840e7978e77b0548e6c07430222c"
+  },
+  "sentry.server.config.ts": {
+    "mtime": 1779361480.093128,
+    "ast_hash": "94b8f27cf03e3bc299b06c4afa273ca2",
+    "semantic_hash": "94b8f27cf03e3bc299b06c4afa273ca2"
+  },
+  "supabase/migrations/20260427120000_achievements.sql": {
+    "mtime": 1777387245.9714403,
+    "ast_hash": "d9c3870bd8e4bb8b52e0f25ae9fc4bc1",
+    "semantic_hash": "d9c3870bd8e4bb8b52e0f25ae9fc4bc1"
+  },
+  "supabase/migrations/20260427120001_achievements_public_select.sql": {
+    "mtime": 1777387245.9724455,
+    "ast_hash": "fee4ba859883e69cf83a72e6776b3657",
+    "semantic_hash": "fee4ba859883e69cf83a72e6776b3657"
+  },
+  "supabase/migrations/20260428120000_public_user_display_name.sql": {
+    "mtime": 1777387245.9734366,
+    "ast_hash": "771d6955287940384cbfa5d1b78e3056",
+    "semantic_hash": "771d6955287940384cbfa5d1b78e3056"
+  },
+  "supabase/migrations/20260428180000_profile_and_follows.sql": {
+    "mtime": 1777387245.974461,
+    "ast_hash": "e6833062cf4140172c401ff2625a1c7c",
+    "semantic_hash": "e6833062cf4140172c401ff2625a1c7c"
+  },
+  "supabase/migrations/20260429120000_profile_auth_single_source.sql": {
+    "mtime": 1777387245.9754508,
+    "ast_hash": "22153d8c392c6fb12e1d01d23a93369c",
+    "semantic_hash": "22153d8c392c6fb12e1d01d23a93369c"
+  },
+  "supabase/migrations/20260506210000_push_notification_tokens.sql": {
+    "mtime": 1779285982.8662443,
+    "ast_hash": "2d487af82efb8078802f1e1356740c0b",
+    "semantic_hash": "2d487af82efb8078802f1e1356740c0b"
+  },
+  "supabase/migrations/20260519120000_following_unlock_feed.sql": {
+    "mtime": 1779285982.8672452,
+    "ast_hash": "58120160a7a8ce4510e26b753e6e7f97",
+    "semantic_hash": "58120160a7a8ce4510e26b753e6e7f97"
+  },
+  "supabase/migrations/20260520130000_push_token_account_switch.sql": {
+    "mtime": 1779285982.8682442,
+    "ast_hash": "15c6df1d70e47b07016cf59e12c801fe",
+    "semantic_hash": "15c6df1d70e47b07016cf59e12c801fe"
+  },
+  "supabase/migrations/20260520140000_feed_rpc_display_name_order.sql": {
+    "mtime": 1779300817.8812673,
+    "ast_hash": "bf3a341dddbaf528cd661bff424efb16",
+    "semantic_hash": "bf3a341dddbaf528cd661bff424efb16"
+  },
+  "supabase/migrations/20260521120000_achievement_impressions.sql": {
+    "mtime": 1779361480.0941267,
+    "ast_hash": "5e70c142486569e72177d868f5df3379",
+    "semantic_hash": "5e70c142486569e72177d868f5df3379"
+  },
+  "supabase/migrations/20260522120000_feed_impression_events.sql": {
+    "mtime": 1779361480.0941267,
+    "ast_hash": "0b04b1c3388ff4bf3cbf53fab271ac49",
+    "semantic_hash": "0b04b1c3388ff4bf3cbf53fab271ac49"
+  },
+  "supabase/migrations/20260522130000_feed_impression_owner_recipient.sql": {
+    "mtime": 1779361480.0951245,
+    "ast_hash": "2eaa1977bfd63954c2a15ad6467fa6a4",
+    "semantic_hash": "2eaa1977bfd63954c2a15ad6467fa6a4"
+  },
+  "supabase/migrations/20260522140000_impression_no_achievement_bump.sql": {
+    "mtime": 1779361480.0951245,
+    "ast_hash": "8d66f8b9e72c7ff94cfcf6c1a10927f1",
+    "semantic_hash": "8d66f8b9e72c7ff94cfcf6c1a10927f1"
+  },
+  "supabase/migrations/20260522150000_feed_unlock_events.sql": {
+    "mtime": 1779361480.0961258,
+    "ast_hash": "6017ff3e1e6601658ddb58e306e65b77",
+    "semantic_hash": "6017ff3e1e6601658ddb58e306e65b77"
+  },
+  "supabase/migrations/20260522160000_remove_achievement_impressions_column.sql": {
+    "mtime": 1779361480.0961258,
+    "ast_hash": "85ac17a1996b46f222298fd3a4da523b",
+    "semantic_hash": "85ac17a1996b46f222298fd3a4da523b"
+  },
+  "supabase/migrations/20260523180000_achievement_impression_counts_rpc.sql": {
+    "mtime": 1779621908.0943,
+    "ast_hash": "5c9b5490f2c4a8c4449cddb44e9f25db",
+    "semantic_hash": "5c9b5490f2c4a8c4449cddb44e9f25db"
+  },
+  "supabase/migrations/20260524120000_achievement_visibility.sql": {
+    "mtime": 1779621908.0943,
+    "ast_hash": "f7a957ae990b8e89fc0c18f8824a62e9",
+    "semantic_hash": "f7a957ae990b8e89fc0c18f8824a62e9"
+  },
+  "supabase/migrations/20260524180000_profile_avatar.sql": {
+    "mtime": 1779621908.0953016,
+    "ast_hash": "0d1f5034a3d1da8878246583940f9ab0",
+    "semantic_hash": "0d1f5034a3d1da8878246583940f9ab0"
+  },
+  "supabase/migrations/20260525120000_realtime_feed_tables.sql": {
+    "mtime": 1779621908.0963008,
+    "ast_hash": "d19fa3192fa08f43f76681a5e0a0d269",
+    "semantic_hash": "d19fa3192fa08f43f76681a5e0a0d269"
+  },
+  "supabase/migrations/20260525130000_impression_locked_and_realtime_achievements.sql": {
+    "mtime": 1779621908.0972986,
+    "ast_hash": "a2446132c71a25ab794aaa6027137d3a",
+    "semantic_hash": "a2446132c71a25ab794aaa6027137d3a"
+  },
+  "supabase/migrations/20260525140000_achievement_dedications.sql": {
+    "mtime": 1779621908.0972986,
+    "ast_hash": "736a254326bb378738561e253346b93b",
+    "semantic_hash": "736a254326bb378738561e253346b93b"
+  },
+  "supabase/migrations/20260525150000_feed_dedicated_unlock_flag.sql": {
+    "mtime": 1779682074.4421263,
+    "ast_hash": "c0aedbdac6a119682847c58585bf6de3",
+    "semantic_hash": "c0aedbdac6a119682847c58585bf6de3"
+  },
+  "supabase/migrations/20260526124900_add_share_kind_to_achievement_share_invites.sql": {
+    "mtime": 1779777828.597144,
+    "ast_hash": "b2a8bf66703a258f06bf7c4f5b819fb5",
+    "semantic_hash": "b2a8bf66703a258f06bf7c4f5b819fb5"
+  },
+  "supabase/migrations/20260526130000_achievement_share_invites.sql": {
+    "mtime": 1779777828.598144,
+    "ast_hash": "14d942d541382a9866e3c47660bd0ae2",
+    "semantic_hash": "14d942d541382a9866e3c47660bd0ae2"
+  },
+  "supabase/migrations/20260526233000_achievement_3d_badges.sql": {
+    "mtime": 1780320743.4362593,
+    "ast_hash": "e46370959315a065ad33446512a9abda",
+    "semantic_hash": "e46370959315a065ad33446512a9abda"
+  },
+  "supabase/migrations/20260527120000_auth_user_exists.sql": {
+    "mtime": 1779702775.2463179,
+    "ast_hash": "527e52cf2893659e8ba733796e2d45aa",
+    "semantic_hash": "527e52cf2893659e8ba733796e2d45aa"
+  },
+  "supabase/migrations/20260527120000_badge_model_pose.sql": {
+    "mtime": 1780235293.3415196,
+    "ast_hash": "b2891febb5b57d9a159584668d6e601e",
+    "semantic_hash": "b2891febb5b57d9a159584668d6e601e"
+  },
+  "supabase/migrations/20260527140000_share_invite_badge_snapshot.sql": {
+    "mtime": 1780235293.3435242,
+    "ast_hash": "22d3337373b91837824f9f79d05b9423",
+    "semantic_hash": "22d3337373b91837824f9f79d05b9423"
+  },
+  "supabase/migrations/20260527150000_feed_icon_asset_kind.sql": {
+    "mtime": 1780235293.3445308,
+    "ast_hash": "d3b654214559836de34fa565cf7a48b1",
+    "semantic_hash": "d3b654214559836de34fa565cf7a48b1"
+  },
+  "supabase/migrations/20260528155000_achievement_model_animation_controls.sql": {
+    "mtime": 1780235293.3455195,
+    "ast_hash": "0eeb2582b5a8012ac0e35147f74c3c24",
+    "semantic_hash": "0eeb2582b5a8012ac0e35147f74c3c24"
+  },
+  "tailwind.config.ts": {
+    "mtime": 1777650820.551289,
+    "ast_hash": "538d3ddfd1076a9ad77d08ac3624cc79",
+    "semantic_hash": "538d3ddfd1076a9ad77d08ac3624cc79"
+  },
+  "tsconfig.json": {
+    "mtime": 1776845751.0,
+    "ast_hash": "897ac3024f0d2d34a37cc19db3cd7cbc",
+    "semantic_hash": "897ac3024f0d2d34a37cc19db3cd7cbc"
+  },
+  ".agents/skills/affaan-m-make-interfaces-feel-better/SKILL.md": {
+    "mtime": 1785643740.884608,
+    "ast_hash": "32376f09024503a745fb58e7085bf8b8",
+    "semantic_hash": "32376f09024503a745fb58e7085bf8b8"
+  },
+  ".agents/skills/affaan-m-repo-scan/SKILL.md": {
+    "mtime": 1785643740.8856058,
+    "ast_hash": "921220939e8eff06e5c764f58c74d442",
+    "semantic_hash": "921220939e8eff06e5c764f58c74d442"
+  },
+  ".agents/skills/forrestchang-karpathy-guidelines/SKILL.md": {
+    "mtime": 1785643740.8876107,
+    "ast_hash": "2f6f29049c28db9c0a7f7afae44058f3",
+    "semantic_hash": "2f6f29049c28db9c0a7f7afae44058f3"
+  },
+  "README.md": {
+    "mtime": 1779692708.8322527,
+    "ast_hash": "ac5fe39a5a7cd8236101a767dea44ae3",
+    "semantic_hash": "ac5fe39a5a7cd8236101a767dea44ae3"
+  },
+  "public/offline.html": {
+    "mtime": 1777650820.5492852,
+    "ast_hash": "22964ee31b9b0814eccb9531bdbfca23",
+    "semantic_hash": "22964ee31b9b0814eccb9531bdbfca23"
+  },
+  "app/opengraph-image.png": {
+    "mtime": 1776845751.0,
+    "ast_hash": "447f88c574dd97791ff58b89dbe24937",
+    "semantic_hash": "447f88c574dd97791ff58b89dbe24937"
+  },
+  "app/twitter-image.png": {
+    "mtime": 1776845751.0,
+    "ast_hash": "447f88c574dd97791ff58b89dbe24937",
+    "semantic_hash": "447f88c574dd97791ff58b89dbe24937"
+  },
+  "public/icons/icon-192.png": {
+    "mtime": 1779717569.8789432,
+    "ast_hash": "b7c68df774ba5c05aaa54fdfb5c861d1",
+    "semantic_hash": "b7c68df774ba5c05aaa54fdfb5c861d1"
+  },
+  "public/icons/icon-512.png": {
+    "mtime": 1779717569.8819437,
+    "ast_hash": "88728cc3f594481f909710e565e3bee6",
+    "semantic_hash": "88728cc3f594481f909710e565e3bee6"
+  },
+  "public/audio/pop.mp3": {
+    "mtime": 1777387245.9494355,
+    "ast_hash": "15b0efd7b20ecc3b05183915349b9fb5",
+    "semantic_hash": "15b0efd7b20ecc3b05183915349b9fb5"
+  },
+  "public/audio/unlock-ease-out.wav": {
+    "mtime": 1777387245.9594402,
+    "ast_hash": "9e553ba0225dcab08a962c105ec98509",
+    "semantic_hash": "9e553ba0225dcab08a962c105ec98509"
+  },
+  "public/audio/unlock-peel.wav": {
+    "mtime": 1777387245.9674351,
+    "ast_hash": "28f72a6bc2ab5702ab6aaa973ee13321",
+    "semantic_hash": "28f72a6bc2ab5702ab6aaa973ee13321"
+  }
+}

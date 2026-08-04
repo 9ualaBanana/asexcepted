@@ -5,6 +5,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "test": "pnpm test:unit",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "verify": "pnpm typecheck && pnpm test:unit",
     "supabase": "supabase",
     "db:link": "supabase link",
     "db:push": "supabase db push",
@@ -52,6 +59,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.62.1",
     "@types/google.accounts": "^0.0.18",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -64,6 +72,7 @@
     "supabase": "^2.95.3",
     "tailwindcss": "^3.4.1",
     "tailwindcss-animate": "^1.0.7",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.10"
   }
 }

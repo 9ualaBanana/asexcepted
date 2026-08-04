@@ -9,8 +9,6 @@ import {
 } from "@/lib/achievements/data/achievement-surface-view-models";
 
 export type { AchievementFeedItemViewModel, FeedEventType } from "@/lib/achievements/data/achievement-surface-view-models";
-/** @deprecated Use AchievementFeedItemViewModel */
-export type { FeedRow, FeedUnlockRow } from "@/lib/achievements/data/achievement-surface-view-models";
 
 export type FeedCursor = {
   updated_at: string;

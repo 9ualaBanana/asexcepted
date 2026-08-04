@@ -79,11 +79,3 @@ export function AddToHomeScreenInstallBlock({
     </div>
   );
 }
-
-/** @deprecated Use {@link AddToHomeScreenInstallBlock}. */
-export function AddToHomeScreenInstructions(props: {
-  compact?: boolean;
-  className?: string;
-}) {
-  return <AddToHomeScreenInstallBlock className={props.className} variant="profile" />;
-}
