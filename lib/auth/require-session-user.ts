@@ -5,7 +5,7 @@ import type { User } from "@supabase/supabase-js";
 
 import { createServerSupabase } from "@/lib/supabase/clients/server";
 import type { RlsScopedSupabaseClient } from "@/lib/supabase/clients/client-types";
-import { PATHNAME_HEADER } from "@/lib/supabase/refresh-auth-session";
+import { PATHNAME_HEADER } from "@/lib/supabase/clients/edge";
 import { loginWithNext, ROUTES } from "@/lib/routes";
 
 export type SessionUserContext = {
