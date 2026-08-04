@@ -36,12 +36,3 @@ export async function requireSessionUser(): Promise<SessionUserContext> {
   return { supabase, user };
 }
 
-export async function getRequiredSessionUser(): Promise<SessionUserContext> {
-  const { supabase, user } = await getSessionUser();
-  if (!user) {
-    throw new Error(
-      "getRequiredSessionUser: no user — missing app/(session)/layout requireSessionUser",
-    );
-  }
-  return { supabase, user };
-}

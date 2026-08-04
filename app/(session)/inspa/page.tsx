@@ -4,7 +4,7 @@ import { FeedList } from "@/components/social/feed/feed-list";
 import { AppPageShell } from "@/components/layout/app-page-shell";
 import { FriendsPanel } from "@/components/social/friends-panel";
 import { SocialPageSkeleton } from "@/components/social/inspa-page-skeleton";
-import { getRequiredSessionUser } from "@/lib/auth/require-session-user";
+import { requireSessionUser } from "@/lib/auth/require-session-user";
 import { fetchFollowingUnlockFeed } from "@/lib/achievements/data/feed-db";
 
 export default function InspaPage() {
@@ -16,7 +16,7 @@ export default function InspaPage() {
 }
 
 async function InspaPageInner() {
-  const { supabase, user } = await getRequiredSessionUser();
+  const { supabase, user } = await requireSessionUser();
 
   const feedResult = await fetchFollowingUnlockFeed(supabase, { limit: 20 });
   const initialPage = feedResult.isOk()
