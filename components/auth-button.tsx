@@ -2,7 +2,7 @@ import Link from "next/link";
 import { AccountMenu } from "@/components/account-menu";
 import { Button } from "./ui/button";
 import { ROUTES } from "@/lib/routes";
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/clients/server";
 
 function headerLabelFromUser(user: {
   email?: string | null;
@@ -15,8 +15,8 @@ function headerLabelFromUser(user: {
 }
 
 export async function AuthButton() {
-  const supabase = await createClient();
-
+  const supabase = await createServerSupabase();
+  
   const { data: userData } = await supabase.auth.getUser();
   const user = userData.user;
 

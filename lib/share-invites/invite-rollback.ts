@@ -6,12 +6,12 @@ import {
   buildShareInviteBadgeModelPath,
   buildShareInviteBadgePreviewPath,
 } from "@/lib/achievements/badge/shared/badge-assets";
-import { createServiceRoleClient } from "@/lib/supabase/service-role";
+import { createServiceRoleSupabase } from "@/lib/supabase/clients/server";
 
 /** Removes a pending invite created during a failed dedicate/share flow. */
 export async function deleteShareInviteRollback(
   inviteId: string,
-  supabase = createServiceRoleClient(),
+  supabase = createServiceRoleSupabase(),
 ): Promise<void> {
   await supabase.from("achievement_share_invites").delete().eq("id", inviteId);
 

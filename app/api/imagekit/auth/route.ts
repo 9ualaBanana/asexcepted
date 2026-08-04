@@ -24,7 +24,7 @@ import {
   getImageKitServerClient,
   isImageKitServerConfigured,
 } from "@/lib/imagekit/server-client";
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/clients/server";
 
 type UploadPurpose = "badge" | "avatar";
 
@@ -41,7 +41,7 @@ function parseUploadPurpose(body: unknown): UploadPurpose {
 }
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
+  const supabase = await createServerSupabase();
   const {
     data: { user },
   } = await supabase.auth.getUser();

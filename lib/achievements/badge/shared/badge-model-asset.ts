@@ -1,7 +1,5 @@
-import type {
-  FormState,
-  IconAssetKind,
-} from "@/components/achievements/achievement-editor-shared";
+import type { FormState } from "@/components/achievements/achievement-editor-shared";
+import type { IconAssetKind } from "@/lib/achievements/data/achievement-enums";
 
 import { sanitizeBadgeAssetPath } from "./badge-assets";
 

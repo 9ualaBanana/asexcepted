@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 
 import { completeBadgeModelUpload } from "@/lib/achievements/badge/shared/badge-assets-server";
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/clients/server";
 
 function asFile(value: FormDataEntryValue | null): File | null {
   return value instanceof File ? value : null;
 }
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
+  const supabase = await createServerSupabase();
   const {
     data: { user },
   } = await supabase.auth.getUser();

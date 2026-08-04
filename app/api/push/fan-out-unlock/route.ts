@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getAchievementForUnlockPush } from "@/lib/achievements/data/achievement-queries";
+import { getAchievementForUnlockPush } from "@/lib/achievements/data/achievement-repository";
 import { resolveDisplayName, sendPushToUsers } from "@/lib/notifications";
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/clients/server";
 
 const bodySchema = z.object({
   achievementId: z.string().uuid(),
 });
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
+  const supabase = await createServerSupabase();
   const {
     data: { user },
   } = await supabase.auth.getUser();

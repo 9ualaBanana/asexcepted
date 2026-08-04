@@ -5,10 +5,10 @@ import { AuthButton } from "@/components/auth-button";
 import { ProfilePageShell } from "@/components/profile/profile-page-shell";
 import { isAdmin } from "@/lib/admin";
 import { loginWithNext, ROUTES } from "@/lib/routes";
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/clients/server";
 
 async function ProfilePageInner() {
-  const supabase = await createClient();
+  const supabase = await createServerSupabase();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) {
     return redirect(loginWithNext(ROUTES.profile));

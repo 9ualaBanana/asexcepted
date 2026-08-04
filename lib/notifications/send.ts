@@ -1,6 +1,5 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-
-import { createServiceRoleClient } from "@/lib/supabase/service-role";
+import type { DatabaseSupabaseClient } from "@/lib/supabase/clients/client-types";
+import { createServiceRoleSupabase } from "@/lib/supabase/clients/server";
 import { buildFcmWebPushMessage } from "@/lib/notifications/fcm";
 import type { NotificationKind } from "@/lib/notifications/kinds";
 import {
@@ -26,9 +25,18 @@ export type SendPushResult = {
 async function loadTokensForUsers(userIds: string[]): Promise<string[]> {
   if (userIds.length === 0) return [];
 
-  const admin = createServiceRoleClient() as SupabaseClient;
+  const admin = createServiceRoleSupabase() as unknown as {
+    from: (table: string) => {
+      select: (cols: string) => {
+        in: (
+          col: string,
+          vals: string[],
+        ) => Promise<{ data: Array<{ token?: string | null }> | null; error: unknown }>;
+      };
+    };
+  };
   const { data, error } = await admin
-    .from("push_notification_tokens" as any)
+    .from("push_notification_tokens")
     .select("token")
     .in("user_id", userIds);
 
@@ -37,7 +45,7 @@ async function loadTokensForUsers(userIds: string[]): Promise<string[]> {
   return [
     ...new Set(
       (Array.isArray(data) ? data : [])
-        .map((row: { token?: string | null }) => row.token?.trim() ?? "")
+        .map((row) => row.token?.trim() ?? "")
         .filter((token): token is string => token.length > 0),
     ),
   ];
@@ -56,12 +64,16 @@ async function pruneStaleTokens(
     }
   });
   if (stale.length === 0) return;
-  const admin = createServiceRoleClient() as SupabaseClient;
-  await admin.from("push_notification_tokens" as any).delete().in("token", stale);
+  const admin = createServiceRoleSupabase() as unknown as {
+    from: (table: string) => {
+      delete: () => { in: (col: string, vals: string[]) => Promise<unknown> };
+    };
+  };
+  await admin.from("push_notification_tokens").delete().in("token", stale);
 }
 
 export async function sendPushToUsers<K extends NotificationKind>(args: {
-  supabase: SupabaseClient;
+  supabase: DatabaseSupabaseClient;
   userIds: string[];
   kind: K;
   params: NotificationParams[K];
@@ -106,7 +118,7 @@ export async function sendPushToUsers<K extends NotificationKind>(args: {
 
 /** Admin signup alert — tokens for admin uid and/or FCM topic subscription. */
 export async function sendAdminNewSignupPush(args: {
-  supabase: SupabaseClient;
+  supabase: DatabaseSupabaseClient;
   userId: string;
   email?: string;
 }): Promise<{ ok: boolean }> {

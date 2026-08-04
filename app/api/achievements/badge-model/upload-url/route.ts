@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { createBadgeModelUploadTarget } from "@/lib/achievements/badge/shared/badge-assets-server";
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/clients/server";
 
 export async function POST() {
-  const supabase = await createClient();
+  const supabase = await createServerSupabase();
   const {
     data: { user },
   } = await supabase.auth.getUser();

@@ -2,16 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { deleteAchievement, listAchievements } from "@/lib/achievements/data/achievement-db";
+import { deleteAchievement, listAchievements } from "@/lib/achievements/data/achievement-repository";
 import type { BadgeSessionController } from "@/components/achievements/badge/upload/use-badge-session-controller";
 import type { AchievementUiStateActions } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
 import type { AchievementCollectionEntryViewModel } from "@/lib/achievements/data/achievement-view-models";
 import { clearBadgeRenderCacheForSrc } from "@/lib/achievements/badge/shared/render-cache";
 import { useUserAchievementsLiveUpdates } from "@/lib/live-updates";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { RlsScopedSupabaseClient } from "@/lib/supabase/clients/client-types";
 
 type UseAchievementDataControllerArgs = {
-  supabase: SupabaseClient;
+  supabase: RlsScopedSupabaseClient;
   userId: string;
   readOnly: boolean;
   achievements: AchievementCollectionEntryViewModel[];

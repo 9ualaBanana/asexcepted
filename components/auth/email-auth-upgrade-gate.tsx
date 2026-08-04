@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { isEmailOnlyAuthUser } from "@/lib/auth/is-email-only-auth-user";
 import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
 import { isAuthPath, loginWithNext, ROUTES } from "@/lib/routes";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
 import { cn } from "@/lib/utils";
 
 export function EmailAuthUpgradeGate() {
@@ -28,7 +28,7 @@ export function EmailAuthUpgradeGate() {
       return;
     }
 
-    const supabase = createClient();
+    const supabase = createBrowserSupabase();
     let cancelled = false;
 
     async function refreshGate() {
@@ -58,7 +58,7 @@ export function EmailAuthUpgradeGate() {
   async function handleContinue() {
     setBusy(true);
     try {
-      const supabase = createClient();
+      const supabase = createBrowserSupabase();
       await supabase.auth.signOut();
       const next = pathname && !isAuthPath(pathname) ? pathname : undefined;
       router.push(next ? loginWithNext(next) : ROUTES.login);

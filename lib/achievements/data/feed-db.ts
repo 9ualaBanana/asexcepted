@@ -3,6 +3,11 @@ import { err, ok, type Result } from "neverthrow";
 
 import { normalizeBadgeIconUrl } from "@/lib/achievements/badge/shared/badge-assets";
 import {
+  parseIconAssetKind,
+  parseIconKey,
+  parseTone,
+} from "@/lib/achievements/data/achievement-enums";
+import {
   feedRowSourceToViewModel,
   type AchievementFeedItemViewModel,
   type FeedEventType,
@@ -48,10 +53,10 @@ function normalizeFeedRow(raw: Record<string, unknown>): AchievementFeedItemView
     title: (raw.title as string | null) ?? null,
     description: (raw.description as string | null) ?? null,
     category: (raw.category as string | null) ?? null,
-    icon: String(raw.icon ?? "trophy"),
+    icon: parseIconKey(raw.icon as string | null | undefined),
     icon_url: normalizeBadgeIconUrl(raw.icon_url as string | null | undefined),
-    icon_asset_kind: String(raw.icon_asset_kind ?? "image"),
-    tone: String(raw.tone ?? "teal"),
+    icon_asset_kind: parseIconAssetKind(raw.icon_asset_kind as string | null | undefined),
+    tone: parseTone(raw.tone as string | null | undefined),
     achieved_at: (raw.achieved_at as string | null) ?? null,
     created_at: String(raw.created_at),
     updated_at: String(raw.updated_at),

@@ -1,5 +1,5 @@
 ---
-description: 
+description:
 alwaysApply: true
 ---
 
@@ -10,10 +10,20 @@ External data (DB rows, API request/response bodies, webhooks, `fetch` JSON) is 
 ## Boundaries (validate here)
 
 - **API routes**: `safeParse` request body/query; return 400 on failure (see existing `app/api/**` routes).
-- **DB → domain**: map rows in `lib/**` transformers with Zod (`.parse` / `.safeParse` / `.transform`), not ad-hoc `typeof` chains in UI code.
+- **DB → domain**: map rows in `lib/**` transformers (`coerceAchievementDbRow`, `tryNormalizeAchievement`, feed edge in `feed-db`). Closed achievement enums via `parseTone` / `parseIconKey` / `parseVisibility` / `parseIconAssetKind` in `lib/achievements/data/achievement-enums.ts` — **not** owned by components.
 - **Client fetch**: parse JSON in the data layer (hook or `lib/**` client), not in each consumer component.
 
 Export `z.infer<typeof schema>` (or a named type alias) from the same module as the schema. Inner layers depend on that type, not `unknown` or loose `Record<string, unknown>`.
+
+## Achievement domain layers
+
+| Layer | Owns | Forbidden |
+|-------|------|-----------|
+| `lib/achievements/data` | unions, `parse*`, coerce, feed normalize | defining Lucide/Form chrome; importing enum parse from `components/**` |
+| view-models | Domain→VM, form↔payload without re-coercing enums | `getSafe*` / `parse*` on domain/VM enum fields |
+| components | `iconMap`, tone CSS, `FormState`; present trusted enums | owning DB enum unions / coerce; `getSafe*` wrappers; hardcoding default enum strings |
+
+After a value is `AchievementDomainRow` or a detail/grid/feed VM, use enum fields directly (`detail.tone`, `iconMap[row.icon]`). Defaults live once as `DEFAULT_*` in `achievement-enums.ts` (shared by `parse*`). Do not re-wrap `parse*` as `getSafe*`.
 
 ## Do not scatter defensive checks
 
@@ -26,19 +36,15 @@ After a value crosses a validated boundary, **do not** repeat:
 Reserve runtime checks for **new** untrusted input (user typing in a form before submit, file uploads, third-party widgets) or true optional UI branches (e.g. nullable `title` on display).
 
 ```ts
-// ❌ BAD — DB row already normalized to AchievementRecord
-function GridItem({ achievement }: { achievement: AchievementRecord }) {
-  const title = achievement.title?.trim() ?? "Untitled";
-  const date = achievement.achieved_at ? new Date(achievement.achieved_at) : null;
-  if (Number.isNaN(date?.getTime())) return null;
-  // ...
+// ❌ BAD — domain/VM already has closed AchievementTone
+function Detail({ detail }: { detail: AchievementDetailViewModel }) {
+  const tone = getSafeTone(detail.tone);
 }
 
-// ✅ GOOD — trust AchievementRecord; formatting only
-function GridItem({ achievement }: { achievement: AchievementRecord }) {
-  return <span>{achievement.title ?? "Untitled"}</span>;
+// ✅ GOOD — trust the view model
+function Detail({ detail }: { detail: AchievementDetailViewModel }) {
+  return <span>{detail.tone}</span>;
 }
-// achieved_at shape enforced in normalizeAchievement / Zod transform
 ```
 
 ```ts
@@ -71,3 +77,4 @@ async function fetchFoo(): Promise<Foo> {
 - **New API or query**: add/update a Zod schema at the route or transformer; wire types from `z.infer`.
 - **New UI consumer**: take the validated domain type; do not accept `unknown` and re-check.
 - **Refactoring**: move repeated null/trim/date guards **up** into the boundary mapper, then delete downstream copies.
+- **Enums**: add members to `achievement-enums.ts` first; keep component `iconMap` / tone CSS maps complete for every key.

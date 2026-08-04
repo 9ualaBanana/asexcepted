@@ -16,7 +16,7 @@ import {
   sanitizeBadgeAssetPath,
 } from "@/lib/achievements/badge/shared/badge-assets";
 import { getImageKitServerClient, isImageKitServerConfigured } from "@/lib/imagekit/server-client";
-import { createServiceRoleClient } from "@/lib/supabase/service-role";
+import { createServiceRoleSupabase } from "@/lib/supabase/clients/server";
 
 export type BadgeModelUploadTarget = {
   modelPath: string;
@@ -44,7 +44,7 @@ function previewPathForModelPath(userId: string, modelPath: string): string {
 export async function createBadgeModelUploadTarget(
   userId: string,
 ): Promise<BadgeModelUploadTarget> {
-  const supabase = createServiceRoleClient();
+  const supabase = createServiceRoleSupabase();
   const assetId = crypto.randomUUID();
   const modelPath = buildBadgeModelPath(userId, assetId);
 
@@ -78,7 +78,7 @@ export async function completeBadgeModelUpload(
     throw new Error("The generated badge preview is too large.");
   }
 
-  const supabase = createServiceRoleClient();
+  const supabase = createServiceRoleSupabase();
   const { data: modelBlob, error: modelDownloadError } = await supabase.storage
     .from(BADGE_MODEL_BUCKET)
     .download(modelPath);
@@ -131,7 +131,7 @@ export async function createSignedBadgeModelUrl(
     throw new Error("Missing badge model asset path.");
   }
 
-  const supabase = createServiceRoleClient();
+  const supabase = createServiceRoleSupabase();
   const { data, error } = await supabase.storage
     .from(BADGE_MODEL_BUCKET)
     .createSignedUrl(assetPath, expiresInSeconds);
@@ -147,7 +147,7 @@ export async function deleteBadgeRemoteAsset(args: {
   iconFileId?: string | null;
   iconAssetPath?: string | null;
 }) {
-  const supabase = createServiceRoleClient();
+  const supabase = createServiceRoleSupabase();
 
   const assetPath = sanitizeBadgeAssetPath(args.iconAssetPath);
   const previewPath = assetPath ? badgePreviewPathFromModelPath(assetPath) : "";
@@ -202,7 +202,7 @@ async function downloadBadgeModelBundle(args: {
     assertUserOwnedBadgeModelPath(args.ownerUserId, sourceModelPath);
   }
 
-  const supabase = createServiceRoleClient();
+  const supabase = createServiceRoleSupabase();
   const { data: modelBlob, error: modelDownloadError } = await supabase.storage
     .from(BADGE_MODEL_BUCKET)
     .download(sourceModelPath);
@@ -243,7 +243,7 @@ async function uploadBadgeModelBundle(args: {
   previewBuffer: ArrayBuffer;
   upsert: boolean;
 }): Promise<ClonedBadgeModelAsset> {
-  const supabase = createServiceRoleClient();
+  const supabase = createServiceRoleSupabase();
 
   const modelUpload = await supabase.storage
     .from(BADGE_MODEL_BUCKET)

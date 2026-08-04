@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { createUserAchievementsLiveUpdateSource } from "@/lib/live-updates/domains/achievements/create-user-achievements-live-update-source";
 import { useLiveUpdateSubscription } from "@/lib/live-updates/react/use-live-update-subscription";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
 
 type UseUserAchievementsLiveUpdatesOptions = {
   /** Viewing someone else's collection (not owner edit mode). */
@@ -24,7 +24,7 @@ export function useUserAchievementsLiveUpdates({
   const [viewerId, setViewerId] = useState<string | null>(null);
 
   useEffect(() => {
-    const supabase = createClient();
+    const supabase = createBrowserSupabase();
     void supabase.auth.getUser().then(({ data }) => {
       setViewerId(data.user?.id ?? null);
     });
@@ -35,7 +35,7 @@ export function useUserAchievementsLiveUpdates({
 
   const createSource = useCallback(() => {
     if (!watchingOtherUser) return null;
-    const supabase = createClient();
+    const supabase = createBrowserSupabase();
     return createUserAchievementsLiveUpdateSource({
       client: supabase,
       profileUserId,

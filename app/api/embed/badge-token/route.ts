@@ -1,12 +1,12 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { getAchievementEmbedMintForOwner } from "@/lib/achievements/data/achievement-queries";
+import { getAchievementEmbedMintForOwner } from "@/lib/achievements/data/achievement-repository";
 import type { MintEmbedBadgeTokenRequestBody } from "@/lib/embed/embed-api-types";
 import { mintEmbedBadgeToken } from "@/lib/embed/embed-badge-token";
 import { allowRateLimit } from "@/lib/embed/embed-rate-limit";
 import { resolvePublicSiteOrigin } from "@/lib/public-site-origin";
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/clients/server";
 
 function clientIp(h: Headers): string {
   return (
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
-  const supabase = await createClient();
+  const supabase = await createServerSupabase();
   const {
     data: { user },
   } = await supabase.auth.getUser();

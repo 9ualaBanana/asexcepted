@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
 import {
   countProfileFollowsForFollower,
   createProfileFollow,
@@ -46,7 +46,7 @@ export function FollowButton({
   initialFollowing,
   onFirstFollow,
 }: FollowButtonProps) {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = useMemo(() => createBrowserSupabase(), []);
   const router = useRouter();
   const [following, setFollowing] = useState(initialFollowing);
   const [loading, setLoading] = useState(false);

@@ -6,7 +6,7 @@ import { AppPageShell } from "@/components/layout/app-page-shell";
 import { FriendsPanel } from "@/components/social/friends-panel";
 import { SocialPageSkeleton } from "@/components/social/inspa-page-skeleton";
 import { fetchFollowingUnlockFeed } from "@/lib/achievements/data/feed-db";
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/clients/server";
 import { loginWithNext, ROUTES } from "@/lib/routes";
 
 export default function InspaPage() {
@@ -18,7 +18,7 @@ export default function InspaPage() {
 }
 
 async function InspaPageInner() {
-  const supabase = await createClient();
+  const supabase = await createServerSupabase();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) {
     return redirect(loginWithNext(ROUTES.inspa));

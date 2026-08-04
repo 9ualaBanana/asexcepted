@@ -13,7 +13,7 @@ import {
   rejectDedication,
 } from "@/lib/achievements/data/dedication-db";
 import { fetchPublicUserDisplayName } from "@/lib/achievements/data/user-profile-db";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
 import { userCollection } from "@/lib/routes";
 import { showErrorToast } from "@/lib/toast";
 
@@ -43,7 +43,7 @@ export function useDedicationQueueController({
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const supabase = createClient();
+  const supabase = createBrowserSupabase();
 
   const [queue, setQueue] = useState<AchievementDetailViewModel[]>([]);
   const [active, setActive] = useState<AchievementDetailViewModel | null>(null);

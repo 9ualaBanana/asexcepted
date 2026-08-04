@@ -18,10 +18,10 @@ import {
   getImageKitServerClient,
   isImageKitServerConfigured,
 } from "@/lib/imagekit/server-client";
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/clients/server";
 
 export async function DELETE(req: Request) {
-  const supabase = await createClient();
+  const supabase = await createServerSupabase();
   const {
     data: { user },
   } = await supabase.auth.getUser();

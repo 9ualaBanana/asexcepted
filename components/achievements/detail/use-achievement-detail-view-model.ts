@@ -2,9 +2,12 @@
 
 import { useEffect, useMemo } from "react";
 
-import { resolveTone } from "@/components/achievements/achievement-manager-utils";
-import { getSafeIcon } from "@/components/achievements/achievement-editor-shared";
+import { iconMap } from "@/components/achievements/achievement-editor-shared";
 import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
+import {
+  DEFAULT_ACHIEVEMENT_ICON_KEY,
+  DEFAULT_ACHIEVEMENT_TONE,
+} from "@/lib/achievements/data/achievement-enums";
 import { prewarmBadgeRenderCache } from "@/lib/achievements/badge/shared/render-cache";
 import { getAlphaMaskStyle } from "@/lib/achievements/badge/parallax/shape-utils";
 
@@ -23,8 +26,9 @@ export function useAchievementDetailViewModel({
   detailIsLockedUi,
   readOnly,
 }: UseAchievementDetailViewModelArgs) {
-  const DetailFallbackIcon = detailAchievement?.FallbackIcon ?? getSafeIcon("trophy");
-  const detailTone = useMemo(() => resolveTone(detailAchievement), [detailAchievement]);
+  const DetailFallbackIcon =
+    detailAchievement?.FallbackIcon ?? iconMap[DEFAULT_ACHIEVEMENT_ICON_KEY];
+  const detailTone = detailAchievement?.tone ?? DEFAULT_ACHIEVEMENT_TONE;
   const detailMaskStyle = useMemo(
     () => (detailRenderSrc ? getAlphaMaskStyle(detailRenderSrc) : null),
     [detailRenderSrc],

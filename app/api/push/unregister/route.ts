@@ -3,14 +3,14 @@ import { z } from "zod";
 
 import { getAdminSignupsTopic, getAdminUserId } from "@/lib/admin";
 import { getFirebaseAdminMessaging } from "@/lib/push/firebase-admin";
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/clients/server";
 
 const bodySchema = z.object({
   token: z.string().trim().min(20),
 });
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
+  const supabase = await createServerSupabase();
   const {
     data: { user },
   } = await supabase.auth.getUser();

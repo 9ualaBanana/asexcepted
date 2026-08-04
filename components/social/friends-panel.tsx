@@ -14,7 +14,7 @@ import { usePathname } from "next/navigation";
 import { useNavigationSequence } from "@/components/navigation/app-navigation-provider";
 import { ProfileAvatarSlot } from "@/components/profile/profile-avatar-slot";
 import { useInspaUiStateMachine } from "@/components/social/use-inspa-ui-state-machine";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
 import { profileListLabel } from "@/lib/profile-label";
 import { ROUTES, userCollection } from "@/lib/routes";
 import { useErrorToast } from "@/lib/toast";
@@ -53,7 +53,7 @@ function ProfilesRailSkeleton() {
 export function FriendsPanel({ viewerId }: FriendsPanelProps) {
   const pathname = usePathname();
   const navigationSequence = useNavigationSequence();
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = useMemo(() => createBrowserSupabase(), []);
   const searchRootRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const lastPromptAnimationNonceRef = useRef(0);

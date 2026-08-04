@@ -6,7 +6,7 @@ import {
   signInWithOAuthProvider,
 } from "@/lib/auth/oauth-providers";
 import { authCallbackUrl } from "@/lib/routes";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
 import { useErrorToast } from "@/lib/toast";
 
 type GoogleSignInButtonProps = {
@@ -23,7 +23,7 @@ export function GoogleSignInButton({ next }: GoogleSignInButtonProps) {
     setBusy(true);
     setError(null);
     try {
-      const supabase = createClient();
+      const supabase = createBrowserSupabase();
       const redirectTo = authCallbackUrl(window.location.origin, next);
       await signInWithOAuthProvider(supabase, "google", redirectTo);
     } catch (err) {

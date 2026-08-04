@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { resolveDisplayName, sendPushToUsers } from "@/lib/notifications";
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/clients/server";
 
 const bodySchema = z.object({
   achievementId: z.string().uuid(),
@@ -15,7 +15,7 @@ type RpcResult = {
 };
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
+  const supabase = await createServerSupabase();
   const {
     data: { user },
   } = await supabase.auth.getUser();

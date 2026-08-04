@@ -7,13 +7,13 @@ import {
   type BadgeModelUploadSuccess,
 } from "@/lib/achievements/client/badge-asset-api";
 import { fetchFailureMessage } from "@/lib/client/fetch-json";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
 
 async function uploadBadgeModelToSignedUrl(
   target: { modelPath: string; token: string },
   model: File,
 ): Promise<Result<void, string>> {
-  const supabase = createClient();
+  const supabase = createBrowserSupabase();
   const { error } = await supabase.storage
     .from(BADGE_MODEL_BUCKET)
     .uploadToSignedUrl(target.modelPath, target.token, model, {

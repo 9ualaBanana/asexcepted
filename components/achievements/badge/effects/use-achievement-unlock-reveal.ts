@@ -10,7 +10,7 @@ import {
   type SetStateAction,
 } from "react";
 
-import { unlockAchievement } from "@/lib/achievements/data/achievement-db";
+import { unlockAchievement } from "@/lib/achievements/data/achievement-repository";
 import {
   UNLOCK_HOLD_DURATION_MS,
   UNLOCK_REVEAL_DURATION_MS,
@@ -32,9 +32,9 @@ import {
   type AlphaMaskData,
 } from "@/lib/achievements/badge/parallax/shape-utils";
 import { ensureBadgeAlphaMaskData } from "@/lib/achievements/badge/shared/render-cache";
-import { type createClient } from "@/lib/supabase/client";
+import { type createBrowserSupabase } from "@/lib/supabase/clients/browser";
 
-type SupabaseClient = ReturnType<typeof createClient>;
+type SupabaseClient = ReturnType<typeof createBrowserSupabase>;
 
 const DEFAULT_HOLD_MS = 480;
 const DEFAULT_REVEAL_MS = 1200;

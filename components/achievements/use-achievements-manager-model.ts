@@ -54,7 +54,7 @@ import {
   type AchievementAuthContext,
 } from "@/lib/auth/achievement-ability";
 import { fetchPublicUserDisplayName } from "@/lib/achievements/data/user-profile-db";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -86,7 +86,7 @@ export function useAchievementsManagerModel({
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = useMemo(() => createBrowserSupabase(), []);
   const [achievements, setAchievements] = useState<AchievementCollectionEntryViewModel[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);

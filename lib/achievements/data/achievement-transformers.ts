@@ -1,17 +1,15 @@
 import { err, ok, type Result } from "neverthrow";
 
 import {
-  type AchievementTone,
-  getSafeTone,
-} from "@/components/achievements/achievement-manager-utils";
-import {
   type AchievementIconKey,
-  type IconAssetKind,
+  type AchievementTone,
   type AchievementVisibility,
-  getSafeIconAssetKind,
-  getSafeIconKey,
-  getSafeVisibility,
-} from "@/components/achievements/achievement-editor-shared";
+  type IconAssetKind,
+  parseIconAssetKind,
+  parseIconKey,
+  parseTone,
+  parseVisibility,
+} from "@/lib/achievements/data/achievement-enums";
 import { normalizeBadgeIconUrl } from "@/lib/achievements/badge/shared/badge-assets";
 
 /** Normalized DB row — map to view models before leaving the data layer. */
@@ -58,10 +56,10 @@ export function coerceAchievementDbRow(row: Record<string, unknown>): Achievemen
     title: (row.title as string | null) ?? null,
     description: (row.description as string | null) ?? null,
     category: (row.category as string | null) ?? null,
-    icon: getSafeIconKey(row.icon as string | null | undefined),
+    icon: parseIconKey(row.icon as string | null | undefined),
     icon_url: normalizeBadgeIconUrl(row.icon_url as string | null | undefined),
     icon_file_id: iconFileId,
-    icon_asset_kind: getSafeIconAssetKind(row.icon_asset_kind as string | null | undefined),
+    icon_asset_kind: parseIconAssetKind(row.icon_asset_kind as string | null | undefined),
     icon_asset_path:
       typeof row.icon_asset_path === "string" ? row.icon_asset_path.trim() || null : null,
     icon_cc_attribution:
@@ -76,11 +74,11 @@ export function coerceAchievementDbRow(row: Record<string, unknown>): Achievemen
       typeof row.icon_model_animation_speed === "number"
         ? Math.min(2, Math.max(0.1, row.icon_model_animation_speed))
         : 1,
-    tone: getSafeTone(row.tone as string | null | undefined),
+    tone: parseTone(row.tone as string | null | undefined),
     is_locked: Boolean(row.is_locked),
     achieved_at: (row.achieved_at as string | null) ?? null,
     created_at: String(row.created_at ?? ""),
-    visibility: getSafeVisibility(row.visibility as string | null | undefined),
+    visibility: parseVisibility(row.visibility as string | null | undefined),
     impression_count: 0,
     dedicated_by_user_id: (row.dedicated_by_user_id as string | null) ?? null,
     dedication_status: dedicationStatus,

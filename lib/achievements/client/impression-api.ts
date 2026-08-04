@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { postJson } from "@/lib/client/fetch-json";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
 
 const impressionResponseSchema = z.object({
   ok: z.boolean().optional(),
@@ -15,7 +15,7 @@ export type ImpressionResult =
 export async function postAchievementImpression(
   achievementId: string,
 ): Promise<ImpressionResult> {
-  const supabase = createClient();
+  const supabase = createBrowserSupabase();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) {
     return { ok: false, added: false };

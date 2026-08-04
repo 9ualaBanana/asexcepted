@@ -2,7 +2,7 @@ import { Lock } from "lucide-react";
 
 import { type AchievementTone } from "@/components/achievements/achievement-manager-utils";
 import {
-  getSafeIcon,
+  iconMap,
   type AchievementIconKey,
 } from "@/components/achievements/achievement-editor-shared";
 import { cn } from "@/lib/utils";
@@ -60,7 +60,7 @@ export function FallbackBadge({
   icon,
   className,
 }: FallbackBadgeProps) {
-  const FallbackIcon = getSafeIcon(icon);
+  const FallbackIcon = iconMap[icon];
 
   return (
     <div

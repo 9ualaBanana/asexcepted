@@ -28,37 +28,20 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { type AchievementTone } from "@/components/achievements/achievement-manager-utils";
 import { SpiralIcon } from "@/components/ui/spiral-icon";
+import {
+  type AchievementIconKey,
+  type AchievementTone,
+  type AchievementVisibility,
+  type IconAssetKind,
+} from "@/lib/achievements/data/achievement-enums";
 
-export type AchievementIconKey =
-  | "trophy"
-  | "medal"
-  | "star"
-  | "sparkles"
-  | "flame"
-  | "award"
-  | "rocket"
-  | "shield"
-  | "compass"
-  | "globe"
-  | "leaf"
-  | "gem"
-  | "zap"
-  | "crown"
-  | "brain"
-  | "heart"
-  | "target"
-  | "book"
-  | "camera"
-  | "palette"
-  | "orbit"
-  | "puzzle"
-  | "waves"
-  | "sunrise"
-  | "flag"
-  | "pen"
-  | "spiral";
+export type {
+  AchievementIconKey,
+  AchievementTone,
+  AchievementVisibility,
+  IconAssetKind,
+};
 
 export const iconMap: Record<AchievementIconKey, LucideIcon> = {
   trophy: Trophy,
@@ -89,33 +72,6 @@ export const iconMap: Record<AchievementIconKey, LucideIcon> = {
   pen: PenLine,
   spiral: SpiralIcon as LucideIcon,
 };
-
-export function getSafeIconKey(value?: string | null): AchievementIconKey {
-  if (value && value in iconMap) {
-    return value as AchievementIconKey;
-  }
-  return "trophy";
-}
-
-export function getSafeIcon(value?: string | null): LucideIcon {
-  return iconMap[getSafeIconKey(value)];
-}
-
-export type AchievementVisibility = "public" | "private";
-
-export type IconAssetKind = "image" | "model_glb";
-
-export function getSafeIconAssetKind(
-  value?: string | null,
-): IconAssetKind {
-  return value === "model_glb" ? "model_glb" : "image";
-}
-
-export function getSafeVisibility(
-  value?: string | null,
-): AchievementVisibility {
-  return value === "private" ? "private" : "public";
-}
 
 export type FormState = {
   title: string;

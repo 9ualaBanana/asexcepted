@@ -2,10 +2,10 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { getAchievementDedicationNotifyRow } from "@/lib/achievements/data/achievement-queries";
+import { getAchievementDedicationNotifyRow } from "@/lib/achievements/data/achievement-repository";
 import { sendPushToUsers } from "@/lib/notifications/send";
 import { resolveDisplayName } from "@/lib/notifications/templates";
-import { createServiceRoleClient } from "@/lib/supabase/service-role";
+import { createServiceRoleSupabase } from "@/lib/supabase/clients/server";
 
 export async function notifyDedicationAccepted(args: {
   achievementId: string;
@@ -22,7 +22,7 @@ async function notifyDedicationAcceptedInner(args: {
   achievementId: string;
   supabase?: SupabaseClient;
 }): Promise<void> {
-  const supabase = args.supabase ?? createServiceRoleClient();
+  const supabase = args.supabase ?? createServiceRoleSupabase();
   const achievementResult = await getAchievementDedicationNotifyRow(
     supabase,
     args.achievementId,

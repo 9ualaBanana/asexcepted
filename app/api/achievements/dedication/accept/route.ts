@@ -3,14 +3,14 @@ import { z } from "zod";
 
 import { acceptPendingDedicationForRecipient } from "@/lib/achievements/data/dedication-db";
 import { notifyDedicationAccepted } from "@/lib/notifications/dedication-accepted";
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/clients/server";
 
 const bodySchema = z.object({
   achievementId: z.uuid(),
 });
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
+  const supabase = await createServerSupabase();
   const {
     data: { user },
   } = await supabase.auth.getUser();

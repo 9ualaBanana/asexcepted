@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/clients/server";
 import { ROUTES, safeRedirectPath } from "@/lib/routes";
 import { onboardingAchievementDetailPath } from "@/lib/welcome/onboarding-redirect";
 import { seedIntroAchievementIfEmpty } from "@/lib/welcome/seed-intro-achievement";
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const supabase = await createClient();
+  const supabase = await createServerSupabase();
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
     return NextResponse.redirect(

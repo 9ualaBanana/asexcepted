@@ -1,15 +1,10 @@
 import type { LucideIcon } from "lucide-react";
 
 import {
-  type AchievementTone,
-  getSafeTone,
-} from "@/components/achievements/achievement-manager-utils";
-import {
   type AchievementIconKey,
-  type AchievementVisibility,
   type FormState,
   formatGridDate,
-  getSafeIcon,
+  iconMap,
   toNullable,
 } from "@/components/achievements/achievement-editor-shared";
 import { normalizeImageKitFileId } from "@/components/achievements/badge";
@@ -17,13 +12,17 @@ import {
   parseBadgeModelAsset,
   type BadgeModelAsset,
 } from "@/lib/achievements/badge/shared/badge-model-asset";
-import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
+import type {
+  AchievementTone,
+  AchievementVisibility,
+} from "@/lib/achievements/data/achievement-enums";
+import type { AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
+import type { AchievementDomainRow } from "@/lib/achievements/data/achievement-transformers";
 import {
   showsDedicatedBadgeAura,
   showsDedicatedBadgeEffect,
 } from "@/lib/achievements/dedication/dedication-utils";
-import type { AchievementDomainRow } from "@/lib/achievements/data/achievement-transformers";
-import type { AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
+import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
 import type { CollectionAchievementSnapshotSource } from "@/lib/share-invites/invite-snapshot";
 import { z } from "zod";
 
@@ -86,7 +85,7 @@ const detailToFormSchema = detailViewModelSchema.transform<FormState>((detail) =
   iconModelPitch: detail.model?.pitch ?? 0,
   iconModelAnimationPlay: detail.model?.animationPlay ?? true,
   iconModelAnimationSpeed: detail.model?.animationSpeed ?? 1,
-  tone: getSafeTone(detail.tone),
+  tone: detail.tone,
   isLocked: detail.isLocked,
   achievedAt: detail.achievedAt ?? "",
   visibility: detail.visibility,
@@ -166,7 +165,7 @@ export function domainRowToDetailViewModel(row: AchievementDomainRow): Achieveme
     iconFileId: row.icon_file_id,
     model,
     tone: row.tone,
-    FallbackIcon: getSafeIcon(row.icon),
+    FallbackIcon: iconMap[row.icon],
     isLocked: row.is_locked,
     achievedAt: row.achieved_at,
     createdAt: row.created_at,

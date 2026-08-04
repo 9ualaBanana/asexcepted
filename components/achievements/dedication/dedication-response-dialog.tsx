@@ -9,7 +9,6 @@ import {
   badgeOptionsForDetailInteractive,
 } from "@/components/achievements/badge";
 import { DedicationBylineChromeRow } from "@/components/achievements/dedication/dedication-byline-chrome-row";
-import { resolveTone } from "@/components/achievements/achievement-manager-utils";
 import { achievementDialogIconBtn } from "@/components/achievements/achievement-editor-shared";
 import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
 import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
@@ -34,7 +33,7 @@ export function DedicationResponseDialog({
 }: DedicationResponseDialogProps) {
   const unlockAlphaMaskRef = useRef(null);
   const unlockRevealClipPathRef = useRef("inset(0 0 0 0)");
-  const tone = resolveTone(detail);
+  const tone = detail.tone;
   const renderSrc = detail.renderSrc;
 
   useBodyScrollLock();

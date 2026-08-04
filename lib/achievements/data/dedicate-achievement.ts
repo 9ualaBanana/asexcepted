@@ -11,8 +11,13 @@ import {
   insertDedicatedAchievement,
   type DedicatedAchievementRow,
 } from "@/lib/achievements/data/dedication-db";
+import {
+  DEFAULT_ICON_ASSET_KIND,
+  parseIconKey,
+  parseTone,
+} from "@/lib/achievements/data/achievement-enums";
 import type { Database } from "@/lib/supabase/database.types";
-import { createServiceRoleClient } from "@/lib/supabase/service-role";
+import { createServiceRoleSupabase } from "@/lib/supabase/clients/server";
 
 type Client = SupabaseClient<Database>;
 type AchievementInsert = Database["public"]["Tables"]["achievements"]["Insert"];
@@ -77,13 +82,13 @@ function dedicateBodyToAchievementInsert(
   dedicatorUserId: string,
   badge: { iconUrl: string; iconAssetPath: string | null },
 ): AchievementInsert {
-  const iconAssetKind = body.icon_asset_kind ?? "image";
+  const iconAssetKind = body.icon_asset_kind ?? DEFAULT_ICON_ASSET_KIND;
   return {
     user_id: body.recipientUserId,
     title: body.title ?? null,
     description: body.description ?? null,
     category: body.category ?? null,
-    icon: body.icon ?? "trophy",
+    icon: parseIconKey(body.icon),
     icon_url: badge.iconUrl,
     icon_file_id: body.icon_file_id ?? null,
     icon_asset_kind: iconAssetKind,
@@ -96,7 +101,7 @@ function dedicateBodyToAchievementInsert(
       2,
       Math.max(0.1, body.icon_model_animation_speed ?? 1),
     ),
-    tone: body.tone ?? "teal",
+    tone: parseTone(body.tone),
     is_locked: true,
     achieved_at: body.achieved_at ?? null,
     visibility: "public",
@@ -109,7 +114,7 @@ async function resolveDedicatedBadge(
   body: DedicateAchievementBody,
   dedicatorUserId: string,
 ): Promise<Result<{ iconUrl: string; iconAssetPath: string | null }, DedicateAchievementFailure>> {
-  const iconAssetKind = body.icon_asset_kind ?? "image";
+  const iconAssetKind = body.icon_asset_kind ?? DEFAULT_ICON_ASSET_KIND;
   try {
     const resolved = await resolveClaimedBadgeIconFields({
       senderUserId: dedicatorUserId,
@@ -148,7 +153,7 @@ export async function createDedicatedAchievement(args: {
     return err(badgeResult.error);
   }
 
-  const supabase = args.supabase ?? createServiceRoleClient();
+  const supabase = args.supabase ?? createServiceRoleSupabase();
   const insertResult = await insertDedicatedAchievement(
     supabase,
     dedicateBodyToAchievementInsert(args.body, args.dedicatorUserId, badgeResult.value),

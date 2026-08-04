@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { seedIntroAchievementIfEmpty } from "@/lib/welcome/seed-intro-achievement";
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/clients/server";
 
 export async function POST() {
-  const supabase = await createClient();
+  const supabase = await createServerSupabase();
   const {
     data: { user },
   } = await supabase.auth.getUser();

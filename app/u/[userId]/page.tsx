@@ -6,7 +6,7 @@ import { AchievementsManager } from "@/components/achievements/achievements-mana
 import { ErrorToastOnce } from "@/components/toasts/error-toast-once";
 import { FollowButtonWrapper } from "@/components/social/follow-button";
 import { buildAchievementAuthContext } from "@/lib/auth/achievement-ability";
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/clients/server";
 import { isUserFollowingProfile } from "@/lib/achievements/data/user-profile-db";
 import { resolveAchievementsProfileUser } from "@/lib/user-achievements-page";
 
@@ -47,7 +47,7 @@ async function UserAchievementsContent({ params, searchParams }: PageProps) {
   const { userId: _userId } = await params;
   const { achievement: achievementParam } = await searchParams;
 
-  const supabase = await createClient();
+  const supabase = await createServerSupabase();
   const { data: userData } = await supabase.auth.getUser();
   const viewer = userData.user;
 

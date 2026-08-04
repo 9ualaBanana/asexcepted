@@ -2,17 +2,17 @@ import { NextResponse } from "next/server";
 
 import { requireAdminUser } from "@/lib/admin";
 import { formatDedicationActivityMessage } from "@/lib/notifications/activity-text";
-import { deleteAchievement } from "@/lib/achievements/data/achievement-db";
+import { deleteAchievementForOwner } from "@/lib/achievements/data/achievement-repository";
 import {
   createDedicatedAchievement,
   parseDedicateAchievementBody,
 } from "@/lib/achievements/data/dedicate-achievement";
 import { resolveDisplayName, sendPushToUsers } from "@/lib/notifications";
-import { createClient } from "@/lib/supabase/server";
-import { createServiceRoleClient } from "@/lib/supabase/service-role";
+import { createServerSupabase } from "@/lib/supabase/clients/server";
+import { createServiceRoleSupabase } from "@/lib/supabase/clients/server";
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
+  const supabase = await createServerSupabase();
   const {
     data: { user: admin },
   } = await supabase.auth.getUser();
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const service = createServiceRoleClient();
+  const service = createServiceRoleSupabase();
   const insertResult = await createDedicatedAchievement({
     supabase: service,
     dedicatorUserId: admin.id,
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
   });
 
   if (eventError) {
-    void deleteAchievement(service, row.id);
+    void deleteAchievementForOwner(service, row.id, body.recipientUserId);
     return NextResponse.json({ error: eventError.message }, { status: 500 });
   }
 

@@ -1,12 +1,14 @@
 import { unlockRevealLutSteps } from "@/lib/achievements/badge/parallax/shape-utils";
+import {
+  DEFAULT_ACHIEVEMENT_ICON_KEY,
+  DEFAULT_ACHIEVEMENT_TONE,
+  DEFAULT_ACHIEVEMENT_VISIBILITY,
+  DEFAULT_ICON_ASSET_KIND,
+  type AchievementTone,
+} from "@/lib/achievements/data/achievement-enums";
+import { type FormState } from "@/components/achievements/achievement-editor-shared";
 
-export type AchievementTone =
-  | "rose"
-  | "indigo"
-  | "teal"
-  | "orange"
-  | "lime"
-  | "fuchsia";
+export type { AchievementTone };
 
 export const achievementToneStyles: Record<AchievementTone, string> = {
   rose: "from-rose-300/20 via-pink-200/10 to-transparent border-rose-300/30",
@@ -29,15 +31,6 @@ export const achievementToneSwatches: Record<AchievementTone, string> = {
   fuchsia: "bg-fuchsia-400",
 };
 
-export function getSafeTone(value?: string | null): AchievementTone {
-  if (value && value in achievementToneStyles) {
-    return value as AchievementTone;
-  }
-  return "teal";
-}
-import { type FormState } from "@/components/achievements/achievement-editor-shared";
-import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
-
 export const UNLOCK_HOLD_DURATION_MS = Number(
   process.env.NEXT_PUBLIC_UNLOCK_HOLD_DURATION_MS,
 );
@@ -51,23 +44,19 @@ export function createInitialForm(): FormState {
     title: "",
     description: "",
     category: "",
-    icon: "trophy",
+    icon: DEFAULT_ACHIEVEMENT_ICON_KEY,
     iconUrl: "",
     iconFileId: "",
-    iconAssetKind: "image",
+    iconAssetKind: DEFAULT_ICON_ASSET_KIND,
     iconAssetPath: "",
     iconCcAttribution: "",
     iconModelYaw: 0,
     iconModelPitch: 0,
     iconModelAnimationPlay: true,
     iconModelAnimationSpeed: 1,
-    tone: "teal",
+    tone: DEFAULT_ACHIEVEMENT_TONE,
     isLocked: true,
     achievedAt: "",
-    visibility: "public",
+    visibility: DEFAULT_ACHIEVEMENT_VISIBILITY,
   };
-}
-
-export function resolveTone(detail: Pick<AchievementDetailViewModel, "tone"> | null) {
-  return getSafeTone(detail?.tone);
 }

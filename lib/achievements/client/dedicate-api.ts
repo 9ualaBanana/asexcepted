@@ -2,6 +2,10 @@ import { err, ok, type Result } from "neverthrow";
 import { z } from "zod";
 
 import type { AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
+import {
+  DEFAULT_ACHIEVEMENT_ICON_KEY,
+  DEFAULT_ACHIEVEMENT_TONE,
+} from "@/lib/achievements/data/achievement-enums";
 import { fetchFailureMessage, postJson } from "@/lib/client/fetch-json";
 
 export type DedicateAchievementApiBody = {
@@ -36,7 +40,7 @@ export function payloadToDedicateApiBody(
     title: payload.title,
     description: payload.description,
     category: payload.category,
-    icon: payload.icon ?? "trophy",
+    icon: payload.icon ?? DEFAULT_ACHIEVEMENT_ICON_KEY,
     icon_url: payload.icon_url,
     icon_file_id: payload.icon_file_id,
     icon_asset_kind: payload.icon_asset_kind,
@@ -46,7 +50,7 @@ export function payloadToDedicateApiBody(
     icon_model_pitch: payload.icon_model_pitch,
     icon_model_animation_play: payload.icon_model_animation_play,
     icon_model_animation_speed: payload.icon_model_animation_speed,
-    tone: payload.tone ?? "teal",
+    tone: payload.tone ?? DEFAULT_ACHIEVEMENT_TONE,
     achieved_at: payload.achieved_at,
   };
 }

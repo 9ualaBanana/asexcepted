@@ -1,11 +1,8 @@
 import {
-  type AchievementTone,
-  getSafeTone,
-} from "@/components/achievements/achievement-manager-utils";
-import {
   type AchievementIconKey,
-  getSafeIconKey,
-} from "@/components/achievements/achievement-editor-shared";
+  type AchievementTone,
+  type IconAssetKind,
+} from "@/lib/achievements/data/achievement-enums";
 import {
   isModelBadgeAssetKind,
   normalizeBadgeIconUrl,
@@ -73,10 +70,10 @@ type FeedRowSource = {
   title: string | null;
   description: string | null;
   category: string | null;
-  icon: string;
+  icon: AchievementIconKey;
   icon_url: string | null;
-  icon_asset_kind: string;
-  tone: string;
+  icon_asset_kind: IconAssetKind;
+  tone: AchievementTone;
   achieved_at: string | null;
   created_at: string;
   updated_at: string;
@@ -112,9 +109,9 @@ export function feedRowSourceToViewModel(row: FeedRowSource): AchievementFeedIte
     title: row.title,
     description: row.description,
     category: row.category,
-    icon: getSafeIconKey(row.icon),
+    icon: row.icon,
     displaySrc,
-    tone: getSafeTone(row.tone),
+    tone: row.tone,
     showDedicatedEffect:
       isDedicated && !isModelBadgeAssetKind(row.icon_asset_kind) && iconUrl !== null,
     isDedicated,

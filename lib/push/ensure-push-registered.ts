@@ -4,7 +4,7 @@ import { getToken } from "firebase/messaging";
 
 import { postPushRegister } from "@/lib/push/client/push-api";
 import { ROUTES } from "@/lib/routes";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
 import { getFirebaseMessagingClient } from "@/lib/push/firebase-client";
 
 export type EnsurePushResult =
@@ -41,7 +41,7 @@ export async function ensurePushRegistered({
   }
   if (permission !== "granted") return "permission-denied";
 
-  const supabase = createClient();
+  const supabase = createBrowserSupabase();
   const {
     data: { user },
   } = await supabase.auth.getUser();

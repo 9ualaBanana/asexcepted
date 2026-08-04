@@ -2,13 +2,13 @@ import "server-only";
 
 import { err, ok, type Result } from "neverthrow";
 
-import { deleteAchievementForOwner } from "@/lib/achievements/data/achievement-db";
 import {
+  deleteAchievementForOwner,
   getAchievementIdForOwner,
   getAchievementOwnerUserId,
   getAchievementShareInviteSnapshotRow,
   type AchievementShareInviteSnapshotRow,
-} from "@/lib/achievements/data/achievement-queries";
+} from "@/lib/achievements/data/achievement-repository";
 import { insertClaimedAchievementFromInvite } from "@/lib/achievements/data/dedication-db";
 import type { AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
 import { todayDateString } from "@/components/achievements/achievement-editor-shared";
@@ -20,7 +20,8 @@ import {
   resolveClaimedBadgeIconFields,
 } from "@/lib/achievements/badge/shared/badge-assets-server";
 import type { Tables } from "@/lib/supabase/database.types";
-import { createServiceRoleClient } from "@/lib/supabase/service-role";
+import type { ServiceRoleSupabaseClient } from "@/lib/supabase/clients/client-types";
+import { createServiceRoleSupabase } from "@/lib/supabase/clients/server";
 import { fetchPublicUserDisplayName } from "@/lib/achievements/data/user-profile-db";
 import { notifyDedicationAccepted } from "@/lib/notifications/dedication-accepted";
 import { userAchievementDetail } from "@/lib/routes";
@@ -79,7 +80,7 @@ export function getAchievementShareInviteOwnerDetailPath(
 }
 
 async function finalizeInviteBadgeAssetsOnRow(args: {
-  supabase: ReturnType<typeof createServiceRoleClient>;
+  supabase: ServiceRoleSupabaseClient;
   inviteId: string;
   badgeAssetOwnerUserId: string;
   snapshot: AchievementShareInviteSnapshot;
@@ -158,7 +159,7 @@ async function insertShareInviteWithSnapshot(args: {
     return err(snapshotValidation.error);
   }
 
-  const supabase = createServiceRoleClient();
+  const supabase = createServiceRoleSupabase();
   const token = createAchievementShareInviteToken();
   const tokenHash = hashAchievementShareInviteToken(token);
 
@@ -251,7 +252,7 @@ export async function createAchievementShareInviteFromExistingAchievement(args: 
     string
   >
 > {
-  const supabase = createServiceRoleClient();
+  const supabase = createServiceRoleSupabase();
   const snapshotResult = await getAchievementShareInviteSnapshotRow(
     supabase,
     args.achievementId,
@@ -345,7 +346,7 @@ export async function createAchievementShareInviteFromExistingAchievement(args: 
 export async function getAchievementShareInvitePresentationByToken(
   token: string,
 ): Promise<Result<AchievementShareInvitePresentation, "not-found" | string>> {
-  const supabase = createServiceRoleClient();
+  const supabase = createServiceRoleSupabase();
   const tokenHash = hashAchievementShareInviteToken(token);
   const { data, error } = await supabase
     .from("achievement_share_invites")
@@ -388,7 +389,7 @@ export async function getAchievementShareInvitePresentationByToken(
 
 async function releaseShareInviteClaimReservation(
   inviteId: string,
-  supabase = createServiceRoleClient(),
+  supabase = createServiceRoleSupabase(),
 ) {
   await supabase
     .from("achievement_share_invites")
@@ -405,7 +406,7 @@ export async function claimAchievementShareInvite(args: {
   claimerUserId: string;
   autoAccept: boolean;
 }): Promise<Result<ClaimAchievementShareInviteSuccess, string>> {
-  const supabase = createServiceRoleClient();
+  const supabase = createServiceRoleSupabase();
   const tokenHash = hashAchievementShareInviteToken(args.token);
   const claimedAt = new Date().toISOString();
 

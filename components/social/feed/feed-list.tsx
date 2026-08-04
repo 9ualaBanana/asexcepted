@@ -8,7 +8,7 @@ import type { FeedPage } from "@/lib/achievements/data/feed-db";
 import { fetchFollowingUnlockFeed } from "@/lib/achievements/data/feed-db";
 import { useFeedLiveUpdates } from "@/lib/live-updates";
 import { ROUTES } from "@/lib/routes";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
 import { useErrorToast } from "@/lib/toast";
 
 type FeedListProps = {
@@ -32,7 +32,7 @@ export function FeedList({ initialPage, initialError = null }: FeedListProps) {
     const silent = opts?.silent ?? false;
     if (!silent) setRefreshing(true);
     setError(null);
-    const supabase = createClient();
+    const supabase = createBrowserSupabase();
     const pageResult = await fetchFollowingUnlockFeed(supabase, { limit: 20 });
     if (pageResult.isErr()) {
       setError(pageResult.error);
@@ -44,7 +44,7 @@ export function FeedList({ initialPage, initialError = null }: FeedListProps) {
   }, []);
 
   useEffect(() => {
-    const supabase = createClient();
+    const supabase = createBrowserSupabase();
     void supabase.auth.getUser().then(({ data }) => {
       setUserId(data.user?.id ?? null);
     });
@@ -82,7 +82,7 @@ export function FeedList({ initialPage, initialError = null }: FeedListProps) {
     if (!cursor || loading) return;
     setLoading(true);
     setError(null);
-    const supabase = createClient();
+    const supabase = createBrowserSupabase();
     const pageResult = await fetchFollowingUnlockFeed(supabase, {
       limit: 20,
       cursor,

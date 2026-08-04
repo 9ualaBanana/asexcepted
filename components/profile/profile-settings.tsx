@@ -30,7 +30,7 @@ import {
   unregisterDevicePushToken,
 } from "@/lib/push/device-push-status";
 import { useSoundsEnabledPreference } from "@/lib/local-storage";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
 import { useErrorToast } from "@/lib/toast";
 
 function displayNameFromMetadata(meta: Record<string, unknown> | null | undefined) {
@@ -51,7 +51,7 @@ export function ProfileSettings({
   onDirtyChange,
   registerDiscardHandler,
 }: ProfileSettingsProps) {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = useMemo(() => createBrowserSupabase(), []);
   const router = useRouter();
   const avatarSessionRef = useRef<ProfileAvatarUploadSession>(
     beginProfileAvatarSession(""),

@@ -16,12 +16,12 @@ import {
 } from "@/components/achievements/badge/upload/model/badge-model-pose-session";
 import { clearBadgeModelPoseSessionRef } from "@/components/achievements/badge/upload/model/use-badge-model-uploader";
 import {
-  getSafeIconAssetKind,
   type IconAssetKind,
   type RemoteAssetStorageSession,
   type FormState,
 } from "@/components/achievements/achievement-editor-shared";
 import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
+import { isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-model-asset";
 import { finalizeBadgeModelUpload } from "@/lib/achievements/client/badge-asset";
 import {
   createRemoteAssetStorageRef,
@@ -130,7 +130,7 @@ export function useBadgeSessionController({
       createRemoteAssetStorageRef({
         iconFileId: asset.iconFileId,
         modelAssetPath:
-          getSafeIconAssetKind(asset.iconAssetKind) === "model_glb"
+          isModelBadgeAssetKind(asset.iconAssetKind)
             ? asset.iconAssetPath
             : null,
       }),

@@ -3,7 +3,7 @@
 import { useCallback, type FormEvent } from "react";
 
 import { ACHIEVEMENT_UI_COPY } from "@/components/achievements/share/achievement-ui-copy";
-import { createAchievement, updateAchievement } from "@/lib/achievements/data/achievement-db";
+import { createAchievement, updateAchievement } from "@/lib/achievements/data/achievement-repository";
 import {
   canEditDedicatedVisibility,
   isDedicatedAchievement,

@@ -5,6 +5,22 @@ export type {
   AchievementDbWritePayload,
 } from "./data/achievement-db-schema";
 export {
+  ACHIEVEMENT_ICON_KEYS,
+  ACHIEVEMENT_TONES,
+  DEFAULT_ACHIEVEMENT_ICON_KEY,
+  DEFAULT_ACHIEVEMENT_TONE,
+  DEFAULT_ACHIEVEMENT_VISIBILITY,
+  DEFAULT_ICON_ASSET_KIND,
+  parseIconAssetKind,
+  parseIconKey,
+  parseTone,
+  parseVisibility,
+  type AchievementIconKey,
+  type AchievementTone,
+  type AchievementVisibility,
+  type IconAssetKind,
+} from "./data/achievement-enums";
+export {
   tryNormalizeAchievement,
   coerceAchievementDbRow,
   type AchievementDomainRow,
@@ -28,10 +44,12 @@ export {
 export {
   createAchievement,
   deleteAchievement,
+  getAchievementEmbedBadgeById,
+  getAchievementEmbedMintForOwner,
   listAchievements,
   unlockAchievement,
   updateAchievement,
-} from "./data/achievement-db";
+} from "./data/achievement-repository";
 export {
   attachImpressionCounts,
   fetchImpressionCountMap,
@@ -52,10 +70,6 @@ export {
   type FeedCursor,
   type FeedPage,
 } from "./data/feed-db";
-export {
-  getAchievementEmbedBadgeById,
-  getAchievementEmbedMintForOwner,
-} from "./data/achievement-queries";
 
 export {
   canEditDedicatedVisibility,

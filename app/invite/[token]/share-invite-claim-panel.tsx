@@ -11,7 +11,7 @@ import {
   userCollection,
 } from "@/lib/routes";
 import { postClaimAchievementShareInvite } from "@/lib/achievements/client/share-invite-api";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
 import { showErrorToast } from "@/lib/toast";
 
 type ShareInviteClaimPanelProps = {
@@ -45,7 +45,7 @@ export function ShareInviteClaimPanel({
   const autoAccept = searchParams.get("auto") === "1";
 
   useEffect(() => {
-    const supabase = createClient();
+    const supabase = createBrowserSupabase();
     void supabase.auth.getUser().then(({ data: { user } }) => {
       setAuthState({ ready: true, userId: user?.id ?? null });
     });

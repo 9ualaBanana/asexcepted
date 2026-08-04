@@ -3,10 +3,10 @@ import { Suspense } from "react";
 import { WelcomePage } from "@/components/welcome/welcome-page";
 import { WelcomePageSkeleton } from "@/components/welcome/welcome-page-skeleton";
 import { ROUTES } from "@/lib/routes";
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/clients/server";
 
 async function HomePageInner() {
-  const supabase = await createClient();
+  const supabase = await createServerSupabase();
   const { data: userData } = await supabase.auth.getUser();
   if (userData.user) {
     redirect(ROUTES.inspa);

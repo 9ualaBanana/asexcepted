@@ -24,11 +24,16 @@ When you introduce a **replacement** for an existing export (type, function, com
 - Rename related helpers, files, or routes when the product name changed (stay consistent end-to-end).
 - Use `@link` in deprecation comments when the replacement lives in the same file or is easy to discover.
 
+## In-repo scope
+
+When the blast radius is in this repository, **port callers and remove the old symbol in the same change**. Do not leave long-lived deprecated aliases that only rename types (`export type Old = New`) once zero in-repo callers remain. Thin aliases are for brief transition mid-PR or documented external packages — not permanent dual homes.
+
 ## Avoid
 
 - Leaving most call sites on deprecated names while only adding the new export.
 - Introducing a second parallel implementation instead of delegating the old symbol to the new one.
 - Deleting the old symbol in the same PR without porting callers (unless the symbol was unused).
+- Keeping in-repo-only `@deprecated` shims across PRs when callers could have been ported.
 
 ## Examples
 

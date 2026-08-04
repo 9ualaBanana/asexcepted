@@ -5,9 +5,9 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/achievements/badge/display/badge";
 import { badgeOptionsForEmbed } from "@/components/achievements/badge/display/badge-presets";
 import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/shared/badge-assets-server";
-import { getAchievementEmbedBadgeById } from "@/lib/achievements/data/achievement-queries";
+import { getAchievementEmbedBadgeById } from "@/lib/achievements/data/achievement-repository";
 import { verifyEmbedBadgeToken } from "@/lib/embed/embed-badge-token";
-import { createAnonServerClient } from "@/lib/supabase/server-anon";
+import { createAnonSupabase } from "@/lib/supabase/clients/server";
 
 import { EmbedTransparentSurface } from "./embed-transparent-surface";
 
@@ -30,7 +30,7 @@ export async function EmbedBadgeContent({ params }: Props) {
     notFound();
   }
 
-  const supabase = createAnonServerClient();
+  const supabase = createAnonSupabase();
   const badgeResult = await getAchievementEmbedBadgeById(supabase, payload.achievementId);
 
   if (badgeResult.isErr()) {

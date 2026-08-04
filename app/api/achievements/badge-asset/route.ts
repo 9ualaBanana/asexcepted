@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { deleteBadgeRemoteAsset } from "@/lib/achievements/badge/shared/badge-assets-server";
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/clients/server";
 
 const deleteBadgeAssetBodySchema = z.object({
   iconFileId: z.string().nullable().optional(),
@@ -11,7 +11,7 @@ const deleteBadgeAssetBodySchema = z.object({
 });
 
 export async function DELETE(request: Request) {
-  const supabase = await createClient();
+  const supabase = await createServerSupabase();
   const {
     data: { user },
   } = await supabase.auth.getUser();

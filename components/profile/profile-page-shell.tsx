@@ -7,7 +7,7 @@ import { LogoutButton } from "@/components/logout-button";
 import { ProfileSettings } from "@/components/profile/profile-settings";
 import { useUnsavedProfileGuard } from "@/components/profile/use-unsaved-profile-guard";
 import { ROUTES } from "@/lib/routes";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
 
 type ProfilePageShellProps = {
   isAdmin: boolean;
@@ -43,7 +43,7 @@ export function ProfilePageShell({ isAdmin }: ProfilePageShellProps) {
           onBeforeLogout={async () => {
             if (!dirty) return true;
             await requestBlockedAction(async () => {
-              const supabase = createClient();
+              const supabase = createBrowserSupabase();
               await supabase.auth.signOut();
               window.location.assign(ROUTES.home);
             });
