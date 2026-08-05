@@ -1,6 +1,6 @@
 import { err, ok, type Result } from "neverthrow";
 
-import { todayDateString } from "@/components/achievements/achievement-editor-shared";
+import { todayDateString } from "@/lib/feed/format-feed-event-time";
 import type {
   AchievementDbRow,
   AchievementDbWritePayload,

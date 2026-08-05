@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { createInitialForm } from "@/components/achievements/achievement-manager-utils";
-import { type FormState } from "@/components/achievements/achievement-editor-shared";
+import type { FormState } from "@/lib/achievements/data/achievement-form-state";
 import type { AchievementDialogStackProps } from "@/components/achievements/detail/achievement-dialog-stack";
 import {
   achievementDetailToForm,

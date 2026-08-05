@@ -11,7 +11,7 @@ import {
 } from "@/lib/achievements/data/achievement-repository";
 import { insertClaimedAchievementFromInvite } from "@/lib/achievements/data/dedication-db";
 import type { AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
-import { todayDateString } from "@/components/achievements/achievement-editor-shared";
+import { todayDateString } from "@/lib/feed/format-feed-event-time";
 import { isModelBadgeAssetKind, isShareInviteBadgeModelPath } from "@/lib/achievements/badge/shared/badge-assets";
 import { validateShareInviteBadgeSnapshot } from "@/lib/share-invites/eligibility";
 import { deleteShareInviteRollback } from "@/lib/share-invites/invite-rollback";

@@ -27,7 +27,7 @@ export function useAchievementDetailViewModel({
   readOnly,
 }: UseAchievementDetailViewModelArgs) {
   const DetailFallbackIcon =
-    detailAchievement?.FallbackIcon ?? iconMap[DEFAULT_ACHIEVEMENT_ICON_KEY];
+    iconMap[detailAchievement?.icon ?? DEFAULT_ACHIEVEMENT_ICON_KEY];
   const detailTone = detailAchievement?.tone ?? DEFAULT_ACHIEVEMENT_TONE;
   const detailMaskStyle = useMemo(
     () => (detailRenderSrc ? getAlphaMaskStyle(detailRenderSrc) : null),

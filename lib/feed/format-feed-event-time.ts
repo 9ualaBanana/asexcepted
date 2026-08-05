@@ -1,3 +1,26 @@
+/** Local calendar date YYYY-MM-DD (write defaults, unlock timestamps). */
+export function todayDateString() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/** Short month label for achievement collection grid cells. */
+export function formatGridDate(value: string | null) {
+  if (!value) return null;
+  const d = new Date(`${value}T00:00:00`);
+  return d.toLocaleDateString(undefined, { year: "numeric", month: "short" });
+}
+
+/** Long achieved-on label for detail / invite surfaces. */
+export function formatAchievedAt(value: string | null) {
+  if (!value) return undefined;
+  const parsed = new Date(`${value}T00:00:00`);
+  return parsed.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
 /** Relative or short absolute timestamp for feed activity rows. */
 export function formatFeedEventTimestamp(iso: string): string | null {
   const date = new Date(iso);

@@ -1,6 +1,5 @@
+import type { FormState } from "@/lib/achievements/data/achievement-form-state";
 import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
-import type { FormState } from "@/components/achievements/achievement-editor-shared";
-import { isModelGlbAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
 
 /** Sender-dedicated row (pending or accepted). */
 export function isDedicatedAchievement(
@@ -19,7 +18,7 @@ export function canEditDedicatedVisibility(
   );
 }
 
-/** In-collection dedication (accepted, or legacy row missing status). */
+/** Accepted (or legacy null status) dedication — gold aura, not pending gift queue. */
 export function showsDedicatedBadgeAura(
   achievement: Pick<
     AchievementDetailViewModel,
@@ -31,14 +30,12 @@ export function showsDedicatedBadgeAura(
   return true;
 }
 
-/** Grid/feed particle glitter — image badges only (not 3D GLB). */
+/** Particle glitter when dedicated aura applies and the badge is not a 3D model. */
 export function showsDedicatedBadgeEffect(
-  achievement: Pick<
-    AchievementDetailViewModel,
-    "dedicatedByUserId" | "dedicationStatus" | "model"
-  >,
+  showsAura: boolean,
+  isModelBadge: boolean,
 ): boolean {
-  return showsDedicatedBadgeAura(achievement) && !isModelGlbAsset(achievement.model);
+  return showsAura && !isModelBadge;
 }
 
 export function isDedicatedVisibilityDirty(

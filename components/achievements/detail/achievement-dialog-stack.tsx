@@ -30,9 +30,9 @@ import {
   achievementDialogChromeInset,
   achievementDialogIconSideSlot,
   type RemoteAssetStorageSession,
-  formatAchievedAt,
-  type FormState,
 } from "@/components/achievements/achievement-editor-shared";
+import type { FormState } from "@/lib/achievements/data/achievement-form-state";
+import { formatAchievedAt } from "@/lib/feed/format-feed-event-time";
 import { DedicationByline } from "@/components/achievements/dedication/dedication-byline";
 import { DedicationBylineChromeRow } from "@/components/achievements/dedication/dedication-byline-chrome-row";
 import { AchievementDetailShareMenu } from "@/components/achievements/share/achievement-detail-share-menu";

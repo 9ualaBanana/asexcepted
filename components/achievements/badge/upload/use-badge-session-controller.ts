@@ -18,8 +18,8 @@ import { clearBadgeModelPoseSessionRef } from "@/components/achievements/badge/u
 import {
   type IconAssetKind,
   type RemoteAssetStorageSession,
-  type FormState,
 } from "@/components/achievements/achievement-editor-shared";
+import type { FormState } from "@/lib/achievements/data/achievement-form-state";
 import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
 import { isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-model-asset";
 import { finalizeBadgeModelUpload } from "@/lib/achievements/client/badge-asset";

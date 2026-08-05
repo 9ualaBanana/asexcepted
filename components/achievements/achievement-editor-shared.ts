@@ -73,26 +73,6 @@ export const iconMap: Record<AchievementIconKey, LucideIcon> = {
   spiral: SpiralIcon as LucideIcon,
 };
 
-export type FormState = {
-  title: string;
-  description: string;
-  category: string;
-  icon: AchievementIconKey;
-  iconUrl: string;
-  iconFileId: string;
-  iconAssetKind: IconAssetKind;
-  iconAssetPath: string;
-  iconCcAttribution: string;
-  iconModelYaw: number;
-  iconModelPitch: number;
-  iconModelAnimationPlay: boolean;
-  iconModelAnimationSpeed: number;
-  tone: AchievementTone;
-  isLocked: boolean;
-  achievedAt: string;
-  visibility: AchievementVisibility;
-};
-
 export type {
   RemoteAssetStorageRef,
   RemoteAssetStorageSession,
@@ -101,41 +81,6 @@ export type {
 export {
   createRemoteAssetStorageRef,
 } from "@/lib/upload/remote-asset-storage";
-
-export function hasMeaningfulContent(form: FormState) {
-  return (
-    form.title.trim().length > 0 ||
-    form.description.trim().length > 0 ||
-    form.category.trim().length > 0 ||
-    form.iconUrl.trim().length > 0 ||
-    form.iconAssetPath.trim().length > 0
-  );
-}
-
-export function toNullable(value: string) {
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
-}
-
-export function todayDateString() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-export function formatGridDate(value: string | null) {
-  if (!value) return null;
-  const d = new Date(`${value}T00:00:00`);
-  return d.toLocaleDateString(undefined, { year: "numeric", month: "short" });
-}
-
-export function formatAchievedAt(value: string | null) {
-  if (!value) return undefined;
-  const parsed = new Date(`${value}T00:00:00`);
-  return parsed.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
 
 /** Achievement detail dialog: icon control (close, pen, trash, back, save). */
 export const achievementDialogIconBtn =

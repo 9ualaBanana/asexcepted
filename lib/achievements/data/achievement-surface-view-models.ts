@@ -3,14 +3,13 @@ import {
   type AchievementTone,
   type IconAssetKind,
 } from "@/lib/achievements/data/achievement-enums";
+import { normalizeBadgeIconUrl } from "@/lib/achievements/badge/shared/badge-assets";
 import {
   isModelBadgeAssetKind,
-  normalizeBadgeIconUrl,
-} from "@/lib/achievements/badge/shared/badge-assets";
-import {
   parseBadgeModelAsset,
   type BadgeModelAsset,
 } from "@/lib/achievements/badge/shared/badge-model-asset";
+import { showsDedicatedBadgeEffect } from "@/lib/achievements/dedication/dedication-utils";
 import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
 
 export type FeedEventType = "unlock" | "impression" | "dedication";
@@ -112,8 +111,10 @@ export function feedRowSourceToViewModel(row: FeedRowSource): AchievementFeedIte
     icon: row.icon,
     displaySrc,
     tone: row.tone,
-    showDedicatedEffect:
-      isDedicated && !isModelBadgeAssetKind(row.icon_asset_kind) && iconUrl !== null,
+    showDedicatedEffect: showsDedicatedBadgeEffect(
+      isDedicated,
+      isModelBadgeAssetKind(row.icon_asset_kind),
+    ),
     isDedicated,
     achievedAt: row.achieved_at,
     createdAt: row.created_at,

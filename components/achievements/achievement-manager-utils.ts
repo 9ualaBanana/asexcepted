@@ -1,14 +1,14 @@
 import { unlockRevealLutSteps } from "@/lib/achievements/badge/parallax/shape-utils";
 import {
-  DEFAULT_ACHIEVEMENT_ICON_KEY,
-  DEFAULT_ACHIEVEMENT_TONE,
-  DEFAULT_ACHIEVEMENT_VISIBILITY,
-  DEFAULT_ICON_ASSET_KIND,
   type AchievementTone,
 } from "@/lib/achievements/data/achievement-enums";
-import { type FormState } from "@/components/achievements/achievement-editor-shared";
+import {
+  createInitialForm,
+  type FormState,
+} from "@/lib/achievements/data/achievement-form-state";
 
 export type { AchievementTone };
+export { createInitialForm, type FormState };
 
 export const achievementToneStyles: Record<AchievementTone, string> = {
   rose: "from-rose-300/20 via-pink-200/10 to-transparent border-rose-300/30",
@@ -38,25 +38,3 @@ export const UNLOCK_REVEAL_DURATION_MS = Number(
   process.env.NEXT_PUBLIC_UNLOCK_REVEAL_DURATION_MS,
 );
 export const UNLOCK_REVEAL_LUT_STEPS = unlockRevealLutSteps();
-
-export function createInitialForm(): FormState {
-  return {
-    title: "",
-    description: "",
-    category: "",
-    icon: DEFAULT_ACHIEVEMENT_ICON_KEY,
-    iconUrl: "",
-    iconFileId: "",
-    iconAssetKind: DEFAULT_ICON_ASSET_KIND,
-    iconAssetPath: "",
-    iconCcAttribution: "",
-    iconModelYaw: 0,
-    iconModelPitch: 0,
-    iconModelAnimationPlay: true,
-    iconModelAnimationSpeed: 1,
-    tone: DEFAULT_ACHIEVEMENT_TONE,
-    isLocked: true,
-    achievedAt: "",
-    visibility: DEFAULT_ACHIEVEMENT_VISIBILITY,
-  };
-}

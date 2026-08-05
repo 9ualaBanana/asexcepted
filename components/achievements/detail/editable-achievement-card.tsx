@@ -26,9 +26,11 @@ import {
   achievementDialogChromeInset,
   achievementDialogIconSideSlot,
   type RemoteAssetStorageSession,
+} from "@/components/achievements/achievement-editor-shared";
+import {
   type FormState,
   hasMeaningfulContent,
-} from "@/components/achievements/achievement-editor-shared";
+} from "@/lib/achievements/data/achievement-form-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {

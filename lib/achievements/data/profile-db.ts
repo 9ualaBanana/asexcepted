@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { err, ok, type Result } from "neverthrow";
 
-import { normalizeImageKitFileId } from "@/components/achievements/badge";
+import { normalizeImageKitFileId } from "@/lib/imagekit/client/imagekit-api";
 
 export type ProfileRow = {
   user_id: string;
@@ -47,7 +47,7 @@ export async function updateProfileAvatar(
     .from("profile")
     .update({
       avatar_url: patch.avatar_url,
-      avatar_file_id: patch.avatar_file_id,
+      avatar_file_id: normalizeImageKitFileId(patch.avatar_file_id),
       updated_at: new Date().toISOString(),
     })
     .eq("user_id", userId);

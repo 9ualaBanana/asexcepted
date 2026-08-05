@@ -68,7 +68,6 @@ export {
   getReplacedRemoteAssetStorageRef,
   rollbackBadgeUploadSession,
 } from "./upload/badge-asset-session";
-export { normalizeImageKitFileId } from "@/lib/imagekit/client/imagekit-api";
 export { useBadgeImageUploader } from "./upload/image/use-badge-image-uploader";
 
 export { useBadgeMetricsController } from "./hooks/use-badge-metrics-controller";

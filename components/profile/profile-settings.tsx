@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { AdminProfileTools } from "@/components/admin/admin-profile-tools";
-import { normalizeImageKitFileId } from "@/components/achievements/badge";
 import { ProfileNotificationsSection } from "@/components/profile/profile-notifications-section";
 import {
   ProfilePreferenceRow,
@@ -79,8 +78,7 @@ export function ProfileSettings({
   const displayNameDirty = displayName.trim() !== savedDisplayName.trim();
   const avatarDirty =
     avatarPreviewUrl.trim() !== savedAvatarUrl.trim() ||
-    normalizeImageKitFileId(avatarFileId) !==
-      normalizeImageKitFileId(savedAvatarFileId);
+    avatarFileId.trim() !== savedAvatarFileId.trim();
   const isDirty = displayNameDirty || avatarDirty;
 
   useEffect(() => {
@@ -189,7 +187,7 @@ export function ProfileSettings({
 
     if (avatarDirty) {
       const nextUrl = avatarPreviewUrl.trim() || null;
-      const nextFileId = normalizeImageKitFileId(avatarFileId);
+      const nextFileId = avatarFileId.trim() || null;
       const avatarUpdate = await updateProfileAvatar(supabase, userId, {
         avatar_url: nextUrl,
         avatar_file_id: nextFileId,

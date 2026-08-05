@@ -9,7 +9,10 @@ import {
   isDedicatedAchievement,
 } from "@/lib/achievements/dedication/dedication-utils";
 import { createInitialForm } from "@/components/achievements/achievement-manager-utils";
-import { type FormState, hasMeaningfulContent } from "@/components/achievements/achievement-editor-shared";
+import {
+  type FormState,
+  hasMeaningfulContent,
+} from "@/lib/achievements/data/achievement-form-state";
 import type {
   AchievementCollectionEntryViewModel,
   AchievementDetailViewModel,

@@ -216,27 +216,19 @@ describe("domain → detail/grid trusts enums", () => {
 });
 
 describe("data layer import boundary", () => {
-  it("does not import achievement enum parse from components", () => {
+  it("does not import from components achievement UI modules", () => {
     const dataDir = path.resolve("lib/achievements/data");
     const files = readdirSync(dataDir).filter((f) => f.endsWith(".ts"));
     const forbidden = [
-      "from \"@/components/achievements/achievement-manager-utils\"",
-      "from '@/components/achievements/achievement-manager-utils'",
+      "from \"@/components/",
+      "from '@/components/",
     ];
-    const enumPullFromEditor: string[] = [];
     for (const file of files) {
       const text = readFileSync(path.join(dataDir, file), "utf8");
       for (const needle of forbidden) {
-        expect(text.includes(needle), `${file} imports manager-utils`).toBe(false);
-      }
-      if (
-        text.includes("achievement-editor-shared") &&
-        /parse(Tone|IconKey|Visibility|IconAssetKind)|getSafe/.test(text)
-      ) {
-        enumPullFromEditor.push(file);
+        expect(text.includes(needle), `${file} imports components`).toBe(false);
       }
     }
-    expect(enumPullFromEditor).toEqual([]);
     expect(
       readFileSync(path.join(dataDir, "achievement-enums.ts"), "utf8"),
     ).toMatch(/DEFAULT_ACHIEVEMENT_TONE/);

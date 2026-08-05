@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Badge } from "@/components/achievements/badge/display/badge";
 import { badgeOptionsForInvite } from "@/components/achievements/badge/display/badge-presets";
 import { BadgeAttributionPopover } from "@/components/achievements/badge";
-import { formatAchievedAt } from "@/components/achievements/achievement-editor-shared";
+import { formatAchievedAt } from "@/lib/feed/format-feed-event-time";
 import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/shared/badge-assets-server";
 import { shareInviteRowToBadgeViewModel } from "@/lib/achievements/data/achievement-surface-view-models";
 import { APP_DISPLAY_NAME } from "@/lib/brand";

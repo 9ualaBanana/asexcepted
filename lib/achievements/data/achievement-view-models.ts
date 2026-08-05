@@ -1,20 +1,18 @@
-import type { LucideIcon } from "lucide-react";
-
 import {
-  type AchievementIconKey,
   type FormState,
-  formatGridDate,
-  iconMap,
   toNullable,
-} from "@/components/achievements/achievement-editor-shared";
-import { normalizeImageKitFileId } from "@/components/achievements/badge";
+} from "@/lib/achievements/data/achievement-form-state";
 import {
+  isModelGlbAsset,
   parseBadgeModelAsset,
   type BadgeModelAsset,
 } from "@/lib/achievements/badge/shared/badge-model-asset";
-import type {
-  AchievementTone,
-  AchievementVisibility,
+import {
+  ACHIEVEMENT_ICON_KEYS,
+  ACHIEVEMENT_TONES,
+  type AchievementIconKey,
+  type AchievementTone,
+  type AchievementVisibility,
 } from "@/lib/achievements/data/achievement-enums";
 import type { AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
 import type { AchievementDomainRow } from "@/lib/achievements/data/achievement-transformers";
@@ -22,9 +20,106 @@ import {
   showsDedicatedBadgeAura,
   showsDedicatedBadgeEffect,
 } from "@/lib/achievements/dedication/dedication-utils";
+import { formatGridDate } from "@/lib/feed/format-feed-event-time";
+import { normalizeImageKitFileId } from "@/lib/imagekit/client/imagekit-api";
 import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
 import type { CollectionAchievementSnapshotSource } from "@/lib/share-invites/invite-snapshot";
 import { z } from "zod";
+
+const achievementIconKeySchema = z.enum(ACHIEVEMENT_ICON_KEYS);
+const achievementToneSchema = z.enum(ACHIEVEMENT_TONES);
+const achievementVisibilitySchema = z.enum(["public", "private"]);
+const iconAssetKindSchema = z.enum(["image", "model_glb"]);
+
+const badgeModelFormFieldsSchema = z.object({
+  assetPath: z.string(),
+  yaw: z.number(),
+  pitch: z.number(),
+  animationPlay: z.boolean(),
+  animationSpeed: z.number(),
+  ccAttribution: z.string().nullable(),
+});
+
+const detailToFormSchema = z
+  .object({
+    title: z.string().nullable(),
+    description: z.string().nullable(),
+    category: z.string().nullable(),
+    icon: achievementIconKeySchema,
+    iconUrl: z.string().nullable(),
+    iconFileId: z.string().nullable(),
+    model: badgeModelFormFieldsSchema.nullable(),
+    tone: achievementToneSchema,
+    isLocked: z.boolean(),
+    achievedAt: z.string().nullable(),
+    visibility: achievementVisibilitySchema,
+  })
+  .transform(
+    (detail): FormState => ({
+      title: detail.title ?? "",
+      description: detail.description ?? "",
+      category: detail.category ?? "",
+      icon: detail.icon,
+      iconUrl: detail.iconUrl ?? "",
+      iconFileId: detail.iconFileId ?? "",
+      iconAssetKind: detail.model ? "model_glb" : "image",
+      iconAssetPath: detail.model?.assetPath ?? "",
+      iconCcAttribution: detail.model?.ccAttribution ?? "",
+      iconModelYaw: detail.model?.yaw ?? 0,
+      iconModelPitch: detail.model?.pitch ?? 0,
+      iconModelAnimationPlay: detail.model?.animationPlay ?? true,
+      iconModelAnimationSpeed: detail.model?.animationSpeed ?? 1,
+      tone: detail.tone,
+      isLocked: detail.isLocked,
+      achievedAt: detail.achievedAt ?? "",
+      visibility: detail.visibility,
+    }),
+  );
+
+const formToPayloadSchema = z
+  .object({
+    title: z.string(),
+    description: z.string(),
+    category: z.string(),
+    icon: achievementIconKeySchema,
+    iconUrl: z.string(),
+    iconFileId: z.string(),
+    iconAssetKind: iconAssetKindSchema,
+    iconAssetPath: z.string(),
+    iconCcAttribution: z.string(),
+    iconModelYaw: z.number(),
+    iconModelPitch: z.number(),
+    iconModelAnimationPlay: z.boolean(),
+    iconModelAnimationSpeed: z.number(),
+    tone: achievementToneSchema,
+    isLocked: z.boolean(),
+    achievedAt: z.string(),
+    visibility: achievementVisibilitySchema,
+  })
+  .transform(
+    (form): AchievementDbWritePayload => ({
+      title: toNullable(form.title),
+      description: toNullable(form.description),
+      category: toNullable(form.category),
+      icon: form.icon,
+      icon_url: toNullable(form.iconUrl),
+      icon_file_id: normalizeImageKitFileId(form.iconFileId),
+      icon_asset_kind: form.iconAssetKind,
+      icon_asset_path: toNullable(form.iconAssetPath),
+      icon_cc_attribution: toNullable(form.iconCcAttribution),
+      icon_model_yaw: form.iconModelYaw,
+      icon_model_pitch: form.iconModelPitch,
+      icon_model_animation_play: form.iconModelAnimationPlay,
+      icon_model_animation_speed: Math.min(
+        2,
+        Math.max(0.1, form.iconModelAnimationSpeed),
+      ),
+      tone: form.tone,
+      is_locked: form.isLocked,
+      achieved_at: toNullable(form.achievedAt),
+      visibility: form.visibility,
+    }),
+  );
 
 export type AchievementGridViewModel = {
   id: string;
@@ -52,7 +147,6 @@ export type AchievementDetailViewModel = {
   /** Set when the badge is an uploaded GLB; null for flat image badges. */
   model: BadgeModelAsset | null;
   tone: AchievementTone;
-  FallbackIcon: LucideIcon;
   isLocked: boolean;
   achievedAt: string | null;
   createdAt: string;
@@ -68,50 +162,6 @@ export type AchievementCollectionEntryViewModel = {
   grid: AchievementGridViewModel;
   detail: AchievementDetailViewModel;
 };
-
-const detailViewModelSchema = z.custom<AchievementDetailViewModel>();
-
-const detailToFormSchema = detailViewModelSchema.transform<FormState>((detail) => ({
-  title: detail.title ?? "",
-  description: detail.description ?? "",
-  category: detail.category ?? "",
-  icon: detail.icon,
-  iconUrl: detail.iconUrl ?? "",
-  iconFileId: detail.iconFileId ?? "",
-  iconAssetKind: detail.model ? "model_glb" : "image",
-  iconAssetPath: detail.model?.assetPath ?? "",
-  iconCcAttribution: detail.model?.ccAttribution ?? "",
-  iconModelYaw: detail.model?.yaw ?? 0,
-  iconModelPitch: detail.model?.pitch ?? 0,
-  iconModelAnimationPlay: detail.model?.animationPlay ?? true,
-  iconModelAnimationSpeed: detail.model?.animationSpeed ?? 1,
-  tone: detail.tone,
-  isLocked: detail.isLocked,
-  achievedAt: detail.achievedAt ?? "",
-  visibility: detail.visibility,
-}));
-
-const formStateSchema = z.custom<FormState>();
-
-const formToPayloadSchema = formStateSchema.transform<AchievementDbWritePayload>((form) => ({
-  title: toNullable(form.title),
-  description: toNullable(form.description),
-  category: toNullable(form.category),
-  icon: form.icon,
-  icon_url: toNullable(form.iconUrl),
-  icon_file_id: normalizeImageKitFileId(form.iconFileId),
-  icon_asset_kind: form.iconAssetKind,
-  icon_asset_path: toNullable(form.iconAssetPath),
-  icon_cc_attribution: toNullable(form.iconCcAttribution),
-  icon_model_yaw: form.iconModelYaw,
-  icon_model_pitch: form.iconModelPitch,
-  icon_model_animation_play: form.iconModelAnimationPlay,
-  icon_model_animation_speed: Math.min(2, Math.max(0.1, form.iconModelAnimationSpeed)),
-  tone: form.tone,
-  is_locked: form.isLocked,
-  achieved_at: toNullable(form.achievedAt),
-  visibility: form.visibility,
-}));
 
 function createdAtMs(detail: AchievementDetailViewModel): number {
   return new Date(detail.createdAt).getTime();
@@ -165,18 +215,19 @@ export function domainRowToDetailViewModel(row: AchievementDomainRow): Achieveme
     iconFileId: row.icon_file_id,
     model,
     tone: row.tone,
-    FallbackIcon: iconMap[row.icon],
     isLocked: row.is_locked,
     achievedAt: row.achieved_at,
     createdAt: row.created_at,
     visibility: row.visibility,
     impressionCount: row.impression_count,
     hasCustomBadge: iconUrl !== null,
-    showDedicatedEffect: showsDedicatedBadgeEffect({
-      dedicatedByUserId: row.dedicated_by_user_id,
-      dedicationStatus: row.dedication_status,
-      model,
-    }),
+    showDedicatedEffect: showsDedicatedBadgeEffect(
+      showsDedicatedBadgeAura({
+        dedicatedByUserId: row.dedicated_by_user_id,
+        dedicationStatus: row.dedication_status,
+      }),
+      isModelGlbAsset(model),
+    ),
     dedicatedByUserId: row.dedicated_by_user_id,
     dedicationStatus: row.dedication_status,
   };
