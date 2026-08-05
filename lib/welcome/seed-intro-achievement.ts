@@ -1,4 +1,4 @@
-import { createAchievement, listAchievements } from "@/lib/achievements/data/achievement-repository";
+import { createAchievement, listAchievements } from "@/lib/achievements/persistence/achievements";
 import { INTRO_ACHIEVEMENT_SEED } from "@/lib/welcome/intro-achievement";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";

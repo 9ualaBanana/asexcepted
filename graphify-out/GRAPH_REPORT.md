@@ -290,7 +290,7 @@
 - 1-file cycle: `lib/tutorials/index.ts -> lib/tutorials/index.ts`
 - 1-file cycle: `lib/notifications/index.ts -> lib/notifications/index.ts`
 - 1-file cycle: `lib/share-invites/server.ts -> lib/share-invites/server.ts`
-- 2-file cycle: `lib/achievements/data/achievement-view-models.ts -> lib/achievements/index.ts -> lib/achievements/data/achievement-view-models.ts`
+- 2-file cycle: `lib/achievements/presentation/collection-view-models.ts -> lib/achievements/index.ts -> lib/achievements/presentation/collection-view-models.ts`
 - 2-file cycle: `lib/achievements/data/achievement-queries.ts -> lib/achievements/index.ts -> lib/achievements/data/achievement-queries.ts`
 
 ## Hyperedges (group relationships)

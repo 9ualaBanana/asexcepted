@@ -10,19 +10,19 @@ import {
   type SetStateAction,
 } from "react";
 
-import { unlockAchievement } from "@/lib/achievements/data/achievement-repository";
+import { unlockCollectionAchievement } from "@/lib/achievements/application/collection";
 import {
   UNLOCK_HOLD_DURATION_MS,
   UNLOCK_REVEAL_DURATION_MS,
   UNLOCK_REVEAL_LUT_STEPS,
 } from "@/components/achievements/achievement-manager-utils";
-import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
+import type { AchievementDetailViewModel } from "@/lib/achievements/presentation/collection-view-models";
 import {
   mapCollectionDetails,
   sortCollectionEntries,
   updateCollectionEntryDetail,
   type AchievementCollectionEntryViewModel,
-} from "@/lib/achievements/data/achievement-view-models";
+} from "@/lib/achievements/presentation/collection-view-models";
 import { useAchievementSounds } from "@/components/achievements/badge/effects/use-achievement-sounds";
 import { useRevealClipPathDriver } from "@/components/achievements/badge/effects/unlock-reveal-wave";
 import {
@@ -32,9 +32,6 @@ import {
   type AlphaMaskData,
 } from "@/lib/achievements/badge/parallax/shape-utils";
 import { ensureBadgeAlphaMaskData } from "@/lib/achievements/badge/shared/render-cache";
-import { type createBrowserSupabase } from "@/lib/supabase/clients/browser";
-
-type SupabaseClient = ReturnType<typeof createBrowserSupabase>;
 
 type UseAchievementUnlockRevealArgs = {
   readOnly: boolean;
@@ -45,7 +42,6 @@ type UseAchievementUnlockRevealArgs = {
   setIsSaving: Dispatch<SetStateAction<boolean>>;
   setError: Dispatch<SetStateAction<string | null>>;
   setAchievements: Dispatch<SetStateAction<AchievementCollectionEntryViewModel[]>>;
-  supabase: SupabaseClient;
   onFirstUnlockComplete?: () => void;
   onFirstUnlockReverted?: () => void;
 };
@@ -59,7 +55,6 @@ export function useAchievementUnlockReveal({
   setIsSaving,
   setError,
   setAchievements,
-  supabase,
   onFirstUnlockComplete,
   onFirstUnlockReverted,
 }: UseAchievementUnlockRevealArgs) {
@@ -311,7 +306,7 @@ export function useAchievementUnlockReveal({
       onFirstUnlockCompleteRef.current?.();
     }
 
-    const unlockResult = await unlockAchievement(supabase, targetId);
+    const unlockResult = await unlockCollectionAchievement(targetId);
     if (unlockResult.isErr()) {
       if (!hadUnlockedBefore) {
         onFirstUnlockRevertedRef.current?.();
@@ -351,7 +346,6 @@ export function useAchievementUnlockReveal({
     setError,
     setIsSaving,
     stopUnlockSound,
-    supabase,
   ]);
 
   const startUnlockHold = useCallback(() => {

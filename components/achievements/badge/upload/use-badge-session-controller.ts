@@ -19,8 +19,8 @@ import {
   type IconAssetKind,
   type RemoteAssetStorageSession,
 } from "@/components/achievements/achievement-editor-shared";
-import type { FormState } from "@/lib/achievements/data/achievement-form-state";
-import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
+import type { FormState } from "@/lib/achievements/presentation/form-state";
+import type { AchievementDetailViewModel } from "@/lib/achievements/presentation/collection-view-models";
 import { isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-model-asset";
 import { finalizeBadgeModelUpload } from "@/lib/achievements/client/badge-asset";
 import {

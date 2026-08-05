@@ -4,15 +4,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { postAcceptDedication } from "@/lib/achievements/client/dedication-api";
+import {
+  listPendingCollectionDedications,
+  rejectPendingDedication,
+} from "@/lib/achievements/application/dedication-queue";
 import type {
   AchievementCollectionEntryViewModel,
   AchievementDetailViewModel,
-} from "@/lib/achievements/data/achievement-view-models";
-import {
-  listPendingDedications,
-  rejectDedication,
-} from "@/lib/achievements/data/dedication-db";
-import { fetchPublicUserDisplayName } from "@/lib/achievements/data/user-profile-db";
+} from "@/lib/achievements/presentation/collection-view-models";
+import { fetchPublicUserDisplayName } from "@/lib/profile/follow";
 import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
 import { userCollection } from "@/lib/routes";
 import { showErrorToast } from "@/lib/toast";
@@ -65,11 +65,11 @@ export function useDedicationQueueController({
 
   const loadQueue = useCallback(async () => {
     if (readOnly) return;
-    const result = await listPendingDedications(supabase, ownerUserId);
+    const result = await listPendingCollectionDedications(ownerUserId);
     if (result.isOk()) {
       setQueue(result.value);
     }
-  }, [ownerUserId, readOnly, supabase]);
+  }, [ownerUserId, readOnly]);
 
   const clearDedicationQuery = useCallback(() => {
     const params = new URLSearchParams(searchParams.toString());
@@ -214,14 +214,14 @@ export function useDedicationQueueController({
     if (!active) return;
     setBusy(true);
     const id = active.id;
-    const result = await rejectDedication(supabase, id);
+    const result = await rejectPendingDedication(id);
     if (result.isOk()) {
       onRejected(id);
       advanceQueue(id);
       clearDedicationQuery();
     }
     setBusy(false);
-  }, [active, advanceQueue, clearDedicationQuery, onRejected, supabase]);
+  }, [active, advanceQueue, clearDedicationQuery, onRejected]);
 
   return {
     dedicationDialogOpen: Boolean(active),

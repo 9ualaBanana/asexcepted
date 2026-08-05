@@ -2,14 +2,19 @@ import { NextResponse } from "next/server";
 
 import { requireAdminUser } from "@/lib/admin";
 import { formatDedicationActivityMessage } from "@/lib/notifications/activity-text";
-import { deleteAchievementForOwner } from "@/lib/achievements/data/achievement-repository";
+import { resolveClaimedBadgeIconFields } from "@/lib/achievements/badge/shared/badge-assets-server";
 import {
-  createDedicatedAchievement,
+  dedicateBodyToAchievementInsert,
   parseDedicateAchievementBody,
-} from "@/lib/achievements/data/dedicate-achievement";
+  validateDedicateBadge,
+} from "@/lib/achievements/client/dedicate-api";
+import { deleteAchievementForOwner } from "@/lib/achievements/persistence/achievements";
+import { insertDedicatedAchievement } from "@/lib/achievements/persistence/dedications";
 import { resolveDisplayName, sendPushToUsers } from "@/lib/notifications";
-import { createServerSupabase } from "@/lib/supabase/clients/server";
-import { createServiceRoleSupabase } from "@/lib/supabase/clients/server";
+import {
+  createServerSupabase,
+  createServiceRoleSupabase,
+} from "@/lib/supabase/clients/server";
 
 export async function POST(request: Request) {
   const supabase = await createServerSupabase();
@@ -26,7 +31,10 @@ export async function POST(request: Request) {
   const raw = await request.json().catch(() => null);
   const parsed = parseDedicateAchievementBody(raw);
   if (parsed.isErr()) {
-    return NextResponse.json({ error: parsed.error.message }, { status: parsed.error.status });
+    return NextResponse.json(
+      { error: parsed.error.message },
+      { status: parsed.error.status },
+    );
   }
   const body = parsed.value;
 
@@ -37,26 +45,56 @@ export async function POST(request: Request) {
     );
   }
 
-  const service = createServiceRoleSupabase();
-  const insertResult = await createDedicatedAchievement({
-    supabase: service,
-    dedicatorUserId: admin.id,
-    body,
-  });
-
-  if (insertResult.isErr()) {
+  const badgeReady = validateDedicateBadge(body);
+  if (badgeReady.isErr()) {
     return NextResponse.json(
-      { error: insertResult.error.message },
-      { status: insertResult.error.status },
+      { error: badgeReady.error.message },
+      { status: badgeReady.error.status },
     );
+  }
+
+  let badge: { iconUrl: string; iconAssetPath: string | null };
+  try {
+    const resolved = await resolveClaimedBadgeIconFields({
+      senderUserId: admin.id,
+      claimerUserId: body.recipientUserId,
+      iconUrl: body.icon_url ?? null,
+      iconAssetKind: body.icon_asset_kind,
+      iconAssetPath: body.icon_asset_path ?? null,
+    });
+    badge = {
+      iconUrl: resolved.iconUrl,
+      iconAssetPath: resolved.iconAssetPath,
+    };
+  } catch (cloneError) {
+    return NextResponse.json(
+      {
+        error:
+          cloneError instanceof Error
+            ? cloneError.message
+            : "Could not copy the 3D badge for this dedication.",
+      },
+      { status: 500 },
+    );
+  }
+
+  const service = createServiceRoleSupabase();
+  const insertResult = await insertDedicatedAchievement(
+    service,
+    dedicateBodyToAchievementInsert(body, admin.id, badge),
+  );
+  if (insertResult.isErr()) {
+    return NextResponse.json({ error: insertResult.error }, { status: 500 });
   }
   const row = insertResult.value;
 
-  const { error: eventError } = await service.from("achievement_dedication_events").insert({
-    achievement_id: row.id,
-    recipient_user_id: body.recipientUserId,
-    sender_user_id: admin.id,
-  });
+  const { error: eventError } = await service
+    .from("achievement_dedication_events")
+    .insert({
+      achievement_id: row.id,
+      recipient_user_id: body.recipientUserId,
+      sender_user_id: admin.id,
+    });
 
   if (eventError) {
     void deleteAchievementForOwner(service, row.id, body.recipientUserId);

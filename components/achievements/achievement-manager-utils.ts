@@ -1,11 +1,11 @@
 import { unlockRevealLutSteps } from "@/lib/achievements/badge/parallax/shape-utils";
 import {
   type AchievementTone,
-} from "@/lib/achievements/data/achievement-enums";
+} from "@/lib/achievements/domain/enums";
 import {
   createInitialForm,
   type FormState,
-} from "@/lib/achievements/data/achievement-form-state";
+} from "@/lib/achievements/presentation/form-state";
 
 export type { AchievementTone };
 export { createInitialForm, type FormState };

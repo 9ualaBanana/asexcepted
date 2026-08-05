@@ -7,7 +7,7 @@ import {
   type BadgeModelPoseSession,
 } from "@/components/achievements/badge/upload/model/badge-model-pose-session";
 import { prepareBadgeModelUpload } from "@/components/achievements/badge/upload/model/badge-model-upload-client";
-import type { FormState } from "@/lib/achievements/data/achievement-form-state";
+import type { FormState } from "@/lib/achievements/presentation/form-state";
 import {
   applyBadgeModelToForm,
   badgeModelFromStagedUpload,

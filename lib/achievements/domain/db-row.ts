@@ -28,7 +28,7 @@ export type AchievementDbRow = Pick<
   | "dedication_status"
 >;
 
-export type AchievementDbWritePayload = Pick<
+export type SaveAchievementCommand = Pick<
   AchievementInsert,
   | "title"
   | "description"
@@ -48,3 +48,6 @@ export type AchievementDbWritePayload = Pick<
   | "achieved_at"
   | "visibility"
 >;
+
+/** @deprecated Use {@link SaveAchievementCommand}. */
+export type AchievementDbWritePayload = SaveAchievementCommand;

@@ -1,4 +1,4 @@
-import type { AchievementFeedItemViewModel } from "@/lib/achievements/data/achievement-surface-view-models";
+import type { AchievementFeedItemViewModel } from "@/lib/achievements/presentation/surface-view-models";
 
 export type ActivityTextPart = {
   kind: "actor" | "achievement" | "muted";

@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 
 import type { AchievementUiStateActions } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
-import type { AchievementCollectionEntryViewModel } from "@/lib/achievements/data/achievement-view-models";
+import type { AchievementCollectionEntryViewModel } from "@/lib/achievements/presentation/collection-view-models";
 
 type UseAchievementDetailSelectionControllerArgs = {
   achievements: AchievementCollectionEntryViewModel[];

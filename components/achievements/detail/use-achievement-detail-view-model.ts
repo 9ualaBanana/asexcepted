@@ -3,11 +3,11 @@
 import { useEffect, useMemo } from "react";
 
 import { iconMap } from "@/components/achievements/achievement-editor-shared";
-import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
+import type { AchievementDetailViewModel } from "@/lib/achievements/presentation/collection-view-models";
 import {
   DEFAULT_ACHIEVEMENT_ICON_KEY,
   DEFAULT_ACHIEVEMENT_TONE,
-} from "@/lib/achievements/data/achievement-enums";
+} from "@/lib/achievements/domain/enums";
 import { prewarmBadgeRenderCache } from "@/lib/achievements/badge/shared/render-cache";
 import { getAlphaMaskStyle } from "@/lib/achievements/badge/parallax/shape-utils";
 

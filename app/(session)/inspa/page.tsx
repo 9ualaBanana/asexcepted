@@ -5,7 +5,7 @@ import { AppPageShell } from "@/components/layout/app-page-shell";
 import { FriendsPanel } from "@/components/social/friends-panel";
 import { SocialPageSkeleton } from "@/components/social/inspa-page-skeleton";
 import { requireSessionUser } from "@/lib/auth/require-session-user";
-import { fetchFollowingUnlockFeed } from "@/lib/achievements/data/feed-db";
+import { fetchFollowingUnlockFeed } from "@/lib/achievements/persistence/feed";
 
 export default function InspaPage() {
   return (

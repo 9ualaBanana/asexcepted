@@ -6,7 +6,7 @@ import { badgeOptionsForInvite } from "@/components/achievements/badge/display/b
 import { BadgeAttributionPopover } from "@/components/achievements/badge";
 import { formatAchievedAt } from "@/lib/feed/format-feed-event-time";
 import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/shared/badge-assets-server";
-import { shareInviteRowToBadgeViewModel } from "@/lib/achievements/data/achievement-surface-view-models";
+import { shareInviteRowToBadgeViewModel } from "@/lib/achievements/presentation/surface-view-models";
 import { APP_DISPLAY_NAME } from "@/lib/brand";
 import { resolvePublicSiteOrigin } from "@/lib/public-site-origin";
 import { resolveInviteOgBadgeImageUrl } from "@/lib/share-invites/invite-og-badge-image";

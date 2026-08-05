@@ -7,14 +7,14 @@ import {
   iconAssetKindSchema,
   type AchievementIconKey,
   type AchievementTone,
-} from "@/lib/achievements/data/achievement-enums";
+} from "@/lib/achievements/domain/enums";
 import {
   isModelBadgeAssetKind,
   parseBadgeModelAsset,
   type BadgeModelAsset,
 } from "@/lib/achievements/badge/shared/badge-model-asset";
-import { showsDedicatedBadgeEffect } from "@/lib/achievements/dedication/dedication-utils";
 import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
+import { showsDedicatedBadgeEffect } from "@/lib/achievements/presentation/collection-view-models";
 
 export const FEED_EVENT_TYPES = ["unlock", "impression", "dedication"] as const;
 export type FeedEventType = (typeof FEED_EVENT_TYPES)[number];

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useBadgeDebugOverlayPreference } from "@/lib/local-storage";
 import { isModelGlbAsset } from "@/lib/achievements/badge/shared/badge-assets";
-import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
+import type { AchievementDetailViewModel } from "@/lib/achievements/presentation/collection-view-models";
 
 function tryGetHighResNow() {
   return typeof performance !== "undefined" && Number.isFinite(performance.now())

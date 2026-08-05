@@ -10,7 +10,7 @@ import {
 } from "@/components/achievements/badge";
 import { DedicationBylineChromeRow } from "@/components/achievements/dedication/dedication-byline-chrome-row";
 import { achievementDialogIconBtn } from "@/components/achievements/achievement-editor-shared";
-import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
+import type { AchievementDetailViewModel } from "@/lib/achievements/presentation/collection-view-models";
 import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
 import { cn } from "@/lib/utils";
 

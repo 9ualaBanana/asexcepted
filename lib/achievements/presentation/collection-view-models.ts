@@ -1,8 +1,4 @@
 import {
-  type FormState,
-  toNullable,
-} from "@/lib/achievements/data/achievement-form-state";
-import {
   isModelGlbAsset,
   parseBadgeModelAsset,
   type BadgeModelAsset,
@@ -15,18 +11,18 @@ import {
   type AchievementIconKey,
   type AchievementTone,
   type AchievementVisibility,
-} from "@/lib/achievements/data/achievement-enums";
-import type { AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
-import type { AchievementDomainRow } from "@/lib/achievements/data/achievement-transformers";
-import {
-  showsDedicatedBadgeAura,
-  showsDedicatedBadgeEffect,
-} from "@/lib/achievements/dedication/dedication-utils";
+} from "@/lib/achievements/domain/enums";
+import type { SaveAchievementCommand } from "@/lib/achievements/domain/db-row";
+import type { AchievementDomainRow } from "@/lib/achievements/domain/achievement";
 import { formatGridDate } from "@/lib/feed/format-feed-event-time";
 import { normalizeImageKitFileId } from "@/lib/imagekit/client/imagekit-api";
 import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
 import type { CollectionAchievementSnapshotSource } from "@/lib/share-invites/invite-snapshot";
 import { z } from "zod";
+import {
+  type FormState,
+  toNullable,
+} from "@/lib/achievements/presentation/form-state";
 
 const badgeModelFormFieldsSchema = z.object({
   assetPath: z.string(),
@@ -94,7 +90,7 @@ const formToPayloadSchema = z
     visibility: achievementVisibilitySchema,
   })
   .transform(
-    (form): AchievementDbWritePayload => ({
+    (form): SaveAchievementCommand => ({
       title: toNullable(form.title),
       description: toNullable(form.description),
       category: toNullable(form.category),
@@ -230,6 +226,49 @@ export function domainRowToDetailViewModel(row: AchievementDomainRow): Achieveme
   };
 }
 
+export function isDedicatedAchievement(
+  achievement: Pick<AchievementDetailViewModel, "dedicatedByUserId">,
+): boolean {
+  return Boolean(achievement.dedicatedByUserId);
+}
+
+export function canEditDedicatedVisibility(
+  achievement: Pick<
+    AchievementDetailViewModel,
+    "dedicatedByUserId" | "dedicationStatus"
+  >,
+): boolean {
+  return (
+    Boolean(achievement.dedicatedByUserId) &&
+    achievement.dedicationStatus === "accepted"
+  );
+}
+
+export function showsDedicatedBadgeAura(
+  achievement: Pick<
+    AchievementDetailViewModel,
+    "dedicatedByUserId" | "dedicationStatus"
+  >,
+): boolean {
+  if (!achievement.dedicatedByUserId) return false;
+  if (achievement.dedicationStatus === "pending") return false;
+  return true;
+}
+
+export function showsDedicatedBadgeEffect(
+  showsAura: boolean,
+  isModelBadge: boolean,
+): boolean {
+  return showsAura && !isModelBadge;
+}
+
+export function isDedicatedVisibilityDirty(
+  form: Pick<FormState, "visibility">,
+  detail: Pick<AchievementDetailViewModel, "visibility">,
+): boolean {
+  return form.visibility !== detail.visibility;
+}
+
 export function detailToGridViewModel(detail: AchievementDetailViewModel): AchievementGridViewModel {
   return {
     id: detail.id,
@@ -311,8 +350,13 @@ export function achievementDetailToForm(detail: AchievementDetailViewModel): For
   return detailToFormSchema.parse(detail);
 }
 
-export function formToPayload(form: FormState): AchievementDbWritePayload {
+export function formToSaveCommand(form: FormState): SaveAchievementCommand {
   return formToPayloadSchema.parse(form);
+}
+
+/** @deprecated Use {@link formToSaveCommand}. */
+export function formToPayload(form: FormState): SaveAchievementCommand {
+  return formToSaveCommand(form);
 }
 
 /** True when panel edit form differs from the saved achievement. */
@@ -320,8 +364,8 @@ export function isAchievementFormDirty(
   form: FormState,
   detail: AchievementDetailViewModel,
 ): boolean {
-  const current = formToPayload(form);
-  const baseline = formToPayload(achievementDetailToForm(detail));
+  const current = formToSaveCommand(form);
+  const baseline = formToSaveCommand(achievementDetailToForm(detail));
   return (
     current.title !== baseline.title ||
     current.description !== baseline.description ||
@@ -342,5 +386,3 @@ export function isAchievementFormDirty(
     current.visibility !== baseline.visibility
   );
 }
-
-export { showsDedicatedBadgeAura };

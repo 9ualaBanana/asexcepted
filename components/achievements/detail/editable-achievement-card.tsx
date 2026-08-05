@@ -30,7 +30,7 @@ import {
 import {
   type FormState,
   hasMeaningfulContent,
-} from "@/lib/achievements/data/achievement-form-state";
+} from "@/lib/achievements/presentation/form-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {

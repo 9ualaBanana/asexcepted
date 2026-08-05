@@ -2,7 +2,7 @@ import {
   buildFeedActivityText,
   type ActivityTextPart,
 } from "@/lib/notifications/activity-text";
-import type { AchievementFeedItemViewModel } from "@/lib/achievements/data/achievement-surface-view-models";
+import type { AchievementFeedItemViewModel } from "@/lib/achievements/presentation/surface-view-models";
 import { cn } from "@/lib/utils";
 
 type FeedActivityTextProps = {

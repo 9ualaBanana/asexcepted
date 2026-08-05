@@ -31,7 +31,7 @@ import {
   achievementDialogIconSideSlot,
   type RemoteAssetStorageSession,
 } from "@/components/achievements/achievement-editor-shared";
-import type { FormState } from "@/lib/achievements/data/achievement-form-state";
+import type { FormState } from "@/lib/achievements/presentation/form-state";
 import { formatAchievedAt } from "@/lib/feed/format-feed-event-time";
 import { DedicationByline } from "@/components/achievements/dedication/dedication-byline";
 import { DedicationBylineChromeRow } from "@/components/achievements/dedication/dedication-byline-chrome-row";
@@ -42,13 +42,11 @@ import { useOverlayTransitionPresentation } from "@/components/achievements/deta
 import { AchievementVisibilityToggle } from "@/components/achievements/detail/achievement-visibility-toggle";
 import {
   canEditDedicatedVisibility,
+  isAchievementFormDirty,
   isDedicatedAchievement,
   isDedicatedVisibilityDirty,
-} from "@/lib/achievements/dedication/dedication-utils";
-import {
-  isAchievementFormDirty,
   type AchievementDetailViewModel,
-} from "@/lib/achievements/data/achievement-view-models";
+} from "@/lib/achievements/presentation/collection-view-models";
 import type { OverlayTransitionSession } from "@/lib/achievements/ui/overlay-transition";
 import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
 import { getTutorial, TUTORIAL_IDS, useTutorial, useTutorialToast } from "@/lib/tutorials";

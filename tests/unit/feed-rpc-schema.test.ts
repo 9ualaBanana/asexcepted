@@ -4,7 +4,7 @@ import {
   feedRpcRowToViewModel,
   followingUnlockFeedRowSchema,
   followingUnlockFeedRowsSchema,
-} from "@/lib/achievements/data/achievement-surface-view-models";
+} from "@/lib/achievements/presentation/surface-view-models";
 
 const baseRow = {
   event_type: "unlock" as const,

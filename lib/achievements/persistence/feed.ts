@@ -6,10 +6,9 @@ import {
   feedRpcRowToViewModel,
   followingUnlockFeedRowsSchema,
   type AchievementFeedItemViewModel,
-  type FeedEventType,
-} from "@/lib/achievements/data/achievement-surface-view-models";
+} from "@/lib/achievements/presentation/surface-view-models";
 
-export type { AchievementFeedItemViewModel, FeedEventType } from "@/lib/achievements/data/achievement-surface-view-models";
+export type { AchievementFeedItemViewModel, FeedEventType } from "@/lib/achievements/presentation/surface-view-models";
 
 export type FeedCursor = {
   updated_at: string;

@@ -13,16 +13,16 @@ import {
   achievementToneSchema,
   achievementVisibilitySchema,
   iconAssetKindSchema,
-} from "@/lib/achievements/data/achievement-enums";
+} from "@/lib/achievements/domain/enums";
 import {
   normalizeAchievementRowsForList,
   tryNormalizeAchievement,
   type AchievementDomainRow,
-} from "@/lib/achievements/data/achievement-transformers";
+} from "@/lib/achievements/domain/achievement";
 import {
   detailToGridViewModel,
   domainRowToDetailViewModel,
-} from "@/lib/achievements/data/achievement-view-models";
+} from "@/lib/achievements/presentation/collection-view-models";
 
 const DEDICATED_BY = "44444444-4444-4444-8444-444444444444";
 
@@ -205,25 +205,30 @@ describe("domain → detail/grid trusts enums", () => {
   });
 });
 
-describe("data layer import boundary", () => {
-  it("does not import from components achievement UI modules", () => {
-    const dataDir = path.resolve("lib/achievements/data");
-    const files = readdirSync(dataDir).filter((f) => f.endsWith(".ts"));
-    const forbidden = [
-      'from "@/components/',
-      "from '@/components/",
+describe("achievements import boundary", () => {
+  it("domain and persistence must not import from components", () => {
+    const roots = [
+      path.resolve("lib/achievements/domain"),
+      path.resolve("lib/achievements/persistence"),
+      path.resolve("lib/achievements/application"),
     ];
-    for (const file of files) {
-      const text = readFileSync(path.join(dataDir, file), "utf8");
-      for (const needle of forbidden) {
-        expect(text.includes(needle), `${file} imports components`).toBe(false);
+    const forbidden = ['from "@/components/', "from '@/components/"];
+    for (const dir of roots) {
+      const files = readdirSync(dir).filter((f) => f.endsWith(".ts"));
+      for (const file of files) {
+        const text = readFileSync(path.join(dir, file), "utf8");
+        for (const needle of forbidden) {
+          expect(text.includes(needle), `${dir}/${file} imports components`).toBe(
+            false,
+          );
+        }
       }
     }
     expect(
-      readFileSync(path.join(dataDir, "achievement-enums.ts"), "utf8"),
+      readFileSync(path.resolve("lib/achievements/domain/enums.ts"), "utf8"),
     ).toMatch(/DEFAULT_ACHIEVEMENT_TONE/);
     expect(
-      readFileSync(path.join(dataDir, "achievement-enums.ts"), "utf8"),
+      readFileSync(path.resolve("lib/achievements/domain/enums.ts"), "utf8"),
     ).not.toMatch(/export function parseTone/);
   });
 });

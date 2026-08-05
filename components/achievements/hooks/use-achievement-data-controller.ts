@@ -2,16 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { deleteAchievement, listAchievements } from "@/lib/achievements/data/achievement-repository";
+import {
+  deleteCollectionAchievement,
+  listCollection,
+} from "@/lib/achievements/application/collection";
 import type { BadgeSessionController } from "@/components/achievements/badge/upload/use-badge-session-controller";
 import type { AchievementUiStateActions } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
-import type { AchievementCollectionEntryViewModel } from "@/lib/achievements/data/achievement-view-models";
+import type { AchievementCollectionEntryViewModel } from "@/lib/achievements/presentation/collection-view-models";
 import { clearBadgeRenderCacheForSrc } from "@/lib/achievements/badge/shared/render-cache";
 import { useUserAchievementsLiveUpdates } from "@/lib/live-updates";
-import type { RlsScopedSupabaseClient } from "@/lib/supabase/clients/client-types";
 
 type UseAchievementDataControllerArgs = {
-  supabase: RlsScopedSupabaseClient;
   userId: string;
   readOnly: boolean;
   achievements: AchievementCollectionEntryViewModel[];
@@ -37,7 +38,6 @@ export type AchievementDataControllerActions = {
 };
 
 export function useAchievementDataController({
-  supabase,
   userId,
   readOnly,
   achievements,
@@ -56,7 +56,7 @@ export function useAchievementDataController({
       if (!silent) setIsLoading(true);
       if (!silent) setError(null);
 
-      const result = await listAchievements(supabase, userId);
+      const result = await listCollection(userId);
       if (result.isErr()) {
         setError(result.error);
         if (!silent) setAchievements([]);
@@ -68,7 +68,7 @@ export function useAchievementDataController({
       if (!silent) setIsLoading(false);
       return result.value;
     },
-    [setAchievements, setError, supabase, userId],
+    [setAchievements, setError, userId],
   );
 
   useEffect(() => {
@@ -103,7 +103,7 @@ export function useAchievementDataController({
       const target = achievements.find((entry) => entry.detail.id === id);
       const targetRenderSrc = target?.detail.renderSrc;
 
-      const deleteResult = await deleteAchievement(supabase, id);
+      const deleteResult = await deleteCollectionAchievement(id);
       if (deleteResult.isErr()) {
         setError(deleteResult.error);
         setIsSaving(false);
@@ -134,7 +134,6 @@ export function useAchievementDataController({
       setAchievements,
       setError,
       setIsSaving,
-      supabase,
       uiActions,
     ],
   );

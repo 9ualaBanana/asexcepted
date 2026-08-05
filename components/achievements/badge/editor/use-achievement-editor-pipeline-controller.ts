@@ -3,32 +3,30 @@
 import { useCallback, type FormEvent } from "react";
 
 import { ACHIEVEMENT_UI_COPY } from "@/components/achievements/share/achievement-ui-copy";
-import { createAchievement, updateAchievement } from "@/lib/achievements/data/achievement-repository";
-import {
-  canEditDedicatedVisibility,
-  isDedicatedAchievement,
-} from "@/lib/achievements/dedication/dedication-utils";
 import { createInitialForm } from "@/components/achievements/achievement-manager-utils";
+import {
+  createCollectionAchievement,
+  updateCollectionAchievement,
+} from "@/lib/achievements/application/collection";
+import {
+  achievementDetailToForm,
+  canEditDedicatedVisibility,
+  formToSaveCommand,
+  isDedicatedAchievement,
+  upsertCollectionEntry,
+  updateCollectionEntryDetail,
+  type AchievementCollectionEntryViewModel,
+  type AchievementDetailViewModel,
+} from "@/lib/achievements/presentation/collection-view-models";
 import {
   type FormState,
   hasMeaningfulContent,
-} from "@/lib/achievements/data/achievement-form-state";
-import type {
-  AchievementCollectionEntryViewModel,
-  AchievementDetailViewModel,
-} from "@/lib/achievements/data/achievement-view-models";
-import {
-  achievementDetailToForm,
-  formToPayload,
-  upsertCollectionEntry,
-  updateCollectionEntryDetail,
-} from "@/lib/achievements/data/achievement-view-models";
+} from "@/lib/achievements/presentation/form-state";
 import type { BadgeSessionController } from "@/components/achievements/badge/upload/use-badge-session-controller";
 import type { AchievementUiStateActions } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
 import type { DomRectLite } from "@/lib/achievements/ui/overlay-transition";
 import { clearBadgeRenderCacheForSrc, prewarmBadgeRenderCache } from "@/lib/achievements/badge/shared/render-cache";
 import { normalizeNetworkFailureMessage } from "@/lib/client/fetch-json";
-import type { SupabaseClient } from "@supabase/supabase-js";
 
 type UseAchievementEditorPipelineControllerArgs = {
   readOnly: boolean;
@@ -44,7 +42,6 @@ type UseAchievementEditorPipelineControllerArgs = {
   detailAchievementId: string | null;
   detailAchievement: AchievementDetailViewModel | null;
   badgeSessionController: BadgeSessionController;
-  supabase: SupabaseClient;
   setError: (value: string | null) => void;
   setIsSaving: (value: boolean) => void;
   setAchievements: (
@@ -88,7 +85,6 @@ export function useAchievementEditorPipelineController({
   detailAchievementId,
   detailAchievement,
   badgeSessionController,
-  supabase,
   setError,
   setIsSaving,
   setAchievements,
@@ -242,8 +238,8 @@ export function useAchievementEditorPipelineController({
         return;
       }
 
-      const insertPayload = formToPayload(formForSave);
-      const result = await createAchievement(supabase, insertPayload);
+      const insertPayload = formToSaveCommand(formForSave);
+      const result = await createCollectionAchievement(insertPayload);
 
       if (result.isErr()) {
         setError(result.error);
@@ -277,7 +273,6 @@ export function useAchievementEditorPipelineController({
       setCreateForm,
       setError,
       setIsSaving,
-      supabase,
       uiActions,
     ],
   );
@@ -312,8 +307,8 @@ export function useAchievementEditorPipelineController({
         return;
       }
 
-      const updatePayload = formToPayload(formForSave);
-      const result = await updateAchievement(supabase, detailAchievementId, updatePayload);
+      const updatePayload = formToSaveCommand(formForSave);
+      const result = await updateCollectionAchievement(detailAchievementId, updatePayload);
 
       if (result.isErr()) {
         setError(result.error);
@@ -361,7 +356,6 @@ export function useAchievementEditorPipelineController({
       setError,
       setIsSaving,
       setPanelForm,
-      supabase,
       uiActions,
     ],
   );
@@ -379,10 +373,10 @@ export function useAchievementEditorPipelineController({
     setError(null);
 
     const updatePayload = {
-      ...formToPayload(achievementDetailToForm(detailAchievement)),
+      ...formToSaveCommand(achievementDetailToForm(detailAchievement)),
       visibility: panelForm.visibility,
     };
-    const result = await updateAchievement(supabase, detailAchievementId, updatePayload);
+    const result = await updateCollectionAchievement(detailAchievementId, updatePayload);
 
     if (result.isErr()) {
       setError(result.error);
@@ -406,7 +400,6 @@ export function useAchievementEditorPipelineController({
     setError,
     setIsSaving,
     setPanelForm,
-    supabase,
     uiActions,
   ]);
 

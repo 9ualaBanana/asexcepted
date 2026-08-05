@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { acceptPendingDedicationForRecipient } from "@/lib/achievements/data/dedication-db";
+import { acceptPendingDedicationForRecipient } from "@/lib/achievements/persistence/dedications";
 import { notifyDedicationAccepted } from "@/lib/notifications/dedication-accepted";
 import { createServerSupabase } from "@/lib/supabase/clients/server";
 

@@ -1,7 +1,7 @@
 import { err, ok, type Result } from "neverthrow";
 import { z } from "zod";
 
-import type { AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
+import type { AchievementDbWritePayload } from "@/lib/achievements/domain/db-row";
 import { fetchFailureMessage, postJson } from "@/lib/client/fetch-json";
 
 export type AchievementShareInviteIntent = "showcase" | "dedicate";

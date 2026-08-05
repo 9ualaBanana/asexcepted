@@ -3,7 +3,8 @@
 export type {
   AchievementDbRow,
   AchievementDbWritePayload,
-} from "./data/achievement-db-schema";
+  SaveAchievementCommand,
+} from "./domain/db-row";
 export {
   ACHIEVEMENT_ICON_KEYS,
   ACHIEVEMENT_TONES,
@@ -21,13 +22,13 @@ export {
   type AchievementTone,
   type AchievementVisibility,
   type IconAssetKind,
-} from "./data/achievement-enums";
+} from "./domain/enums";
 export {
   tryNormalizeAchievement,
   normalizeAchievementRowsForList,
   achievementDomainRowSchema,
   type AchievementDomainRow,
-} from "./data/achievement-transformers";
+} from "./domain/achievement";
 export {
   type AchievementCollectionEntryViewModel,
   type AchievementDetailViewModel,
@@ -37,19 +38,19 @@ export {
   detailToShareInviteSnapshotSource,
   domainRowToCollectionEntry,
   domainRowToDetailViewModel,
-  formToPayload,
+  formToSaveCommand,
   isAchievementFormDirty,
   mapCollectionDetails,
   sortCollectionEntries,
   updateCollectionEntryDetail,
   upsertCollectionEntry,
-} from "./data/achievement-view-models";
+} from "./presentation/collection-view-models";
 export {
   createInitialForm,
   hasMeaningfulContent,
   toNullable,
   type FormState,
-} from "./data/achievement-form-state";
+} from "./presentation/form-state";
 export {
   createAchievement,
   deleteAchievement,
@@ -58,11 +59,14 @@ export {
   listAchievements,
   unlockAchievement,
   updateAchievement,
-} from "./data/achievement-repository";
+} from "./persistence/achievements";
 export {
-  attachImpressionCounts,
-  fetchImpressionCountMap,
-} from "./data/impression-counts";
+  listCollection,
+  createCollectionAchievement,
+  updateCollectionAchievement,
+  deleteCollectionAchievement,
+  unlockCollectionAchievement,
+} from "./application/collection";
 export {
   type AchievementEmbedBadgeViewModel,
   type AchievementEmbedMintViewModel,
@@ -77,12 +81,12 @@ export {
   followingUnlockFeedRowSchema,
   followingUnlockFeedRowsSchema,
   shareInviteRowToBadgeViewModel,
-} from "./data/achievement-surface-view-models";
+} from "./presentation/surface-view-models";
 export {
-  fetchFollowingUnlockFeed,
   type FeedCursor,
   type FeedPage,
-} from "./data/feed-db";
+} from "./persistence/feed";
+export { fetchFollowingUnlockFeed } from "./application/feed";
 
 export {
   canEditDedicatedVisibility,
@@ -90,7 +94,7 @@ export {
   isDedicatedVisibilityDirty,
   showsDedicatedBadgeAura,
   showsDedicatedBadgeEffect,
-} from "./dedication/dedication-utils";
+} from "./presentation/collection-view-models";
 
 export {
   useHideLockedPreference,

@@ -1,6 +1,6 @@
 import { err, ok, type Result } from "neverthrow";
 
-import type { AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
+import type { AchievementDbWritePayload } from "@/lib/achievements/domain/db-row";
 import { isPublicHttpImageUrl } from "@/lib/achievements/badge/shared/badge-assets";
 import { isModelGlbAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
 import type { AchievementShareInviteSnapshot } from "@/lib/share-invites/invite-snapshot";

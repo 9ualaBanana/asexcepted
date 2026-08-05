@@ -4,11 +4,11 @@ import { err, ok, type Result } from "neverthrow";
 import {
   normalizeAchievementRowsForList,
   tryNormalizeAchievement,
-} from "@/lib/achievements/data/achievement-transformers";
+} from "@/lib/achievements/domain/achievement";
 import {
   domainRowToDetailViewModel,
   type AchievementDetailViewModel,
-} from "@/lib/achievements/data/achievement-view-models";
+} from "@/lib/achievements/presentation/collection-view-models";
 import type { Database } from "@/lib/supabase/database.types";
 
 type Client = SupabaseClient<Database>;

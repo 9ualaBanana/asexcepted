@@ -3,29 +3,25 @@ import { err, ok, type Result } from "neverthrow";
 import { todayDateString } from "@/lib/feed/format-feed-event-time";
 import type {
   AchievementDbRow,
-  AchievementDbWritePayload,
-} from "@/lib/achievements/data/achievement-db-schema";
+  SaveAchievementCommand,
+} from "@/lib/achievements/domain/db-row";
 import {
   normalizeAchievementRowsForList,
   tryNormalizeAchievement,
-} from "@/lib/achievements/data/achievement-transformers";
-import {
-  attachImpressionCounts,
-  fetchImpressionCountMap,
-} from "@/lib/achievements/data/impression-counts";
+} from "@/lib/achievements/domain/achievement";
 import {
   embedBadgeRowToViewModel,
   embedMintRowToViewModel,
   type AchievementEmbedBadgeViewModel,
   type AchievementEmbedMintViewModel,
-} from "@/lib/achievements/data/achievement-surface-view-models";
+} from "@/lib/achievements/presentation/surface-view-models";
 import {
   domainRowToDetailViewModel,
   domainRowsToCollectionEntries,
   sortCollectionEntries,
   type AchievementCollectionEntryViewModel,
   type AchievementDetailViewModel,
-} from "@/lib/achievements/data/achievement-view-models";
+} from "@/lib/achievements/presentation/collection-view-models";
 import {
   normalizeNetworkFailureMessage,
   retryOnTransientNetworkError,
@@ -37,15 +33,66 @@ import type {
 } from "@/lib/supabase/clients/client-types";
 import type { Database } from "@/lib/supabase/database.types";
 import { formatSupabaseSingleRowError } from "@/lib/supabase/postgrest-errors";
+import type { AchievementDomainRow } from "@/lib/achievements/domain/achievement";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 const ACHIEVEMENT_FULL_SELECT =
   "id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_cc_attribution,icon_model_yaw,icon_model_pitch,icon_model_animation_play,icon_model_animation_speed,tone,is_locked,achieved_at,created_at,visibility,dedicated_by_user_id,dedication_status";
 
-export type { AchievementDbRow, AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
+export type {
+  AchievementDbRow,
+  SaveAchievementCommand,
+  AchievementDbWritePayload,
+} from "@/lib/achievements/domain/db-row";
 export type {
   AchievementEmbedBadgeViewModel,
   AchievementEmbedMintViewModel,
-} from "@/lib/achievements/data/achievement-surface-view-models";
+} from "@/lib/achievements/presentation/surface-view-models";
+
+type CountRow = {
+  achievement_id: string;
+  impression_count: number | string;
+};
+
+async function fetchImpressionCountMap(
+  supabase: SupabaseClient,
+  achievementIds: string[],
+): Promise<Record<string, number>> {
+  if (achievementIds.length === 0) return {};
+
+  const { data, error } = await (supabase as unknown as {
+    rpc: (
+      fn: string,
+      args: Record<string, unknown>,
+    ) => Promise<{ data: unknown; error: { message: string } | null }>;
+  }).rpc("achievement_impression_counts", {
+    p_achievement_ids: achievementIds,
+  });
+
+  if (error || !Array.isArray(data)) {
+    return {};
+  }
+
+  const map: Record<string, number> = {};
+  for (const row of data as CountRow[]) {
+    const id = String(row.achievement_id);
+    const count = Number(row.impression_count);
+    if (id && Number.isFinite(count) && count > 0) {
+      map[id] = count;
+    }
+  }
+  return map;
+}
+
+function attachImpressionCounts(
+  records: AchievementDomainRow[],
+  countMap: Record<string, number>,
+): AchievementDomainRow[] {
+  return records.map((record) => ({
+    ...record,
+    impression_count: countMap[record.id] ?? 0,
+  }));
+}
 
 export type AchievementListResult = Result<AchievementCollectionEntryViewModel[], string>;
 export type AchievementSingleResult = Result<AchievementDetailViewModel, string>;
@@ -123,13 +170,13 @@ export async function listAchievements(
 
 export async function createAchievement(
   supabase: DatabaseSupabaseClient,
-  payload: AchievementDbWritePayload,
+  command: SaveAchievementCommand,
 ): Promise<AchievementSingleResult> {
   return retryOnTransientNetworkError(async () => {
     try {
       const { data, error } = await supabase
         .from("achievements")
-        .insert(payload)
+        .insert(command)
         .select(ACHIEVEMENT_FULL_SELECT)
         .single();
 
@@ -150,13 +197,13 @@ export async function createAchievement(
 export async function updateAchievement(
   supabase: DatabaseSupabaseClient,
   achievementId: string,
-  payload: AchievementDbWritePayload,
+  command: SaveAchievementCommand,
 ): Promise<AchievementSingleResult> {
   return retryOnTransientNetworkError(async () => {
     try {
       const { data, error } = await supabase
         .from("achievements")
-        .update(payload)
+        .update(command)
         .eq("id", achievementId)
         .select(ACHIEVEMENT_FULL_SELECT)
         .single();

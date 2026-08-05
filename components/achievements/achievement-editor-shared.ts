@@ -34,7 +34,7 @@ import {
   type AchievementTone,
   type AchievementVisibility,
   type IconAssetKind,
-} from "@/lib/achievements/data/achievement-enums";
+} from "@/lib/achievements/domain/enums";
 
 export type {
   AchievementIconKey,

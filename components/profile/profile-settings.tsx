@@ -21,7 +21,7 @@ import {
   stageProfileAvatarUpload,
   type ProfileAvatarUploadSession,
 } from "@/components/achievements/badge/upload/profile-avatar-session";
-import { fetchProfileRow, updateProfileAvatar } from "@/lib/achievements/data/profile-db";
+import { fetchProfileRow, updateProfileAvatar } from "@/lib/profile/avatar";
 import { ensurePushRegistered } from "@/lib/push/ensure-push-registered";
 import {
   fetchDevicePushRegistered,

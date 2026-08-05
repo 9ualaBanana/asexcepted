@@ -1,8 +1,8 @@
-import type { AchievementDomainRow } from "@/lib/achievements/data/achievement-transformers";
+import type { AchievementDomainRow } from "@/lib/achievements/domain/achievement";
 import {
   domainRowToDetailViewModel,
   type AchievementDetailViewModel,
-} from "@/lib/achievements/data/achievement-view-models";
+} from "@/lib/achievements/presentation/collection-view-models";
 
 /** Shared ImageKit asset shown on welcome and seeded as the first locked achievement. */
 export const INTRO_ACHIEVEMENT_ICON_URL =

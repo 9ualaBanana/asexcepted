@@ -27,7 +27,7 @@ import {
   type AchievementIconKey,
   iconMap,
 } from "@/components/achievements/achievement-editor-shared";
-import { ACHIEVEMENT_TONES } from "@/lib/achievements/data/achievement-enums";
+import { ACHIEVEMENT_TONES } from "@/lib/achievements/domain/enums";
 import { createRemoteAssetStorageRef } from "@/lib/upload/remote-asset-storage";
 import { Button } from "@/components/ui/button";
 import { useErrorToast } from "@/lib/toast";

@@ -7,7 +7,7 @@ import {
   prewarmBadgeRenderCache,
 } from "@/lib/achievements/badge/shared/render-cache";
 import { logImageKitEvent } from "@/lib/imagekit/telemetry";
-import type { AchievementCollectionEntryViewModel } from "@/lib/achievements/data/achievement-view-models";
+import type { AchievementCollectionEntryViewModel } from "@/lib/achievements/presentation/collection-view-models";
 
 type UseBadgeChunkedPrewarmArgs = {
   achievements: AchievementCollectionEntryViewModel[];

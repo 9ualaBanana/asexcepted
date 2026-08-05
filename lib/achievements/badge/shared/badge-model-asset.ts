@@ -1,5 +1,5 @@
-import type { FormState } from "@/lib/achievements/data/achievement-form-state";
-import type { IconAssetKind } from "@/lib/achievements/data/achievement-enums";
+import type { FormState } from "@/lib/achievements/presentation/form-state";
+import type { IconAssetKind } from "@/lib/achievements/domain/enums";
 
 import { sanitizeBadgeAssetPath } from "./badge-assets";
 

@@ -1,11 +1,11 @@
 import { err, ok, type Result } from "neverthrow";
 import { z } from "zod";
 
-import { tryNormalizeAchievement } from "@/lib/achievements/data/achievement-transformers";
+import { tryNormalizeAchievement } from "@/lib/achievements/domain/achievement";
 import {
   domainRowToDetailViewModel,
   type AchievementDetailViewModel,
-} from "@/lib/achievements/data/achievement-view-models";
+} from "@/lib/achievements/presentation/collection-view-models";
 import { fetchFailureMessage, fetchJson } from "@/lib/client/fetch-json";
 
 const acceptDedicationResponseSchema = z.object({

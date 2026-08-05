@@ -9,7 +9,7 @@ import type {
 } from "@/components/achievements/badge/display/badge-options";
 import type { BadgeModelAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
 import type { AlphaMaskData } from "@/lib/achievements/badge/parallax/shape-utils";
-import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
+import type { AchievementDetailViewModel } from "@/lib/achievements/presentation/collection-view-models";
 import { cn } from "@/lib/utils";
 
 export function badgeOptionsForGrid(params: {

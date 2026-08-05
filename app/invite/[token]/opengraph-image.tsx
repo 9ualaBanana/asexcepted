@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-import { shareInviteRowToBadgeViewModel } from "@/lib/achievements/data/achievement-surface-view-models";
+import { shareInviteRowToBadgeViewModel } from "@/lib/achievements/presentation/surface-view-models";
 import { resolveInviteOgImageTitle } from "@/lib/share-invites/invite-share-title";
 import {
   fetchInviteOgBadgeImageDataUrl,

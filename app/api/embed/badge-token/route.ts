@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { getAchievementEmbedMintForOwner } from "@/lib/achievements/data/achievement-repository";
+import { getAchievementEmbedMintForOwner } from "@/lib/achievements/persistence/achievements";
 import type { MintEmbedBadgeTokenRequestBody } from "@/lib/embed/embed-api-types";
 import { mintEmbedBadgeToken } from "@/lib/embed/embed-badge-token";
 import { allowRateLimit } from "@/lib/embed/embed-rate-limit";

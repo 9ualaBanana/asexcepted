@@ -4,16 +4,19 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { createInitialForm } from "@/components/achievements/achievement-manager-utils";
-import type { FormState } from "@/lib/achievements/data/achievement-form-state";
+import type { FormState } from "@/lib/achievements/presentation/form-state";
 import type { AchievementDialogStackProps } from "@/components/achievements/detail/achievement-dialog-stack";
 import {
   achievementDetailToForm,
+  canEditDedicatedVisibility,
   detailToShareInviteSnapshotSource,
+  formToSaveCommand,
   isAchievementFormDirty,
+  isDedicatedVisibilityDirty,
   mapCollectionDetails,
   upsertCollectionEntry,
   type AchievementCollectionEntryViewModel,
-} from "@/lib/achievements/data/achievement-view-models";
+} from "@/lib/achievements/presentation/collection-view-models";
 import { useBadgeChunkedPrewarm, useBadgeMetricsController, useBadgeSessionController } from "@/components/achievements/badge";
 import { useAchievementUnlockReveal } from "@/components/achievements/badge/effects/use-achievement-unlock-reveal";
 import { useAchievementEditorPipelineController } from "@/components/achievements/badge/editor/use-achievement-editor-pipeline-controller";
@@ -35,14 +38,9 @@ import {
   useHideLockedPreference,
   useVisibilityFilterPreference,
 } from "@/lib/local-storage";
-import {
-  canEditDedicatedVisibility,
-  isDedicatedVisibilityDirty,
-} from "@/lib/achievements/dedication/dedication-utils";
 import { userCollection } from "@/lib/routes";
 import { TUTORIAL_IDS } from "@/lib/tutorials/registry";
 import { useDedicationQueueController } from "@/components/achievements/dedication/use-dedication-queue-controller";
-import { formToPayload } from "@/lib/achievements/data/achievement-view-models";
 import {
   payloadToDedicateApiBody,
   postDedicateAchievement,
@@ -53,7 +51,7 @@ import {
   getAchievementPermissions,
   type AchievementAuthContext,
 } from "@/lib/auth/achievement-ability";
-import { fetchPublicUserDisplayName } from "@/lib/achievements/data/user-profile-db";
+import { fetchPublicUserDisplayName } from "@/lib/profile/follow";
 import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
 
 const UUID_RE =
@@ -162,7 +160,6 @@ export function useAchievementsManagerModel({
     setIsSaving,
     setError,
     setAchievements,
-    supabase,
     onFirstUnlockComplete: handleFirstUnlockComplete,
     onFirstUnlockReverted: () => {
       setShowBadgeSpinAfterFirstUnlock(false);
@@ -191,7 +188,6 @@ export function useAchievementsManagerModel({
     detailAchievementId: ui.detailAchievementId,
     detailAchievement,
     badgeSessionController: badgeSession,
-    supabase,
     setError,
     setIsSaving,
     setAchievements,
@@ -203,7 +199,6 @@ export function useAchievementsManagerModel({
   });
 
   const data = useAchievementDataController({
-    supabase,
     userId,
     readOnly: !canEditAchievements,
     achievements,
@@ -385,7 +380,7 @@ export function useAchievementsManagerModel({
       return;
     }
 
-    const payload = formToPayload(formForDedicate);
+    const payload = formToSaveCommand(formForDedicate);
     const body = payloadToDedicateApiBody(userId, payload);
     const result = await postDedicateAchievement(body);
     if (result.isErr()) {

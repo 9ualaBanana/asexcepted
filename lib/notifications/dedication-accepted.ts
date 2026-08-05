@@ -2,7 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { getAchievementDedicationNotifyRow } from "@/lib/achievements/data/achievement-repository";
+import { getAchievementDedicationNotifyRow } from "@/lib/achievements/persistence/achievements";
 import { sendPushToUsers } from "@/lib/notifications/send";
 import { resolveDisplayName } from "@/lib/notifications/templates";
 import { createServiceRoleSupabase } from "@/lib/supabase/clients/server";

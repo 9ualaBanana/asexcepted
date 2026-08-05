@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/achievements/badge/display/badge";
 import { badgeOptionsForEmbed } from "@/components/achievements/badge/display/badge-presets";
 import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/shared/badge-assets-server";
-import { getAchievementEmbedBadgeById } from "@/lib/achievements/data/achievement-repository";
+import { getAchievementEmbedBadgeById } from "@/lib/achievements/persistence/achievements";
 import { verifyEmbedBadgeToken } from "@/lib/embed/embed-badge-token";
 import { createAnonSupabase } from "@/lib/supabase/clients/server";
 

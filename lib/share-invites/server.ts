@@ -8,9 +8,9 @@ import {
   getAchievementOwnerUserId,
   getAchievementShareInviteSnapshotRow,
   type AchievementShareInviteSnapshotRow,
-} from "@/lib/achievements/data/achievement-repository";
-import { insertClaimedAchievementFromInvite } from "@/lib/achievements/data/dedication-db";
-import type { AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
+} from "@/lib/achievements/persistence/achievements";
+import { insertClaimedAchievementFromInvite } from "@/lib/achievements/persistence/dedications";
+import type { AchievementDbWritePayload } from "@/lib/achievements/domain/db-row";
 import { todayDateString } from "@/lib/feed/format-feed-event-time";
 import { isModelBadgeAssetKind, isShareInviteBadgeModelPath } from "@/lib/achievements/badge/shared/badge-assets";
 import { validateShareInviteBadgeSnapshot } from "@/lib/share-invites/eligibility";
@@ -22,7 +22,7 @@ import {
 import type { Tables } from "@/lib/supabase/database.types";
 import type { ServiceRoleSupabaseClient } from "@/lib/supabase/clients/client-types";
 import { createServiceRoleSupabase } from "@/lib/supabase/clients/server";
-import { fetchPublicUserDisplayName } from "@/lib/achievements/data/user-profile-db";
+import { fetchPublicUserDisplayName } from "@/lib/profile/follow";
 import { notifyDedicationAccepted } from "@/lib/notifications/dedication-accepted";
 import { userAchievementDetail } from "@/lib/routes";
 import {
