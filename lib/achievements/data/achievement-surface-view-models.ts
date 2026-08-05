@@ -1,9 +1,13 @@
+import { z } from "zod";
+
+import { normalizeBadgeIconUrl } from "@/lib/achievements/badge/shared/badge-assets";
 import {
+  achievementIconKeySchema,
+  achievementToneSchema,
+  iconAssetKindSchema,
   type AchievementIconKey,
   type AchievementTone,
-  type IconAssetKind,
 } from "@/lib/achievements/data/achievement-enums";
-import { normalizeBadgeIconUrl } from "@/lib/achievements/badge/shared/badge-assets";
 import {
   isModelBadgeAssetKind,
   parseBadgeModelAsset,
@@ -12,9 +16,9 @@ import {
 import { showsDedicatedBadgeEffect } from "@/lib/achievements/dedication/dedication-utils";
 import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
 
-export type FeedEventType = "unlock" | "impression" | "dedication";
+export const FEED_EVENT_TYPES = ["unlock", "impression", "dedication"] as const;
+export type FeedEventType = (typeof FEED_EVENT_TYPES)[number];
 
-/** Following-feed row with badge display fields normalized for UI. */
 export type AchievementFeedItemViewModel = {
   eventType: FeedEventType;
   eventId: string;
@@ -37,65 +41,58 @@ export type AchievementFeedItemViewModel = {
   eventAt: string;
 };
 
-/** Embed iframe badge (model + poster fields). */
 export type AchievementEmbedBadgeViewModel = {
   renderSrc: string | null;
   model: BadgeModelAsset | null;
 };
 
-/** Embed token mint eligibility (owner must have badge art). */
 export type AchievementEmbedMintViewModel = {
   achievementId: string;
   renderSrc: string | null;
 };
 
-/** Share-invite / showcase page badge rendering. */
 export type AchievementShareInviteBadgeViewModel = {
-  /** Persisted badge URL (not ImageKit-optimized). */
   iconUrl: string | null;
   renderSrc: string | null;
   model: BadgeModelAsset | null;
   showAttributionPopover: boolean;
 };
 
-type FeedRowSource = {
-  event_type: FeedEventType;
-  event_id: string;
-  achievement_id: string;
-  user_id: string;
-  actor_user_id: string;
-  actor_display_name: string;
-  actor_avatar_url: string | null;
-  title: string | null;
-  description: string | null;
-  category: string | null;
-  icon: AchievementIconKey;
-  icon_url: string | null;
-  icon_asset_kind: IconAssetKind;
-  tone: AchievementTone;
-  achieved_at: string | null;
-  created_at: string;
-  updated_at: string;
-  event_at: string;
-  is_dedicated: boolean;
-};
+const uuidSchema = z.uuid();
+const isoTimestampSchema = z.string().min(1);
+const nullableTextSchema = z.string().nullable();
 
-type EmbedBadgeRowSource = {
-  icon_url: string | null;
-  icon_asset_kind?: string | null;
-  icon_asset_path?: string | null;
-  icon_model_yaw?: number | null;
-  icon_model_pitch?: number | null;
-  icon_cc_attribution?: string | null;
-  icon_model_animation_play?: boolean | null;
-  icon_model_animation_speed?: number | null;
-};
+export const followingUnlockFeedRowSchema = z.object({
+  event_type: z.enum(FEED_EVENT_TYPES),
+  event_id: uuidSchema,
+  achievement_id: uuidSchema,
+  user_id: uuidSchema,
+  actor_user_id: uuidSchema,
+  actor_display_name: z.string(),
+  actor_avatar_url: nullableTextSchema,
+  title: nullableTextSchema,
+  description: nullableTextSchema,
+  category: nullableTextSchema,
+  icon: achievementIconKeySchema,
+  icon_url: nullableTextSchema,
+  icon_file_id: nullableTextSchema,
+  icon_asset_kind: iconAssetKindSchema,
+  tone: achievementToneSchema,
+  achieved_at: nullableTextSchema,
+  created_at: isoTimestampSchema,
+  updated_at: isoTimestampSchema,
+  event_at: isoTimestampSchema,
+  is_dedicated: z.boolean(),
+});
 
-type ShareInviteBadgeRowSource = EmbedBadgeRowSource;
+export type FollowingUnlockFeedRow = z.infer<typeof followingUnlockFeedRowSchema>;
 
-export function feedRowSourceToViewModel(row: FeedRowSource): AchievementFeedItemViewModel {
-  const iconUrl = row.icon_url;
-  const displaySrc = toOptimizedRenderUrl(iconUrl);
+export const followingUnlockFeedRowsSchema = z.array(followingUnlockFeedRowSchema);
+
+export function feedRpcRowToViewModel(
+  row: FollowingUnlockFeedRow,
+): AchievementFeedItemViewModel {
+  const iconUrl = normalizeBadgeIconUrl(row.icon_url);
   const isDedicated = row.is_dedicated;
   return {
     eventType: row.event_type,
@@ -109,7 +106,7 @@ export function feedRowSourceToViewModel(row: FeedRowSource): AchievementFeedIte
     description: row.description,
     category: row.category,
     icon: row.icon,
-    displaySrc,
+    displaySrc: toOptimizedRenderUrl(iconUrl),
     tone: row.tone,
     showDedicatedEffect: showsDedicatedBadgeEffect(
       isDedicated,
@@ -122,6 +119,19 @@ export function feedRowSourceToViewModel(row: FeedRowSource): AchievementFeedIte
     eventAt: row.event_at,
   };
 }
+
+type EmbedBadgeRowSource = {
+  icon_url: string | null;
+  icon_asset_kind?: string | null;
+  icon_asset_path?: string | null;
+  icon_model_yaw?: number | null;
+  icon_model_pitch?: number | null;
+  icon_cc_attribution?: string | null;
+  icon_model_animation_play?: boolean | null;
+  icon_model_animation_speed?: number | null;
+};
+
+type ShareInviteBadgeRowSource = EmbedBadgeRowSource;
 
 export function embedBadgeRowToViewModel(row: EmbedBadgeRowSource): AchievementEmbedBadgeViewModel | null {
   const iconUrl = normalizeBadgeIconUrl(row.icon_url);

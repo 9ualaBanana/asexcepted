@@ -1,14 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { err, ok, type Result } from "neverthrow";
+import type { ZodError } from "zod";
 
-import { normalizeBadgeIconUrl } from "@/lib/achievements/badge/shared/badge-assets";
 import {
-  parseIconAssetKind,
-  parseIconKey,
-  parseTone,
-} from "@/lib/achievements/data/achievement-enums";
-import {
-  feedRowSourceToViewModel,
+  feedRpcRowToViewModel,
+  followingUnlockFeedRowsSchema,
   type AchievementFeedItemViewModel,
   type FeedEventType,
 } from "@/lib/achievements/data/achievement-surface-view-models";
@@ -25,44 +21,11 @@ export type FeedPage = {
   nextCursor: FeedCursor | null;
 };
 
-function normalizeFeedRow(raw: Record<string, unknown>): AchievementFeedItemViewModel | null {
-  const rawType = raw.event_type;
-  const eventType: FeedEventType | null =
-    rawType === "impression"
-      ? "impression"
-      : rawType === "dedication"
-        ? "dedication"
-        : rawType === "unlock" || rawType === undefined || rawType === null
-          ? "unlock"
-          : null;
-  if (!eventType) {
-    return null;
-  }
-
-  const eventId = raw.event_id ?? raw.achievement_id;
-  if (typeof eventId !== "string") return null;
-
-  return feedRowSourceToViewModel({
-    event_type: eventType,
-    event_id: eventId,
-    achievement_id: String(raw.achievement_id),
-    user_id: String(raw.user_id),
-    actor_user_id: String(raw.actor_user_id ?? raw.user_id),
-    actor_display_name: String(raw.actor_display_name ?? ""),
-    actor_avatar_url: (raw.actor_avatar_url as string | null) ?? null,
-    title: (raw.title as string | null) ?? null,
-    description: (raw.description as string | null) ?? null,
-    category: (raw.category as string | null) ?? null,
-    icon: parseIconKey(raw.icon as string | null | undefined),
-    icon_url: normalizeBadgeIconUrl(raw.icon_url as string | null | undefined),
-    icon_asset_kind: parseIconAssetKind(raw.icon_asset_kind as string | null | undefined),
-    tone: parseTone(raw.tone as string | null | undefined),
-    achieved_at: (raw.achieved_at as string | null) ?? null,
-    created_at: String(raw.created_at),
-    updated_at: String(raw.updated_at),
-    event_at: String(raw.event_at ?? raw.updated_at),
-    is_dedicated: eventType === "dedication" || Boolean(raw.is_dedicated),
-  });
+function formatFeedRowsError(error: ZodError): string {
+  const issue = error.issues[0];
+  if (!issue) return "Invalid feed response.";
+  const path = issue.path.length > 0 ? issue.path.join(".") : "root";
+  return `Invalid feed response at ${path}: ${issue.message}`;
 }
 
 export async function fetchFollowingUnlockFeed(
@@ -90,16 +53,12 @@ export async function fetchFollowingUnlockFeed(
     return err(error.message);
   }
 
-  const rows = (Array.isArray(data) ? data : [])
-    .map((row) =>
-      normalizeFeedRow(
-        typeof row === "object" && row !== null
-          ? (row as Record<string, unknown>)
-          : {},
-      ),
-    )
-    .filter((row): row is AchievementFeedItemViewModel => row !== null);
+  const parsed = followingUnlockFeedRowsSchema.safeParse(data ?? []);
+  if (!parsed.success) {
+    return err(formatFeedRowsError(parsed.error));
+  }
 
+  const rows = parsed.data.map(feedRpcRowToViewModel);
   const last = rows[rows.length - 1];
   const nextCursor =
     rows.length >= limit && last

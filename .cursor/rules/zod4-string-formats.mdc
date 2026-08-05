@@ -1,0 +1,30 @@
+---
+description: Use Zod 4 top-level string format helpers; avoid deprecated ZodString methods
+globs: **/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Zod 4 string formats
+
+This project uses **Zod 4** (`zod` ^4). Prefer top-level format helpers over methods on `z.string()` that TypeScript marks as **deprecated**.
+
+## UUID
+
+```ts
+// ❌ BAD — deprecated on ZodString
+z.string().uuid()
+
+// ✅ GOOD
+z.uuid()
+```
+
+Same idea for other formats when available on the package top level, e.g. `z.email()`, `z.url()`, `z.iso.datetime()` — use the Zod 4 API, not the old chained validators, if the IDE flags them as deprecated.
+
+## Do
+
+- Match existing call sites that already use `z.uuid()` (e.g. dedication accept routes).
+- Keep `.uuid()` only if you deliberately need a chained `ZodString` API and have confirmed it is not deprecated in the installed Zod version.
+
+## Avoid
+
+- Reintroducing `z.string().uuid()` (or other deprecated `ZodString` format methods) in new schemas.

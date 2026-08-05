@@ -10,7 +10,7 @@ External data (DB rows, API request/response bodies, webhooks, `fetch` JSON) is 
 ## Boundaries (validate here)
 
 - **API routes**: `safeParse` request body/query; return 400 on failure (see existing `app/api/**` routes).
-- **DB → domain**: map rows in `lib/**` transformers (`coerceAchievementDbRow`, `tryNormalizeAchievement`, feed edge in `feed-db`). Closed achievement enums via `parseTone` / `parseIconKey` / `parseVisibility` / `parseIconAssetKind` in `lib/achievements/data/achievement-enums.ts` — **not** owned by components.
+- **DB → domain**: hard Zod at `tryNormalizeAchievement` / `normalizeAchievementRowsForList` (`achievement-transformers.ts`) and feed `followingUnlockFeedRowsSchema`. Closed unions via `achievementToneSchema` / `achievementIconKeySchema` / … in `achievement-enums.ts` — **not** component-owned soft `parse*`.
 - **Client fetch**: parse JSON in the data layer (hook or `lib/**` client), not in each consumer component.
 
 Export `z.infer<typeof schema>` (or a named type alias) from the same module as the schema. Inner layers depend on that type, not `unknown` or loose `Record<string, unknown>`.
@@ -19,11 +19,11 @@ Export `z.infer<typeof schema>` (or a named type alias) from the same module as 
 
 | Layer | Owns | Forbidden |
 |-------|------|-----------|
-| `lib/achievements/data` | unions, `parse*`, coerce, feed normalize | defining Lucide/Form chrome; importing enum parse from `components/**` |
-| view-models | Domain→VM, form↔payload without re-coercing enums | `getSafe*` / `parse*` on domain/VM enum fields |
-| components | `iconMap`, tone CSS, `FormState`; present trusted enums | owning DB enum unions / coerce; `getSafe*` wrappers; hardcoding default enum strings |
+| `lib/achievements/data` | Zod enums, hard domain row + feed schemas, list skip+Sentry | Lucide/Form chrome; soft enum defaults on domain |
+| view-models | Domain→VM, form↔payload without re-coercing enums | Soft re-parse of trusted enum fields |
+| components | `iconMap`, tone CSS, Form chrome; present trusted enums | DB coerce; soft enum wrappers |
 
-After a value is `AchievementDomainRow` or a detail/grid/feed VM, use enum fields directly (`detail.tone`, `iconMap[row.icon]`). Defaults live once as `DEFAULT_*` in `achievement-enums.ts` (shared by `parse*`). Do not re-wrap `parse*` as `getSafe*`.
+After a value is `AchievementDomainRow` or a detail/grid/feed VM, use enum fields directly (`detail.tone`, `iconMap[row.icon]`). Form/write defaults use `DEFAULT_*` in `achievement-enums.ts` once — never soft-parse dirty DB into domain.
 
 ## Do not scatter defensive checks
 

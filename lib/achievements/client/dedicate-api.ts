@@ -3,8 +3,12 @@ import { z } from "zod";
 
 import type { AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
 import {
-  DEFAULT_ACHIEVEMENT_ICON_KEY,
-  DEFAULT_ACHIEVEMENT_TONE,
+  achievementIconKeySchema,
+  achievementToneSchema,
+  iconAssetKindSchema,
+  type AchievementIconKey,
+  type AchievementTone,
+  type IconAssetKind,
 } from "@/lib/achievements/data/achievement-enums";
 import { fetchFailureMessage, postJson } from "@/lib/client/fetch-json";
 
@@ -13,22 +17,22 @@ export type DedicateAchievementApiBody = {
   title: AchievementDbWritePayload["title"];
   description: AchievementDbWritePayload["description"];
   category: AchievementDbWritePayload["category"];
-  icon: string;
+  icon: AchievementIconKey;
   icon_url: AchievementDbWritePayload["icon_url"];
   icon_file_id: AchievementDbWritePayload["icon_file_id"];
-  icon_asset_kind: AchievementDbWritePayload["icon_asset_kind"];
+  icon_asset_kind: IconAssetKind;
   icon_asset_path: AchievementDbWritePayload["icon_asset_path"];
   icon_cc_attribution: AchievementDbWritePayload["icon_cc_attribution"];
-  icon_model_yaw: AchievementDbWritePayload["icon_model_yaw"];
-  icon_model_pitch: AchievementDbWritePayload["icon_model_pitch"];
-  icon_model_animation_play: AchievementDbWritePayload["icon_model_animation_play"];
-  icon_model_animation_speed: AchievementDbWritePayload["icon_model_animation_speed"];
-  tone: string;
+  icon_model_yaw: number;
+  icon_model_pitch: number;
+  icon_model_animation_play: boolean;
+  icon_model_animation_speed: number;
+  tone: AchievementTone;
   achieved_at: AchievementDbWritePayload["achieved_at"];
 };
 
 const dedicateSuccessSchema = z.object({
-  achievementId: z.string().uuid(),
+  achievementId: z.uuid(),
 });
 
 export function payloadToDedicateApiBody(
@@ -40,17 +44,17 @@ export function payloadToDedicateApiBody(
     title: payload.title,
     description: payload.description,
     category: payload.category,
-    icon: payload.icon ?? DEFAULT_ACHIEVEMENT_ICON_KEY,
+    icon: achievementIconKeySchema.parse(payload.icon),
     icon_url: payload.icon_url,
     icon_file_id: payload.icon_file_id,
-    icon_asset_kind: payload.icon_asset_kind,
+    icon_asset_kind: iconAssetKindSchema.parse(payload.icon_asset_kind),
     icon_asset_path: payload.icon_asset_path,
     icon_cc_attribution: payload.icon_cc_attribution,
-    icon_model_yaw: payload.icon_model_yaw,
-    icon_model_pitch: payload.icon_model_pitch,
-    icon_model_animation_play: payload.icon_model_animation_play,
-    icon_model_animation_speed: payload.icon_model_animation_speed,
-    tone: payload.tone ?? DEFAULT_ACHIEVEMENT_TONE,
+    icon_model_yaw: z.number().parse(payload.icon_model_yaw),
+    icon_model_pitch: z.number().parse(payload.icon_model_pitch),
+    icon_model_animation_play: z.boolean().parse(payload.icon_model_animation_play),
+    icon_model_animation_speed: z.number().min(0.1).max(2).parse(payload.icon_model_animation_speed),
+    tone: achievementToneSchema.parse(payload.tone),
     achieved_at: payload.achieved_at,
   };
 }

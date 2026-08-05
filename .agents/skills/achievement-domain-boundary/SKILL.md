@@ -1,6 +1,6 @@
 ---
 name: achievement-domain-boundary
-description: Achievement enums and view-models live at the data boundary. Use when editing achievements, badges, feed rows, coerce/transformers, iconMap, or parse* helpers.
+description: Achievement enums and view-models live at the data boundary. Use when editing achievements, badges, feed rows, domain transformers, or iconMap.
 ---
 
 # Achievement domain boundary
@@ -9,11 +9,11 @@ description: Achievement enums and view-models live at the data boundary. Use wh
 
 | Layer | Path | Owns | Forbidden |
 |-------|------|------|-----------|
-| Enums + coerce | `lib/achievements/data/achievement-enums.ts`, `achievement-transformers.ts`, `feed-db.ts` | `parse*`, `DEFAULT_*`; `AchievementDomainRow` | Lucide, Form chrome, CSS tones |
-| View-models | `achievement-view-models.ts`, `achievement-surface-view-models.ts` | Domain/trusted feed→VM; form↔payload | Re-parse enum fields on trusted values |
-| UI presentation | `components/achievements/*` | `iconMap`, tone CSS, `FormState`, dialog chrome | DB coerce; `getSafe*` aliases; hardcoding default enum strings |
+| Enums + hard domain | `achievement-enums.ts`, `achievement-transformers.ts`, feed schemas | Zod enums, `DEFAULT_*`, `tryNormalizeAchievement` | Soft `parse*`, Lucide, Form chrome |
+| View-models | `achievement-view-models.ts`, `achievement-surface-view-models.ts` | Domain/trusted feed→VM; form↔payload | Re-parse trusted enum fields |
+| UI presentation | `components/achievements/*` | `iconMap`, tone CSS, Form chrome | DB coerce; soft enum wrappers |
 
-## Defaults (single source)
+## Defaults (single source for write/forms)
 
 | Constant | Value |
 |----------|-------|
@@ -22,26 +22,26 @@ description: Achievement enums and view-models live at the data boundary. Use wh
 | `DEFAULT_ACHIEVEMENT_VISIBILITY` | `public` |
 | `DEFAULT_ICON_ASSET_KIND` | `image` |
 
-`parse*` returns these constants. Empty dialog shells use the same constants — never literal `"teal"` / `"trophy"` outside `achievement-enums.ts`.
+List invalid rows: skip + Sentry (`reportInvalidAchievementDomainRow`). Single-row paths: `Result.err`.
 
 ## Checklist
 
 1. New closed enum → `achievement-enums.ts` + `iconMap` / tone CSS maps.
-2. Unknown DB/RPC/API field → `parse*` at edge only.
+2. Unknown DB/RPC field → hard Zod schema at edge only.
 3. Trust domain/VM enums — `detail.tone`, `iconMap[icon]`.
-4. No `getSafe*` wrappers around `parse*`.
-5. `lib/achievements/data/**` must not import enum parse from `components/**`.
+4. No soft `parse*` / `getSafe*` on domain.
+5. `lib/achievements/data/**` must not import from `components/**`.
 6. `pnpm verify` after boundary edits.
 
 ## Examples
 
 ```ts
 // edge
-tone: parseTone(row.tone as string | null | undefined)
+const row = tryNormalizeAchievement(raw);
+if (row.isErr()) return err(row.error);
 
 // trusted VM
 tone: detail.tone
-FallbackIcon: iconMap[row.icon]
 
 // missing detail shell only
 detailTone: detail?.tone ?? DEFAULT_ACHIEVEMENT_TONE

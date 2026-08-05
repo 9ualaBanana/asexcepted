@@ -1,7 +1,7 @@
 import { err, ok, type Result } from "neverthrow";
 import { z } from "zod";
 
-import { coerceAchievementDbRow } from "@/lib/achievements/data/achievement-transformers";
+import { tryNormalizeAchievement } from "@/lib/achievements/data/achievement-transformers";
 import {
   domainRowToDetailViewModel,
   type AchievementDetailViewModel,
@@ -38,12 +38,13 @@ export async function postAcceptDedication(
     return err("Could not read dedication after accepting.");
   }
 
-  try {
-    const achievement = domainRowToDetailViewModel(
-      coerceAchievementDbRow(parsed.data.achievement),
-    );
-    return ok({ kind: "accepted", achievement });
-  } catch {
-    return err("Could not read dedication after accepting.");
+  const normalized = tryNormalizeAchievement(parsed.data.achievement);
+  if (normalized.isErr()) {
+    return err(normalized.error);
   }
+
+  return ok({
+    kind: "accepted",
+    achievement: domainRowToDetailViewModel(normalized.value),
+  });
 }

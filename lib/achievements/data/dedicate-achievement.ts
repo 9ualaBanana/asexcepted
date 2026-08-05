@@ -2,7 +2,6 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { err, ok, type Result } from "neverthrow";
-import { z } from "zod";
 
 import { isPublicHttpImageUrl } from "@/lib/achievements/badge/shared/badge-assets";
 import { isModelGlbAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
@@ -12,51 +11,21 @@ import {
   type DedicatedAchievementRow,
 } from "@/lib/achievements/data/dedication-db";
 import {
-  DEFAULT_ICON_ASSET_KIND,
-  parseIconKey,
-  parseTone,
-} from "@/lib/achievements/data/achievement-enums";
+  type DedicateAchievementBody,
+  type DedicateAchievementFailure,
+} from "@/lib/achievements/data/dedicate-achievement-body";
 import type { Database } from "@/lib/supabase/database.types";
 import { createServiceRoleSupabase } from "@/lib/supabase/clients/server";
 
+export {
+  dedicateAchievementBodySchema,
+  parseDedicateAchievementBody,
+  type DedicateAchievementBody,
+  type DedicateAchievementFailure,
+} from "@/lib/achievements/data/dedicate-achievement-body";
+
 type Client = SupabaseClient<Database>;
 type AchievementInsert = Database["public"]["Tables"]["achievements"]["Insert"];
-
-export const dedicateAchievementBodySchema = z.object({
-  recipientUserId: z.uuid(),
-  title: z.string().nullable().optional(),
-  description: z.string().nullable().optional(),
-  category: z.string().nullable().optional(),
-  icon: z.string().optional(),
-  icon_url: z.string().nullable().optional(),
-  icon_file_id: z.string().nullable().optional(),
-  icon_asset_kind: z.enum(["image", "model_glb"]).optional(),
-  icon_asset_path: z.string().nullable().optional(),
-  icon_cc_attribution: z.string().nullable().optional(),
-  icon_model_yaw: z.number().optional(),
-  icon_model_pitch: z.number().optional(),
-  icon_model_animation_play: z.boolean().optional(),
-  icon_model_animation_speed: z.number().optional(),
-  tone: z.string().optional(),
-  achieved_at: z.string().nullable().optional(),
-});
-
-export type DedicateAchievementBody = z.infer<typeof dedicateAchievementBodySchema>;
-
-export type DedicateAchievementFailure = {
-  message: string;
-  status: 400 | 500;
-};
-
-export function parseDedicateAchievementBody(
-  raw: unknown,
-): Result<DedicateAchievementBody, DedicateAchievementFailure> {
-  const parsed = dedicateAchievementBodySchema.safeParse(raw);
-  if (!parsed.success) {
-    return err({ message: "Invalid payload", status: 400 });
-  }
-  return ok(parsed.data);
-}
 
 function validationFailure(message: string): DedicateAchievementFailure {
   return { message, status: 400 };
@@ -82,26 +51,22 @@ function dedicateBodyToAchievementInsert(
   dedicatorUserId: string,
   badge: { iconUrl: string; iconAssetPath: string | null },
 ): AchievementInsert {
-  const iconAssetKind = body.icon_asset_kind ?? DEFAULT_ICON_ASSET_KIND;
   return {
     user_id: body.recipientUserId,
     title: body.title ?? null,
     description: body.description ?? null,
     category: body.category ?? null,
-    icon: parseIconKey(body.icon),
+    icon: body.icon,
     icon_url: badge.iconUrl,
     icon_file_id: body.icon_file_id ?? null,
-    icon_asset_kind: iconAssetKind,
+    icon_asset_kind: body.icon_asset_kind,
     icon_asset_path: badge.iconAssetPath,
     icon_cc_attribution: body.icon_cc_attribution ?? null,
-    icon_model_yaw: body.icon_model_yaw ?? 0,
-    icon_model_pitch: body.icon_model_pitch ?? 0,
-    icon_model_animation_play: body.icon_model_animation_play ?? true,
-    icon_model_animation_speed: Math.min(
-      2,
-      Math.max(0.1, body.icon_model_animation_speed ?? 1),
-    ),
-    tone: parseTone(body.tone),
+    icon_model_yaw: body.icon_model_yaw,
+    icon_model_pitch: body.icon_model_pitch,
+    icon_model_animation_play: body.icon_model_animation_play,
+    icon_model_animation_speed: body.icon_model_animation_speed,
+    tone: body.tone,
     is_locked: true,
     achieved_at: body.achieved_at ?? null,
     visibility: "public",
@@ -114,13 +79,12 @@ async function resolveDedicatedBadge(
   body: DedicateAchievementBody,
   dedicatorUserId: string,
 ): Promise<Result<{ iconUrl: string; iconAssetPath: string | null }, DedicateAchievementFailure>> {
-  const iconAssetKind = body.icon_asset_kind ?? DEFAULT_ICON_ASSET_KIND;
   try {
     const resolved = await resolveClaimedBadgeIconFields({
       senderUserId: dedicatorUserId,
       claimerUserId: body.recipientUserId,
       iconUrl: body.icon_url ?? null,
-      iconAssetKind,
+      iconAssetKind: body.icon_asset_kind,
       iconAssetPath: body.icon_asset_path ?? null,
     });
     return ok({

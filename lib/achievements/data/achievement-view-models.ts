@@ -8,8 +8,10 @@ import {
   type BadgeModelAsset,
 } from "@/lib/achievements/badge/shared/badge-model-asset";
 import {
-  ACHIEVEMENT_ICON_KEYS,
-  ACHIEVEMENT_TONES,
+  achievementIconKeySchema,
+  achievementToneSchema,
+  achievementVisibilitySchema,
+  iconAssetKindSchema,
   type AchievementIconKey,
   type AchievementTone,
   type AchievementVisibility,
@@ -25,11 +27,6 @@ import { normalizeImageKitFileId } from "@/lib/imagekit/client/imagekit-api";
 import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
 import type { CollectionAchievementSnapshotSource } from "@/lib/share-invites/invite-snapshot";
 import { z } from "zod";
-
-const achievementIconKeySchema = z.enum(ACHIEVEMENT_ICON_KEYS);
-const achievementToneSchema = z.enum(ACHIEVEMENT_TONES);
-const achievementVisibilitySchema = z.enum(["public", "private"]);
-const iconAssetKindSchema = z.enum(["image", "model_glb"]);
 
 const badgeModelFormFieldsSchema = z.object({
   assetPath: z.string(),

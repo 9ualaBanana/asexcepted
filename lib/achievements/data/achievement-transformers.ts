@@ -1,18 +1,20 @@
+import * as Sentry from "@sentry/nextjs";
 import { err, ok, type Result } from "neverthrow";
+import { z, type ZodError } from "zod";
 
+import { normalizeBadgeIconUrl } from "@/lib/achievements/badge/shared/badge-assets";
 import {
+  achievementIconKeySchema,
+  achievementToneSchema,
+  achievementVisibilitySchema,
+  iconAssetKindSchema,
   type AchievementIconKey,
   type AchievementTone,
   type AchievementVisibility,
   type IconAssetKind,
-  parseIconAssetKind,
-  parseIconKey,
-  parseTone,
-  parseVisibility,
 } from "@/lib/achievements/data/achievement-enums";
-import { normalizeBadgeIconUrl } from "@/lib/achievements/badge/shared/badge-assets";
+import { isSentryEnabled } from "@/lib/sentry/enabled";
 
-/** Normalized DB row — map to view models before leaving the data layer. */
 export type AchievementDomainRow = {
   id: string;
   title: string | null;
@@ -38,62 +40,148 @@ export type AchievementDomainRow = {
   dedication_status: "pending" | "accepted" | null;
 };
 
-/** Maps a DB row without Zod (avoids false failures on dedicated / 3D badge rows). */
-export function coerceAchievementDbRow(row: Record<string, unknown>): AchievementDomainRow {
-  const dedicationStatusRaw = row.dedication_status;
-  const dedicationStatus =
-    dedicationStatusRaw === "pending"
-      ? "pending"
-      : dedicationStatusRaw === "accepted" || row.dedicated_by_user_id
-        ? "accepted"
-        : null;
+const nullableTextSchema = z.string().nullable();
 
-  const iconFileId =
-    typeof row.icon_file_id === "string" ? row.icon_file_id.trim() || null : null;
+const trimmedNullableTextSchema = z
+  .string()
+  .nullable()
+  .transform((value) => {
+    if (value == null) return null;
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  });
 
-  return {
-    id: String(row.id ?? ""),
-    title: (row.title as string | null) ?? null,
-    description: (row.description as string | null) ?? null,
-    category: (row.category as string | null) ?? null,
-    icon: parseIconKey(row.icon as string | null | undefined),
-    icon_url: normalizeBadgeIconUrl(row.icon_url as string | null | undefined),
-    icon_file_id: iconFileId,
-    icon_asset_kind: parseIconAssetKind(row.icon_asset_kind as string | null | undefined),
-    icon_asset_path:
-      typeof row.icon_asset_path === "string" ? row.icon_asset_path.trim() || null : null,
-    icon_cc_attribution:
-      typeof row.icon_cc_attribution === "string"
-        ? row.icon_cc_attribution.trim() || null
-        : null,
-    icon_model_yaw: Number(row.icon_model_yaw) || 0,
-    icon_model_pitch: Number(row.icon_model_pitch) || 0,
-    icon_model_animation_play:
-      row.icon_model_animation_play === false ? false : true,
-    icon_model_animation_speed:
-      typeof row.icon_model_animation_speed === "number"
-        ? Math.min(2, Math.max(0.1, row.icon_model_animation_speed))
-        : 1,
-    tone: parseTone(row.tone as string | null | undefined),
-    is_locked: Boolean(row.is_locked),
-    achieved_at: (row.achieved_at as string | null) ?? null,
-    created_at: String(row.created_at ?? ""),
-    visibility: parseVisibility(row.visibility as string | null | undefined),
-    impression_count: 0,
-    dedicated_by_user_id: (row.dedicated_by_user_id as string | null) ?? null,
-    dedication_status: dedicationStatus,
-  };
+const achievementDomainRowObjectSchema = z.object({
+  id: z.uuid(),
+  title: nullableTextSchema,
+  description: nullableTextSchema,
+  category: nullableTextSchema,
+  icon: achievementIconKeySchema,
+  icon_url: z
+    .string()
+    .nullable()
+    .transform((value) => normalizeBadgeIconUrl(value)),
+  icon_file_id: trimmedNullableTextSchema,
+  icon_asset_kind: iconAssetKindSchema,
+  icon_asset_path: trimmedNullableTextSchema,
+  icon_cc_attribution: trimmedNullableTextSchema,
+  icon_model_yaw: z.number(),
+  icon_model_pitch: z.number(),
+  icon_model_animation_play: z.boolean(),
+  icon_model_animation_speed: z.number().min(0.1).max(2),
+  tone: achievementToneSchema,
+  is_locked: z.boolean(),
+  achieved_at: z.string().nullable(),
+  created_at: z.string().min(1),
+  visibility: achievementVisibilitySchema,
+  impression_count: z.number().int().nonnegative().optional(),
+  dedicated_by_user_id: z.uuid().nullable(),
+  dedication_status: z.enum(["pending", "accepted"]).nullable().optional(),
+});
+
+export const achievementDomainRowSchema = achievementDomainRowObjectSchema.transform(
+  (row): AchievementDomainRow => {
+    const dedication_status =
+      row.dedication_status === "pending"
+        ? "pending"
+        : row.dedication_status === "accepted" || row.dedicated_by_user_id
+          ? "accepted"
+          : null;
+
+    return {
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      category: row.category,
+      icon: row.icon,
+      icon_url: row.icon_url,
+      icon_file_id: row.icon_file_id,
+      icon_asset_kind: row.icon_asset_kind,
+      icon_asset_path: row.icon_asset_path,
+      icon_cc_attribution: row.icon_cc_attribution,
+      icon_model_yaw: row.icon_model_yaw,
+      icon_model_pitch: row.icon_model_pitch,
+      icon_model_animation_play: row.icon_model_animation_play,
+      icon_model_animation_speed: row.icon_model_animation_speed,
+      tone: row.tone,
+      is_locked: row.is_locked,
+      achieved_at: row.achieved_at,
+      created_at: row.created_at,
+      visibility: row.visibility,
+      impression_count: row.impression_count ?? 0,
+      dedicated_by_user_id: row.dedicated_by_user_id,
+      dedication_status,
+    };
+  },
+);
+
+function formatDomainRowError(error: ZodError): string {
+  const issue = error.issues[0];
+  if (!issue) return "Invalid achievement row.";
+  const path = issue.path.length > 0 ? issue.path.join(".") : "root";
+  return `Invalid achievement row at ${path}: ${issue.message}`;
+}
+
+export function reportInvalidAchievementDomainRow(args: {
+  context: string;
+  row: unknown;
+  error: ZodError;
+}): void {
+  // if (!isSentryEnabled()) return;
+
+  const rowId =
+    args.row &&
+    typeof args.row === "object" &&
+    args.row !== null &&
+    "id" in args.row
+      ? String((args.row as { id: unknown }).id)
+      : undefined;
+
+  Sentry.captureException(
+    new Error(`Invalid achievement domain row (${args.context})`),
+    {
+      tags: {
+        area: "achievement_domain",
+        context: args.context,
+      },
+      extra: {
+        achievementId: rowId,
+        issues: args.error.issues.slice(0, 12).map((issue) => ({
+          path: issue.path.join("."),
+          message: issue.message,
+          code: issue.code,
+        })),
+      },
+    },
+  );
 }
 
 export function tryNormalizeAchievement(
   record: unknown,
 ): Result<AchievementDomainRow, string> {
-  if (!record || typeof record !== "object") {
-    return err("Invalid achievement row.");
+  const parsed = achievementDomainRowSchema.safeParse(record);
+  if (!parsed.success) {
+    return err(formatDomainRowError(parsed.error));
   }
-  try {
-    return ok(coerceAchievementDbRow(record as Record<string, unknown>));
-  } catch (error) {
-    return err(error instanceof Error ? error.message : "Invalid achievement row.");
+  return ok(parsed.data);
+}
+
+export function normalizeAchievementRowsForList(
+  rows: unknown[],
+  context: string,
+): AchievementDomainRow[] {
+  const domainRows: AchievementDomainRow[] = [];
+  for (const row of rows) {
+    const parsed = achievementDomainRowSchema.safeParse(row);
+    if (!parsed.success) {
+      reportInvalidAchievementDomainRow({
+        context,
+        row,
+        error: parsed.error,
+      });
+      continue;
+    }
+    domainRows.push(parsed.data);
   }
+  return domainRows;
 }

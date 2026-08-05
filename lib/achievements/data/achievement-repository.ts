@@ -6,7 +6,7 @@ import type {
   AchievementDbWritePayload,
 } from "@/lib/achievements/data/achievement-db-schema";
 import {
-  coerceAchievementDbRow,
+  normalizeAchievementRowsForList,
   tryNormalizeAchievement,
 } from "@/lib/achievements/data/achievement-transformers";
 import {
@@ -109,8 +109,9 @@ export async function listAchievements(
     return err(error.message);
   }
 
-  const domainRows = (data ?? []).map((row) =>
-    coerceAchievementDbRow(row as Record<string, unknown>),
+  const domainRows = normalizeAchievementRowsForList(
+    data ?? [],
+    "listAchievements",
   );
   const countMap = await fetchImpressionCountMap(
     supabase,

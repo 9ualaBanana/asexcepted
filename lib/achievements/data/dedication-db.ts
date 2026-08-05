@@ -1,7 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { err, ok, type Result } from "neverthrow";
 
-import { coerceAchievementDbRow } from "@/lib/achievements/data/achievement-transformers";
+import {
+  normalizeAchievementRowsForList,
+  tryNormalizeAchievement,
+} from "@/lib/achievements/data/achievement-transformers";
 import {
   domainRowToDetailViewModel,
   type AchievementDetailViewModel,
@@ -34,11 +37,11 @@ export async function listPendingDedications(
     return err(error.message);
   }
 
-  const details: AchievementDetailViewModel[] = [];
-  for (const row of data ?? []) {
-    details.push(domainRowToDetailViewModel(coerceAchievementDbRow(row as Record<string, unknown>)));
-  }
-  return ok(details);
+  const domainRows = normalizeAchievementRowsForList(
+    data ?? [],
+    "listPendingDedications",
+  );
+  return ok(domainRows.map(domainRowToDetailViewModel));
 }
 
 export async function acceptPendingDedicationForRecipient(
@@ -65,7 +68,11 @@ export async function acceptPendingDedicationForRecipient(
     return err("This dedication is no longer pending or was already accepted.");
   }
 
-  return ok(domainRowToDetailViewModel(coerceAchievementDbRow(data as Record<string, unknown>)));
+  const normalized = tryNormalizeAchievement(data);
+  if (normalized.isErr()) {
+    return err(normalized.error);
+  }
+  return ok(domainRowToDetailViewModel(normalized.value));
 }
 
 export async function rejectDedication(

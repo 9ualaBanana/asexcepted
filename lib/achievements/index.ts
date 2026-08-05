@@ -7,14 +7,16 @@ export type {
 export {
   ACHIEVEMENT_ICON_KEYS,
   ACHIEVEMENT_TONES,
+  ACHIEVEMENT_VISIBILITIES,
+  ICON_ASSET_KINDS,
   DEFAULT_ACHIEVEMENT_ICON_KEY,
   DEFAULT_ACHIEVEMENT_TONE,
   DEFAULT_ACHIEVEMENT_VISIBILITY,
   DEFAULT_ICON_ASSET_KIND,
-  parseIconAssetKind,
-  parseIconKey,
-  parseTone,
-  parseVisibility,
+  achievementIconKeySchema,
+  achievementToneSchema,
+  achievementVisibilitySchema,
+  iconAssetKindSchema,
   type AchievementIconKey,
   type AchievementTone,
   type AchievementVisibility,
@@ -22,7 +24,8 @@ export {
 } from "./data/achievement-enums";
 export {
   tryNormalizeAchievement,
-  coerceAchievementDbRow,
+  normalizeAchievementRowsForList,
+  achievementDomainRowSchema,
   type AchievementDomainRow,
 } from "./data/achievement-transformers";
 export {
@@ -66,9 +69,13 @@ export {
   type AchievementFeedItemViewModel,
   type AchievementShareInviteBadgeViewModel,
   type FeedEventType,
+  type FollowingUnlockFeedRow,
+  FEED_EVENT_TYPES,
   embedBadgeRowToViewModel,
   embedMintRowToViewModel,
-  feedRowSourceToViewModel,
+  feedRpcRowToViewModel,
+  followingUnlockFeedRowSchema,
+  followingUnlockFeedRowsSchema,
   shareInviteRowToBadgeViewModel,
 } from "./data/achievement-surface-view-models";
 export {
