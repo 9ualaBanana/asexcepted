@@ -27,6 +27,7 @@ import {
   type AchievementIconKey,
   iconMap,
 } from "@/components/achievements/achievement-editor-shared";
+import { ACHIEVEMENT_TONES } from "@/lib/achievements/data/achievement-enums";
 import { createRemoteAssetStorageRef } from "@/lib/upload/remote-asset-storage";
 import { Button } from "@/components/ui/button";
 import { useErrorToast } from "@/lib/toast";
@@ -40,14 +41,7 @@ import {
   type BadgeModelAsset,
 } from "@/lib/achievements/badge/shared/badge-model-asset";
 
-const EDITOR_TONE_OPTIONS: AchievementTone[] = [
-  "teal",
-  "rose",
-  "lime",
-  "fuchsia",
-  "orange",
-  "indigo",
-];
+const EDITOR_TONE_OPTIONS: readonly AchievementTone[] = ACHIEVEMENT_TONES;
 
 const chipBtn =
   "border-white/25 bg-white/10 text-white hover:bg-white/15";
