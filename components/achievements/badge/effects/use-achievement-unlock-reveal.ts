@@ -36,9 +36,6 @@ import { type createBrowserSupabase } from "@/lib/supabase/clients/browser";
 
 type SupabaseClient = ReturnType<typeof createBrowserSupabase>;
 
-const DEFAULT_HOLD_MS = 480;
-const DEFAULT_REVEAL_MS = 1200;
-
 type UseAchievementUnlockRevealArgs = {
   readOnly: boolean;
   detailAchievement: AchievementDetailViewModel | null;
@@ -267,15 +264,13 @@ export function useAchievementUnlockReveal({
       return prev;
     });
 
-    const revealMs = finiteOr(UNLOCK_REVEAL_DURATION_MS, DEFAULT_REVEAL_MS);
-
     setUnlockingAchievementId(detailAchievement.id);
     setIsSaving(true);
     setError(null);
 
     const openMs = Math.max(
       120,
-      Math.round(Math.max(0, 1 - revealClip.progressRef.current) * revealMs),
+      Math.round(Math.max(0, 1 - revealClip.progressRef.current) * UNLOCK_REVEAL_DURATION_MS),
     );
     const openResult = await runRevealAnimation(1, openMs, {
       cancelIfHoldReleased: true,
@@ -285,7 +280,7 @@ export function useAchievementUnlockReveal({
       stopUnlockSound();
       const closeMs = Math.max(
         120,
-        Math.round(revealClip.progressRef.current * revealMs),
+        Math.round(revealClip.progressRef.current * UNLOCK_REVEAL_DURATION_MS),
       );
       setIsSaving(false);
       void runRevealAnimation(0, closeMs, {
@@ -365,13 +360,12 @@ export function useAchievementUnlockReveal({
     holdPressedRef.current = true;
     setIsUnlockHolding(true);
     primeUnlockAudioGestureContext();
-    const holdMs = finiteOr(UNLOCK_HOLD_DURATION_MS, DEFAULT_HOLD_MS);
     holdTimeoutRef.current = window.setTimeout(() => {
       holdTimeoutRef.current = null;
       setIsUnlockHolding(false);
       playUnlockTimelineSound();
       void handlePressHoldUnlock();
-    }, holdMs);
+    }, UNLOCK_HOLD_DURATION_MS);
   }, [
     detailIsLockedUi,
     handlePressHoldUnlock,
@@ -416,8 +410,4 @@ export function useAchievementUnlockReveal({
     resetUnlockWave,
     refreshUnlockAlphaMask,
   };
-}
-
-function finiteOr(value: number, fallback: number) {
-  return Number.isFinite(value) ? value : fallback;
 }
