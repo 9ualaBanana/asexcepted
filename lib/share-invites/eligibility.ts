@@ -1,19 +1,17 @@
 import { err, ok, type Result } from "neverthrow";
 
-import type { AchievementWrite } from "@/lib/achievements/domain/achievement";
 import { isPublicHttpImageUrl } from "@/lib/achievements/badge/shared/badge-assets";
 import { isModelGlbAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
-import type { AchievementShareInviteSnapshot, AchievementSnapshotSource } from "@/lib/share-invites/invite-snapshot";
-import { shareInviteSnapshotFromAchievementRow } from "@/lib/share-invites/invite-snapshot";
+import type { Achievement } from "../achievements/domain/achievement";
 
 export function isAchievementEligibleForShareInvite(
-  payload: Pick<AchievementWrite, "icon_url">,
+  achievement: { icon_url: string | null },
 ) {
-  return Boolean(payload.icon_url?.trim());
+  return Boolean(achievement.icon_url?.trim());
 }
 
 export function validateShareInviteBadgeSnapshot(
-  snapshot: AchievementShareInviteSnapshot,
+  snapshot: { icon_url: string | null; icon_asset_kind: string | null; icon_asset_path: string | null },
 ): Result<void, string> {
   if (!isAchievementEligibleForShareInvite(snapshot)) {
     return err("Only achievements with a custom badge image can be shared.");
@@ -42,11 +40,7 @@ export function canDedicateAchievementViaShareInvite(achievement: {
   return !achievement.dedicatedByUserId;
 }
 
-export function getAchievementShareReadinessError(
-  achievement: AchievementSnapshotSource,
-): string | null {
-  const validation = validateShareInviteBadgeSnapshot(
-    shareInviteSnapshotFromAchievementRow(achievement),
-  );
+export function getAchievementShareReadinessError(achievement: { icon_url: string | null; icon_asset_kind: string | null; icon_asset_path: string | null }): string | null {
+  const validation = validateShareInviteBadgeSnapshot(achievement);
   return validation.isErr() ? validation.error : null;
 }

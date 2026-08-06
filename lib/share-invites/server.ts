@@ -2,19 +2,10 @@ import "server-only";
 
 import { err, ok, type Result } from "neverthrow";
 
-import {
-  deleteAchievementForOwner,
-  getAchievementIdForOwner,
-  getAchievementOwnerUserId,
-  getAchievementShareInviteSnapshotRow,
-  type AchievementShareInviteSnapshotRow,
-} from "@/lib/achievements/persistence/achievements";
 import { insertClaimedAchievementFromInvite } from "@/lib/achievements/persistence/dedications";
-import type { AchievementWrite } from "@/lib/achievements/domain/achievement";
 import { todayDateString } from "@/lib/feed/format-feed-event-time";
-import { isModelBadgeAssetKind, isShareInviteBadgeModelPath } from "@/lib/achievements/badge/shared/badge-assets";
+import { buildShareInviteBadgeModelPath, BADGE_PREVIEW_BUCKET, BADGE_MODEL_BUCKET, buildShareInviteBadgePreviewPath, isModelBadgeAssetKind, isShareInviteBadgeModelPath } from "@/lib/achievements/badge/shared/badge-assets";
 import { validateShareInviteBadgeSnapshot } from "@/lib/share-invites/eligibility";
-import { deleteShareInviteRollback } from "@/lib/share-invites/invite-rollback";
 import {
   pinBadgeAssetsForShareInvite,
   resolveClaimedBadgeIconFields,
@@ -27,24 +18,20 @@ import { notifyDedicationAccepted } from "@/lib/notifications/dedication-accepte
 import { userAchievementDetail } from "@/lib/routes";
 import {
   buildClaimedAchievementCreateFromInvite,
-  shareInviteSnapshotFromAchievementRow,
-  shareInviteSnapshotFromWritePayload,
   type AchievementShareInviteSnapshot,
 } from "@/lib/share-invites/invite-snapshot";
-import {
-  createAchievementShareInviteToken,
-  hashAchievementShareInviteToken,
-} from "@/lib/share-invites/token";
-import { formatSupabaseSingleRowError } from "@/lib/supabase/postgrest-errors";
-
-export { isAchievementEligibleForShareInvite } from "@/lib/share-invites/eligibility";
+import { createAchievementShareInviteToken } from "@/lib/share-invites/token";
+import { createAchievementPort } from "../achievements/application/adapters";
+import type { Achievement } from "@/lib/achievements/domain/achievement";
+import { AchievementShareInviteCreate } from "../achievements/domain/share-invite";
+import { createShareInvitePort } from "@/lib/achievements/application/adapters";
 
 export type { AchievementShareInviteSnapshot };
 
 type AchievementShareInviteRow = Tables<"achievement_share_invites">;
 
 export type AchievementShareInvitePresentation = {
-  invite: AchievementShareInviteRow;
+  invite: AchievementShareInviteCreate;
   senderDisplayName: string;
   /** Collection owner when `source_achievement_id` is set (may differ from sharer). */
   collectionOwnerUserId: string | null;
@@ -82,17 +69,17 @@ export function getAchievementShareInviteOwnerDetailPath(
 async function finalizeInviteBadgeAssetsOnRow(args: {
   supabase: ServiceRoleSupabaseClient;
   inviteId: string;
-  badgeAssetOwnerUserId: string;
-  snapshot: AchievementShareInviteSnapshot;
-}): Promise<Result<AchievementShareInviteSnapshot, string>> {
+  senderUserId: string;
+  snapshot: Achievement;
+}): Promise<Result<Achievement, string>> {
   if (!isModelBadgeAssetKind(args.snapshot.icon_asset_kind)) {
-    return ok({ ...args.snapshot });
+    return ok(args.snapshot);
   }
 
   try {
     const pinned = await pinBadgeAssetsForShareInvite({
       inviteId: args.inviteId,
-      senderUserId: args.badgeAssetOwnerUserId,
+      senderUserId: args.senderUserId,
       iconAssetPath: args.snapshot.icon_asset_path,
     });
     if (!pinned) {
@@ -138,107 +125,7 @@ async function finalizeInviteBadgeAssetsOnRow(args: {
   }
 }
 
-async function insertShareInviteWithSnapshot(args: {
-  senderUserId: string;
-  snapshot: AchievementShareInviteSnapshot;
-  sourceAchievementId: string | null;
-  shareKind: AchievementSharePageKind;
-  badgeAssetOwnerUserId?: string;
-}): Promise<
-  Result<
-    {
-      inviteId: string;
-      token: string;
-      snapshot: AchievementShareInviteSnapshot;
-    },
-    string
-  >
-> {
-  const snapshotValidation = validateShareInviteBadgeSnapshot(args.snapshot);
-  if (snapshotValidation.isErr()) {
-    return err(snapshotValidation.error);
-  }
-
-  const supabase = createServiceRoleSupabase();
-  const token = createAchievementShareInviteToken();
-  const tokenHash = hashAchievementShareInviteToken(token);
-
-  const { data, error } = await supabase
-    .from("achievement_share_invites")
-    .insert({
-      sender_user_id: args.senderUserId,
-      source_achievement_id: args.sourceAchievementId,
-      share_kind: args.shareKind,
-      title: args.snapshot.title,
-      description: args.snapshot.description,
-      category: args.snapshot.category,
-      icon: args.snapshot.icon,
-      icon_url: args.snapshot.icon_url,
-      icon_file_id: args.snapshot.icon_file_id,
-      icon_asset_kind: args.snapshot.icon_asset_kind,
-      icon_asset_path: args.snapshot.icon_asset_path,
-      icon_cc_attribution: args.snapshot.icon_cc_attribution,
-      icon_model_yaw: args.snapshot.icon_model_yaw,
-      icon_model_pitch: args.snapshot.icon_model_pitch,
-      tone: args.snapshot.tone,
-      achieved_at: args.snapshot.achieved_at,
-      token_hash: tokenHash,
-      status: "pending",
-    })
-    .select("id")
-    .maybeSingle();
-
-  if (error) {
-    return err(
-      formatSupabaseSingleRowError(error, "Could not create the share invite. Try again."),
-    );
-  }
-  if (!data?.id) {
-    return err("Could not create the share invite. Try again.");
-  }
-
-  const finalized = await finalizeInviteBadgeAssetsOnRow({
-    supabase,
-    inviteId: data.id,
-    badgeAssetOwnerUserId: args.badgeAssetOwnerUserId ?? args.senderUserId,
-    snapshot: args.snapshot,
-  });
-  if (finalized.isErr()) {
-    await deleteShareInviteRollback(data.id, supabase);
-    return err(finalized.error);
-  }
-
-  return ok({
-    inviteId: data.id,
-    token,
-    snapshot: finalized.value,
-  });
-}
-
-export async function createAchievementShareInviteFromPayload(args: {
-  senderUserId: string;
-  payload: AchievementWrite;
-  sourceAchievementId?: string | null;
-}): Promise<
-  Result<
-    {
-      inviteId: string;
-      token: string;
-      snapshot: AchievementShareInviteSnapshot;
-    },
-    string
-  >
-> {
-  const sourceAchievementId = args.sourceAchievementId ?? null;
-  return insertShareInviteWithSnapshot({
-    senderUserId: args.senderUserId,
-    snapshot: shareInviteSnapshotFromWritePayload(args.payload),
-    sourceAchievementId,
-    shareKind: sourceAchievementId ? "showcase" : "invite",
-  });
-}
-
-export async function createAchievementShareInviteFromExistingAchievement(args: {
+export async function createAchievementShareInvite(args: {
   senderUserId: string;
   achievementId: string;
   intent: AchievementShareInviteIntent;
@@ -247,32 +134,70 @@ export async function createAchievementShareInviteFromExistingAchievement(args: 
     {
       inviteId: string;
       token: string;
-      snapshot: AchievementShareInviteSnapshot;
+      snapshot: Achievement;
     },
     string
   >
 > {
   const supabase = createServiceRoleSupabase();
-  const snapshotResult = await getAchievementShareInviteSnapshotRow(
-    supabase,
-    args.achievementId,
-  );
+  const achievementPort = createAchievementPort(supabase);
 
-  if (snapshotResult.isErr()) {
-    return err(snapshotResult.error);
+  const achievementResult = await achievementPort.get(args.achievementId);
+  if (achievementResult.isErr()) {
+    return err(achievementResult.error);
   }
-  const data = snapshotResult.value;
+  const achievement = achievementResult.value;
 
-  const achievement = data as Pick<
-    AchievementShareInviteSnapshotRow,
-    "id" | "user_id" | "visibility" | "dedicated_by_user_id"
-  > &
-    Parameters<typeof shareInviteSnapshotFromAchievementRow>[0];
+  const canShareResult = canBeShared(achievement, args);
+  if (canShareResult.isErr()) {
+    return err(canShareResult.error);
+  }
 
-  const collectionOwnerId = achievement.user_id;
-  const isCollectionOwner = collectionOwnerId === args.senderUserId;
+  const inviteResult = await insertShareInviteWithSnapshot({
+    senderUserId: args.senderUserId,
+    achievement,
+    shareKind: args.intent === "showcase" ? "showcase" : "invite",
+  });
+  if (inviteResult.isErr()) {
+    return inviteResult;
+  }
+  if (args.intent === "showcase") {
+    return inviteResult;
+  }
+  const invite = inviteResult.value;
 
-  if (!isCollectionOwner) {
+  if (isModelBadgeAssetKind(invite.snapshot.icon_asset_kind)) {
+    const pinnedPath = invite.snapshot.icon_asset_path;
+    if (!pinnedPath || !isShareInviteBadgeModelPath(pinnedPath)) {
+      const rollbackResult = await deleteShareInviteRollbackAndAssets(invite.inviteId, supabase);
+      return err(rollbackResult.isErr()
+        ? rollbackResult.error
+        : "The 3D badge could not be prepared for this invite. Wait for the model to finish uploading, then try again."
+      );
+    }
+  }
+
+  const removed = await achievementPort.deleteForOwner(
+    achievement.id,
+    args.senderUserId,
+  );
+  if (removed.isErr()) {
+    return err(removed.error);
+  }
+
+  return ok(invite);
+}
+
+function canBeShared(achievement: Achievement,
+  args: {
+    senderUserId: string;
+    intent: AchievementShareInviteIntent;
+  }
+): Result<void, string> {
+  const achievementOwner = achievement.user_id;
+  const isSharedByOwner = achievementOwner === args.senderUserId;
+
+  if (!isSharedByOwner) {
     if (args.intent !== "showcase") {
       return err("You can only dedicate achievements from your own collection.");
     }
@@ -282,93 +207,102 @@ export async function createAchievementShareInviteFromExistingAchievement(args: 
   } else if (achievement.dedicated_by_user_id) {
     return err("Dedicated achievements cannot be re-shared.");
   }
+  return ok();
+}
 
-  const snapshot = shareInviteSnapshotFromAchievementRow(achievement);
-  const badgeAssetOwnerUserId = collectionOwnerId;
-
-  if (args.intent === "showcase") {
-    return insertShareInviteWithSnapshot({
-      senderUserId: args.senderUserId,
-      snapshot,
-      sourceAchievementId: achievement.id,
-      shareKind: "showcase",
-      badgeAssetOwnerUserId,
-    });
+async function insertShareInviteWithSnapshot(args: {
+  senderUserId: string;
+  achievement: Achievement;
+  shareKind: AchievementSharePageKind;
+}): Promise<
+  Result<
+    {
+      inviteId: string;
+      token: string;
+      snapshot: Achievement;
+    },
+    string
+  >
+> {
+  const achievementValidation = validateShareInviteBadgeSnapshot(args.achievement);
+  if (achievementValidation.isErr()) {
+    return err(achievementValidation.error);
   }
 
-  const inviteResult = await insertShareInviteWithSnapshot({
+  const supabase = createServiceRoleSupabase();
+  const token = createAchievementShareInviteToken();
+
+  const shareInvitePort = createShareInvitePort(supabase);
+  const shareInviteResult = await shareInvitePort.create({
     senderUserId: args.senderUserId,
-    snapshot,
-    sourceAchievementId: null,
-    shareKind: "invite",
-    badgeAssetOwnerUserId,
+    snapshot: args.achievement,
+    shareKind: args.shareKind,
+    token,
   });
-
-  if (inviteResult.isErr()) {
-    return inviteResult;
+  if (shareInviteResult.isErr()) {
+    return err(shareInviteResult.error);
   }
+  const { inviteId } = shareInviteResult.value;
 
-  const ownershipResult = await getAchievementIdForOwner(
+  // check why this function used to assume the owner is the sender
+  // allegedly because it accesses private assets (images/models) to pin them for the invite
+  // even if original achievement is gone from collection.
+  const finalized = await finalizeInviteBadgeAssetsOnRow({
     supabase,
-    achievement.id,
-    args.senderUserId,
-  );
-
-  if (ownershipResult.isErr()) {
-    await deleteShareInviteRollback(inviteResult.value.inviteId, supabase);
-    return err(ownershipResult.error);
-  }
-
-  if (isModelBadgeAssetKind(inviteResult.value.snapshot.icon_asset_kind)) {
-    const pinnedPath = inviteResult.value.snapshot.icon_asset_path;
-    if (!pinnedPath || !isShareInviteBadgeModelPath(pinnedPath)) {
-      await deleteShareInviteRollback(inviteResult.value.inviteId, supabase);
-      return err(
-        "The 3D badge could not be prepared for this invite. Wait for the model to finish uploading, then try again.",
-      );
-    }
-  }
-
-  const removed = await deleteAchievementForOwner(
-    supabase,
-    achievement.id,
-    args.senderUserId,
-  );
-  if (removed.isErr()) {
-    return err(
-      "Invite link was created, but your copy could not be removed from your collection. Delete it manually to avoid duplicates.",
+    inviteId,
+    senderUserId: args.senderUserId,
+    snapshot: args.achievement,
+  });
+  if (finalized.isErr()) {
+    const rollbackResult = await deleteShareInviteRollbackAndAssets(
+      inviteId,
+      supabase,
     );
+    return err(rollbackResult.isErr() ? rollbackResult.error : finalized.error);
   }
 
-  return inviteResult;
+  return ok({
+    inviteId,
+    token,
+    snapshot: finalized.value,
+  });
+}
+
+// make atomic rollback of the invite and the badge assets
+async function deleteShareInviteRollbackAndAssets(inviteId: string, supabase: ServiceRoleSupabaseClient): Promise<Result<void, string>> {
+  const shareInvitePort = createShareInvitePort(supabase);
+  const rollbackResult = await shareInvitePort.delete(inviteId);
+  if (rollbackResult.isErr()) {
+    return rollbackResult;
+  }
+  const modelPath = buildShareInviteBadgeModelPath(inviteId);
+  const previewPath = buildShareInviteBadgePreviewPath(inviteId);
+  await supabase.storage.from(BADGE_MODEL_BUCKET).remove([modelPath]);
+  await supabase.storage.from(BADGE_PREVIEW_BUCKET).remove([previewPath]);
+  return ok();
 }
 
 export async function getAchievementShareInvitePresentationByToken(
   token: string,
 ): Promise<Result<AchievementShareInvitePresentation, "not-found" | string>> {
   const supabase = createServiceRoleSupabase();
-  const tokenHash = hashAchievementShareInviteToken(token);
-  const { data, error } = await supabase
-    .from("achievement_share_invites")
-    .select("*")
-    .eq("token_hash", tokenHash)
-    .maybeSingle();
+  const shareInvitePort = createShareInvitePort(supabase);
+  const achievementPort = createAchievementPort(supabase);
 
-  if (error) {
-    return err(error.message);
+  const inviteResult = await shareInvitePort.get(token);
+  if (inviteResult.isErr()) {
+    return err(inviteResult.error);
   }
-  if (!data) {
-    return err("not-found");
-  }
+  const invite = inviteResult.value;
 
-  const senderNameResult = await fetchPublicUserDisplayName(supabase, data.sender_user_id);
+  const senderNameResult = await fetchPublicUserDisplayName(supabase, invite.sender_user_id);
   const senderDisplayName = senderNameResult.isOk() ? senderNameResult.value : "Someone";
 
   let collectionOwnerUserId: string | null = null;
   let collectionOwnerDisplayName: string | null = null;
-  const sourceAchievementId = data.source_achievement_id?.trim();
+  const sourceAchievementId = invite.source_achievement_id?.trim();
   if (sourceAchievementId) {
-    const ownerResult = await getAchievementOwnerUserId(supabase, sourceAchievementId);
+    const ownerResult = await achievementPort.getAchievementOwnerUserId(sourceAchievementId);
     if (ownerResult.isOk() && ownerResult.value) {
       collectionOwnerUserId = ownerResult.value;
       const ownerNameResult = await fetchPublicUserDisplayName(
@@ -380,25 +314,11 @@ export async function getAchievementShareInvitePresentationByToken(
   }
 
   return ok({
-    invite: data,
+    invite,
     senderDisplayName,
     collectionOwnerUserId,
     collectionOwnerDisplayName,
   });
-}
-
-async function releaseShareInviteClaimReservation(
-  inviteId: string,
-  supabase = createServiceRoleSupabase(),
-) {
-  await supabase
-    .from("achievement_share_invites")
-    .update({
-      status: "pending",
-      claimed_by_user_id: null,
-      claimed_at: null,
-    })
-    .eq("id", inviteId);
 }
 
 export async function claimAchievementShareInvite(args: {
@@ -407,33 +327,27 @@ export async function claimAchievementShareInvite(args: {
   autoAccept: boolean;
 }): Promise<Result<ClaimAchievementShareInviteSuccess, string>> {
   const supabase = createServiceRoleSupabase();
-  const tokenHash = hashAchievementShareInviteToken(args.token);
+  const shareInvitePort = createShareInvitePort(supabase);
   const claimedAt = new Date().toISOString();
 
-  const { data: reservedInvite, error: reserveError } = await supabase
-    .from("achievement_share_invites")
-    .update({
-      status: "claiming",
-      claimed_by_user_id: args.claimerUserId,
-      claimed_at: claimedAt,
-    })
-    .eq("token_hash", tokenHash)
-    .eq("status", "pending")
-    .select("*")
-    .maybeSingle();
+  const reservedInviteResult = await shareInvitePort.reserveClaim(args.claimerUserId, args.token, claimedAt);
+  if (reservedInviteResult.isErr()) {
+    return err(reservedInviteResult.error);
+  }
+  const reservedInvite = reservedInviteResult.value;
 
-  if (reserveError) {
-    return err(reserveError.message);
-  }
-  if (!reservedInvite) {
-    return err("This invite is no longer available.");
-  }
   if (getAchievementShareInviteKind(reservedInvite) === "showcase") {
-    await releaseShareInviteClaimReservation(reservedInvite.id, supabase);
+    const rollbackResult = await shareInvitePort.releaseClaim(reservedInvite.id);
+    if (rollbackResult.isErr()) {
+      return err(rollbackResult.error);
+    }
     return err("This shared achievement is showcase-only.");
   }
   if (reservedInvite.sender_user_id === args.claimerUserId) {
-    await releaseShareInviteClaimReservation(reservedInvite.id, supabase);
+    const rollbackResult = await shareInvitePort.releaseClaim(reservedInvite.id);
+    if (rollbackResult.isErr()) {
+      return err(rollbackResult.error);
+    }
     return err("You cannot claim your own invite.");
   }
 
@@ -454,7 +368,10 @@ export async function claimAchievementShareInvite(args: {
     claimedIconUrl = resolvedIcon.iconUrl;
     claimedIconAssetPath = resolvedIcon.iconAssetPath;
   } catch (cloneError) {
-    await releaseShareInviteClaimReservation(reservedInvite.id, supabase);
+    const rollbackResult = await shareInvitePort.releaseClaim(reservedInvite.id);
+    if (rollbackResult.isErr()) {
+      return err(rollbackResult.error);
+    }
     return err(
       cloneError instanceof Error
         ? cloneError.message
@@ -475,26 +392,25 @@ export async function claimAchievementShareInvite(args: {
   );
 
   if (createResult.isErr()) {
-    await releaseShareInviteClaimReservation(reservedInvite.id, supabase);
+    const rollbackResult = await shareInvitePort.releaseClaim(reservedInvite.id);
+    if (rollbackResult.isErr()) {
+      return err(rollbackResult.error);
+    }
     return err(createResult.error);
   }
   const createdAchievement = createResult.value;
 
-  await supabase
-    .from("achievement_share_invites")
-    .update({
-      status: "claimed",
-      claimed_achievement_id: createdAchievement.id,
-      claimed_by_user_id: args.claimerUserId,
-      claimed_at: claimedAt,
-    })
-    .eq("id", reservedInvite.id);
+  const claimResult = await shareInvitePort.completeClaim(reservedInvite.id, createdAchievement.id, args.claimerUserId, claimedAt);
+  if (claimResult.isErr()) {
+    const rollbackResult = await shareInvitePort.releaseClaim(reservedInvite.id);
+    if (rollbackResult.isErr()) {
+      return err(rollbackResult.error);
+    }
+    return err(claimResult.error);
+  }
 
   if (args.autoAccept) {
-    await notifyDedicationAccepted({
-      achievementId: createdAchievement.id,
-      supabase,
-    });
+    await notifyDedicationAccepted(createdAchievement.id);
   }
 
   return ok({

@@ -43,10 +43,7 @@ export async function POST(request: Request) {
 
   const achievement = acceptResult.value;
 
-  void notifyDedicationAccepted({
-    achievementId: achievement.id,
-    supabase,
-  }).catch(() => undefined);
+  void notifyDedicationAccepted(achievement.id).catch(() => undefined);
 
   return NextResponse.json({ achievement });
 }

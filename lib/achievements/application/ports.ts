@@ -6,6 +6,8 @@ import type {
 } from "@/lib/achievements/domain/achievement";
 import type { FollowingUnlockFeedEvent } from "@/lib/achievements/domain/feed-event";
 import { CreateImpressionResult } from "@/lib/achievements/domain/impression";
+import type { AchievementSharePageKind } from "@/lib/share-invites/server";
+import { AchievementShareInviteCreate } from "../domain/share-invite";
 
 export type FeedCursor = {
   updated_at: string;
@@ -19,14 +21,32 @@ export type FeedEventPage = {
 
 export type AchievementPort = {
   list(userId: string): Promise<Result<Achievement[], string>>;
+  get(achievementId: string): Promise<Result<Achievement, string>>;
+  getAchievementIdForOwner(achievementId: string, ownerUserId: string): Promise<Result<string, string>>;
+  getAchievementOwnerUserId(achievementId: string): Promise<Result<string | null, string>>;
   create(write: AchievementWrite): Promise<Result<Achievement, string>>;
   update(
     id: string,
     write: AchievementWrite,
   ): Promise<Result<Achievement, string>>;
   delete(id: string): Promise<Result<void, string>>;
+  deleteForOwner(id: string, ownerUserId: string): Promise<Result<void, string>>;
   unlock(id: string): Promise<Result<Achievement, string>>;
 };
+
+export type ShareInvitePort = {
+  get(token: string): Promise<Result<AchievementShareInviteCreate, string>>;
+  create(args: {
+    senderUserId: string;
+    snapshot: Achievement;
+    shareKind: AchievementSharePageKind;
+    token: string;
+  }): Promise<Result<{ inviteId: string }, string>>;
+  delete(inviteId: string): Promise<Result<void, string>>;
+  reserveClaim(claimerUserId: string, token: string, claimedAt: string): Promise<Result<AchievementShareInviteCreate, string>>;
+  releaseClaim(inviteId: string): Promise<Result<void, string>>;
+  completeClaim(inviteId: string, claimedAchievementId: string, claimedByUserId: string, claimedAt: string): Promise<Result<void, string>>;
+}
 
 export type DedicationPort = {
   listPending(recipientUserId: string): Promise<Result<Achievement[], string>>;

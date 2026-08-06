@@ -2,7 +2,7 @@ import type { Result } from "neverthrow";
 
 import { createAchievementPort } from "@/lib/achievements/application/adapters";
 import type { AchievementPort } from "@/lib/achievements/application/ports";
-import type { AchievementWrite } from "@/lib/achievements/domain/achievement";
+import type { Achievement, AchievementWrite } from "@/lib/achievements/domain/achievement";
 import {
   achievementToViewModel,
   sortCollectionEntries,

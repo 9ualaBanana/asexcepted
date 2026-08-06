@@ -7,7 +7,6 @@ import { WelcomeCollectButton } from "@/components/welcome/welcome-collect-butto
 import {
   achievementShareInvitePath,
   loginWithNext,
-  ROUTES,
   userCollection,
 } from "@/lib/routes";
 import { postClaimAchievementShareInvite } from "@/lib/achievements/client/share-invite-api";

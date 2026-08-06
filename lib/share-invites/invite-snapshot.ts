@@ -1,7 +1,4 @@
-import type {
-  AchievementCreate,
-  AchievementWrite,
-} from "@/lib/achievements/domain/achievement";
+import type { AchievementCreate } from "@/lib/achievements/domain/achievement";
 import type { Tables } from "@/lib/supabase/database.types";
 import {
   DEFAULT_ACHIEVEMENT_ICON_KEY,
@@ -10,6 +7,7 @@ import {
   type AchievementTone,
   type IconAssetKind,
 } from "@/lib/achievements/domain/enums";
+import { AchievementShareInviteCreate } from "../achievements/domain/share-invite";
 
 type AchievementRow = Tables<"achievements">;
 type AchievementShareInviteRow = Tables<"achievement_share_invites">;
@@ -68,28 +66,8 @@ export function shareInviteSnapshotFromAchievementRow(
   };
 }
 
-export function shareInviteSnapshotFromWritePayload(
-  write: AchievementWrite,
-): AchievementShareInviteSnapshot {
-  return {
-    title: write.title ?? null,
-    description: write.description ?? null,
-    category: write.category ?? null,
-    icon: write.icon ?? DEFAULT_ACHIEVEMENT_ICON_KEY,
-    icon_url: write.icon_url ?? "",
-    icon_file_id: write.icon_file_id ?? null,
-    icon_asset_kind: write.icon_asset_kind ?? "image",
-    icon_asset_path: write.icon_asset_path ?? null,
-    icon_cc_attribution: write.icon_cc_attribution ?? null,
-    icon_model_yaw: write.icon_model_yaw ?? 0,
-    icon_model_pitch: write.icon_model_pitch ?? 0,
-    tone: write.tone ?? null,
-    achieved_at: write.achieved_at ?? null,
-  };
-}
-
 export function buildClaimedAchievementCreateFromInvite(args: {
-  invite: AchievementShareInviteRow;
+  invite: AchievementShareInviteCreate;
   claimerUserId: string;
   iconUrl: string;
   iconAssetPath: string | null;

@@ -1,28 +1,21 @@
 import { err, ok, type Result } from "neverthrow";
 import { z } from "zod";
 
-import type { AchievementWrite } from "@/lib/achievements/domain/achievement";
 import { fetchFailureMessage, postJson } from "@/lib/client/fetch-json";
 
 export type AchievementShareInviteIntent = "showcase" | "dedicate";
 
-type CreateShareInviteBody =
-  | {
-      mode: "existing";
-      achievementId: string;
-      intent: AchievementShareInviteIntent;
-    }
-  | {
-      mode: "draft";
-      payload: AchievementWrite;
-    };
+type CreateShareInviteBody = {
+  achievementId: string;
+  intent: AchievementShareInviteIntent;
+}
 
 const shareInviteSuccessSchema = z.object({
   shareUrl: z.string().min(1),
 });
 
 const claimInviteSuccessSchema = z.object({
-  achievementId: z.string().uuid(),
+  achievementId: z.uuid(),
   redirectPath: z.string().min(1),
 });
 

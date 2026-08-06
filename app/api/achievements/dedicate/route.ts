@@ -19,12 +19,12 @@ import {
 export async function POST(request: Request) {
   const supabase = await createServerSupabase();
   const {
-    data: { user: admin },
+    data: { user },
   } = await supabase.auth.getUser();
 
-  const denied = requireAdminUser(admin);
+  const denied = requireAdminUser(user);
   if (denied) return denied;
-  if (!admin) {
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
   }
   const body = parsed.value;
 
-  if (body.recipientUserId === admin.id) {
+  if (body.recipientUserId === user.id) {
     return NextResponse.json(
       { error: "Use your own collection to create achievements for yourself." },
       { status: 400 },
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
   let badge: { iconUrl: string; iconAssetPath: string | null };
   try {
     const resolved = await resolveClaimedBadgeIconFields({
-      senderUserId: admin.id,
+      senderUserId: user.id,
       claimerUserId: body.recipientUserId,
       iconUrl: body.icon_url ?? null,
       iconAssetKind: body.icon_asset_kind,
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
   const service = createServiceRoleSupabase();
   const insertResult = await insertDedicatedAchievement(
     service,
-    dedicateBodyToAchievementCreate(body, admin.id, badge),
+    dedicateBodyToAchievementCreate(body, user.id, badge),
   );
   if (insertResult.isErr()) {
     return NextResponse.json({ error: insertResult.error }, { status: 500 });
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
     .insert({
       achievement_id: row.id,
       recipient_user_id: body.recipientUserId,
-      sender_user_id: admin.id,
+      sender_user_id: user.id,
     });
 
   if (eventError) {
@@ -101,7 +101,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: eventError.message }, { status: 500 });
   }
 
-  const sender = await resolveDisplayName(supabase, admin.id);
+  const sender = await resolveDisplayName(supabase, user.id);
   const achievementTitle = row.title ?? "Achievement";
 
   await sendPushToUsers({
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
       recipientUserId: body.recipientUserId,
       achievementId: row.id,
     },
-    excludeUserIds: [admin.id],
+    excludeUserIds: [user.id],
   });
 
   return NextResponse.json({

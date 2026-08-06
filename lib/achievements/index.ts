@@ -63,7 +63,7 @@ export {
   deleteAchievementForOwner,
   getAchievementForUnlockPush,
   getAchievementDedicationNotifyRow,
-  getAchievementShareInviteSnapshotRow,
+  getAchievement as getAchievementShareInviteSnapshotRow,
   getAchievementIdForOwner,
   getAchievementOwnerUserId,
 } from "./persistence/achievements";
@@ -119,7 +119,6 @@ export {
   embedBadgeRowToViewModel,
   embedMintRowToViewModel,
   feedEventToViewModel,
-  feedRpcRowToViewModel,
   shareInviteRowToBadgeViewModel,
 } from "./presentation/surface-view-models";
 

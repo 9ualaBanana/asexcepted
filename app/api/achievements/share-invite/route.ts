@@ -5,91 +5,36 @@ import { createServerSupabase } from "@/lib/supabase/clients/server";
 import { resolvePublicSiteOrigin } from "@/lib/public-site-origin";
 import { achievementShareInvitePath } from "@/lib/routes";
 import {
-  createAchievementShareInviteFromExistingAchievement,
-  createAchievementShareInviteFromPayload,
+  createAchievementShareInvite,
 } from "@/lib/share-invites/server";
-import {
-  achievementIconKeySchema,
-  achievementToneSchema,
-  DEFAULT_ACHIEVEMENT_ICON_KEY,
-  DEFAULT_ACHIEVEMENT_TONE,
-} from "@/lib/achievements/domain/enums";
 
-const draftPayloadSchema = z.object({
-  title: z.string().nullable().optional(),
-  description: z.string().nullable().optional(),
-  category: z.string().nullable().optional(),
-  icon: achievementIconKeySchema.optional(),
-  icon_url: z.string().nullable().optional(),
-  icon_file_id: z.string().nullable().optional(),
-  icon_asset_kind: z.enum(["image", "model_glb"]).optional(),
-  icon_asset_path: z.string().nullable().optional(),
-  icon_cc_attribution: z.string().nullable().optional(),
-  icon_model_yaw: z.number().optional(),
-  icon_model_pitch: z.number().optional(),
-  tone: achievementToneSchema.nullable().optional(),
-  achieved_at: z.string().nullable().optional(),
-  is_locked: z.boolean().optional(),
-  visibility: z.enum(["public", "private"]).optional(),
+const createShareInviteBodySchema = z.object({
+  achievementId: z.uuid(),
+  intent: z.enum(["showcase", "dedicate"]).default("showcase"),
 });
-
-const createShareInviteBodySchema = z.discriminatedUnion("mode", [
-  z.object({
-    mode: z.literal("existing"),
-    achievementId: z.string().uuid(),
-    intent: z.enum(["showcase", "dedicate"]).default("showcase"),
-  }),
-  z.object({
-    mode: z.literal("draft"),
-    payload: draftPayloadSchema,
-  }),
-]);
 
 export async function POST(request: Request) {
   const body = createShareInviteBodySchema.safeParse(await request.json().catch(() => null));
   if (!body.success) {
     return NextResponse.json({ error: "Invalid share invite payload." }, { status: 400 });
   }
+  const { achievementId, intent } = body.data;
 
   const supabase = await createServerSupabase();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: "You must be signed in to share achievements." }, { status: 401 });
   }
 
-  const result =
-    body.data.mode === "existing"
-      ? await createAchievementShareInviteFromExistingAchievement({
-          senderUserId: user.id,
-          achievementId: body.data.achievementId,
-          intent: body.data.intent,
-        })
-      : await createAchievementShareInviteFromPayload({
-          senderUserId: user.id,
-          payload: {
-            title: body.data.payload.title ?? null,
-            description: body.data.payload.description ?? null,
-            category: body.data.payload.category ?? null,
-            icon: body.data.payload.icon ?? DEFAULT_ACHIEVEMENT_ICON_KEY,
-            icon_url: body.data.payload.icon_url ?? null,
-            icon_file_id: body.data.payload.icon_file_id ?? null,
-            icon_asset_kind: body.data.payload.icon_asset_kind ?? "image",
-            icon_asset_path: body.data.payload.icon_asset_path ?? null,
-            icon_cc_attribution: body.data.payload.icon_cc_attribution ?? null,
-            icon_model_yaw: body.data.payload.icon_model_yaw ?? 0,
-            icon_model_pitch: body.data.payload.icon_model_pitch ?? 0,
-            tone: body.data.payload.tone ?? DEFAULT_ACHIEVEMENT_TONE,
-            achieved_at: body.data.payload.achieved_at ?? null,
-            is_locked: true,
-            visibility: "public",
-          },
-        });
+  const createShareInviteResult = await createAchievementShareInvite({
+    senderUserId: user.id,
+    achievementId,
+    intent,
+  });
 
-  if (result.isErr()) {
-    return NextResponse.json({ error: result.error }, { status: 400 });
+  if (createShareInviteResult.isErr()) {
+    return NextResponse.json({ error: createShareInviteResult.error }, { status: 400 });
   }
 
   const origin = await resolvePublicSiteOrigin();
@@ -97,7 +42,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Could not resolve a public site URL." }, { status: 500 });
   }
 
-  const sharePath = achievementShareInvitePath(result.value.token);
+  const sharePath = achievementShareInvitePath(createShareInviteResult.value.token);
   return NextResponse.json({
     shareUrl: `${origin}${sharePath}`,
   });

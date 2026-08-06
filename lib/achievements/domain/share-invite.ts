@@ -1,0 +1,21 @@
+export type AchievementShareInviteCreate = {
+  id: string;
+  sender_user_id: string;
+  source_achievement_id: string | null;
+  share_kind: string;
+  title: string | null;
+  description: string | null;
+  category: string | null;
+  icon: string;
+  icon_url: string;
+  icon_file_id: string | null;
+  icon_asset_kind: string;
+  icon_asset_path: string | null;
+  icon_cc_attribution: string | null;
+  icon_model_yaw: number;
+  icon_model_pitch: number;
+  tone: string | null;
+  achieved_at: string | null;
+  token_hash: string;
+  status: string;
+};

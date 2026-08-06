@@ -27,6 +27,7 @@ const trimmedNullableTextSchema = z
 
 export const achievementSchema = z.object({
   id: z.uuid(),
+  user_id: z.uuid(),
   title: nullableTextSchema,
   description: nullableTextSchema,
   category: nullableTextSchema,

@@ -13,14 +13,13 @@ import {
 } from "@/lib/client/fetch-json";
 import type {
   DatabaseSupabaseClient,
-  RlsScopedSupabaseClient,
   ServiceRoleSupabaseClient,
 } from "@/lib/supabase/clients/client-types";
 import type { Database } from "@/lib/supabase/database.types";
 import { formatSupabaseSingleRowError } from "@/lib/supabase/postgrest-errors";
 
 const ACHIEVEMENT_FULL_SELECT =
-  "id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_cc_attribution,icon_model_yaw,icon_model_pitch,icon_model_animation_play,icon_model_animation_speed,tone,is_locked,achieved_at,created_at,visibility,dedicated_by_user_id,dedication_status";
+  "id,user_id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_cc_attribution,icon_model_yaw,icon_model_pitch,icon_model_animation_play,icon_model_animation_speed,tone,is_locked,achieved_at,created_at,visibility,dedicated_by_user_id,dedication_status";
 
 export type AchievementEmbedBadgeSource = {
   icon_url: string | null;
@@ -104,6 +103,46 @@ export async function listAchievements(
   return ok(rows);
 }
 
+export async function getAchievement(
+  supabase: DatabaseSupabaseClient,
+  achievementId: string,
+): Promise<AchievementSingleResult> {
+  const { data, error } = await supabase
+    .from("achievements")
+    .select(ACHIEVEMENT_FULL_SELECT)
+    .eq("id", achievementId)
+    .single();
+
+  if (error) {
+    return err(formatSupabaseSingleRowError(error, "This achievement could not be found."));
+  }
+
+  return toSingleResult(data);
+}
+
+export async function getAchievementIdForOwner(
+  supabase: DatabaseSupabaseClient,
+  achievementId: string,
+  ownerUserId: string,
+): Promise<Result<string, string>> {
+  const { data, error } = await supabase
+    .from("achievements")
+    .select("id")
+    .eq("id", achievementId)
+    .eq("user_id", ownerUserId)
+    .single();
+
+  if (error) {
+    return err(
+      formatSupabaseSingleRowError(
+        error,
+        "Could not verify your achievement before completing the dedicate link.",
+      ),
+    );
+  }
+  return ok(data.id);
+}
+
 export async function createAchievement(
   supabase: DatabaseSupabaseClient,
   write: AchievementWrite,
@@ -164,7 +203,7 @@ export async function updateAchievement(
  * not by this helper. Do not pass a service-role client.
  */
 export async function deleteAchievement(
-  supabase: RlsScopedSupabaseClient,
+  supabase: DatabaseSupabaseClient,
   achievementId: string,
 ): Promise<AchievementDeleteResult> {
   const { error } = await supabase
@@ -185,7 +224,7 @@ export async function deleteAchievement(
  * delete-by-id when the principal is the service role.
  */
 export async function deleteAchievementForOwner(
-  supabase: ServiceRoleSupabaseClient,
+  supabase: DatabaseSupabaseClient,
   achievementId: string,
   ownerUserId: string,
 ): Promise<AchievementDeleteResult> {
@@ -311,55 +350,6 @@ export async function getAchievementDedicationNotifyRow(
   }
   if (!data) {
     return err("Achievement not found");
-  }
-  return ok(data);
-}
-
-export async function getAchievementShareInviteSnapshotRow(
-  supabase: DatabaseSupabaseClient,
-  achievementId: string,
-): Promise<Result<AchievementShareInviteSnapshotRow, string>> {
-  const { data, error } = await supabase
-    .from("achievements")
-    .select(
-      "id,user_id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_cc_attribution,icon_model_yaw,icon_model_pitch,tone,achieved_at,visibility,dedicated_by_user_id",
-    )
-    .eq("id", achievementId)
-    .maybeSingle();
-
-  if (error) {
-    return err(formatSupabaseSingleRowError(error, "This achievement could not be found."));
-  }
-  if (!data) {
-    return err("This achievement could not be found.");
-  }
-  return ok(data);
-}
-
-export async function getAchievementIdForOwner(
-  supabase: DatabaseSupabaseClient,
-  achievementId: string,
-  ownerUserId: string,
-): Promise<Result<{ id: string }, string>> {
-  const { data, error } = await supabase
-    .from("achievements")
-    .select("id")
-    .eq("id", achievementId)
-    .eq("user_id", ownerUserId)
-    .maybeSingle();
-
-  if (error) {
-    return err(
-      formatSupabaseSingleRowError(
-        error,
-        "Could not verify your achievement before completing the dedicate link.",
-      ),
-    );
-  }
-  if (!data) {
-    return err(
-      "This achievement is no longer in your collection. It may have already been dedicated.",
-    );
   }
   return ok(data);
 }

@@ -206,7 +206,7 @@ export function useAchievementsManagerModel({
   const loadAchievements = data.loadAchievements;
   const shareInvite = useAchievementShareInviteController({
     detailAchievement,
-    onDedicateInviteShared: () => {
+    onReloadRequired: () => {
       if (ui.detailAchievementId) {
         ui.actions.closeOverlay();
       }

@@ -4,15 +4,20 @@ import type {
   EmbedPort,
   FeedPort,
   ImpressionPort,
+  ShareInvitePort,
 } from "@/lib/achievements/application/ports";
 import {
-  createAchievement as insertAchievementRow,
-  deleteAchievement as deleteAchievementRow,
+  createAchievement,
+  deleteAchievement,
   getAchievementEmbedBadgeSource,
   getAchievementEmbedMintSource,
-  listAchievements as listAchievementRows,
-  unlockAchievement as unlockAchievementRow,
-  updateAchievement as updateAchievementRow,
+  listAchievements,
+  unlockAchievement,
+  updateAchievement,
+  getAchievement,
+  getAchievementIdForOwner,
+  deleteAchievementForOwner,
+  getAchievementOwnerUserId,
 } from "@/lib/achievements/persistence/achievements";
 import {
   acceptPendingDedicationForRecipient,
@@ -20,18 +25,38 @@ import {
   rejectDedication,
 } from "@/lib/achievements/persistence/dedications";
 import { fetchFollowingUnlockFeed } from "@/lib/achievements/persistence/feed";
-import type { RlsScopedSupabaseClient } from "@/lib/supabase/clients/client-types";
+import type {
+  DatabaseSupabaseClient,
+  RlsScopedSupabaseClient,
+  ServiceRoleSupabaseClient,
+} from "@/lib/supabase/clients/client-types";
 import { createImpression, fetchCountMap } from "@/lib/achievements/persistence/impressions";
+import { completeShareInviteClaim, createShareInvite, deleteShareInvite, getAchievementShareInviteByToken, reserveShareInviteClaim, releaseShareInviteClaim } from "@/lib/achievements/persistence/share-invite";
 
 export function createAchievementPort(
-  supabase: RlsScopedSupabaseClient,
+  supabase: DatabaseSupabaseClient,
 ): AchievementPort {
   return {
-    list: (userId) => listAchievementRows(supabase, userId),
-    create: (command) => insertAchievementRow(supabase, command),
-    update: (id, command) => updateAchievementRow(supabase, id, command),
-    delete: (id) => deleteAchievementRow(supabase, id),
-    unlock: (id) => unlockAchievementRow(supabase, id),
+    list: (userId) => listAchievements(supabase, userId),
+    get: (achievementId) => getAchievement(supabase, achievementId),
+    getAchievementIdForOwner: (achievementId, ownerUserId) => getAchievementIdForOwner(supabase, achievementId, ownerUserId),
+    getAchievementOwnerUserId: (achievementId) => getAchievementOwnerUserId(supabase, achievementId),
+    create: (command) => createAchievement(supabase, command),
+    update: (id, command) => updateAchievement(supabase, id, command),
+    delete: (id) => deleteAchievement(supabase, id),
+    deleteForOwner: (id, ownerUserId) => deleteAchievementForOwner(supabase, id, ownerUserId),
+    unlock: (id) => unlockAchievement(supabase, id),
+  };
+}
+
+export function createShareInvitePort(supabase: ServiceRoleSupabaseClient): ShareInvitePort {
+  return {
+    get: (token) => getAchievementShareInviteByToken(supabase, token),
+    create: (args) => createShareInvite(supabase, args),
+    delete: (inviteId) => deleteShareInvite(supabase, inviteId),
+    reserveClaim: (claimerUserId, token, claimedAt) => reserveShareInviteClaim(supabase, claimerUserId, token, claimedAt),
+    releaseClaim: (inviteId) => releaseShareInviteClaim(supabase, inviteId),
+    completeClaim: (inviteId, claimedAchievementId, claimedByUserId, claimedAt) => completeShareInviteClaim(supabase, inviteId, claimedAchievementId, claimedByUserId, claimedAt),
   };
 }
 

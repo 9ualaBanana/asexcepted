@@ -1,31 +1,23 @@
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import { getAchievementDedicationNotifyRow } from "@/lib/achievements/persistence/achievements";
 import { sendPushToUsers } from "@/lib/notifications/send";
 import { resolveDisplayName } from "@/lib/notifications/templates";
 import { createServiceRoleSupabase } from "@/lib/supabase/clients/server";
 
-export async function notifyDedicationAccepted(args: {
-  achievementId: string;
-  supabase?: SupabaseClient;
-}): Promise<void> {
+export async function notifyDedicationAccepted(achievementId: string): Promise<void> {
   try {
-    await notifyDedicationAcceptedInner(args);
+    await notifyDedicationAcceptedInner(achievementId);
   } catch {
     // Push / display-name lookup must never break accept.
   }
 }
 
-async function notifyDedicationAcceptedInner(args: {
-  achievementId: string;
-  supabase?: SupabaseClient;
-}): Promise<void> {
-  const supabase = args.supabase ?? createServiceRoleSupabase();
+async function notifyDedicationAcceptedInner(achievementId: string): Promise<void> {
+  const supabase = createServiceRoleSupabase();
   const achievementResult = await getAchievementDedicationNotifyRow(
     supabase,
-    args.achievementId,
+    achievementId,
   );
   if (achievementResult.isErr()) return;
   const achievement = achievementResult.value;
@@ -43,7 +35,6 @@ async function notifyDedicationAcceptedInner(args: {
 
   try {
     await sendPushToUsers({
-      supabase,
       userIds: [dedicatorUserId],
       kind: "dedication_accepted",
       params: {

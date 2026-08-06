@@ -29,6 +29,7 @@ const WELCOME_INTRO_ID = "welcome-intro-preview";
 function welcomeIntroAchievement(): Achievement {
   return {
     id: WELCOME_INTRO_ID,
+    user_id: "00000000-0000-4000-8000-000000000000",
     title: INTRO_ACHIEVEMENT_SEED.title,
     description: INTRO_ACHIEVEMENT_SEED.description,
     category: INTRO_ACHIEVEMENT_SEED.category,

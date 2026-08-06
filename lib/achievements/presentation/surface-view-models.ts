@@ -102,13 +102,6 @@ export function feedEventToViewModel(
   };
 }
 
-/** @deprecated Use {@link feedEventToViewModel}. */
-export function feedRpcRowToViewModel(
-  row: FollowingUnlockFeedEvent,
-): AchievementFeedItemViewModel {
-  return feedEventToViewModel(row);
-}
-
 type EmbedBadgeRowSource = {
   icon_url: string | null;
   icon_asset_kind?: string | null;
@@ -119,8 +112,6 @@ type EmbedBadgeRowSource = {
   icon_model_animation_play?: boolean | null;
   icon_model_animation_speed?: number | null;
 };
-
-type ShareInviteBadgeRowSource = EmbedBadgeRowSource;
 
 export function embedBadgeRowToViewModel(row: EmbedBadgeRowSource): AchievementEmbedBadgeViewModel | null {
   const iconUrl = normalizeBadgeIconUrl(row.icon_url);
@@ -155,7 +146,7 @@ export function embedMintRowToViewModel(
 }
 
 export function shareInviteRowToBadgeViewModel(
-  row: ShareInviteBadgeRowSource,
+  row: EmbedBadgeRowSource,
 ): AchievementShareInviteBadgeViewModel {
   const iconUrl = normalizeBadgeIconUrl(row.icon_url);
   const model = parseBadgeModelAsset({
