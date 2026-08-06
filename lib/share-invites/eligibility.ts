@@ -1,6 +1,6 @@
 import { err, ok, type Result } from "neverthrow";
 
-import type { AchievementDbWritePayload } from "@/lib/achievements/domain/db-row";
+import type { AchievementWrite } from "@/lib/achievements/domain/achievement";
 import { isPublicHttpImageUrl } from "@/lib/achievements/badge/shared/badge-assets";
 import { isModelGlbAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
 import type { AchievementShareInviteSnapshot } from "@/lib/share-invites/invite-snapshot";
@@ -8,7 +8,7 @@ import { shareInviteSnapshotFromAchievementRow } from "@/lib/share-invites/invit
 import type { CollectionAchievementSnapshotSource } from "@/lib/share-invites/invite-snapshot";
 
 export function isAchievementEligibleForShareInvite(
-  payload: Pick<AchievementDbWritePayload, "icon_url">,
+  payload: Pick<AchievementWrite, "icon_url">,
 ) {
   return Boolean(payload.icon_url?.trim());
 }

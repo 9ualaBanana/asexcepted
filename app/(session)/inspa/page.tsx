@@ -5,7 +5,8 @@ import { AppPageShell } from "@/components/layout/app-page-shell";
 import { FriendsPanel } from "@/components/social/friends-panel";
 import { SocialPageSkeleton } from "@/components/social/inspa-page-skeleton";
 import { requireSessionUser } from "@/lib/auth/require-session-user";
-import { fetchFollowingUnlockFeed } from "@/lib/achievements/persistence/feed";
+import { createFeedPort } from "@/lib/achievements/application/adapters";
+import { loadFollowingUnlockFeed } from "@/lib/achievements/application/feed";
 
 export default function InspaPage() {
   return (
@@ -18,7 +19,10 @@ export default function InspaPage() {
 async function InspaPageInner() {
   const { supabase, user } = await requireSessionUser();
 
-  const feedResult = await fetchFollowingUnlockFeed(supabase, { limit: 20 });
+  const feedResult = await loadFollowingUnlockFeed(
+    { limit: 20 },
+    createFeedPort(supabase),
+  );
   const initialPage = feedResult.isOk()
     ? feedResult.value
     : { rows: [], nextCursor: null };

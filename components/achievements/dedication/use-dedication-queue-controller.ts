@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { postAcceptDedication } from "@/lib/achievements/client/dedication-api";
 import {
-  listPendingCollectionDedications,
+  listPendingDedications,
   rejectPendingDedication,
 } from "@/lib/achievements/application/dedication-queue";
 import type {
@@ -65,7 +65,7 @@ export function useDedicationQueueController({
 
   const loadQueue = useCallback(async () => {
     if (readOnly) return;
-    const result = await listPendingCollectionDedications(ownerUserId);
+    const result = await listPendingDedications(ownerUserId);
     if (result.isOk()) {
       setQueue(result.value);
     }

@@ -36,85 +36,47 @@ export type Database = {
           recipient_user_id?: string
           sender_user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "achievement_dedication_events_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: true
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      achievements: {
+      achievement_impression_events: {
         Row: {
-          achieved_at: string | null
-          category: string | null
+          achievement_id: string
+          actor_user_id: string
           created_at: string
-          dedicated_by_user_id: string | null
-          dedication_status: string | null
-          description: string | null
-          icon: string
-          icon_asset_kind: string
-          icon_asset_path: string | null
-          icon_cc_attribution: string | null
-          icon_file_id: string | null
-          icon_model_pitch: number
-          icon_model_yaw: number
-          icon_model_animation_play: boolean
-          icon_model_animation_speed: number
-          icon_url: string | null
           id: string
-          is_locked: boolean
-          title: string | null
-          tone: string | null
-          updated_at: string
-          user_id: string
-          visibility: string
+          owner_user_id: string
         }
         Insert: {
-          achieved_at?: string | null
-          category?: string | null
+          achievement_id: string
+          actor_user_id: string
           created_at?: string
-          dedicated_by_user_id?: string | null
-          dedication_status?: string | null
-          description?: string | null
-          icon?: string
-          icon_asset_kind?: string
-          icon_asset_path?: string | null
-          icon_cc_attribution?: string | null
-          icon_file_id?: string | null
-          icon_model_pitch?: number
-          icon_model_yaw?: number
-          icon_model_animation_play?: boolean
-          icon_model_animation_speed?: number
-          icon_url?: string | null
           id?: string
-          is_locked?: boolean
-          title?: string | null
-          tone?: string | null
-          updated_at?: string
-          user_id?: string
-          visibility?: string
+          owner_user_id: string
         }
         Update: {
-          achieved_at?: string | null
-          category?: string | null
+          achievement_id?: string
+          actor_user_id?: string
           created_at?: string
-          dedicated_by_user_id?: string | null
-          dedication_status?: string | null
-          description?: string | null
-          icon?: string
-          icon_asset_kind?: string
-          icon_asset_path?: string | null
-          icon_cc_attribution?: string | null
-          icon_file_id?: string | null
-          icon_model_pitch?: number
-          icon_model_yaw?: number
-          icon_model_animation_play?: boolean
-          icon_model_animation_speed?: number
-          icon_url?: string | null
           id?: string
-          is_locked?: boolean
-          title?: string | null
-          tone?: string | null
-          updated_at?: string
-          user_id?: string
-          visibility?: string
+          owner_user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "achievement_impression_events_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       achievement_share_invites: {
         Row: {
@@ -137,8 +99,8 @@ export type Database = {
           icon_url: string
           id: string
           revoked_at: string | null
-          share_kind: string
           sender_user_id: string
+          share_kind: string
           source_achievement_id: string | null
           status: string
           title: string | null
@@ -166,8 +128,8 @@ export type Database = {
           icon_url: string
           id?: string
           revoked_at?: string | null
-          share_kind?: string
           sender_user_id: string
+          share_kind?: string
           source_achievement_id?: string | null
           status?: string
           title?: string | null
@@ -195,8 +157,8 @@ export type Database = {
           icon_url?: string
           id?: string
           revoked_at?: string | null
-          share_kind?: string
           sender_user_id?: string
+          share_kind?: string
           source_achievement_id?: string | null
           status?: string
           title?: string | null
@@ -204,20 +166,127 @@ export type Database = {
           tone?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "achievement_share_invites_claimed_achievement_id_fkey"
+            columns: ["claimed_achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "achievement_share_invites_source_achievement_id_fkey"
+            columns: ["source_achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      notes: {
+      achievement_unlock_events: {
         Row: {
-          id: number
-          title: string
+          achievement_id: string
+          created_at: string
+          id: string
+          owner_user_id: string
         }
         Insert: {
-          id?: never
-          title: string
+          achievement_id: string
+          created_at?: string
+          id?: string
+          owner_user_id: string
         }
         Update: {
-          id?: never
-          title?: string
+          achievement_id?: string
+          created_at?: string
+          id?: string
+          owner_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievement_unlock_events_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: true
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      achievements: {
+        Row: {
+          achieved_at: string | null
+          category: string | null
+          created_at: string
+          dedicated_by_user_id: string | null
+          dedication_status: string | null
+          description: string | null
+          icon: string
+          icon_asset_kind: string
+          icon_asset_path: string | null
+          icon_cc_attribution: string | null
+          icon_file_id: string | null
+          icon_model_animation_play: boolean
+          icon_model_animation_speed: number
+          icon_model_pitch: number
+          icon_model_yaw: number
+          icon_url: string | null
+          id: string
+          is_locked: boolean
+          title: string | null
+          tone: string | null
+          updated_at: string
+          user_id: string
+          visibility: string
+        }
+        Insert: {
+          achieved_at?: string | null
+          category?: string | null
+          created_at?: string
+          dedicated_by_user_id?: string | null
+          dedication_status?: string | null
+          description?: string | null
+          icon?: string
+          icon_asset_kind?: string
+          icon_asset_path?: string | null
+          icon_cc_attribution?: string | null
+          icon_file_id?: string | null
+          icon_model_animation_play?: boolean
+          icon_model_animation_speed?: number
+          icon_model_pitch?: number
+          icon_model_yaw?: number
+          icon_url?: string | null
+          id?: string
+          is_locked?: boolean
+          title?: string | null
+          tone?: string | null
+          updated_at?: string
+          user_id?: string
+          visibility?: string
+        }
+        Update: {
+          achieved_at?: string | null
+          category?: string | null
+          created_at?: string
+          dedicated_by_user_id?: string | null
+          dedication_status?: string | null
+          description?: string | null
+          icon?: string
+          icon_asset_kind?: string
+          icon_asset_path?: string | null
+          icon_cc_attribution?: string | null
+          icon_file_id?: string | null
+          icon_model_animation_play?: boolean
+          icon_model_animation_speed?: number
+          icon_model_pitch?: number
+          icon_model_yaw?: number
+          icon_url?: string | null
+          id?: string
+          is_locked?: boolean
+          title?: string | null
+          tone?: string | null
+          updated_at?: string
+          user_id?: string
+          visibility?: string
         }
         Relationships: []
       }
@@ -226,6 +295,7 @@ export type Database = {
           avatar_file_id: string | null
           avatar_url: string | null
           created_at: string
+          display_name: string
           updated_at: string
           user_id: string
         }
@@ -233,6 +303,7 @@ export type Database = {
           avatar_file_id?: string | null
           avatar_url?: string | null
           created_at?: string
+          display_name?: string
           updated_at?: string
           user_id: string
         }
@@ -240,6 +311,7 @@ export type Database = {
           avatar_file_id?: string | null
           avatar_url?: string | null
           created_at?: string
+          display_name?: string
           updated_at?: string
           user_id?: string
         }
@@ -278,14 +350,88 @@ export type Database = {
           },
         ]
       }
+      push_notification_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          last_seen_at: string
+          platform: string
+          token: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_seen_at?: string
+          platform?: string
+          token: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_seen_at?: string
+          platform?: string
+          token?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      auth_user_exists: {
-        Args: { target_user_id: string }
-        Returns: boolean
+      achievement_impression_counts: {
+        Args: { p_achievement_ids: string[] }
+        Returns: {
+          achievement_id: string
+          impression_count: number
+        }[]
+      }
+      append_achievement_impression: {
+        Args: { p_achievement_id: string }
+        Returns: Json
+      }
+      auth_user_exists: { Args: { target_user_id: string }; Returns: boolean }
+      claim_push_notification_token: {
+        Args: { p_platform?: string; p_token: string; p_user_agent?: string }
+        Returns: undefined
+      }
+      following_unlock_feed: {
+        Args: {
+          p_cursor_id?: string
+          p_cursor_updated_at?: string
+          p_limit?: number
+        }
+        Returns: {
+          achieved_at: string
+          achievement_id: string
+          actor_avatar_url: string
+          actor_display_name: string
+          actor_user_id: string
+          category: string
+          created_at: string
+          description: string
+          event_at: string
+          event_id: string
+          event_type: string
+          icon: string
+          icon_asset_kind: string
+          icon_file_id: string
+          icon_url: string
+          is_dedicated: boolean
+          title: string
+          tone: string
+          updated_at: string
+          user_id: string
+        }[]
       }
       public_user_display_name: {
         Args: { target_user_id: string }

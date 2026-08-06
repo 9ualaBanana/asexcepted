@@ -10,7 +10,7 @@ import {
   type SetStateAction,
 } from "react";
 
-import { unlockCollectionAchievement } from "@/lib/achievements/application/collection";
+import { unlockAchievement } from "@/lib/achievements/application/achievements";
 import {
   UNLOCK_HOLD_DURATION_MS,
   UNLOCK_REVEAL_DURATION_MS,
@@ -306,7 +306,7 @@ export function useAchievementUnlockReveal({
       onFirstUnlockCompleteRef.current?.();
     }
 
-    const unlockResult = await unlockCollectionAchievement(targetId);
+    const unlockResult = await unlockAchievement(targetId);
     if (unlockResult.isErr()) {
       if (!hadUnlockedBefore) {
         onFirstUnlockRevertedRef.current?.();

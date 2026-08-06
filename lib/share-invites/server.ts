@@ -10,7 +10,7 @@ import {
   type AchievementShareInviteSnapshotRow,
 } from "@/lib/achievements/persistence/achievements";
 import { insertClaimedAchievementFromInvite } from "@/lib/achievements/persistence/dedications";
-import type { AchievementDbWritePayload } from "@/lib/achievements/domain/db-row";
+import type { AchievementWrite } from "@/lib/achievements/domain/achievement";
 import { todayDateString } from "@/lib/feed/format-feed-event-time";
 import { isModelBadgeAssetKind, isShareInviteBadgeModelPath } from "@/lib/achievements/badge/shared/badge-assets";
 import { validateShareInviteBadgeSnapshot } from "@/lib/share-invites/eligibility";
@@ -26,7 +26,7 @@ import { fetchPublicUserDisplayName } from "@/lib/profile/follow";
 import { notifyDedicationAccepted } from "@/lib/notifications/dedication-accepted";
 import { userAchievementDetail } from "@/lib/routes";
 import {
-  buildClaimedAchievementInsertFromInvite,
+  buildClaimedAchievementCreateFromInvite,
   shareInviteSnapshotFromAchievementRow,
   shareInviteSnapshotFromWritePayload,
   type AchievementShareInviteSnapshot,
@@ -217,7 +217,7 @@ async function insertShareInviteWithSnapshot(args: {
 
 export async function createAchievementShareInviteFromPayload(args: {
   senderUserId: string;
-  payload: AchievementDbWritePayload;
+  payload: AchievementWrite;
   sourceAchievementId?: string | null;
 }): Promise<
   Result<
@@ -464,7 +464,7 @@ export async function claimAchievementShareInvite(args: {
 
   const createResult = await insertClaimedAchievementFromInvite(
     supabase,
-    buildClaimedAchievementInsertFromInvite({
+    buildClaimedAchievementCreateFromInvite({
       invite: reservedInvite,
       claimerUserId: args.claimerUserId,
       iconUrl: claimedIconUrl,

@@ -1,13 +1,18 @@
-import { z } from "zod";
-
 import { normalizeBadgeIconUrl } from "@/lib/achievements/badge/shared/badge-assets";
 import {
-  achievementIconKeySchema,
-  achievementToneSchema,
-  iconAssetKindSchema,
   type AchievementIconKey,
   type AchievementTone,
 } from "@/lib/achievements/domain/enums";
+import {
+  FEED_EVENT_TYPES,
+  type FeedEventType,
+  type FollowingUnlockFeedEvent,
+  followingUnlockFeedEventSchema,
+  followingUnlockFeedEventsSchema,
+  type FollowingUnlockFeedRow,
+  followingUnlockFeedRowSchema,
+  followingUnlockFeedRowsSchema,
+} from "@/lib/achievements/domain/feed-event";
 import {
   isModelBadgeAssetKind,
   parseBadgeModelAsset,
@@ -16,8 +21,16 @@ import {
 import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
 import { showsDedicatedBadgeEffect } from "@/lib/achievements/presentation/collection-view-models";
 
-export const FEED_EVENT_TYPES = ["unlock", "impression", "dedication"] as const;
-export type FeedEventType = (typeof FEED_EVENT_TYPES)[number];
+export {
+  FEED_EVENT_TYPES,
+  type FeedEventType,
+  type FollowingUnlockFeedEvent,
+  followingUnlockFeedEventSchema,
+  followingUnlockFeedEventsSchema,
+  type FollowingUnlockFeedRow,
+  followingUnlockFeedRowSchema,
+  followingUnlockFeedRowsSchema,
+};
 
 export type AchievementFeedItemViewModel = {
   eventType: FeedEventType;
@@ -58,66 +71,42 @@ export type AchievementShareInviteBadgeViewModel = {
   showAttributionPopover: boolean;
 };
 
-const uuidSchema = z.uuid();
-const isoTimestampSchema = z.string().min(1);
-const nullableTextSchema = z.string().nullable();
-
-export const followingUnlockFeedRowSchema = z.object({
-  event_type: z.enum(FEED_EVENT_TYPES),
-  event_id: uuidSchema,
-  achievement_id: uuidSchema,
-  user_id: uuidSchema,
-  actor_user_id: uuidSchema,
-  actor_display_name: z.string(),
-  actor_avatar_url: nullableTextSchema,
-  title: nullableTextSchema,
-  description: nullableTextSchema,
-  category: nullableTextSchema,
-  icon: achievementIconKeySchema,
-  icon_url: nullableTextSchema,
-  icon_file_id: nullableTextSchema,
-  icon_asset_kind: iconAssetKindSchema,
-  tone: achievementToneSchema,
-  achieved_at: nullableTextSchema,
-  created_at: isoTimestampSchema,
-  updated_at: isoTimestampSchema,
-  event_at: isoTimestampSchema,
-  is_dedicated: z.boolean(),
-});
-
-export type FollowingUnlockFeedRow = z.infer<typeof followingUnlockFeedRowSchema>;
-
-export const followingUnlockFeedRowsSchema = z.array(followingUnlockFeedRowSchema);
-
-export function feedRpcRowToViewModel(
-  row: FollowingUnlockFeedRow,
+export function feedEventToViewModel(
+  event: FollowingUnlockFeedEvent,
 ): AchievementFeedItemViewModel {
-  const iconUrl = normalizeBadgeIconUrl(row.icon_url);
-  const isDedicated = row.is_dedicated;
+  const iconUrl = normalizeBadgeIconUrl(event.icon_url);
+  const isDedicated = event.is_dedicated;
   return {
-    eventType: row.event_type,
-    eventId: row.event_id,
-    achievementId: row.achievement_id,
-    userId: row.user_id,
-    actorUserId: row.actor_user_id,
-    actorDisplayName: row.actor_display_name,
-    actorAvatarUrl: row.actor_avatar_url,
-    title: row.title,
-    description: row.description,
-    category: row.category,
-    icon: row.icon,
+    eventType: event.event_type,
+    eventId: event.event_id,
+    achievementId: event.achievement_id,
+    userId: event.user_id,
+    actorUserId: event.actor_user_id,
+    actorDisplayName: event.actor_display_name,
+    actorAvatarUrl: event.actor_avatar_url,
+    title: event.title,
+    description: event.description,
+    category: event.category,
+    icon: event.icon,
     displaySrc: toOptimizedRenderUrl(iconUrl),
-    tone: row.tone,
+    tone: event.tone,
     showDedicatedEffect: showsDedicatedBadgeEffect(
       isDedicated,
-      isModelBadgeAssetKind(row.icon_asset_kind),
+      isModelBadgeAssetKind(event.icon_asset_kind),
     ),
     isDedicated,
-    achievedAt: row.achieved_at,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-    eventAt: row.event_at,
+    achievedAt: event.achieved_at,
+    createdAt: event.created_at,
+    updatedAt: event.updated_at,
+    eventAt: event.event_at,
   };
+}
+
+/** @deprecated Use {@link feedEventToViewModel}. */
+export function feedRpcRowToViewModel(
+  row: FollowingUnlockFeedEvent,
+): AchievementFeedItemViewModel {
+  return feedEventToViewModel(row);
 }
 
 type EmbedBadgeRowSource = {

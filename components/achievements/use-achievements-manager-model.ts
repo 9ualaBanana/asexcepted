@@ -10,7 +10,7 @@ import {
   achievementDetailToForm,
   canEditDedicatedVisibility,
   detailToShareInviteSnapshotSource,
-  formToSaveCommand,
+  formToAchievementWrite,
   isAchievementFormDirty,
   isDedicatedVisibilityDirty,
   mapCollectionDetails,
@@ -380,7 +380,7 @@ export function useAchievementsManagerModel({
       return;
     }
 
-    const payload = formToSaveCommand(formForDedicate);
+    const payload = formToAchievementWrite(formForDedicate);
     const body = payloadToDedicateApiBody(userId, payload);
     const result = await postDedicateAchievement(body);
     if (result.isErr()) {

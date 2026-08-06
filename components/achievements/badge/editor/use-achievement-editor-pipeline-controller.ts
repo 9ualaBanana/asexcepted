@@ -5,13 +5,13 @@ import { useCallback, type FormEvent } from "react";
 import { ACHIEVEMENT_UI_COPY } from "@/components/achievements/share/achievement-ui-copy";
 import { createInitialForm } from "@/components/achievements/achievement-manager-utils";
 import {
-  createCollectionAchievement,
-  updateCollectionAchievement,
-} from "@/lib/achievements/application/collection";
+  createAchievement,
+  updateAchievement,
+} from "@/lib/achievements/application/achievements";
 import {
   achievementDetailToForm,
   canEditDedicatedVisibility,
-  formToSaveCommand,
+  formToAchievementWrite,
   isDedicatedAchievement,
   upsertCollectionEntry,
   updateCollectionEntryDetail,
@@ -238,8 +238,8 @@ export function useAchievementEditorPipelineController({
         return;
       }
 
-      const insertPayload = formToSaveCommand(formForSave);
-      const result = await createCollectionAchievement(insertPayload);
+      const insertPayload = formToAchievementWrite(formForSave);
+      const result = await createAchievement(insertPayload);
 
       if (result.isErr()) {
         setError(result.error);
@@ -307,8 +307,8 @@ export function useAchievementEditorPipelineController({
         return;
       }
 
-      const updatePayload = formToSaveCommand(formForSave);
-      const result = await updateCollectionAchievement(detailAchievementId, updatePayload);
+      const updatePayload = formToAchievementWrite(formForSave);
+      const result = await updateAchievement(detailAchievementId, updatePayload);
 
       if (result.isErr()) {
         setError(result.error);
@@ -373,10 +373,10 @@ export function useAchievementEditorPipelineController({
     setError(null);
 
     const updatePayload = {
-      ...formToSaveCommand(achievementDetailToForm(detailAchievement)),
+      ...formToAchievementWrite(achievementDetailToForm(detailAchievement)),
       visibility: panelForm.visibility,
     };
-    const result = await updateCollectionAchievement(detailAchievementId, updatePayload);
+    const result = await updateAchievement(detailAchievementId, updatePayload);
 
     if (result.isErr()) {
       setError(result.error);

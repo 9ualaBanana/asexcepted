@@ -3,24 +3,14 @@ import { err, ok, type Result } from "neverthrow";
 import type { ZodError } from "zod";
 
 import {
-  feedRpcRowToViewModel,
-  followingUnlockFeedRowsSchema,
-  type AchievementFeedItemViewModel,
-} from "@/lib/achievements/presentation/surface-view-models";
+  followingUnlockFeedEventsSchema,
+  type FollowingUnlockFeedEvent,
+} from "@/lib/achievements/domain/feed-event";
+import type { FeedCursor, FeedEventPage } from "@/lib/achievements/application/ports";
 
-export type { AchievementFeedItemViewModel, FeedEventType } from "@/lib/achievements/presentation/surface-view-models";
+export type { FeedCursor, FeedEventPage };
 
-export type FeedCursor = {
-  updated_at: string;
-  id: string;
-};
-
-export type FeedPage = {
-  rows: AchievementFeedItemViewModel[];
-  nextCursor: FeedCursor | null;
-};
-
-function formatFeedRowsError(error: ZodError): string {
+function formatFeedEventsError(error: ZodError): string {
   const issue = error.issues[0];
   if (!issue) return "Invalid feed response.";
   const path = issue.path.length > 0 ? issue.path.join(".") : "root";
@@ -33,7 +23,7 @@ export async function fetchFollowingUnlockFeed(
     limit?: number;
     cursor?: FeedCursor | null;
   } = {},
-): Promise<Result<FeedPage, string>> {
+): Promise<Result<FeedEventPage, string>> {
   const limit = options.limit ?? 20;
   const cursor = options.cursor ?? null;
 
@@ -52,17 +42,17 @@ export async function fetchFollowingUnlockFeed(
     return err(error.message);
   }
 
-  const parsed = followingUnlockFeedRowsSchema.safeParse(data ?? []);
+  const parsed = followingUnlockFeedEventsSchema.safeParse(data ?? []);
   if (!parsed.success) {
-    return err(formatFeedRowsError(parsed.error));
+    return err(formatFeedEventsError(parsed.error));
   }
 
-  const rows = parsed.data.map(feedRpcRowToViewModel);
-  const last = rows[rows.length - 1];
+  const events: FollowingUnlockFeedEvent[] = parsed.data;
+  const last = events[events.length - 1];
   const nextCursor =
-    rows.length >= limit && last
-      ? { updated_at: last.eventAt, id: last.eventId }
+    events.length >= limit && last
+      ? { updated_at: last.event_at, id: last.event_id }
       : null;
 
-  return ok({ rows, nextCursor });
+  return ok({ events, nextCursor });
 }

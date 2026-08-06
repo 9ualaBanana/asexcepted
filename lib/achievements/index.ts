@@ -1,10 +1,10 @@
 /** Achievement domain + badge pipeline — prefer subpath imports for tree-shaking. */
 
 export type {
-  AchievementDbRow,
-  AchievementDbWritePayload,
-  SaveAchievementCommand,
-} from "./domain/db-row";
+  Achievement,
+  AchievementCreate,
+  AchievementWrite,
+} from "./domain/achievement";
 export {
   ACHIEVEMENT_ICON_KEYS,
   ACHIEVEMENT_TONES,
@@ -24,11 +24,20 @@ export {
   type IconAssetKind,
 } from "./domain/enums";
 export {
-  tryNormalizeAchievement,
-  normalizeAchievementRowsForList,
-  achievementDomainRowSchema,
-  type AchievementDomainRow,
+  parseAchievement,
+  parseAchievements,
+  achievementSchema,
 } from "./domain/achievement";
+export {
+  FEED_EVENT_TYPES,
+  type FeedEventType,
+  type FollowingUnlockFeedEvent,
+  followingUnlockFeedEventSchema,
+  followingUnlockFeedEventsSchema,
+  followingUnlockFeedRowSchema,
+  followingUnlockFeedRowsSchema,
+  type FollowingUnlockFeedRow,
+} from "./domain/feed-event";
 export {
   type AchievementCollectionEntryViewModel,
   type AchievementDetailViewModel,
@@ -36,14 +45,20 @@ export {
   achievementDetailToForm,
   collectionEntryFromDetail,
   detailToShareInviteSnapshotSource,
-  domainRowToCollectionEntry,
-  domainRowToDetailViewModel,
-  formToSaveCommand,
+  achievementToCollectionEntry,
+  achievementToDetailViewModel,
+  achievementsToCollectionEntries,
+  formToAchievementWrite,
   isAchievementFormDirty,
   mapCollectionDetails,
   sortCollectionEntries,
   updateCollectionEntryDetail,
   upsertCollectionEntry,
+  canEditDedicatedVisibility,
+  isDedicatedAchievement,
+  isDedicatedVisibilityDirty,
+  showsDedicatedBadgeAura,
+  showsDedicatedBadgeEffect,
 } from "./presentation/collection-view-models";
 export {
   createInitialForm,
@@ -52,49 +67,69 @@ export {
   type FormState,
 } from "./presentation/form-state";
 export {
-  createAchievement,
-  deleteAchievement,
-  getAchievementEmbedBadgeById,
-  getAchievementEmbedMintForOwner,
-  listAchievements,
-  unlockAchievement,
-  updateAchievement,
+  deleteAchievementForOwner,
+  getAchievementForUnlockPush,
+  getAchievementDedicationNotifyRow,
+  getAchievementShareInviteSnapshotRow,
+  getAchievementIdForOwner,
+  getAchievementOwnerUserId,
 } from "./persistence/achievements";
+
+export type {
+  AchievementPort,
+  DedicationPort,
+  EmbedPort,
+  FeedPort,
+  ImpressionPort,
+  FeedCursor,
+  FeedEventPage,
+} from "./application/ports";
+export {
+  createAchievementPort,
+  createDedicationPort,
+  createEmbedPort,
+  createFeedPort,
+  createImpressionPort,
+} from "./application/adapters";
+
+export {
+  listAchievements,
+  createAchievement,
+  updateAchievement,
+  deleteAchievement,
+  unlockAchievement,
+} from "./application/achievements";
 export {
   listCollection,
-  createCollectionAchievement,
-  updateCollectionAchievement,
-  deleteCollectionAchievement,
-  unlockCollectionAchievement,
+  type ListCollectionPorts,
+  type ListCollectionResult,
 } from "./application/collection";
+export {
+  createImpression,
+  loadImpressionCountMap,
+} from "./application/impressions";
+export {
+  type FeedPage,
+  loadFollowingUnlockFeed,
+} from "./application/feed";
+export {
+  listPendingDedications,
+  acceptPendingDedication,
+  rejectPendingDedication,
+} from "./application/dedication-queue";
+export { loadEmbedBadge, loadEmbedMint } from "./application/embed";
+
 export {
   type AchievementEmbedBadgeViewModel,
   type AchievementEmbedMintViewModel,
   type AchievementFeedItemViewModel,
   type AchievementShareInviteBadgeViewModel,
-  type FeedEventType,
-  type FollowingUnlockFeedRow,
-  FEED_EVENT_TYPES,
   embedBadgeRowToViewModel,
   embedMintRowToViewModel,
+  feedEventToViewModel,
   feedRpcRowToViewModel,
-  followingUnlockFeedRowSchema,
-  followingUnlockFeedRowsSchema,
   shareInviteRowToBadgeViewModel,
 } from "./presentation/surface-view-models";
-export {
-  type FeedCursor,
-  type FeedPage,
-} from "./persistence/feed";
-export { fetchFollowingUnlockFeed } from "./application/feed";
-
-export {
-  canEditDedicatedVisibility,
-  isDedicatedAchievement,
-  isDedicatedVisibilityDirty,
-  showsDedicatedBadgeAura,
-  showsDedicatedBadgeEffect,
-} from "./presentation/collection-view-models";
 
 export {
   useHideLockedPreference,

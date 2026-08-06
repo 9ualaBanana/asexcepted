@@ -1,9 +1,9 @@
 import { err, ok, type Result } from "neverthrow";
 import { z } from "zod";
 
-import { tryNormalizeAchievement } from "@/lib/achievements/domain/achievement";
+import { parseAchievement } from "@/lib/achievements/domain/achievement";
 import {
-  domainRowToDetailViewModel,
+  achievementToDetailViewModel,
   type AchievementDetailViewModel,
 } from "@/lib/achievements/presentation/collection-view-models";
 import { fetchFailureMessage, fetchJson } from "@/lib/client/fetch-json";
@@ -38,13 +38,13 @@ export async function postAcceptDedication(
     return err("Could not read dedication after accepting.");
   }
 
-  const normalized = tryNormalizeAchievement(parsed.data.achievement);
+  const normalized = parseAchievement(parsed.data.achievement);
   if (normalized.isErr()) {
     return err(normalized.error);
   }
 
   return ok({
     kind: "accepted",
-    achievement: domainRowToDetailViewModel(normalized.value),
+    achievement: achievementToDetailViewModel(normalized.value),
   });
 }

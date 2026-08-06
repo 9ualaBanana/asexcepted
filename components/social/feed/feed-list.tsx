@@ -4,8 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { FeedItem } from "@/components/social/feed/feed-item";
 import { Button } from "@/components/ui/button";
-import type { FeedPage } from "@/lib/achievements/persistence/feed";
-import { fetchFollowingUnlockFeed } from "@/lib/achievements/application/feed";
+import type { FeedPage } from "@/lib/achievements/application/feed";
+import { loadFollowingUnlockFeed } from "@/lib/achievements/application/feed";
 import { useFeedLiveUpdates } from "@/lib/live-updates";
 import { ROUTES } from "@/lib/routes";
 import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
@@ -32,7 +32,7 @@ export function FeedList({ initialPage, initialError = null }: FeedListProps) {
     const silent = opts?.silent ?? false;
     if (!silent) setRefreshing(true);
     setError(null);
-    const pageResult = await fetchFollowingUnlockFeed({ limit: 20 });
+    const pageResult = await loadFollowingUnlockFeed({ limit: 20 });
     if (pageResult.isErr()) {
       setError(pageResult.error);
     } else {
@@ -81,7 +81,7 @@ export function FeedList({ initialPage, initialError = null }: FeedListProps) {
     if (!cursor || loading) return;
     setLoading(true);
     setError(null);
-    const pageResult = await fetchFollowingUnlockFeed({
+    const pageResult = await loadFollowingUnlockFeed({
       limit: 20,
       cursor,
     });

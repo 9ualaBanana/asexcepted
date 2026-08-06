@@ -12,8 +12,10 @@ import {
   type AchievementTone,
   type AchievementVisibility,
 } from "@/lib/achievements/domain/enums";
-import type { SaveAchievementCommand } from "@/lib/achievements/domain/db-row";
-import type { AchievementDomainRow } from "@/lib/achievements/domain/achievement";
+import type {
+  Achievement,
+  AchievementWrite,
+} from "@/lib/achievements/domain/achievement";
 import { formatGridDate } from "@/lib/feed/format-feed-event-time";
 import { normalizeImageKitFileId } from "@/lib/imagekit/client/imagekit-api";
 import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
@@ -90,7 +92,7 @@ const formToPayloadSchema = z
     visibility: achievementVisibilitySchema,
   })
   .transform(
-    (form): SaveAchievementCommand => ({
+    (form): AchievementWrite => ({
       title: toNullable(form.title),
       description: toNullable(form.description),
       category: toNullable(form.category),
@@ -186,7 +188,7 @@ export function sortCollectionEntries(
   });
 }
 
-export function domainRowToDetailViewModel(row: AchievementDomainRow): AchievementDetailViewModel {
+export function achievementToDetailViewModel(row: Achievement): AchievementDetailViewModel {
   const iconUrl = row.icon_url;
   const model = parseBadgeModelAsset({
     iconAssetKind: row.icon_asset_kind,
@@ -212,7 +214,7 @@ export function domainRowToDetailViewModel(row: AchievementDomainRow): Achieveme
     achievedAt: row.achieved_at,
     createdAt: row.created_at,
     visibility: row.visibility,
-    impressionCount: row.impression_count,
+    impressionCount: 0,
     hasCustomBadge: iconUrl !== null,
     showDedicatedEffect: showsDedicatedBadgeEffect(
       showsDedicatedBadgeAura({
@@ -250,9 +252,10 @@ export function showsDedicatedBadgeAura(
     "dedicatedByUserId" | "dedicationStatus"
   >,
 ): boolean {
-  if (!achievement.dedicatedByUserId) return false;
-  if (achievement.dedicationStatus === "pending") return false;
-  return true;
+  return (
+    Boolean(achievement.dedicatedByUserId) &&
+    achievement.dedicationStatus === "accepted"
+  );
 }
 
 export function showsDedicatedBadgeEffect(
@@ -292,14 +295,16 @@ export function collectionEntryFromDetail(
   };
 }
 
-export function domainRowToCollectionEntry(row: AchievementDomainRow): AchievementCollectionEntryViewModel {
-  return collectionEntryFromDetail(domainRowToDetailViewModel(row));
+export function achievementToCollectionEntry(
+  row: Achievement,
+): AchievementCollectionEntryViewModel {
+  return collectionEntryFromDetail(achievementToDetailViewModel(row));
 }
 
-export function domainRowsToCollectionEntries(
-  rows: AchievementDomainRow[],
+export function achievementsToCollectionEntries(
+  rows: Achievement[],
 ): AchievementCollectionEntryViewModel[] {
-  return rows.map(domainRowToCollectionEntry);
+  return rows.map(achievementToCollectionEntry);
 }
 
 export function updateCollectionEntryDetail(
@@ -350,13 +355,8 @@ export function achievementDetailToForm(detail: AchievementDetailViewModel): For
   return detailToFormSchema.parse(detail);
 }
 
-export function formToSaveCommand(form: FormState): SaveAchievementCommand {
+export function formToAchievementWrite(form: FormState): AchievementWrite {
   return formToPayloadSchema.parse(form);
-}
-
-/** @deprecated Use {@link formToSaveCommand}. */
-export function formToPayload(form: FormState): SaveAchievementCommand {
-  return formToSaveCommand(form);
 }
 
 /** True when panel edit form differs from the saved achievement. */
@@ -364,8 +364,8 @@ export function isAchievementFormDirty(
   form: FormState,
   detail: AchievementDetailViewModel,
 ): boolean {
-  const current = formToSaveCommand(form);
-  const baseline = formToSaveCommand(achievementDetailToForm(detail));
+  const current = formToAchievementWrite(form);
+  const baseline = formToAchievementWrite(achievementDetailToForm(detail));
   return (
     current.title !== baseline.title ||
     current.description !== baseline.description ||

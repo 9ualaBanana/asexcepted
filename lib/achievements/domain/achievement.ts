@@ -13,32 +13,6 @@ import {
   type AchievementVisibility,
   type IconAssetKind,
 } from "@/lib/achievements/domain/enums";
-import { isSentryEnabled } from "@/lib/sentry/enabled";
-
-export type AchievementDomainRow = {
-  id: string;
-  title: string | null;
-  description: string | null;
-  category: string | null;
-  icon: AchievementIconKey;
-  icon_url: string | null;
-  icon_file_id: string | null;
-  icon_asset_kind: IconAssetKind;
-  icon_asset_path: string | null;
-  icon_cc_attribution: string | null;
-  icon_model_yaw: number;
-  icon_model_pitch: number;
-  icon_model_animation_play: boolean;
-  icon_model_animation_speed: number;
-  tone: AchievementTone;
-  is_locked: boolean;
-  achieved_at: string | null;
-  created_at: string;
-  visibility: AchievementVisibility;
-  impression_count: number;
-  dedicated_by_user_id: string | null;
-  dedication_status: "pending" | "accepted" | null;
-};
 
 const nullableTextSchema = z.string().nullable();
 
@@ -51,7 +25,7 @@ const trimmedNullableTextSchema = z
     return trimmed.length > 0 ? trimmed : null;
   });
 
-const achievementDomainRowObjectSchema = z.object({
+export const achievementSchema = z.object({
   id: z.uuid(),
   title: nullableTextSchema,
   description: nullableTextSchema,
@@ -74,114 +48,87 @@ const achievementDomainRowObjectSchema = z.object({
   achieved_at: z.string().nullable(),
   created_at: z.string().min(1),
   visibility: achievementVisibilitySchema,
-  impression_count: z.number().int().nonnegative().optional(),
   dedicated_by_user_id: z.uuid().nullable(),
-  dedication_status: z.enum(["pending", "accepted"]).nullable().optional(),
+  dedication_status: z.enum(["pending", "accepted"]).nullable().default(null),
 });
 
-export const achievementDomainRowSchema = achievementDomainRowObjectSchema.transform(
-  (row): AchievementDomainRow => {
-    const dedication_status =
-      row.dedication_status === "pending"
-        ? "pending"
-        : row.dedication_status === "accepted" || row.dedicated_by_user_id
-          ? "accepted"
-          : null;
+/** Trusted achievement after boundary parse (read model). */
+export type Achievement = z.infer<typeof achievementSchema>;
 
-    return {
-      id: row.id,
-      title: row.title,
-      description: row.description,
-      category: row.category,
-      icon: row.icon,
-      icon_url: row.icon_url,
-      icon_file_id: row.icon_file_id,
-      icon_asset_kind: row.icon_asset_kind,
-      icon_asset_path: row.icon_asset_path,
-      icon_cc_attribution: row.icon_cc_attribution,
-      icon_model_yaw: row.icon_model_yaw,
-      icon_model_pitch: row.icon_model_pitch,
-      icon_model_animation_play: row.icon_model_animation_play,
-      icon_model_animation_speed: row.icon_model_animation_speed,
-      tone: row.tone,
-      is_locked: row.is_locked,
-      achieved_at: row.achieved_at,
-      created_at: row.created_at,
-      visibility: row.visibility,
-      impression_count: row.impression_count ?? 0,
-      dedicated_by_user_id: row.dedicated_by_user_id,
-      dedication_status,
-    };
-  },
-);
+/** Content fields written on create/update of an achievement. */
+export type AchievementWrite = {
+  title: string | null;
+  description: string | null;
+  category: string | null;
+  icon: AchievementIconKey;
+  icon_url: string | null;
+  icon_file_id: string | null;
+  icon_asset_kind: IconAssetKind;
+  icon_asset_path: string | null;
+  icon_cc_attribution: string | null;
+  icon_model_yaw?: number;
+  icon_model_pitch?: number;
+  icon_model_animation_play?: boolean;
+  icon_model_animation_speed?: number;
+  tone: AchievementTone;
+  is_locked: boolean;
+  achieved_at: string | null;
+  visibility?: AchievementVisibility;
+};
 
-function formatDomainRowError(error: ZodError): string {
+/** Same content as {@link AchievementWrite}, plus owner / dedication for inserts. */
+export type AchievementCreate = AchievementWrite & {
+  user_id: string;
+  dedicated_by_user_id?: string | null;
+  dedication_status?: "pending" | "accepted" | null;
+};
+
+function formatParseError(error: ZodError): string {
   const issue = error.issues[0];
-  if (!issue) return "Invalid achievement row.";
+  if (!issue) return "Invalid achievement.";
   const path = issue.path.length > 0 ? issue.path.join(".") : "root";
-  return `Invalid achievement row at ${path}: ${issue.message}`;
+  return `Invalid achievement at ${path}: ${issue.message}`;
 }
 
-export function reportInvalidAchievementDomainRow(args: {
-  context: string;
-  row: unknown;
-  error: ZodError;
-}): void {
-  // if (!isSentryEnabled()) return;
-
-  const rowId =
-    args.row &&
-    typeof args.row === "object" &&
-    args.row !== null &&
-    "id" in args.row
-      ? String((args.row as { id: unknown }).id)
-      : undefined;
-
-  Sentry.captureException(
-    new Error(`Invalid achievement domain row (${args.context})`),
-    {
-      tags: {
-        area: "achievement_domain",
-        context: args.context,
-      },
-      extra: {
-        achievementId: rowId,
-        issues: args.error.issues.slice(0, 12).map((issue) => ({
-          path: issue.path.join("."),
-          message: issue.message,
-          code: issue.code,
-        })),
-      },
-    },
-  );
-}
-
-export function tryNormalizeAchievement(
+export function parseAchievement(
   record: unknown,
-): Result<AchievementDomainRow, string> {
-  const parsed = achievementDomainRowSchema.safeParse(record);
+): Result<Achievement, string> {
+  const parsed = achievementSchema.safeParse(record);
   if (!parsed.success) {
-    return err(formatDomainRowError(parsed.error));
+    return err(formatParseError(parsed.error));
   }
   return ok(parsed.data);
 }
 
-export function normalizeAchievementRowsForList(
-  rows: unknown[],
-  context: string,
-): AchievementDomainRow[] {
-  const domainRows: AchievementDomainRow[] = [];
+/** Valid rows only; invalid ones are skipped and reported. */
+export function parseAchievements(rows: unknown[]): Achievement[] {
+  const out: Achievement[] = [];
   for (const row of rows) {
-    const parsed = achievementDomainRowSchema.safeParse(row);
+    const parsed = achievementSchema.safeParse(row);
     if (!parsed.success) {
-      reportInvalidAchievementDomainRow({
-        context,
-        row,
-        error: parsed.error,
-      });
+      reportInvalidAchievement(row, parsed.error);
       continue;
     }
-    domainRows.push(parsed.data);
+    out.push(parsed.data);
   }
-  return domainRows;
+  return out;
+}
+
+function reportInvalidAchievement(row: unknown, error: ZodError): void {
+  const rowId =
+    row && typeof row === "object" && row !== null && "id" in row
+      ? String((row as { id: unknown }).id)
+      : undefined;
+
+  Sentry.captureException(new Error("Invalid achievement"), {
+    tags: { area: "achievement_domain" },
+    extra: {
+      achievementId: rowId,
+      issues: error.issues.slice(0, 12).map((issue) => ({
+        path: issue.path.join("."),
+        message: issue.message,
+        code: issue.code,
+      })),
+    },
+  });
 }

@@ -1,49 +1,63 @@
+import type { Result } from "neverthrow";
+import { err, ok } from "neverthrow";
+
 import {
-  createAchievement,
-  deleteAchievement,
-  listAchievements,
-  unlockAchievement,
-  updateAchievement,
-  type AchievementDeleteResult,
-  type AchievementListResult,
-  type AchievementSingleResult,
-} from "@/lib/achievements/persistence/achievements";
-import type { SaveAchievementCommand } from "@/lib/achievements/domain/db-row";
+  createAchievementPort,
+  createImpressionPort,
+} from "@/lib/achievements/application/adapters";
+import type {
+  AchievementPort,
+  ImpressionPort,
+} from "@/lib/achievements/application/ports";
+import {
+  achievementToDetailViewModel,
+  collectionEntryFromDetail,
+  sortCollectionEntries,
+  type AchievementCollectionEntryViewModel,
+} from "@/lib/achievements/presentation/collection-view-models";
 import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
 
-export type {
-  AchievementDeleteResult,
-  AchievementListResult,
-  AchievementSingleResult,
+export type ListCollectionPorts = {
+  achievements: AchievementPort;
+  impressions: ImpressionPort;
 };
+
+export type ListCollectionResult = Result<
+  AchievementCollectionEntryViewModel[],
+  string
+>;
+
+function defaultListCollectionPorts(): ListCollectionPorts {
+  const supabase = createBrowserSupabase();
+  return {
+    achievements: createAchievementPort(supabase),
+    impressions: createImpressionPort(supabase),
+  };
+}
 
 export async function listCollection(
   userId: string,
-): Promise<AchievementListResult> {
-  return listAchievements(createBrowserSupabase(), userId);
-}
+  ports: ListCollectionPorts = defaultListCollectionPorts(),
+): Promise<ListCollectionResult> {
+  const listAchievementsResult = await ports.achievements.list(userId);
+  if (listAchievementsResult.isErr()) {
+    return err(listAchievementsResult.error);
+  }
+  const achievements = listAchievementsResult.value;
 
-export async function createCollectionAchievement(
-  command: SaveAchievementCommand,
-): Promise<AchievementSingleResult> {
-  return createAchievement(createBrowserSupabase(), command);
-}
+  const countImpressionsResult = await ports.impressions
+    .fetchCountMap(achievements.map((a) => a.id));
+  if (countImpressionsResult.isErr()) {
+    return err(countImpressionsResult.error);
+  }
+  const impressionCounts = countImpressionsResult.value;
 
-export async function updateCollectionAchievement(
-  id: string,
-  command: SaveAchievementCommand,
-): Promise<AchievementSingleResult> {
-  return updateAchievement(createBrowserSupabase(), id, command);
-}
+  const collectionEntries = achievements.map((achievement) =>
+    collectionEntryFromDetail({
+      ...achievementToDetailViewModel(achievement),
+      impressionCount: impressionCounts[achievement.id] ?? 0,
+    }),
+  );
 
-export async function deleteCollectionAchievement(
-  id: string,
-): Promise<AchievementDeleteResult> {
-  return deleteAchievement(createBrowserSupabase(), id);
-}
-
-export async function unlockCollectionAchievement(
-  id: string,
-): Promise<AchievementSingleResult> {
-  return unlockAchievement(createBrowserSupabase(), id);
+  return ok(sortCollectionEntries(collectionEntries));
 }

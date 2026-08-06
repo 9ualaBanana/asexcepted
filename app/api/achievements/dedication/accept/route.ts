@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { acceptPendingDedicationForRecipient } from "@/lib/achievements/persistence/dedications";
+import { createDedicationPort } from "@/lib/achievements/application/adapters";
+import { acceptPendingDedication } from "@/lib/achievements/application/dedication-queue";
 import { notifyDedicationAccepted } from "@/lib/notifications/dedication-accepted";
 import { createServerSupabase } from "@/lib/supabase/clients/server";
 
@@ -25,16 +26,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
-  const acceptResult = await acceptPendingDedicationForRecipient(
-    supabase,
+  const acceptResult = await acceptPendingDedication(
     parsed.data.achievementId,
     user.id,
+    createDedicationPort(supabase),
   );
 
   if (acceptResult.isErr()) {
     const message = acceptResult.error;
     const status =
-      message === "This dedication is no longer pending or was already accepted." ? 409 : 500;
+      message === "This dedication is no longer pending or was already accepted."
+        ? 409
+        : 500;
     return NextResponse.json({ error: message }, { status });
   }
 

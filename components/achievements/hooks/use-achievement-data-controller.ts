@@ -2,10 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import {
-  deleteCollectionAchievement,
-  listCollection,
-} from "@/lib/achievements/application/collection";
+import { deleteAchievement } from "@/lib/achievements/application/achievements";
+import { listCollection } from "@/lib/achievements/application/collection";
 import type { BadgeSessionController } from "@/components/achievements/badge/upload/use-badge-session-controller";
 import type { AchievementUiStateActions } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
 import type { AchievementCollectionEntryViewModel } from "@/lib/achievements/presentation/collection-view-models";
@@ -103,7 +101,7 @@ export function useAchievementDataController({
       const target = achievements.find((entry) => entry.detail.id === id);
       const targetRenderSrc = target?.detail.renderSrc;
 
-      const deleteResult = await deleteCollectionAchievement(id);
+      const deleteResult = await deleteAchievement(id);
       if (deleteResult.isErr()) {
         setError(deleteResult.error);
         setIsSaving(false);

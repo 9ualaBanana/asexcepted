@@ -1,27 +1,12 @@
 import { err, ok, type Result } from "neverthrow";
 
 import { todayDateString } from "@/lib/feed/format-feed-event-time";
-import type {
-  AchievementDbRow,
-  SaveAchievementCommand,
-} from "@/lib/achievements/domain/db-row";
 import {
-  normalizeAchievementRowsForList,
-  tryNormalizeAchievement,
+  parseAchievement,
+  parseAchievements,
+  type Achievement,
+  type AchievementWrite,
 } from "@/lib/achievements/domain/achievement";
-import {
-  embedBadgeRowToViewModel,
-  embedMintRowToViewModel,
-  type AchievementEmbedBadgeViewModel,
-  type AchievementEmbedMintViewModel,
-} from "@/lib/achievements/presentation/surface-view-models";
-import {
-  domainRowToDetailViewModel,
-  domainRowsToCollectionEntries,
-  sortCollectionEntries,
-  type AchievementCollectionEntryViewModel,
-  type AchievementDetailViewModel,
-} from "@/lib/achievements/presentation/collection-view-models";
 import {
   normalizeNetworkFailureMessage,
   retryOnTransientNetworkError,
@@ -33,69 +18,28 @@ import type {
 } from "@/lib/supabase/clients/client-types";
 import type { Database } from "@/lib/supabase/database.types";
 import { formatSupabaseSingleRowError } from "@/lib/supabase/postgrest-errors";
-import type { AchievementDomainRow } from "@/lib/achievements/domain/achievement";
-import type { SupabaseClient } from "@supabase/supabase-js";
 
 const ACHIEVEMENT_FULL_SELECT =
   "id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_cc_attribution,icon_model_yaw,icon_model_pitch,icon_model_animation_play,icon_model_animation_speed,tone,is_locked,achieved_at,created_at,visibility,dedicated_by_user_id,dedication_status";
 
-export type {
-  AchievementDbRow,
-  SaveAchievementCommand,
-  AchievementDbWritePayload,
-} from "@/lib/achievements/domain/db-row";
-export type {
-  AchievementEmbedBadgeViewModel,
-  AchievementEmbedMintViewModel,
-} from "@/lib/achievements/presentation/surface-view-models";
-
-type CountRow = {
-  achievement_id: string;
-  impression_count: number | string;
+export type AchievementEmbedBadgeSource = {
+  icon_url: string | null;
+  icon_asset_kind?: string | null;
+  icon_asset_path?: string | null;
+  icon_model_yaw?: number | null;
+  icon_model_pitch?: number | null;
+  icon_model_animation_play?: boolean | null;
+  icon_model_animation_speed?: number | null;
+  icon_cc_attribution?: string | null;
 };
 
-async function fetchImpressionCountMap(
-  supabase: SupabaseClient,
-  achievementIds: string[],
-): Promise<Record<string, number>> {
-  if (achievementIds.length === 0) return {};
+export type AchievementEmbedMintSource = {
+  id: string;
+  icon_url: string | null;
+};
 
-  const { data, error } = await (supabase as unknown as {
-    rpc: (
-      fn: string,
-      args: Record<string, unknown>,
-    ) => Promise<{ data: unknown; error: { message: string } | null }>;
-  }).rpc("achievement_impression_counts", {
-    p_achievement_ids: achievementIds,
-  });
-
-  if (error || !Array.isArray(data)) {
-    return {};
-  }
-
-  const map: Record<string, number> = {};
-  for (const row of data as CountRow[]) {
-    const id = String(row.achievement_id);
-    const count = Number(row.impression_count);
-    if (id && Number.isFinite(count) && count > 0) {
-      map[id] = count;
-    }
-  }
-  return map;
-}
-
-function attachImpressionCounts(
-  records: AchievementDomainRow[],
-  countMap: Record<string, number>,
-): AchievementDomainRow[] {
-  return records.map((record) => ({
-    ...record,
-    impression_count: countMap[record.id] ?? 0,
-  }));
-}
-
-export type AchievementListResult = Result<AchievementCollectionEntryViewModel[], string>;
-export type AchievementSingleResult = Result<AchievementDetailViewModel, string>;
+export type AchievementListResult = Result<Achievement[], string>;
+export type AchievementSingleResult = Result<Achievement, string>;
 export type AchievementDeleteResult = Result<void, string>;
 
 export type AchievementUnlockPushRow = {
@@ -132,12 +76,12 @@ export type AchievementShareInviteSnapshotRow = Pick<
   | "dedicated_by_user_id"
 >;
 
-function toAchievementSingleResult(row: AchievementDbRow): AchievementSingleResult {
-  const normalized = tryNormalizeAchievement(row);
-  if (normalized.isErr()) {
+function toSingleResult(row: unknown): AchievementSingleResult {
+  const parsed = parseAchievement(row);
+  if (parsed.isErr()) {
     return err("Invalid achievement data received from the server.");
   }
-  return ok(domainRowToDetailViewModel(normalized.value));
+  return ok(parsed.value);
 }
 
 export async function listAchievements(
@@ -156,27 +100,19 @@ export async function listAchievements(
     return err(error.message);
   }
 
-  const domainRows = normalizeAchievementRowsForList(
-    data ?? [],
-    "listAchievements",
-  );
-  const countMap = await fetchImpressionCountMap(
-    supabase,
-    domainRows.map((record) => record.id),
-  );
-  const rowsWithCounts = attachImpressionCounts(domainRows, countMap);
-  return ok(sortCollectionEntries(domainRowsToCollectionEntries(rowsWithCounts)));
+  const rows = parseAchievements(data ?? []);
+  return ok(rows);
 }
 
 export async function createAchievement(
   supabase: DatabaseSupabaseClient,
-  command: SaveAchievementCommand,
+  write: AchievementWrite,
 ): Promise<AchievementSingleResult> {
   return retryOnTransientNetworkError(async () => {
     try {
       const { data, error } = await supabase
         .from("achievements")
-        .insert(command)
+        .insert(write)
         .select(ACHIEVEMENT_FULL_SELECT)
         .single();
 
@@ -186,7 +122,7 @@ export async function createAchievement(
       if (!data || typeof data === "string") {
         return err("Unexpected response while creating achievement.");
       }
-      return toAchievementSingleResult(data);
+      return toSingleResult(data);
     } catch (e) {
       const message = e instanceof Error ? e.message : "Network error.";
       return err(normalizeNetworkFailureMessage(message));
@@ -197,13 +133,13 @@ export async function createAchievement(
 export async function updateAchievement(
   supabase: DatabaseSupabaseClient,
   achievementId: string,
-  command: SaveAchievementCommand,
+  write: AchievementWrite,
 ): Promise<AchievementSingleResult> {
   return retryOnTransientNetworkError(async () => {
     try {
       const { data, error } = await supabase
         .from("achievements")
-        .update(command)
+        .update(write)
         .eq("id", achievementId)
         .select(ACHIEVEMENT_FULL_SELECT)
         .single();
@@ -214,7 +150,7 @@ export async function updateAchievement(
       if (!data || typeof data === "string") {
         return err("Unexpected response while updating achievement.");
       }
-      return toAchievementSingleResult(data);
+      return toSingleResult(data);
     } catch (e) {
       const message = e instanceof Error ? e.message : "Network error.";
       return err(normalizeNetworkFailureMessage(message));
@@ -298,7 +234,7 @@ export async function unlockAchievement(
   if (!data || typeof data === "string") {
     return err("Unexpected response while unlocking achievement.");
   }
-  return toAchievementSingleResult(data);
+  return toSingleResult(data);
 }
 
 export async function getAchievementForUnlockPush(
@@ -320,10 +256,10 @@ export async function getAchievementForUnlockPush(
   return ok(data);
 }
 
-export async function getAchievementEmbedBadgeById(
+export async function getAchievementEmbedBadgeSource(
   supabase: DatabaseSupabaseClient,
   achievementId: string,
-): Promise<Result<AchievementEmbedBadgeViewModel, string>> {
+): Promise<Result<AchievementEmbedBadgeSource, string>> {
   const { data, error } = await supabase
     .from("achievements")
     .select("icon_url,icon_asset_kind,icon_asset_path,icon_model_yaw,icon_model_pitch")
@@ -336,18 +272,14 @@ export async function getAchievementEmbedBadgeById(
   if (!data) {
     return err("Achievement not found");
   }
-  const badge = embedBadgeRowToViewModel(data);
-  if (!badge) {
-    return err("Achievement not found");
-  }
-  return ok(badge);
+  return ok(data);
 }
 
-export async function getAchievementEmbedMintForOwner(
+export async function getAchievementEmbedMintSource(
   supabase: DatabaseSupabaseClient,
   achievementId: string,
   ownerUserId: string,
-): Promise<Result<AchievementEmbedMintViewModel, string>> {
+): Promise<Result<AchievementEmbedMintSource, string>> {
   const { data, error } = await supabase
     .from("achievements")
     .select("id,icon_url")
@@ -361,11 +293,7 @@ export async function getAchievementEmbedMintForOwner(
   if (!data) {
     return err("Achievement not found");
   }
-  const mint = embedMintRowToViewModel(data.id, data);
-  if (!mint) {
-    return err("Achievement not found");
-  }
-  return ok(mint);
+  return ok(data);
 }
 
 export async function getAchievementDedicationNotifyRow(
@@ -451,4 +379,3 @@ export async function getAchievementOwnerUserId(
   }
   return ok(data?.user_id ?? null);
 }
-

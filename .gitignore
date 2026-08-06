@@ -49,3 +49,6 @@ next-env.d.ts
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# Generated knowledge graphs (stale paths after moves)
+/graphify-out/

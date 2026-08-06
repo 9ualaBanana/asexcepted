@@ -1,6 +1,6 @@
-import type { AchievementDomainRow } from "@/lib/achievements/domain/achievement";
+import type { Achievement } from "@/lib/achievements/domain/achievement";
 import {
-  domainRowToDetailViewModel,
+  achievementToDetailViewModel,
   type AchievementDetailViewModel,
 } from "@/lib/achievements/presentation/collection-view-models";
 
@@ -26,7 +26,7 @@ export const INTRO_ACHIEVEMENT_SEED = {
 
 const WELCOME_INTRO_ID = "welcome-intro-preview";
 
-function welcomeIntroDomainRow(): AchievementDomainRow {
+function welcomeIntroAchievement(): Achievement {
   return {
     id: WELCOME_INTRO_ID,
     title: INTRO_ACHIEVEMENT_SEED.title,
@@ -46,7 +46,6 @@ function welcomeIntroDomainRow(): AchievementDomainRow {
     is_locked: false,
     achieved_at: INTRO_ACHIEVEMENT_SEED.achieved_at,
     created_at: "1970-01-01T00:00:00.000Z",
-    impression_count: 0,
     visibility: "public",
     dedicated_by_user_id: null,
     dedication_status: null,
@@ -55,5 +54,5 @@ function welcomeIntroDomainRow(): AchievementDomainRow {
 
 /** Static detail view model for the marketing preview (not persisted). */
 export function getWelcomeIntroDetailViewModel(): AchievementDetailViewModel {
-  return domainRowToDetailViewModel(welcomeIntroDomainRow());
+  return achievementToDetailViewModel(welcomeIntroAchievement());
 }

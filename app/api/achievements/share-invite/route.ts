@@ -8,12 +8,18 @@ import {
   createAchievementShareInviteFromExistingAchievement,
   createAchievementShareInviteFromPayload,
 } from "@/lib/share-invites/server";
+import {
+  achievementIconKeySchema,
+  achievementToneSchema,
+  DEFAULT_ACHIEVEMENT_ICON_KEY,
+  DEFAULT_ACHIEVEMENT_TONE,
+} from "@/lib/achievements/domain/enums";
 
 const draftPayloadSchema = z.object({
   title: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   category: z.string().nullable().optional(),
-  icon: z.string().optional(),
+  icon: achievementIconKeySchema.optional(),
   icon_url: z.string().nullable().optional(),
   icon_file_id: z.string().nullable().optional(),
   icon_asset_kind: z.enum(["image", "model_glb"]).optional(),
@@ -21,7 +27,7 @@ const draftPayloadSchema = z.object({
   icon_cc_attribution: z.string().nullable().optional(),
   icon_model_yaw: z.number().optional(),
   icon_model_pitch: z.number().optional(),
-  tone: z.string().nullable().optional(),
+  tone: achievementToneSchema.nullable().optional(),
   achieved_at: z.string().nullable().optional(),
   is_locked: z.boolean().optional(),
   visibility: z.enum(["public", "private"]).optional(),
@@ -67,7 +73,7 @@ export async function POST(request: Request) {
             title: body.data.payload.title ?? null,
             description: body.data.payload.description ?? null,
             category: body.data.payload.category ?? null,
-            icon: body.data.payload.icon ?? "trophy",
+            icon: body.data.payload.icon ?? DEFAULT_ACHIEVEMENT_ICON_KEY,
             icon_url: body.data.payload.icon_url ?? null,
             icon_file_id: body.data.payload.icon_file_id ?? null,
             icon_asset_kind: body.data.payload.icon_asset_kind ?? "image",
@@ -75,7 +81,7 @@ export async function POST(request: Request) {
             icon_cc_attribution: body.data.payload.icon_cc_attribution ?? null,
             icon_model_yaw: body.data.payload.icon_model_yaw ?? 0,
             icon_model_pitch: body.data.payload.icon_model_pitch ?? 0,
-            tone: body.data.payload.tone ?? null,
+            tone: body.data.payload.tone ?? DEFAULT_ACHIEVEMENT_TONE,
             achieved_at: body.data.payload.achieved_at ?? null,
             is_locked: true,
             visibility: "public",

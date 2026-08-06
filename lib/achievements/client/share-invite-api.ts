@@ -1,7 +1,7 @@
 import { err, ok, type Result } from "neverthrow";
 import { z } from "zod";
 
-import type { AchievementDbWritePayload } from "@/lib/achievements/domain/db-row";
+import type { AchievementWrite } from "@/lib/achievements/domain/achievement";
 import { fetchFailureMessage, postJson } from "@/lib/client/fetch-json";
 
 export type AchievementShareInviteIntent = "showcase" | "dedicate";
@@ -14,7 +14,7 @@ type CreateShareInviteBody =
     }
   | {
       mode: "draft";
-      payload: AchievementDbWritePayload;
+      payload: AchievementWrite;
     };
 
 const shareInviteSuccessSchema = z.object({

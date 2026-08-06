@@ -4,7 +4,7 @@ import { requireAdminUser } from "@/lib/admin";
 import { formatDedicationActivityMessage } from "@/lib/notifications/activity-text";
 import { resolveClaimedBadgeIconFields } from "@/lib/achievements/badge/shared/badge-assets-server";
 import {
-  dedicateBodyToAchievementInsert,
+  dedicateBodyToAchievementCreate,
   parseDedicateAchievementBody,
   validateDedicateBadge,
 } from "@/lib/achievements/client/dedicate-api";
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
   const service = createServiceRoleSupabase();
   const insertResult = await insertDedicatedAchievement(
     service,
-    dedicateBodyToAchievementInsert(body, admin.id, badge),
+    dedicateBodyToAchievementCreate(body, admin.id, badge),
   );
   if (insertResult.isErr()) {
     return NextResponse.json({ error: insertResult.error }, { status: 500 });

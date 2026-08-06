@@ -2,17 +2,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { err, ok, type Result } from "neverthrow";
 
 import {
-  normalizeAchievementRowsForList,
-  tryNormalizeAchievement,
+  parseAchievement,
+  parseAchievements,
+  type Achievement,
+  type AchievementCreate,
 } from "@/lib/achievements/domain/achievement";
-import {
-  domainRowToDetailViewModel,
-  type AchievementDetailViewModel,
-} from "@/lib/achievements/presentation/collection-view-models";
 import type { Database } from "@/lib/supabase/database.types";
 
 type Client = SupabaseClient<Database>;
-type AchievementInsert = Database["public"]["Tables"]["achievements"]["Insert"];
 
 const ACHIEVEMENT_FULL_SELECT =
   "id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_cc_attribution,icon_model_yaw,icon_model_pitch,icon_model_animation_play,icon_model_animation_speed,tone,is_locked,achieved_at,created_at,visibility,dedicated_by_user_id,dedication_status";
@@ -25,7 +22,7 @@ export type DedicatedAchievementRow = {
 export async function listPendingDedications(
   supabase: Client,
   recipientUserId: string,
-): Promise<Result<AchievementDetailViewModel[], string>> {
+): Promise<Result<Achievement[], string>> {
   const { data, error } = await supabase
     .from("achievements")
     .select(ACHIEVEMENT_FULL_SELECT)
@@ -37,18 +34,14 @@ export async function listPendingDedications(
     return err(error.message);
   }
 
-  const domainRows = normalizeAchievementRowsForList(
-    data ?? [],
-    "listPendingDedications",
-  );
-  return ok(domainRows.map(domainRowToDetailViewModel));
+  return ok(parseAchievements(data ?? []));
 }
 
 export async function acceptPendingDedicationForRecipient(
   supabase: Client,
   achievementId: string,
   recipientUserId: string,
-): Promise<Result<AchievementDetailViewModel, string>> {
+): Promise<Result<Achievement, string>> {
   const { data, error } = await supabase
     .from("achievements")
     .update({
@@ -68,11 +61,11 @@ export async function acceptPendingDedicationForRecipient(
     return err("This dedication is no longer pending or was already accepted.");
   }
 
-  const normalized = tryNormalizeAchievement(data);
-  if (normalized.isErr()) {
-    return err(normalized.error);
+  const parsed = parseAchievement(data);
+  if (parsed.isErr()) {
+    return err(parsed.error);
   }
-  return ok(domainRowToDetailViewModel(normalized.value));
+  return ok(parsed.value);
 }
 
 export async function rejectDedication(
@@ -93,11 +86,11 @@ export async function rejectDedication(
 
 export async function insertDedicatedAchievement(
   supabase: Client,
-  payload: AchievementInsert,
+  create: AchievementCreate,
 ): Promise<Result<DedicatedAchievementRow, string>> {
   const { data, error } = await supabase
     .from("achievements")
-    .insert(payload)
+    .insert(create)
     .select("id,title")
     .single();
 
@@ -112,11 +105,11 @@ export async function insertDedicatedAchievement(
 
 export async function insertClaimedAchievementFromInvite(
   supabase: Client,
-  payload: AchievementInsert,
+  create: AchievementCreate,
 ): Promise<Result<{ id: string }, string>> {
   const { data, error } = await supabase
     .from("achievements")
-    .insert(payload)
+    .insert(create)
     .select("id")
     .maybeSingle();
 

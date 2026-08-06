@@ -13,11 +13,11 @@ export async function seedIntroAchievementIfEmpty(
   }
   if (existing.value.length > 0) {
     const intro = existing.value.find(
-      (entry) =>
-        entry.detail.iconUrl === INTRO_ACHIEVEMENT_SEED.icon_url &&
-        entry.detail.title === INTRO_ACHIEVEMENT_SEED.title,
+      (row) =>
+        row.icon_url === INTRO_ACHIEVEMENT_SEED.icon_url &&
+        row.title === INTRO_ACHIEVEMENT_SEED.title,
     );
-    return { created: false, achievementId: intro?.detail.id };
+    return { created: false, achievementId: intro?.id };
   }
 
   const result = await createAchievement(supabase, {

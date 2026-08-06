@@ -1,7 +1,8 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { getAchievementEmbedMintForOwner } from "@/lib/achievements/persistence/achievements";
+import { createEmbedPort } from "@/lib/achievements/application/adapters";
+import { loadEmbedMint } from "@/lib/achievements/application/embed";
 import type { MintEmbedBadgeTokenRequestBody } from "@/lib/embed/embed-api-types";
 import { mintEmbedBadgeToken } from "@/lib/embed/embed-badge-token";
 import { allowRateLimit } from "@/lib/embed/embed-rate-limit";
@@ -54,7 +55,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "achievementId is required" }, { status: 400 });
   }
 
-  const rowResult = await getAchievementEmbedMintForOwner(supabase, achievementId, user.id);
+  const rowResult = await loadEmbedMint(
+    achievementId,
+    user.id,
+    createEmbedPort(supabase),
+  );
 
   if (rowResult.isErr()) {
     return NextResponse.json({ error: rowResult.error }, { status: 404 });

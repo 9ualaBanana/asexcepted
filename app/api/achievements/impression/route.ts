@@ -3,16 +3,11 @@ import { z } from "zod";
 
 import { resolveDisplayName, sendPushToUsers } from "@/lib/notifications";
 import { createServerSupabase } from "@/lib/supabase/clients/server";
+import { createImpression } from "@/lib/achievements/application/impressions";
 
 const bodySchema = z.object({
-  achievementId: z.string().uuid(),
+  achievementId: z.uuid(),
 });
-
-type RpcResult = {
-  added: boolean;
-  owner_user_id: string;
-  title: string;
-};
 
 export async function POST(request: Request) {
   const supabase = await createServerSupabase();
@@ -30,17 +25,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
-  const { data, error } = await (supabase as unknown as {
-    rpc: (
-      fn: string,
-      args: Record<string, unknown>,
-    ) => Promise<{ data: unknown; error: { message: string } | null }>;
-  }).rpc("append_achievement_impression", {
-    p_achievement_id: parsed.data.achievementId,
-  });
+  const result = await createImpression(parsed.data.achievementId);
 
-  if (error) {
-    const message = error.message ?? "Could not leave impression";
+  if (result.isErr()) {
+    const message = result.error ?? "Could not leave impression";
     const status =
       message.includes("cannot impress own") ||
       message.includes("cannot impress locked")
@@ -49,8 +37,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status });
   }
 
-  const result = data as RpcResult | null;
-  if (!result?.added) {
+  if (!result.value.added) {
     return NextResponse.json({ ok: true, added: false });
   }
 
@@ -58,12 +45,12 @@ export async function POST(request: Request) {
 
   await sendPushToUsers({
     supabase,
-    userIds: [result.owner_user_id],
+    userIds: [result.value.owner_user_id],
     kind: "impression",
     params: {
-      achievementTitle: result.title,
+      achievementTitle: result.value.title,
       actorName,
-      ownerUserId: result.owner_user_id,
+      ownerUserId: result.value.owner_user_id,
       achievementId: parsed.data.achievementId,
     },
     excludeUserIds: [user.id],

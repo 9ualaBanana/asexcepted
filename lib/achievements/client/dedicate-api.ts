@@ -3,7 +3,10 @@ import { z } from "zod";
 
 import { isPublicHttpImageUrl } from "@/lib/achievements/badge/shared/badge-assets";
 import { isModelGlbAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
-import type { SaveAchievementCommand } from "@/lib/achievements/domain/db-row";
+import type {
+  AchievementCreate,
+  AchievementWrite,
+} from "@/lib/achievements/domain/achievement";
 import {
   DEFAULT_ACHIEVEMENT_ICON_KEY,
   DEFAULT_ACHIEVEMENT_TONE,
@@ -13,7 +16,6 @@ import {
   iconAssetKindSchema,
 } from "@/lib/achievements/domain/enums";
 import { fetchFailureMessage, postJson } from "@/lib/client/fetch-json";
-import type { Database } from "@/lib/supabase/database.types";
 
 export const dedicateAchievementBodySchema = z.object({
   recipientUserId: z.uuid(),
@@ -40,8 +42,6 @@ export type DedicateAchievementFailure = {
   message: string;
   status: 400 | 500;
 };
-
-type AchievementInsert = Database["public"]["Tables"]["achievements"]["Insert"];
 
 export function parseDedicateAchievementBody(
   raw: unknown,
@@ -77,11 +77,11 @@ export function validateDedicateBadge(
   return ok(undefined);
 }
 
-export function dedicateBodyToAchievementInsert(
+export function dedicateBodyToAchievementCreate(
   body: DedicateAchievementBody,
   dedicatorUserId: string,
   badge: { iconUrl: string; iconAssetPath: string | null },
-): AchievementInsert {
+): AchievementCreate {
   return {
     user_id: body.recipientUserId,
     title: body.title ?? null,
@@ -112,25 +112,25 @@ const dedicateSuccessSchema = z.object({
 
 export function payloadToDedicateApiBody(
   recipientUserId: string,
-  payload: SaveAchievementCommand,
+  write: AchievementWrite,
 ): DedicateAchievementBody {
   return dedicateAchievementBodySchema.parse({
     recipientUserId,
-    title: payload.title,
-    description: payload.description,
-    category: payload.category,
-    icon: payload.icon,
-    icon_url: payload.icon_url,
-    icon_file_id: payload.icon_file_id,
-    icon_asset_kind: payload.icon_asset_kind,
-    icon_asset_path: payload.icon_asset_path,
-    icon_cc_attribution: payload.icon_cc_attribution,
-    icon_model_yaw: payload.icon_model_yaw,
-    icon_model_pitch: payload.icon_model_pitch,
-    icon_model_animation_play: payload.icon_model_animation_play,
-    icon_model_animation_speed: payload.icon_model_animation_speed,
-    tone: payload.tone,
-    achieved_at: payload.achieved_at,
+    title: write.title,
+    description: write.description,
+    category: write.category,
+    icon: write.icon,
+    icon_url: write.icon_url,
+    icon_file_id: write.icon_file_id,
+    icon_asset_kind: write.icon_asset_kind,
+    icon_asset_path: write.icon_asset_path,
+    icon_cc_attribution: write.icon_cc_attribution,
+    icon_model_yaw: write.icon_model_yaw,
+    icon_model_pitch: write.icon_model_pitch,
+    icon_model_animation_play: write.icon_model_animation_play,
+    icon_model_animation_speed: write.icon_model_animation_speed,
+    tone: write.tone,
+    achieved_at: write.achieved_at,
   });
 }
 

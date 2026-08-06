@@ -3,82 +3,139 @@ description:
 alwaysApply: true
 ---
 
-# Validate at the Boundary
+# I/O types & Validate at the Boundary
 
-External data (DB rows, API request/response bodies, webhooks, `fetch` JSON) is **unknown** until parsed. Validate and normalize **once** at the first boundary, then pass **typed, trusted** values inward. Do not re-validate the same guarantees in every component, hook, or helper.
+External data (DB rows, RPC JSON, API request/response bodies, webhooks, `fetch` JSON) is **unknown at runtime** until parsed. Validate and normalize **once** at the first boundary, then pass **typed, trusted** values inward. Do not re-validate the same guarantees in every component, hook, or helper.
+
+TypeScript types from Supabase codegen are **compile-time only**. They do not make `data` safe at runtime.
+
+## Three type layers (mandatory)
+
+| Layer | What it is | Where it lives | How you get it |
+|-------|------------|----------------|----------------|
+| **Storage types** | Generated Supabase `Database` / `Tables` / `TablesInsert` / `TablesUpdate` / `Enums` | `lib/supabase/database.types.ts` (generated) | Codegen only — never hand-edit |
+| **Domain types** | Product models after boundary parse (`Achievement`, `AchievementWrite`, `AchievementCreate`, feed events, enums) | `lib/**/domain` (or feature domain module) | Hand-written + **Zod** for anything that crosses IO |
+| **Presentation / transport** | UI VMs, form state, HTTP body DTOs | `presentation/`, `client/`, `app/api` body schemas | Map from domain or Zod-parse HTTP |
+
+**Rule:** application, presentation, and components depend on **domain** (and VMs derived from domain). They must **not** import `Database` / `Tables<>` / `TablesInsert` except inside `persistence/` (and rare infra helpers that only talk to Supabase).
+
+## When to use Supabase generated types
+
+**Use them only in `persistence/` (and shared Supabase client modules):**
+
+1. Typing the Supabase client (`SupabaseClient<Database>`).
+2. **Narrow projections** that are not domain products — e.g. `Pick<Tables<"achievements">, "id" | "user_id">` for a notify/lookup row used only inside persistence or a single server use-case that is not a domain aggregate.
+3. As a **compile-time check** that `.insert()` / `.update()` payloads are assignable (domain write types should stay assignable; if not, fix domain/write or cast **once** at the `insert`/`update` call — do not invent a parallel “Insert model” as the app’s public type).
+
+**Do not:**
+
+- Export `Tables<"…">` / `Insert` as the app’s public model for UI or use-cases.
+- Duplicate generated column lists as ad-hoc interfaces when `Pick<Tables<…>, …>` or a domain type already fits.
+- Treat generated `Enums` / `string` columns as closed product enums — product unions live in domain Zod (`domain/enums.ts`).
+
+## When to use Zod
+
+| Boundary | Zod? | Type export |
+|----------|------|-------------|
+| **DB/RPC → domain product** (full achievement, feed events, anything with closed enums or normalization) | **Required** (`.safeParse` / list skip+Sentry) | Domain type coexists with schema; prefer explicit named type + schema transform, or `z.infer` when schema is sole shape |
+| **HTTP request body** (API routes, dedicate body) | **Required** | `z.infer<typeof schema>` next to schema |
+| **HTTP/client response JSON** | **Required** | same |
+| **Write payloads we built in-process** (`AchievementWrite` / `AchievementCreate` from form or previous trusted domain) | **No second Zod pass** on the way into Supabase | Trust the domain write type; optional assert only if shape is untrusted |
+| **Narrow persistence projections** (id lookup, push notify row, share snapshot strip used only to build domain or invite) | **Optional** | Prefer `Pick<Tables<"…">, …>` when the caller only needs raw columns for the next boundary; if the value leaves persistence as “business data”, promote to domain + Zod |
+| **In-process trusted values** (VM after map, React props of domain/VM) | **Forbidden** | Trust the type; no soft re-parse of enums |
+
+**Zod owns runtime shape for untrusted IO. Domain types own product meaning. Generated types own the SQL cable.**
+
+## Domain product vs storage row
+
+Domain may **diverge** from the DB row on purpose:
+
+- closed unions stricter than DB text/enum
+- normalized fields (`trim`, URL normalize, default `impression_count`)
+- derived fields (`dedication_status` from nullable/legacy columns)
+- write models without `id` / without DB-only columns
+
+That is why we do **not** use `Tables<"achievements">` as `Achievement`.
+
+Canonical achievement shapes:
+
+- **Read:** `Achievement` via `parseAchievement` / `parseAchievements` (`lib/achievements/domain/achievement.ts`)
+- **Write content:** `AchievementWrite`
+- **Insert with owner/dedication:** `AchievementCreate`
 
 ## Boundaries (validate here)
 
-- **API routes**: `safeParse` request body/query; return 400 on failure (see existing `app/api/**` routes).
-- **DB → domain**: hard Zod at `tryNormalizeAchievement` / `normalizeAchievementRowsForList` (`domain/achievement.ts`) and feed `followingUnlockFeedRowsSchema`. Closed unions via schemas in `domain/enums.ts` — **not** component-owned soft `parse*`.
-- **Client fetch**: parse JSON in the application/client modules, not in each consumer component.
-- **Browser UI**: call `application/*` modules (they open the browser Supabase client); server routes keep using `persistence/*` with an explicit client.
+- **API routes**: `safeParse` body/query; 400 on failure.
+- **DB → domain product**: hard Zod at `parseAchievement` / `parseAchievements` and feed event schemas — **not** component soft defaults.
+- **Client fetch**: parse JSON in `client/` or application helpers, not in each UI component.
+- **Browser UI**: call `application/*`; server uses `persistence/*` with an explicit client.
 
-Export `z.infer<typeof schema>` (or a named type alias) from the same module as the schema. Inner layers depend on that type, not `unknown` or loose `Record<string, unknown>`.
+Inner layers depend on domain/VM types, not `unknown` or `Record<string, unknown>`.
 
-## Achievement domain layers
+## Achievement layers
 
 | Layer | Owns | Forbidden |
 |-------|------|-----------|
-| `lib/achievements/domain` | Zod enums, hard domain row + list skip+Sentry | Lucide/Form chrome; soft enum defaults on domain |
-| `lib/achievements/presentation` | collection/surface VMs + form; feed RPC Zod | Supabase clients |
-| `lib/achievements/persistence` | Supabase adapters (take client) | UI; own raw presentation |
-| `lib/achievements/application` | browser use-cases (collection, feed, dedicate, dedication-queue) | pass-through of raw Supabase to UI |
-| presentation VMs | Domain→VM, form↔`SaveAchievementCommand` without re-coercing enums | Soft re-parse of trusted enum fields |
-| components | `iconMap`, tone CSS, Form chrome; present trusted enums | DB coerce; soft enum wrappers; `persistence/*` |
-
-After a value is `AchievementDomainRow` or a detail/grid/feed VM, use enum fields directly (`detail.tone`, `iconMap[row.icon]`). Form/write defaults use `DEFAULT_*` in `domain/enums.ts` once — never soft-parse dirty DB into domain.
+| `domain` | Zod enums, `Achievement` / Write / Create, parse* | Lucide/Form; soft enum defaults; Supabase clients; `Database` types |
+| `presentation` | VMs + form ↔ `AchievementWrite` | Supabase clients; re-parse trusted enums |
+| `persistence` | Supabase IO; storage `Pick`/`Tables`; calls domain parse on full products | UI; exporting row types as UI models |
+| `application` | use-cases + ports; maps domain → VM | raw Supabase rows to UI |
+| `client` | HTTP body/response Zod | domain reimplementation of DB rows |
+| `components` | chrome, maps over trusted enums | DB coerce; soft enum wrappers; `persistence/*`; `Database` types |
 
 ## Do not scatter defensive checks
 
-After a value crosses a validated boundary, **do not** repeat:
+After a value is domain or VM, **do not** repeat:
 
-- `value?.trim()`, `value ?? ""`, `if (!value) return` for fields the schema already requires or normalizes
-- `typeof x === "string"` / manual date parsing for fields already validated as `z.string().datetime()` (or project date helpers applied in the transformer)
-- `getSafe*` / fallback enums in UI when the transformer already coerced to a closed union
+- `value?.trim()`, `value ?? ""`, ad-hoc `typeof` for fields the schema already normalized
+- soft `getSafe*` / fallback enums in UI
+- a second Zod pass “just in case”
 
-Reserve runtime checks for **new** untrusted input (user typing in a form before submit, file uploads, third-party widgets) or true optional UI branches (e.g. nullable `title` on display).
+Reserve runtime checks for **new** untrusted input (form before submit, uploads) or true optional UI branches.
 
 ```ts
-// ❌ BAD — domain/VM already has closed AchievementTone
+// ❌ BAD — UI re-parses trusted domain
 function Detail({ detail }: { detail: AchievementDetailViewModel }) {
   const tone = getSafeTone(detail.tone);
 }
 
-// ✅ GOOD — trust the view model
+// ✅ GOOD
 function Detail({ detail }: { detail: AchievementDetailViewModel }) {
   return <span>{detail.tone}</span>;
 }
 ```
 
 ```ts
-// ❌ BAD — validate in the component
-useEffect(() => {
-  fetch("/api/foo").then((r) => r.json()).then((data) => {
-    if (!data?.id || typeof data.id !== "string") return;
-    setFoo(data);
-  });
-}, []);
+// ❌ BAD — application takes storage row
+function list(rows: Tables<"achievements">[]) { … }
 
-// ✅ GOOD — validate at fetch boundary
-async function fetchFoo(): Promise<Foo> {
-  const raw = await fetch("/api/foo").then((r) => r.json());
-  const parsed = fooSchema.safeParse(raw);
-  if (!parsed.success) throw new Error("Invalid foo response");
-  return parsed.data;
-}
+// ✅ GOOD — parse at persistence edge
+const rows = parseAchievements(data ?? []);
+// application receives Achievement[]
+```
+
+```ts
+// ❌ BAD — parallel Insert “model” for the app
+type AchievementInsert = Database[…]["Insert"];
+toAchievementInsert(command)
+
+// ✅ GOOD — domain write/create is the only write model; insert at the edge
+await supabase.from("achievements").insert(create);
 ```
 
 ## Zod conventions
 
-- **Parse once**: `.safeParse` at IO edges (return errors to caller); `.parse` when failure should throw inside a dedicated mapper.
-- **Normalize in the schema**: `.trim()`, `.default()`, `.transform()`, `.pipe(z.coerce.date())` — not duplicated in callers.
-- **Prefer strict shapes** for required domain fields; use `.nullable()` only when the product truly allows absence.
-- Reuse existing schemas in `lib/**` before adding parallel validators.
+- **Parse once** at IO edges: `.safeParse` when errors return to caller; `.parse` when a dedicated mapper may throw.
+- **Normalize in the schema**: `.trim()`, defaults, transforms — not in call sites.
+- **Strict product fields**; `.nullable()` only when product allows absence.
+- **Enums** in `domain/enums.ts` first; keep icon/tone maps complete for every key.
+- Reuse schemas; no parallel validators for the same boundary.
 
-## When editing
+## When editing (checklist)
 
-- **New API or query**: add/update a Zod schema at the route or transformer; wire types from `z.infer`.
-- **New UI consumer**: take the validated domain type; do not accept `unknown` and re-check.
-- **Refactoring**: move repeated null/trim/date guards **up** into the boundary mapper, then delete downstream copies.
-- **Enums**: add members to `achievement-enums.ts` first; keep component `iconMap` / tone CSS maps complete for every key.
+1. New **full-row / product** read from DB or RPC → domain schema + `parse*`; persistence returns domain (or Result), never raw `Tables` to UI.
+2. New **narrow SQL probe** (exists, owner id, notify fields) → `Pick<Tables<…>>` or tiny local type **in persistence only**; promote if it becomes product data.
+3. New **HTTP** body/response → Zod + `z.infer` at that boundary.
+4. New **write** path → `AchievementWrite` / `AchievementCreate` (or feature equivalent), not `TablesInsert` as the public type.
+5. New UI consumer → domain or VM only; no `Database` imports.
+6. Refactoring: move repeated guards **up** into the boundary schema, delete downstream copies.
