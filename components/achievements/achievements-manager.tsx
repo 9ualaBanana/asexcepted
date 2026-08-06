@@ -43,10 +43,10 @@ export function AchievementsManager({
   );
 
   useEffect(() => {
-    if (!model.achievementOverlayOpen && !dedicationDialogOpen) {
+    if (!ui.achievementOverlayOpen && !dedicationDialogOpen) {
       resetBodyScrollLock();
     }
-  }, [dedicationDialogOpen, model.achievementOverlayOpen]);
+  }, [dedicationDialogOpen, ui.achievementOverlayOpen]);
 
   return (
     <div className="space-y-1">
@@ -97,7 +97,7 @@ export function AchievementsManager({
         }}
       />
 
-      {model.achievementOverlayOpen ? (
+      {ui.achievementOverlayOpen ? (
         <AchievementDialogStack {...model.dialogStackProps} />
       ) : null}
 
@@ -116,13 +116,13 @@ export function AchievementsManager({
         />
       ) : null}
 
-      {model.shareInvite.manualShareUrl ? (
+      {shareInvite.manualShareUrl ? (
         <AchievementManualEmbedDialog
-          manualUrl={model.shareInvite.manualShareUrl}
+          manualUrl={shareInvite.manualShareUrl}
           title="Copy invite link"
           copyAriaLabel="Copy invite link"
-          onDismiss={() => model.shareInvite.setManualShareUrl(null)}
-          onCopied={model.shareInvite.onManualShareCopied}
+          onDismiss={() => shareInvite.setManualShareUrl(null)}
+          onCopied={shareInvite.onManualShareCopied}
         />
       ) : null}
 
@@ -149,7 +149,7 @@ export function AchievementsManager({
       {model.dedicateInviteConfirmOpen ? (
         <DedicateInviteConfirmDialog
           achievementTitle={model.detailAchievement?.title}
-          isBusy={model.shareInvite.shareInviteBusy}
+          isBusy={shareInvite.shareInviteBusy}
           onDismiss={() => model.setDedicateInviteConfirmOpen(false)}
           onConfirm={model.handleConfirmDedicateInviteShare}
         />

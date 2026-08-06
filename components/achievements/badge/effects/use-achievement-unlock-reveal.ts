@@ -95,7 +95,6 @@ export function useAchievementUnlockReveal({
   const detailIsLockedUi =
     Boolean(detailAchievement?.isLocked) &&
     optimisticUnlockedAchievementId !== detailAchievement?.id;
-  const detailFloating = !detailIsLockedUi && !detailIsUnlocking;
 
   const clipPathLut = useMemo(
     () => (detailAchievement ? buildUnlockRevealClipPathLut() : null),
@@ -397,7 +396,6 @@ export function useAchievementUnlockReveal({
     isUnlockHolding,
     detailIsUnlocking,
     detailIsLockedUi,
-    detailFloating,
     optimisticUnlockedAchievementId,
     unlockRevealClipPathRef: revealClip.clipPathRef,
     unlockAlphaMaskRef,
