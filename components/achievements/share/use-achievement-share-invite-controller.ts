@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import { ACHIEVEMENT_UI_COPY } from "@/components/achievements/share/achievement-ui-copy";
 import { copyTextToClipboard } from "@/lib/copy-text-to-clipboard";
@@ -8,6 +8,14 @@ import {
   postCreateAchievementShareInvite,
   type AchievementShareInviteIntent,
 } from "@/lib/achievements/client/share-invite-api";
+import {
+  achievementToShareInviteSnapshotSource,
+  type AchievementViewModel,
+} from "@/lib/achievements/presentation/collection-view-models";
+import {
+  canDedicateAchievementViaShareInvite,
+  getAchievementShareReadinessError,
+} from "@/lib/share-invites/eligibility";
 import { showErrorToast, toast } from "@/lib/toast";
 
 type NativeShareAttemptResult = "shared" | "cancelled" | "fallback";
@@ -37,22 +45,45 @@ async function tryNativeShare(args: {
 }
 
 type UseAchievementShareInviteControllerArgs = {
-  detailAchievementId: string | null;
-  detailTitle?: string | null;
-  detailDescription?: string | null;
+  detailAchievement: AchievementViewModel | null;
   /** Called after a dedicate invite is created (sender copy removed server-side). */
   onDedicateInviteShared?: () => void;
 };
 
 export function useAchievementShareInviteController({
-  detailAchievementId,
-  detailTitle,
-  detailDescription,
+  detailAchievement,
   onDedicateInviteShared,
 }: UseAchievementShareInviteControllerArgs) {
   const [shareInviteBusy, setShareInviteBusy] = useState(false);
   const [manualShareUrl, setManualShareUrl] = useState<string | null>(null);
+  const [dedicateInviteConfirmOpen, setDedicateInviteConfirmOpen] = useState(false);
   const dedicateRequestInFlightRef = useRef(false);
+
+  const detailAchievementId = detailAchievement?.id ?? null;
+  const detailTitle = detailAchievement?.title;
+  const detailDescription = detailAchievement?.description;
+
+  const showDedicateShareOption = useMemo(
+    () =>
+      detailAchievement
+        ? canDedicateAchievementViaShareInvite(detailAchievement)
+        : false,
+    [detailAchievement],
+  );
+
+  const shareReadinessError = useMemo(() => {
+    if (!detailAchievement) return null;
+    return getAchievementShareReadinessError(
+      achievementToShareInviteSnapshotSource(detailAchievement),
+    );
+  }, [detailAchievement]);
+
+  const showcaseShareDisabledReason = shareReadinessError;
+
+  const dedicateShareDisabledReason = useMemo(() => {
+    if (!showDedicateShareOption) return null;
+    return shareReadinessError;
+  }, [shareReadinessError, showDedicateShareOption]);
 
   const finishWithClipboardFallback = useCallback(async (shareUrl: string) => {
     const copied = await copyTextToClipboard(shareUrl);
@@ -126,12 +157,49 @@ export function useAchievementShareInviteController({
   );
 
   const shareShowcaseAchievement = useCallback(() => {
+    if (showcaseShareDisabledReason) {
+      showErrorToast(showcaseShareDisabledReason, {
+        id: "achievement-showcase-not-ready",
+      });
+      return;
+    }
     void shareExistingAchievement("showcase");
-  }, [shareExistingAchievement]);
+  }, [shareExistingAchievement, showcaseShareDisabledReason]);
 
   const shareDedicationInvite = useCallback(() => {
     void shareExistingAchievement("dedicate");
   }, [shareExistingAchievement]);
+
+  const requestDedicateInviteShare = useCallback(() => {
+    if (!showDedicateShareOption) return;
+    if (dedicateShareDisabledReason) {
+      showErrorToast(dedicateShareDisabledReason, {
+        id: "achievement-dedicate-not-ready",
+      });
+      return;
+    }
+    setDedicateInviteConfirmOpen(true);
+  }, [dedicateShareDisabledReason, showDedicateShareOption]);
+
+  const confirmDedicateInviteShare = useCallback(() => {
+    if (!showDedicateShareOption) {
+      setDedicateInviteConfirmOpen(false);
+      return;
+    }
+    if (dedicateShareDisabledReason) {
+      showErrorToast(dedicateShareDisabledReason, {
+        id: "achievement-dedicate-not-ready",
+      });
+      setDedicateInviteConfirmOpen(false);
+      return;
+    }
+    setDedicateInviteConfirmOpen(false);
+    void shareExistingAchievement("dedicate");
+  }, [
+    dedicateShareDisabledReason,
+    shareExistingAchievement,
+    showDedicateShareOption,
+  ]);
 
   const onManualShareCopied = useCallback(() => {
     setManualShareUrl(null);
@@ -144,8 +212,15 @@ export function useAchievementShareInviteController({
     shareInviteBusy,
     manualShareUrl,
     setManualShareUrl,
+    dedicateInviteConfirmOpen,
+    setDedicateInviteConfirmOpen,
+    showDedicateShareOption,
+    dedicateShareDisabledReason,
+    showcaseShareDisabledReason,
     shareShowcaseAchievement,
     shareDedicationInvite,
+    requestDedicateInviteShare,
+    confirmDedicateInviteShare,
     onManualShareCopied,
   };
 }

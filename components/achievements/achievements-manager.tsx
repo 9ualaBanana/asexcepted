@@ -146,12 +146,12 @@ export function AchievementsManager({
         />
       ) : null}
 
-      {model.dedicateInviteConfirmOpen ? (
+      {shareInvite.dedicateInviteConfirmOpen ? (
         <DedicateInviteConfirmDialog
           achievementTitle={model.detailAchievement?.title}
           isBusy={shareInvite.shareInviteBusy}
-          onDismiss={() => model.setDedicateInviteConfirmOpen(false)}
-          onConfirm={model.handleConfirmDedicateInviteShare}
+          onDismiss={() => shareInvite.setDedicateInviteConfirmOpen(false)}
+          onConfirm={shareInvite.confirmDedicateInviteShare}
         />
       ) : null}
 
