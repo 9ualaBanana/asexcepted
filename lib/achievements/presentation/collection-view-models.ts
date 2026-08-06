@@ -16,10 +16,9 @@ import type {
   Achievement,
   AchievementWrite,
 } from "@/lib/achievements/domain/achievement";
-import { formatGridDate } from "@/lib/feed/format-feed-event-time";
 import { normalizeImageKitFileId } from "@/lib/imagekit/client/imagekit-api";
 import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
-import type { CollectionAchievementSnapshotSource } from "@/lib/share-invites/invite-snapshot";
+import type { AchievementSnapshotSource } from "@/lib/share-invites/invite-snapshot";
 import { z } from "zod";
 import {
   type FormState,
@@ -116,20 +115,7 @@ const formToPayloadSchema = z
     }),
   );
 
-export type AchievementGridViewModel = {
-  id: string;
-  title: string | null;
-  dateLabel: string | null;
-  displaySrc: string | null;
-  icon: AchievementIconKey;
-  tone: AchievementTone;
-  isLocked: boolean;
-  hasImpressions: boolean;
-  /** Dedicated particle effect (image badges only). */
-  showDedicatedEffect: boolean;
-};
-
-export type AchievementDetailViewModel = {
+export type AchievementViewModel = {
   id: string;
   title: string | null;
   description: string | null;
@@ -153,34 +139,12 @@ export type AchievementDetailViewModel = {
   dedicationStatus: "pending" | "accepted" | null;
 };
 
-export type AchievementCollectionEntryViewModel = {
-  grid: AchievementGridViewModel;
-  detail: AchievementDetailViewModel;
-};
-
-function createdAtMs(detail: AchievementDetailViewModel): number {
-  return new Date(detail.createdAt).getTime();
-}
-
-function achievedAtMs(detail: AchievementDetailViewModel): number {
-  if (!detail.achievedAt) return 0;
-  return new Date(`${detail.achievedAt}T00:00:00`).getTime();
-}
-
-/** 0 = locked undated, 1 = unlocked undated, 2 = has achievedAt */
-function detailSortKey(detail: AchievementDetailViewModel): [number, number, number] {
-  const dated = Boolean(detail.achievedAt);
-  if (!dated && detail.isLocked) return [0, 0, -createdAtMs(detail)];
-  if (!dated && !detail.isLocked) return [1, 0, -createdAtMs(detail)];
-  return [2, -achievedAtMs(detail), -createdAtMs(detail)];
-}
-
 export function sortCollectionEntries(
-  entries: AchievementCollectionEntryViewModel[],
-): AchievementCollectionEntryViewModel[] {
-  return [...entries].sort((a, b) => {
-    const ak = detailSortKey(a.detail);
-    const bk = detailSortKey(b.detail);
+  achievements: AchievementViewModel[],
+): AchievementViewModel[] {
+  return [...achievements].sort((a, b) => {
+    const ak = achievementSortKey(a);
+    const bk = achievementSortKey(b);
     for (let i = 0; i < ak.length; i++) {
       if (ak[i] !== bk[i]) return ak[i] - bk[i];
     }
@@ -188,7 +152,24 @@ export function sortCollectionEntries(
   });
 }
 
-export function achievementToDetailViewModel(row: Achievement): AchievementDetailViewModel {
+/** 0 = locked undated, 1 = unlocked undated, 2 = has achievedAt */
+function achievementSortKey(detail: AchievementViewModel): [number, number, number] {
+  const dated = Boolean(detail.achievedAt);
+  if (!dated && detail.isLocked) return [0, 0, -createdAtMs(detail)];
+  if (!dated && !detail.isLocked) return [1, 0, -createdAtMs(detail)];
+  return [2, -achievedAtMs(detail), -createdAtMs(detail)];
+}
+
+function createdAtMs(detail: AchievementViewModel): number {
+  return new Date(detail.createdAt).getTime();
+}
+
+function achievedAtMs(detail: AchievementViewModel): number {
+  if (!detail.achievedAt) return 0;
+  return new Date(`${detail.achievedAt}T00:00:00`).getTime();
+}
+
+export function achievementToViewModel(row: Achievement): AchievementViewModel {
   const iconUrl = row.icon_url;
   const model = parseBadgeModelAsset({
     iconAssetKind: row.icon_asset_kind,
@@ -229,14 +210,14 @@ export function achievementToDetailViewModel(row: Achievement): AchievementDetai
 }
 
 export function isDedicatedAchievement(
-  achievement: Pick<AchievementDetailViewModel, "dedicatedByUserId">,
+  achievement: Pick<AchievementViewModel, "dedicatedByUserId">,
 ): boolean {
   return Boolean(achievement.dedicatedByUserId);
 }
 
 export function canEditDedicatedVisibility(
   achievement: Pick<
-    AchievementDetailViewModel,
+    AchievementViewModel,
     "dedicatedByUserId" | "dedicationStatus"
   >,
 ): boolean {
@@ -248,7 +229,7 @@ export function canEditDedicatedVisibility(
 
 export function showsDedicatedBadgeAura(
   achievement: Pick<
-    AchievementDetailViewModel,
+    AchievementViewModel,
     "dedicatedByUserId" | "dedicationStatus"
   >,
 ): boolean {
@@ -267,92 +248,47 @@ export function showsDedicatedBadgeEffect(
 
 export function isDedicatedVisibilityDirty(
   form: Pick<FormState, "visibility">,
-  detail: Pick<AchievementDetailViewModel, "visibility">,
+  detail: Pick<AchievementViewModel, "visibility">,
 ): boolean {
   return form.visibility !== detail.visibility;
 }
 
-export function detailToGridViewModel(detail: AchievementDetailViewModel): AchievementGridViewModel {
-  return {
-    id: detail.id,
-    title: detail.title,
-    dateLabel: formatGridDate(detail.achievedAt),
-    displaySrc: detail.renderSrc,
-    icon: detail.icon,
-    tone: detail.tone,
-    isLocked: detail.isLocked,
-    hasImpressions: detail.impressionCount > 0,
-    showDedicatedEffect: detail.showDedicatedEffect,
-  };
-}
-
-export function collectionEntryFromDetail(
-  detail: AchievementDetailViewModel,
-): AchievementCollectionEntryViewModel {
-  return {
-    detail,
-    grid: detailToGridViewModel(detail),
-  };
-}
-
-export function achievementToCollectionEntry(
-  row: Achievement,
-): AchievementCollectionEntryViewModel {
-  return collectionEntryFromDetail(achievementToDetailViewModel(row));
-}
-
-export function achievementsToCollectionEntries(
-  rows: Achievement[],
-): AchievementCollectionEntryViewModel[] {
-  return rows.map(achievementToCollectionEntry);
-}
-
-export function updateCollectionEntryDetail(
-  entries: AchievementCollectionEntryViewModel[],
-  detail: AchievementDetailViewModel,
-): AchievementCollectionEntryViewModel[] {
-  return entries.map((entry) =>
-    entry.detail.id === detail.id ? collectionEntryFromDetail(detail) : entry,
+export function updateAchievementInMem(
+  achievements: AchievementViewModel[],
+  updatedAchievement: AchievementViewModel,
+): AchievementViewModel[] {
+  return achievements.map((achievement) =>
+    achievement.id === updatedAchievement.id
+      ? {
+          ...updatedAchievement,
+          impressionCount: achievement.impressionCount,
+        }
+      : achievement,
   );
 }
 
-export function mapCollectionDetails(
-  entries: AchievementCollectionEntryViewModel[],
-  mapDetail: (detail: AchievementDetailViewModel) => AchievementDetailViewModel,
-): AchievementCollectionEntryViewModel[] {
-  return entries.map((entry) => collectionEntryFromDetail(mapDetail(entry.detail)));
-}
-
-export function upsertCollectionEntry(
-  entries: AchievementCollectionEntryViewModel[],
-  detail: AchievementDetailViewModel,
-): AchievementCollectionEntryViewModel[] {
-  const rest = entries.filter((entry) => entry.detail.id !== detail.id);
-  return sortCollectionEntries([collectionEntryFromDetail(detail), ...rest]);
-}
-
-export function detailToShareInviteSnapshotSource(
-  detail: AchievementDetailViewModel,
-): CollectionAchievementSnapshotSource {
+export function achievementToShareInviteSnapshotSource(
+  achievement: AchievementViewModel,
+): AchievementSnapshotSource {
   return {
-    title: detail.title,
-    description: detail.description,
-    category: detail.category,
-    icon: detail.icon,
-    icon_url: detail.iconUrl ?? "",
-    icon_file_id: detail.iconFileId,
-    icon_asset_kind: detail.model ? "model_glb" : "image",
-    icon_asset_path: detail.model?.assetPath ?? null,
-    icon_cc_attribution: detail.model?.ccAttribution ?? null,
-    icon_model_yaw: detail.model?.yaw ?? 0,
-    icon_model_pitch: detail.model?.pitch ?? 0,
-    tone: detail.tone,
-    achieved_at: detail.achievedAt,
+    title: achievement.title,
+    description: achievement.description,
+    category: achievement.category,
+    icon: achievement.icon,
+    icon_url: achievement.iconUrl ?? "",
+    icon_file_id: achievement.iconFileId,
+    icon_asset_kind: achievement.model ? "model_glb" : "image",
+    icon_asset_path: achievement.model?.assetPath ?? null,
+    icon_cc_attribution: achievement.model?.ccAttribution ?? null,
+    icon_model_yaw: achievement.model?.yaw ?? 0,
+    icon_model_pitch: achievement.model?.pitch ?? 0,
+    tone: achievement.tone,
+    achieved_at: achievement.achievedAt,
   };
 }
 
-export function achievementDetailToForm(detail: AchievementDetailViewModel): FormState {
-  return detailToFormSchema.parse(detail);
+export function achievementToForm(achievement: AchievementViewModel): FormState {
+  return detailToFormSchema.parse(achievement);
 }
 
 export function formToAchievementWrite(form: FormState): AchievementWrite {
@@ -362,10 +298,10 @@ export function formToAchievementWrite(form: FormState): AchievementWrite {
 /** True when panel edit form differs from the saved achievement. */
 export function isAchievementFormDirty(
   form: FormState,
-  detail: AchievementDetailViewModel,
+  achievement: AchievementViewModel,
 ): boolean {
   const current = formToAchievementWrite(form);
-  const baseline = formToAchievementWrite(achievementDetailToForm(detail));
+  const baseline = formToAchievementWrite(achievementToForm(achievement));
   return (
     current.title !== baseline.title ||
     current.description !== baseline.description ||

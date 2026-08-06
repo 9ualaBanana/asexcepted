@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 
 import { iconMap } from "@/components/achievements/achievement-editor-shared";
-import type { AchievementDetailViewModel } from "@/lib/achievements/presentation/collection-view-models";
+import type { AchievementViewModel } from "@/lib/achievements/presentation/collection-view-models";
 import {
   DEFAULT_ACHIEVEMENT_ICON_KEY,
   DEFAULT_ACHIEVEMENT_TONE,
@@ -12,7 +12,7 @@ import { prewarmBadgeRenderCache } from "@/lib/achievements/badge/shared/render-
 import { getAlphaMaskStyle } from "@/lib/achievements/badge/parallax/shape-utils";
 
 type UseAchievementDetailViewModelArgs = {
-  detailAchievement: AchievementDetailViewModel | null;
+  detailAchievement: AchievementViewModel | null;
   detailRenderSrc: string | null;
   optimisticUnlockedAchievementId: string | null;
   detailIsLockedUi: boolean;

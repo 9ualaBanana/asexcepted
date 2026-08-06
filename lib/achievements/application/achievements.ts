@@ -4,19 +4,17 @@ import { createAchievementPort } from "@/lib/achievements/application/adapters";
 import type { AchievementPort } from "@/lib/achievements/application/ports";
 import type { AchievementWrite } from "@/lib/achievements/domain/achievement";
 import {
-  achievementToDetailViewModel,
-  achievementsToCollectionEntries,
+  achievementToViewModel,
   sortCollectionEntries,
-  type AchievementCollectionEntryViewModel,
-  type AchievementDetailViewModel,
+  type AchievementViewModel,
 } from "@/lib/achievements/presentation/collection-view-models";
 import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
 
 export type AchievementListResult = Result<
-  AchievementCollectionEntryViewModel[],
+  AchievementViewModel[],
   string
 >;
-export type AchievementSingleResult = Result<AchievementDetailViewModel, string>;
+export type AchievementSingleResult = Result<AchievementViewModel, string>;
 export type AchievementDeleteResult = Result<void, string>;
 
 function defaultAchievementPort(): AchievementPort {
@@ -29,7 +27,7 @@ export async function listAchievements(
 ): Promise<AchievementListResult> {
   const result = await port.list(userId);
   return result.map((rows) =>
-    sortCollectionEntries(achievementsToCollectionEntries(rows)),
+    sortCollectionEntries(rows.map(achievementToViewModel)),
   );
 }
 
@@ -38,7 +36,7 @@ export async function createAchievement(
   port: AchievementPort = defaultAchievementPort(),
 ): Promise<AchievementSingleResult> {
   const result = await port.create(write);
-  return result.map(achievementToDetailViewModel);
+  return result.map(achievementToViewModel);
 }
 
 export async function updateAchievement(
@@ -47,7 +45,7 @@ export async function updateAchievement(
   port: AchievementPort = defaultAchievementPort(),
 ): Promise<AchievementSingleResult> {
   const result = await port.update(id, write);
-  return result.map(achievementToDetailViewModel);
+  return result.map(achievementToViewModel);
 }
 
 export async function deleteAchievement(
@@ -62,5 +60,5 @@ export async function unlockAchievement(
   port: AchievementPort = defaultAchievementPort(),
 ): Promise<AchievementSingleResult> {
   const result = await port.unlock(id);
-  return result.map(achievementToDetailViewModel);
+  return result.map(achievementToViewModel);
 }

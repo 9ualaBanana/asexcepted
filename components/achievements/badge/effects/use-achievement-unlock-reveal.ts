@@ -16,12 +16,10 @@ import {
   UNLOCK_REVEAL_DURATION_MS,
   UNLOCK_REVEAL_LUT_STEPS,
 } from "@/components/achievements/achievement-manager-utils";
-import type { AchievementDetailViewModel } from "@/lib/achievements/presentation/collection-view-models";
 import {
-  mapCollectionDetails,
   sortCollectionEntries,
-  updateCollectionEntryDetail,
-  type AchievementCollectionEntryViewModel,
+  updateAchievementInMem,
+  type AchievementViewModel,
 } from "@/lib/achievements/presentation/collection-view-models";
 import { useAchievementSounds } from "@/components/achievements/badge/effects/use-achievement-sounds";
 import { useRevealClipPathDriver } from "@/components/achievements/badge/effects/unlock-reveal-wave";
@@ -35,13 +33,13 @@ import { ensureBadgeAlphaMaskData } from "@/lib/achievements/badge/shared/render
 
 type UseAchievementUnlockRevealArgs = {
   readOnly: boolean;
-  detailAchievement: AchievementDetailViewModel | null;
+  detailAchievement: AchievementViewModel | null;
   detailRenderSrc: string | null;
   detailViewSessionKey: number;
   isSaving: boolean;
   setIsSaving: Dispatch<SetStateAction<boolean>>;
   setError: Dispatch<SetStateAction<string | null>>;
-  setAchievements: Dispatch<SetStateAction<AchievementCollectionEntryViewModel[]>>;
+  setAchievements: Dispatch<SetStateAction<AchievementViewModel[]>>;
   onFirstUnlockComplete?: () => void;
   onFirstUnlockReverted?: () => void;
 };
@@ -255,7 +253,7 @@ export function useAchievementUnlockReveal({
     const targetId = detailAchievement.id;
     let hadUnlockedBefore = false;
     setAchievements((prev) => {
-      hadUnlockedBefore = prev.some((entry) => !entry.detail.isLocked);
+      hadUnlockedBefore = prev.some((achievement) => !achievement.isLocked);
       return prev;
     });
 
@@ -290,8 +288,10 @@ export function useAchievementUnlockReveal({
 
     setAchievements((prev) =>
       sortCollectionEntries(
-        mapCollectionDetails(prev, (detail) =>
-          detail.id === targetId ? { ...detail, isLocked: false } : detail,
+        prev.map((achievement) =>
+          achievement.id === targetId
+            ? { ...achievement, isLocked: false }
+            : achievement,
         ),
       ),
     );
@@ -314,8 +314,10 @@ export function useAchievementUnlockReveal({
       setError(unlockResult.error);
       setAchievements((prev) =>
         sortCollectionEntries(
-          mapCollectionDetails(prev, (detail) =>
-            detail.id === targetId ? { ...detail, isLocked: true } : detail,
+          prev.map((achievement) =>
+            achievement.id === targetId
+              ? { ...achievement, isLocked: true }
+              : achievement,
           ),
         ),
       );
@@ -326,7 +328,7 @@ export function useAchievementUnlockReveal({
 
     const unlockedAchievement = unlockResult.value;
     setAchievements((prev) =>
-      updateCollectionEntryDetail(prev, unlockedAchievement),
+      updateAchievementInMem(prev, unlockedAchievement),
     );
     setOptimisticUnlockedAchievementId(null);
 

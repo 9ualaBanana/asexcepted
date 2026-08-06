@@ -3,10 +3,10 @@
 import { useEffect, useMemo } from "react";
 
 import type { AchievementUiStateActions } from "@/components/achievements/hooks/use-achievement-ui-state-machine";
-import type { AchievementCollectionEntryViewModel } from "@/lib/achievements/presentation/collection-view-models";
+import type { AchievementViewModel } from "@/lib/achievements/presentation/collection-view-models";
 
 type UseAchievementDetailSelectionControllerArgs = {
-  achievements: AchievementCollectionEntryViewModel[];
+  achievements: AchievementViewModel[];
   detailAchievementId: string | null;
   uiActions: AchievementUiStateActions;
 };
@@ -22,7 +22,7 @@ export function useAchievementDetailSelectionController({
   const detailAchievement = useMemo(() => {
     if (!detailAchievementId) return null;
     return (
-      achievements.find((entry) => entry.detail.id === detailAchievementId)?.detail ?? null
+      achievements.find((achievement) => achievement.id === detailAchievementId) ?? null
     );
   }, [achievements, detailAchievementId]);
 

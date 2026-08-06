@@ -39,21 +39,14 @@ export {
   type FollowingUnlockFeedRow,
 } from "./domain/feed-event";
 export {
-  type AchievementCollectionEntryViewModel,
-  type AchievementDetailViewModel,
-  type AchievementGridViewModel,
-  achievementDetailToForm,
-  collectionEntryFromDetail,
-  detailToShareInviteSnapshotSource,
-  achievementToCollectionEntry,
-  achievementToDetailViewModel,
-  achievementsToCollectionEntries,
+  type AchievementViewModel as AchievementDetailViewModel,
+  achievementToForm as achievementDetailToForm,
+  achievementToShareInviteSnapshotSource as detailToShareInviteSnapshotSource,
+  achievementToViewModel as achievementToDetailViewModel,
   formToAchievementWrite,
   isAchievementFormDirty,
-  mapCollectionDetails,
   sortCollectionEntries,
-  updateCollectionEntryDetail,
-  upsertCollectionEntry,
+  updateAchievementInMem as updateCollectionEntryDetail,
   canEditDedicatedVisibility,
   isDedicatedAchievement,
   isDedicatedVisibilityDirty,
@@ -102,7 +95,6 @@ export {
 export {
   listCollection,
   type ListCollectionPorts,
-  type ListCollectionResult,
 } from "./application/collection";
 export {
   createImpression,

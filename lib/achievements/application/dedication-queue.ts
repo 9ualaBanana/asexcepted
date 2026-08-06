@@ -4,8 +4,8 @@ import { createDedicationPort } from "@/lib/achievements/application/adapters";
 import type { DedicationPort } from "@/lib/achievements/application/ports";
 import type { Achievement } from "@/lib/achievements/domain/achievement";
 import {
-  achievementToDetailViewModel,
-  type AchievementDetailViewModel,
+  achievementToViewModel,
+  type AchievementViewModel,
 } from "@/lib/achievements/presentation/collection-view-models";
 import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
 
@@ -16,9 +16,9 @@ function defaultDedicationPort(): DedicationPort {
 export async function listPendingDedications(
   recipientUserId: string,
   port: DedicationPort = defaultDedicationPort(),
-): Promise<Result<AchievementDetailViewModel[], string>> {
+): Promise<Result<AchievementViewModel[], string>> {
   const result = await port.listPending(recipientUserId);
-  return result.map((rows) => rows.map(achievementToDetailViewModel));
+  return result.map((rows) => rows.map(achievementToViewModel));
 }
 
 export async function acceptPendingDedication(

@@ -20,7 +20,7 @@ import {
   type RemoteAssetStorageSession,
 } from "@/components/achievements/achievement-editor-shared";
 import type { FormState } from "@/lib/achievements/presentation/form-state";
-import type { AchievementDetailViewModel } from "@/lib/achievements/presentation/collection-view-models";
+import type { AchievementViewModel } from "@/lib/achievements/presentation/collection-view-models";
 import { isModelBadgeAssetKind } from "@/lib/achievements/badge/shared/badge-model-asset";
 import { finalizeBadgeModelUpload } from "@/lib/achievements/client/badge-asset";
 import {
@@ -138,7 +138,7 @@ export function useBadgeSessionController({
     clearModelPoseSession("create");
   };
 
-  const beginPanelBadgeSession = (detail: AchievementDetailViewModel) => {
+  const beginPanelBadgeSession = (detail: AchievementViewModel) => {
     panelBadgeAssetSessionRef.current = beginRemoteAssetStorageSession(
       createRemoteAssetStorageRef(detail),
     );
@@ -150,7 +150,7 @@ export function useBadgeSessionController({
     clearModelPoseSession("panel");
   };
 
-  const commitPanelBadgeSession = (updated: AchievementDetailViewModel) => {
+  const commitPanelBadgeSession = (updated: AchievementViewModel) => {
     const nextBaseline = createRemoteAssetStorageRef(updated);
     const replacedBaselineRef = commitRemoteAssetStorageBaseline(
       panelBadgeAssetSessionRef.current,
@@ -161,7 +161,7 @@ export function useBadgeSessionController({
   };
 
   const deleteRemoteFilesForAchievement = async (
-    target: AchievementDetailViewModel | undefined,
+    target: AchievementViewModel | undefined,
     deletedAchievementId: string,
     detailAchievementId: string | null,
   ) => {

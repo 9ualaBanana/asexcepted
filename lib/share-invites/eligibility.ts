@@ -3,9 +3,8 @@ import { err, ok, type Result } from "neverthrow";
 import type { AchievementWrite } from "@/lib/achievements/domain/achievement";
 import { isPublicHttpImageUrl } from "@/lib/achievements/badge/shared/badge-assets";
 import { isModelGlbAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
-import type { AchievementShareInviteSnapshot } from "@/lib/share-invites/invite-snapshot";
+import type { AchievementShareInviteSnapshot, AchievementSnapshotSource } from "@/lib/share-invites/invite-snapshot";
 import { shareInviteSnapshotFromAchievementRow } from "@/lib/share-invites/invite-snapshot";
-import type { CollectionAchievementSnapshotSource } from "@/lib/share-invites/invite-snapshot";
 
 export function isAchievementEligibleForShareInvite(
   payload: Pick<AchievementWrite, "icon_url">,
@@ -44,7 +43,7 @@ export function canDedicateAchievementViaShareInvite(achievement: {
 }
 
 export function getAchievementShareReadinessError(
-  achievement: CollectionAchievementSnapshotSource,
+  achievement: AchievementSnapshotSource,
 ): string | null {
   const validation = validateShareInviteBadgeSnapshot(
     shareInviteSnapshotFromAchievementRow(achievement),

@@ -7,15 +7,14 @@ import { createInitialForm } from "@/components/achievements/achievement-manager
 import type { FormState } from "@/lib/achievements/presentation/form-state";
 import type { AchievementDialogStackProps } from "@/components/achievements/detail/achievement-dialog-stack";
 import {
-  achievementDetailToForm,
+  achievementToForm,
+  AchievementViewModel,
   canEditDedicatedVisibility,
-  detailToShareInviteSnapshotSource,
+  achievementToShareInviteSnapshotSource,
   formToAchievementWrite,
   isAchievementFormDirty,
   isDedicatedVisibilityDirty,
-  mapCollectionDetails,
-  upsertCollectionEntry,
-  type AchievementCollectionEntryViewModel,
+  updateAchievementInMem,
 } from "@/lib/achievements/presentation/collection-view-models";
 import { useBadgeChunkedPrewarm, useBadgeMetricsController, useBadgeSessionController } from "@/components/achievements/badge";
 import { useAchievementUnlockReveal } from "@/components/achievements/badge/effects/use-achievement-unlock-reveal";
@@ -53,7 +52,6 @@ import {
 } from "@/lib/auth/achievement-ability";
 import { fetchPublicUserDisplayName } from "@/lib/profile/follow";
 import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
-
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -85,7 +83,7 @@ export function useAchievementsManagerModel({
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = useMemo(() => createBrowserSupabase(), []);
-  const [achievements, setAchievements] = useState<AchievementCollectionEntryViewModel[]>([]);
+  const [achievements, setAchievements] = useState<AchievementViewModel[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createForm, setCreateForm] = useState<FormState>(createInitialForm);
@@ -112,10 +110,10 @@ export function useAchievementsManagerModel({
   const bumpDetailImpressionCount = useCallback(() => {
     if (!detailAchievement) return;
     setAchievements((prev) =>
-      mapCollectionDetails(prev, (detail) =>
-        detail.id === detailAchievement.id
-          ? { ...detail, impressionCount: detail.impressionCount + 1 }
-          : detail,
+      prev.map((achievement) =>
+        achievement.id === detailAchievement.id
+          ? { ...achievement, impressionCount: achievement.impressionCount + 1 }
+          : achievement,
       ),
     );
   }, [detailAchievement, setAchievements]);
@@ -234,7 +232,7 @@ export function useAchievementsManagerModel({
   }, [badgeMetrics.handleDetailBadgeImageDecoded, refreshUnlockAlphaMask]);
 
   const collectionAchievementIds = useMemo(
-    () => new Set(achievements.map((entry) => entry.detail.id)),
+    () => new Set(achievements.map((achievement) => achievement.id)),
     [achievements],
   );
 
@@ -242,8 +240,8 @@ export function useAchievementsManagerModel({
     ownerUserId: userId,
     readOnly: !canEditAchievements,
     collectionAchievementIds,
-    onAccepted: (detail) => {
-      setAchievements((prev) => upsertCollectionEntry(prev, detail));
+    onAccepted: (achievement) => {
+      setAchievements((prev) => updateAchievementInMem(prev, achievement));
     },
     onRejected: () => undefined,
     reloadAchievements: data.loadAchievements,
@@ -318,7 +316,7 @@ export function useAchievementsManagerModel({
   useEffect(() => {
     if (!detailAchievement || ui.isVisibilityOnlyEdit) return;
     if (!canEditDedicatedVisibility(detailAchievement)) return;
-    setPanelForm(achievementDetailToForm(detailAchievement));
+    setPanelForm(achievementToForm(detailAchievement));
   }, [detailAchievement, ui.isVisibilityOnlyEdit, setPanelForm]);
 
   useEffect(() => {
@@ -333,7 +331,7 @@ export function useAchievementsManagerModel({
     }
     if (pathname !== userCollection(userId)) return;
     if (achievementsLoading) return;
-    const exists = achievements.some((entry) => entry.detail.id === deepLinkAchievementId);
+    const exists = achievements.some((achievement) => achievement.id === deepLinkAchievementId);
     if (!exists) return;
     const dedicationQuery = searchParams.get("dedication") === "1";
     if (dedicationQuery && !collectionAchievementIds.has(deepLinkAchievementId)) {
@@ -407,23 +405,23 @@ export function useAchievementsManagerModel({
     userId,
   ]);
 
-  const gridItems = useMemo(() => {
-    let visible = achievements;
-    if (hideLocked) {
-      visible = visible.filter((entry) => !entry.detail.isLocked);
-    }
-    if (canFilterVisibility) {
-      if (visibilityFilter === "public") {
-        visible = visible.filter((entry) => entry.detail.visibility === "public");
-      } else if (visibilityFilter === "private") {
-        visible = visible.filter((entry) => entry.detail.visibility === "private");
+  const visibleGridAchievements = useMemo(() => {
+    const visible = achievements.filter((achievement) => {
+      if (hideLocked && achievement.isLocked) return false;
+      if (canFilterVisibility) {
+        if (visibilityFilter === "public") {
+          return achievement.visibility === "public";
+        } else if (visibilityFilter === "private") {
+          return achievement.visibility === "private";
+        }
       }
-    }
-    return visible.map((entry) => entry.grid);
+      return true;
+    });
+    return visible;
   }, [achievements, canFilterVisibility, hideLocked, visibilityFilter]);
 
   const unlockedCount = useMemo(
-    () => achievements.filter((entry) => !entry.detail.isLocked).length,
+    () => achievements.filter((achievement) => !achievement.isLocked).length,
     [achievements],
   );
   const totalCount = achievements.length;
@@ -474,7 +472,7 @@ export function useAchievementsManagerModel({
 
   const shareReadinessError = useMemo(() => {
     if (!detailAchievement) return null;
-    return getAchievementShareReadinessError(detailToShareInviteSnapshotSource(detailAchievement));
+    return getAchievementShareReadinessError(achievementToShareInviteSnapshotSource(detailAchievement));
   }, [detailAchievement]);
 
   const dedicateShareDisabledReason = useMemo(() => {
@@ -593,7 +591,7 @@ export function useAchievementsManagerModel({
     error,
     isSaving,
     readOnly: !canEditAchievements,
-    gridItems,
+    visibleGridAchievements,
     dialogStackProps,
     createForm,
     setCreateForm,

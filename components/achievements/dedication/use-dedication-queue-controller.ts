@@ -8,10 +8,7 @@ import {
   listPendingDedications,
   rejectPendingDedication,
 } from "@/lib/achievements/application/dedication-queue";
-import type {
-  AchievementCollectionEntryViewModel,
-  AchievementDetailViewModel,
-} from "@/lib/achievements/presentation/collection-view-models";
+import type { AchievementViewModel } from "@/lib/achievements/presentation/collection-view-models";
 import { fetchPublicUserDisplayName } from "@/lib/profile/follow";
 import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
 import { userCollection } from "@/lib/routes";
@@ -25,11 +22,11 @@ type UseDedicationQueueControllerArgs = {
   readOnly: boolean;
   /** Accepted / in-grid achievements (not pending dedication). */
   collectionAchievementIds: Set<string>;
-  onAccepted: (detail: AchievementDetailViewModel) => void;
+  onAccepted: (detail: AchievementViewModel) => void;
   onRejected: (achievementId: string) => void;
   reloadAchievements: (opts?: {
     silent?: boolean;
-  }) => Promise<AchievementCollectionEntryViewModel[] | null>;
+  }) => Promise<AchievementViewModel[] | null>;
 };
 
 export function useDedicationQueueController({
@@ -45,8 +42,8 @@ export function useDedicationQueueController({
   const searchParams = useSearchParams();
   const supabase = createBrowserSupabase();
 
-  const [queue, setQueue] = useState<AchievementDetailViewModel[]>([]);
-  const [active, setActive] = useState<AchievementDetailViewModel | null>(null);
+  const [queue, setQueue] = useState<AchievementViewModel[]>([]);
+  const [active, setActive] = useState<AchievementViewModel | null>(null);
   const [senderName, setSenderName] = useState("Someone");
   const [busy, setBusy] = useState(false);
   const [queueSessionOpen, setQueueSessionOpen] = useState(false);
@@ -179,7 +176,7 @@ export function useDedicationQueueController({
     if (!active) return;
     const acceptedId = active.id;
     setBusy(true);
-    let acceptedRecord: AchievementDetailViewModel | null = null;
+    let acceptedRecord: AchievementViewModel | null = null;
     let acceptError: string | null = null;
     const acceptResult = await postAcceptDedication(acceptedId);
     if (acceptResult.isOk()) {
@@ -194,7 +191,7 @@ export function useDedicationQueueController({
     const refreshed = await reloadAchievements({ silent: true });
     void loadQueue();
     const acceptedInCollection =
-      refreshed?.some((entry) => entry.detail.id === acceptedId) ?? false;
+      refreshed?.some((achievement) => achievement.id === acceptedId) ?? false;
     if (acceptError && !acceptedInCollection) {
       showErrorToast(acceptError, { id: "dedication-accept" });
     }

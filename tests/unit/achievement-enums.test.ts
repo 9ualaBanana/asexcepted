@@ -20,8 +20,7 @@ import {
   type Achievement,
 } from "@/lib/achievements/domain/achievement";
 import {
-  achievementToDetailViewModel,
-  detailToGridViewModel,
+  achievementToViewModel,
 } from "@/lib/achievements/presentation/collection-view-models";
 
 const DEDICATED_BY = "44444444-4444-4444-8444-444444444444";
@@ -192,14 +191,11 @@ describe("domain → detail/grid trusts enums", () => {
     );
     expect(parsed.isOk()).toBe(true);
     if (!parsed.isOk()) return;
-    const detail = achievementToDetailViewModel(parsed.value);
+    const detail = achievementToViewModel(parsed.value);
     expect(detail.icon).toBe("flame");
     expect(detail.tone).toBe("orange");
     expect(detail.visibility).toBe("private");
     expect(detail.isLocked).toBe(true);
-    const grid = detailToGridViewModel(detail);
-    expect(grid.icon).toBe("flame");
-    expect(grid.tone).toBe("orange");
   });
 });
 

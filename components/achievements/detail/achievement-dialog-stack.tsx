@@ -45,7 +45,7 @@ import {
   isAchievementFormDirty,
   isDedicatedAchievement,
   isDedicatedVisibilityDirty,
-  type AchievementDetailViewModel,
+  type AchievementViewModel,
 } from "@/lib/achievements/presentation/collection-view-models";
 import type { OverlayTransitionSession } from "@/lib/achievements/ui/overlay-transition";
 import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
@@ -74,7 +74,7 @@ export type AchievementDialogStackProps = {
   isVisibilityOnlyEdit?: boolean;
   detailViewSessionKey: number;
   overlayTransition: OverlayTransitionSession;
-  detailAchievement: AchievementDetailViewModel | null;
+  detailAchievement: AchievementViewModel | null;
   panelForm: FormState;
   setPanelForm: Dispatch<SetStateAction<FormState>>;
   setPanelUploadInProgress: (inProgress: boolean) => void;

@@ -3,8 +3,8 @@ import { z } from "zod";
 
 import { parseAchievement } from "@/lib/achievements/domain/achievement";
 import {
-  achievementToDetailViewModel,
-  type AchievementDetailViewModel,
+  achievementToViewModel,
+  type AchievementViewModel,
 } from "@/lib/achievements/presentation/collection-view-models";
 import { fetchFailureMessage, fetchJson } from "@/lib/client/fetch-json";
 
@@ -13,7 +13,7 @@ const acceptDedicationResponseSchema = z.object({
 });
 
 export type AcceptDedicationResult =
-  | { kind: "accepted"; achievement: AchievementDetailViewModel }
+  | { kind: "accepted"; achievement: AchievementViewModel }
   | { kind: "already_accepted" };
 
 export async function postAcceptDedication(
@@ -45,6 +45,6 @@ export async function postAcceptDedication(
 
   return ok({
     kind: "accepted",
-    achievement: achievementToDetailViewModel(normalized.value),
+    achievement: achievementToViewModel(normalized.value),
   });
 }

@@ -8,14 +8,15 @@ import {
   AchievementGridItemDedicate,
   AchievementGridItemFallback,
 } from "@/components/achievements/grid/achievement-grid-item";
-import type { AchievementGridViewModel } from "@/lib/achievements/presentation/collection-view-models";
+import type { AchievementViewModel } from "@/lib/achievements/presentation/collection-view-models";
 import { cn } from "@/lib/utils";
+import { formatGridDate } from "@/lib/feed/format-feed-event-time";
 
 type AchievementGridProps = {
   isLoading: boolean;
   readOnly: boolean;
   canDedicate?: boolean;
-  items: AchievementGridViewModel[];
+  items: AchievementViewModel[];
   onAddAchievement: (event: MouseEvent) => void;
   onAddDedicatedAchievement?: (event: MouseEvent) => void;
   onSelectAchievement: (id: string, event: MouseEvent) => void;
@@ -71,8 +72,8 @@ function AchievementGridInner({
               key={achievement.id}
               id={achievement.id}
               title={achievement.title}
-              dateLabel={achievement.dateLabel}
-              displaySrc={achievement.displaySrc}
+              dateLabel={formatGridDate(achievement.achievedAt)}
+              displaySrc={achievement.renderSrc}
               icon={achievement.icon}
               tone={achievement.tone}
               isLocked={achievement.isLocked}

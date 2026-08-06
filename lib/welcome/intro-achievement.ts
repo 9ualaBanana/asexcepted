@@ -1,7 +1,7 @@
 import type { Achievement } from "@/lib/achievements/domain/achievement";
 import {
-  achievementToDetailViewModel,
-  type AchievementDetailViewModel,
+  achievementToViewModel,
+  type AchievementViewModel,
 } from "@/lib/achievements/presentation/collection-view-models";
 
 /** Shared ImageKit asset shown on welcome and seeded as the first locked achievement. */
@@ -53,6 +53,6 @@ function welcomeIntroAchievement(): Achievement {
 }
 
 /** Static detail view model for the marketing preview (not persisted). */
-export function getWelcomeIntroDetailViewModel(): AchievementDetailViewModel {
-  return achievementToDetailViewModel(welcomeIntroAchievement());
+export function getWelcomeIntroDetailViewModel(): AchievementViewModel {
+  return achievementToViewModel(welcomeIntroAchievement());
 }

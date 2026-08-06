@@ -81,7 +81,7 @@ export function AchievementsManager({
         isLoading={data.isLoading}
         readOnly={model.readOnly}
         canDedicate={model.canDedicate}
-        items={model.gridItems}
+        items={model.visibleGridAchievements}
         onAddAchievement={() => {
           editorPipeline.actions.startCreateFlow(null);
         }}

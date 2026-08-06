@@ -48,9 +48,6 @@ export type AchievementSnapshotSource = Pick<
   | "achieved_at"
 >;
 
-/** @deprecated Use {@link AchievementSnapshotSource}. */
-export type CollectionAchievementSnapshotSource = AchievementSnapshotSource;
-
 export function shareInviteSnapshotFromAchievementRow(
   achievement: AchievementSnapshotSource,
 ): AchievementShareInviteSnapshot {
