@@ -18,7 +18,6 @@ import type {
 } from "@/lib/achievements/domain/achievement";
 import { normalizeImageKitFileId } from "@/lib/imagekit/client/imagekit-api";
 import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
-import type { AchievementSnapshotSource } from "@/lib/share-invites/invite-snapshot";
 import { z } from "zod";
 import {
   type FormState,
@@ -265,26 +264,6 @@ export function updateAchievementInMem(
         }
       : achievement,
   );
-}
-
-export function achievementToShareInviteSnapshotSource(
-  achievement: AchievementViewModel,
-): AchievementSnapshotSource {
-  return {
-    title: achievement.title,
-    description: achievement.description,
-    category: achievement.category,
-    icon: achievement.icon,
-    icon_url: achievement.iconUrl ?? "",
-    icon_file_id: achievement.iconFileId,
-    icon_asset_kind: achievement.model ? "model_glb" : "image",
-    icon_asset_path: achievement.model?.assetPath ?? null,
-    icon_cc_attribution: achievement.model?.ccAttribution ?? null,
-    icon_model_yaw: achievement.model?.yaw ?? 0,
-    icon_model_pitch: achievement.model?.pitch ?? 0,
-    tone: achievement.tone,
-    achieved_at: achievement.achievedAt,
-  };
 }
 
 export function achievementToForm(achievement: AchievementViewModel): FormState {

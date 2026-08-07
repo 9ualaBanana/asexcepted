@@ -41,7 +41,6 @@ export {
 export {
   type AchievementViewModel as AchievementDetailViewModel,
   achievementToForm as achievementDetailToForm,
-  achievementToShareInviteSnapshotSource as detailToShareInviteSnapshotSource,
   achievementToViewModel as achievementToDetailViewModel,
   formToAchievementWrite,
   isAchievementFormDirty,

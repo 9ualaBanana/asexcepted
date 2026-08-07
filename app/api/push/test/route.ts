@@ -38,7 +38,6 @@ export async function POST() {
   }
 
   const result = await sendPushToUsers({
-    supabase,
     userIds: [user.id],
     kind: "test",
     params: {},

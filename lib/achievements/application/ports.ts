@@ -6,8 +6,11 @@ import type {
 } from "@/lib/achievements/domain/achievement";
 import type { FollowingUnlockFeedEvent } from "@/lib/achievements/domain/feed-event";
 import { CreateImpressionResult } from "@/lib/achievements/domain/impression";
-import type { AchievementSharePageKind } from "@/lib/share-invites/server";
-import { AchievementShareInviteCreate } from "../domain/share-invite";
+import type {
+  AchievementShareInviteCreate,
+  AchievementShareInviteCreateV2,
+  AchievementSharePageKind,
+} from "@/lib/achievements/domain/share-invite";
 
 export type FeedCursor = {
   updated_at: string;
@@ -36,7 +39,14 @@ export type AchievementPort = {
 
 export type ShareInvitePort = {
   get(token: string): Promise<Result<AchievementShareInviteCreate, string>>;
+  getV2(token: string): Promise<Result<AchievementShareInviteCreateV2, string>>;
   create(args: {
+    senderUserId: string;
+    snapshot: Achievement;
+    shareKind: AchievementSharePageKind;
+    token: string;
+  }): Promise<Result<{ inviteId: string }, string>>;
+  createV2(args: {
     senderUserId: string;
     snapshot: Achievement;
     shareKind: AchievementSharePageKind;

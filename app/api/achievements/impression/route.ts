@@ -44,7 +44,6 @@ export async function POST(request: Request) {
   const actorName = await resolveDisplayName(supabase, user.id);
 
   await sendPushToUsers({
-    supabase,
     userIds: [result.value.owner_user_id],
     kind: "impression",
     params: {

@@ -31,7 +31,7 @@ import type {
   ServiceRoleSupabaseClient,
 } from "@/lib/supabase/clients/client-types";
 import { createImpression, fetchCountMap } from "@/lib/achievements/persistence/impressions";
-import { completeShareInviteClaim, createShareInvite, deleteShareInvite, getAchievementShareInviteByToken, reserveShareInviteClaim, releaseShareInviteClaim } from "@/lib/achievements/persistence/share-invite";
+import { completeShareInviteClaim, createShareInvite, deleteShareInvite, getAchievementShareInviteByToken, reserveShareInviteClaim, releaseShareInviteClaim, createShareInviteV2, getAchievementShareInviteByTokenV2 } from "@/lib/achievements/persistence/share-invite";
 
 export function createAchievementPort(
   supabase: DatabaseSupabaseClient,
@@ -52,7 +52,9 @@ export function createAchievementPort(
 export function createShareInvitePort(supabase: ServiceRoleSupabaseClient): ShareInvitePort {
   return {
     get: (token) => getAchievementShareInviteByToken(supabase, token),
+    getV2: (token) => getAchievementShareInviteByTokenV2(supabase, token),
     create: (args) => createShareInvite(supabase, args),
+    createV2: (args) => createShareInviteV2(supabase, args),
     delete: (inviteId) => deleteShareInvite(supabase, inviteId),
     reserveClaim: (claimerUserId, token, claimedAt) => reserveShareInviteClaim(supabase, claimerUserId, token, claimedAt),
     releaseClaim: (inviteId) => releaseShareInviteClaim(supabase, inviteId),

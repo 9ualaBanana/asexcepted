@@ -1,15 +1,11 @@
 import { ImageResponse } from "next/og";
 
-import { shareInviteRowToBadgeViewModel } from "@/lib/achievements/presentation/surface-view-models";
-import { resolveInviteOgImageTitle } from "@/lib/share-invites/invite-share-title";
 import {
   fetchInviteOgBadgeImageDataUrl,
   resolveInviteOgBadgeImageUrl,
 } from "@/lib/share-invites/invite-og-badge-image";
-import {
-  getAchievementShareInviteKind,
-  getAchievementShareInvitePresentationByToken,
-} from "@/lib/share-invites/server";
+import { getSharedAchievement } from "@/lib/achievements/application/share-invite";
+import { achievementToViewModel } from "@/lib/achievements/presentation/collection-view-models";
 
 export const size = {
   width: 1200,
@@ -44,7 +40,7 @@ function OgUnavailableCard({ message }: { message: string }) {
 
 export default async function Image({ params }: ImageProps) {
   const { token } = await params;
-  const result = await getAchievementShareInvitePresentationByToken(token);
+  const result = await getSharedAchievement(token);
 
   if (result.isErr()) {
     return new ImageResponse(<OgUnavailableCard message="Shared achievement unavailable" />, size);
@@ -52,21 +48,20 @@ export default async function Image({ params }: ImageProps) {
 
   const {
     invite,
-    senderDisplayName: rawSenderName,
-    collectionOwnerDisplayName: rawOwnerName,
+    snapshot,
+    senderDisplayName,
+    ownerDisplayName,
   } = result.value;
-  const senderDisplayName = rawSenderName.trim() || "Someone";
-  const collectionOwnerName = rawOwnerName?.trim() || senderDisplayName;
-  const pageKind = getAchievementShareInviteKind(invite);
-  const title = resolveInviteOgImageTitle(invite);
+
+  const pageKind = invite.share_kind;
+  const title = snapshot.title?.trim() || snapshot.category?.trim() || "Achievement invite";
   const description =
-    invite.description?.trim() ||
+    snapshot.description?.trim() ||
     (pageKind === "showcase"
-      ? `An achievement from ${collectionOwnerName}'s collection.`
+      ? `An achievement from ${ownerDisplayName}'s collection.`
       : `${senderDisplayName} shared this for your collection.`);
 
-  const inviteBadge = shareInviteRowToBadgeViewModel(invite);
-  const badgeImageUrl = resolveInviteOgBadgeImageUrl(inviteBadge);
+  const badgeImageUrl = resolveInviteOgBadgeImageUrl(snapshot.icon_url);
   const badgeImageSrc = badgeImageUrl
     ? await fetchInviteOgBadgeImageDataUrl(badgeImageUrl)
     : null;
@@ -145,7 +140,7 @@ export default async function Image({ params }: ImageProps) {
               justifyContent: "center",
             }}
           >
-            {invite.category?.trim() ? (
+            {snapshot.category?.trim() ? (
               <div
                 style={{
                   display: "flex",
@@ -155,7 +150,7 @@ export default async function Image({ params }: ImageProps) {
                   color: "rgba(245,243,255,0.42)",
                 }}
               >
-                {invite.category}
+                {snapshot.category}
               </div>
             ) : null}
 
@@ -204,7 +199,7 @@ export default async function Image({ params }: ImageProps) {
                       : "rgba(253,230,138,0.92)",
                 }}
               >
-                {pageKind === "showcase" ? collectionOwnerName : senderDisplayName}
+                {pageKind === "showcase" ? ownerDisplayName : senderDisplayName}
               </span>
             </div>
           </div>

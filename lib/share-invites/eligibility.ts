@@ -2,7 +2,6 @@ import { err, ok, type Result } from "neverthrow";
 
 import { isPublicHttpImageUrl } from "@/lib/achievements/badge/shared/badge-assets";
 import { isModelGlbAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
-import type { Achievement } from "../achievements/domain/achievement";
 
 export function isAchievementEligibleForShareInvite(
   achievement: { icon_url: string | null },

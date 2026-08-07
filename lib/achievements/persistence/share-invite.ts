@@ -1,9 +1,13 @@
 import { hashAchievementShareInviteToken } from "@/lib/share-invites/token";
-import { err, ok, Result } from "neverthrow";
+import { err, ok, type Result } from "neverthrow";
 import type { ServiceRoleSupabaseClient } from "@/lib/supabase/clients/client-types";
-import type { AchievementShareInviteCreate } from "@/lib/achievements/domain/share-invite";
-import { Achievement } from "../domain/achievement";
-import type { AchievementSharePageKind } from "@/lib/share-invites/server";
+import {
+  parseAchievementShareInviteCreateV2,
+  type AchievementShareInviteCreate,
+  type AchievementShareInviteCreateV2,
+  type AchievementSharePageKind,
+} from "@/lib/achievements/domain/share-invite";
+import type { Achievement } from "../domain/achievement";
 import { formatSupabaseSingleRowError } from "@/lib/supabase/postgrest-errors";
 
 export async function getAchievementShareInviteByToken(
@@ -21,6 +25,22 @@ export async function getAchievementShareInviteByToken(
 		return err(error?.message ?? "Could not find the share invite.");
 	}
 	return ok(data);
+}
+
+export async function getAchievementShareInviteByTokenV2(
+  supabase: ServiceRoleSupabaseClient,
+  token: string,
+): Promise<Result<AchievementShareInviteCreateV2, string>> {
+  const tokenHash = hashAchievementShareInviteToken(token);
+  const { data, error } = await supabase
+    .from("achievement_share_invites_v2")
+    .select("*")
+    .eq("token_hash", tokenHash)
+    .maybeSingle();
+  if (error || !data) {
+    return err(error?.message ?? "Could not find the share invite.");
+  }
+  return parseAchievementShareInviteCreateV2(data);
 }
 
 export async function createShareInvite(
@@ -52,6 +72,38 @@ export async function createShareInvite(
       icon_model_pitch: args.snapshot.icon_model_pitch,
       tone: args.snapshot.tone,
       achieved_at: args.snapshot.achieved_at,
+      token_hash: hashAchievementShareInviteToken(args.token),
+      status: "pending",
+    })
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    return err(
+      formatSupabaseSingleRowError(error, "Could not create the share invite. Try again."),
+    );
+  }
+  if (!data?.id) {
+    return err("Could not create the share invite. Try again.");
+  }
+  return ok({ inviteId: data.id });
+}
+
+export async function createShareInviteV2(
+  supabase: ServiceRoleSupabaseClient,
+  args: {
+    senderUserId: string;
+    snapshot: Achievement;
+    shareKind: AchievementSharePageKind;
+    token: string;
+  },
+): Promise<Result<{ inviteId: string }, string>> {
+  const { data, error } = await supabase
+    .from("achievement_share_invites_v2")
+    .insert({
+      sender_user_id: args.senderUserId,
+      source_achievement_id: args.snapshot.id,
+      share_kind: args.shareKind,
       token_hash: hashAchievementShareInviteToken(args.token),
       status: "pending",
     })

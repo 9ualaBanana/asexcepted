@@ -183,6 +183,41 @@ export type Database = {
           },
         ]
       }
+      achievement_share_invites_v2: {
+        Row: {
+          id: string
+          sender_user_id: string
+          share_kind: string
+          source_achievement_id: string
+          status: string
+          token_hash: string
+        }
+        Insert: {
+          id?: string
+          sender_user_id: string
+          share_kind?: string
+          source_achievement_id: string
+          status?: string
+          token_hash: string
+        }
+        Update: {
+          id?: string
+          sender_user_id?: string
+          share_kind?: string
+          source_achievement_id?: string
+          status?: string
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievement_share_invites_v2_source_achievement_id_fkey"
+            columns: ["source_achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       achievement_unlock_events: {
         Row: {
           achievement_id: string

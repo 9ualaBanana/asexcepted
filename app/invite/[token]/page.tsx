@@ -6,22 +6,18 @@ import { badgeOptionsForInvite } from "@/components/achievements/badge/display/b
 import { BadgeAttributionPopover } from "@/components/achievements/badge";
 import { formatAchievedAt } from "@/lib/feed/format-feed-event-time";
 import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/shared/badge-assets-server";
-import { shareInviteRowToBadgeViewModel } from "@/lib/achievements/presentation/surface-view-models";
 import { APP_DISPLAY_NAME } from "@/lib/brand";
 import { resolvePublicSiteOrigin } from "@/lib/public-site-origin";
 import { resolveInviteOgBadgeImageUrl } from "@/lib/share-invites/invite-og-badge-image";
-import { resolveInviteShareTitle } from "@/lib/share-invites/invite-share-title";
 import {
   achievementShareInviteOgImagePath,
   achievementShareInvitePath,
+  userAchievementDetail,
   userCollection,
 } from "@/lib/routes";
-import { getAchievementShareInvitePresentationByToken } from "@/lib/share-invites/server";
-import {
-  getAchievementShareInviteKind,
-  getAchievementShareInviteOwnerDetailPath,
-} from "@/lib/share-invites/server";
+import { getSharedAchievement } from "@/lib/achievements/application/share-invite";
 import { ShareInviteClaimPanel } from "./share-invite-claim-panel";
+import { achievementToViewModel } from "@/lib/achievements/presentation/collection-view-models";
 
 type PageProps = {
   params: Promise<{ token: string }>;
@@ -68,7 +64,7 @@ function buildInviteMetadata(args: {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { token } = await params;
-  const result = await getAchievementShareInvitePresentationByToken(token);
+  const result = await getSharedAchievement(token);
   const origin = await resolvePublicSiteOrigin();
 
   if (result.isErr()) {
@@ -78,21 +74,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     });
   }
 
-  const { invite, senderDisplayName, collectionOwnerDisplayName } = result.value;
-  const pageKind = getAchievementShareInviteKind(invite);
-  const title = resolveInviteShareTitle(invite);
-  const showcaseOwnerName = collectionOwnerDisplayName ?? senderDisplayName;
+  const { invite, snapshot, senderDisplayName, ownerDisplayName } = result.value;
+  const pageKind = invite.share_kind;
+  const title = snapshot.title?.trim() || snapshot.category?.trim() || "Achievement invite";
   const description =
-    invite.description?.trim() ||
+    snapshot.description?.trim() ||
     (pageKind === "showcase"
-      ? `An achievement from ${showcaseOwnerName}'s collection.`
+      ? `An achievement from ${ownerDisplayName}'s collection.`
       : `${senderDisplayName} shared an achievement waiting in your collection.`);
 
   const pageUrl = origin ? `${origin}${achievementShareInvitePath(token)}` : undefined;
-  const inviteBadge = shareInviteRowToBadgeViewModel(invite);
   const ogImageUrl = origin
     ? `${origin}${achievementShareInviteOgImagePath(token)}`
-    : resolveInviteOgBadgeImageUrl(inviteBadge) ?? undefined;
+    : resolveInviteOgBadgeImageUrl(snapshot.icon_url) ?? undefined;
 
   return buildInviteMetadata({
     title: `${title} | ${APP_DISPLAY_NAME}`,
@@ -124,7 +118,7 @@ function InviteUnavailableState({ claimed }: { claimed: boolean }) {
 
 export default async function Page({ params }: PageProps) {
   const { token } = await params;
-  const result = await getAchievementShareInvitePresentationByToken(token);
+  const result = await getSharedAchievement(token);
 
   if (result.isErr()) {
     return <InviteUnavailableState claimed={false} />;
@@ -132,22 +126,33 @@ export default async function Page({ params }: PageProps) {
 
   const {
     invite,
+    snapshot,
     senderDisplayName,
-    collectionOwnerUserId,
-    collectionOwnerDisplayName,
+    ownerUserId,
+    ownerDisplayName,
   } = result.value;
-  const pageKind = getAchievementShareInviteKind(invite);
-  const collectionOwnerId = collectionOwnerUserId ?? invite.sender_user_id;
-  const collectionOwnerName = collectionOwnerDisplayName ?? senderDisplayName;
-  const ownerDetailPath = getAchievementShareInviteOwnerDetailPath(
-    invite,
-    collectionOwnerId,
-  );
-  const collectionOwnerPath = userCollection(collectionOwnerId);
-  const inviteBadge = shareInviteRowToBadgeViewModel(invite);
-  const liveModelUrl = inviteBadge.model
+
+  const pageKind = invite.share_kind;
+  const ownerDetailPath = userAchievementDetail(ownerUserId, invite.source_achievement_id);
+  const collectionOwnerPath = userCollection(ownerUserId);
+  const inviteBadge = achievementToViewModel(snapshot);
+  const signedModelUrl = inviteBadge.model
     ? await createSignedBadgeModelUrl(inviteBadge.model.assetPath)
     : null;
+
+  const byline = pageKind === "showcase"
+  ? {
+    label: "by",
+    href: collectionOwnerPath,
+    name: ownerDisplayName,
+    nameClass: "text-emerald-200/90",
+  }
+  : {
+    label: "dedicated by",
+    href: userCollection(invite.sender_user_id),
+    name: senderDisplayName,
+    nameClass: "text-amber-200/95",
+  };
 
   if (invite.status !== "pending") {
     return <InviteUnavailableState claimed={invite.status === "claimed"} />;
@@ -165,13 +170,13 @@ export default async function Page({ params }: PageProps) {
                     inviteId: invite.id,
                     displaySrc: inviteBadge.renderSrc,
                     model: inviteBadge.model,
-                    signedModelUrl: liveModelUrl,
+                    signedModelUrl,
                   })}
                 />
               ) : null}
-              {inviteBadge.showAttributionPopover ? (
+              {inviteBadge.model?.ccAttribution ? (
                 <BadgeAttributionPopover
-                  value={inviteBadge.model?.ccAttribution ?? ""}
+                  value={inviteBadge.model.ccAttribution}
                   emptyState="No attribution was provided for this 3D badge."
                 />
               ) : null}
@@ -179,50 +184,38 @@ export default async function Page({ params }: PageProps) {
           </div>
 
           <div className="mt-6 text-center">
-            {invite.category?.trim() ? (
+            {snapshot.category?.trim() ? (
               <p className="text-xs uppercase tracking-[0.24em] text-white/38">
-                {invite.category}
+                {snapshot.category}
               </p>
             ) : null}
-            {invite.title?.trim() ? (
+            {snapshot.title?.trim() ? (
               <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white">
-                {invite.title}
+                {snapshot.title}
               </h1>
             ) : null}
-            {invite.description?.trim() ? (
+            {snapshot.description?.trim() ? (
               <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-white/68">
-                {invite.description}
+                {snapshot.description}
               </p>
             ) : null}
-            {invite.achieved_at ? (
+            {snapshot.achieved_at ? (
               <p className="mt-4 text-sm text-white/48">
-                {formatAchievedAt(invite.achieved_at)}
+                {formatAchievedAt(snapshot.achieved_at)}
               </p>
             ) : null}
           </div>
 
           <div className="mt-5 flex justify-center text-center">
-            {pageKind === "showcase" ? (
-              <p className="text-xs leading-snug text-white/55">
-                by{" "}
-                <Link
-                  href={collectionOwnerPath}
-                  className="font-semibold text-emerald-200/90 underline-offset-2 hover:underline"
-                >
-                  {collectionOwnerName}
-                </Link>
-              </p>
-            ) : (
-              <p className="text-xs leading-snug text-white/55">
-                dedicated by{" "}
-                <Link
-                  href={userCollection(invite.sender_user_id)}
-                  className="font-semibold text-amber-200/95 underline-offset-2 hover:underline"
-                >
-                  {senderDisplayName}
-                </Link>
-              </p>
-            )}
+            <p className="text-xs leading-snug text-white/55">
+              {byline.label}{" "}
+              <Link
+                href={byline.href}
+                className={`font-semibold ${byline.nameClass} underline-offset-2 hover:underline`}
+              >
+                {byline.name}
+              </Link>
+            </p>
           </div>
 
           <div className="mt-6 flex justify-center">
@@ -230,7 +223,6 @@ export default async function Page({ params }: PageProps) {
               token={token}
               senderUserId={invite.sender_user_id}
               inviteStatus={invite.status}
-              pageKind={pageKind}
               ownerDetailPath={ownerDetailPath}
             />
           </div>

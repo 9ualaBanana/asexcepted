@@ -4,9 +4,7 @@ import { z } from "zod";
 import { createServerSupabase } from "@/lib/supabase/clients/server";
 import { resolvePublicSiteOrigin } from "@/lib/public-site-origin";
 import { achievementShareInvitePath } from "@/lib/routes";
-import {
-  createAchievementShareInvite,
-} from "@/lib/share-invites/server";
+import { createAchievementShareInvite } from "@/lib/achievements/application/share-invite";
 
 const createShareInviteBodySchema = z.object({
   achievementId: z.uuid(),

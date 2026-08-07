@@ -69,7 +69,6 @@ export async function POST(request: Request) {
   }
 
   const result = await sendPushToUsers({
-    supabase,
     userIds: followerIds,
     kind: "unlock",
     params: {

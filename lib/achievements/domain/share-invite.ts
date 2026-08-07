@@ -1,3 +1,21 @@
+import { err, ok, type Result } from "neverthrow";
+import { z, type ZodError } from "zod";
+
+export const achievementSharePageKindSchema = z.enum(["invite", "showcase"]);
+export type AchievementSharePageKind = z.infer<typeof achievementSharePageKindSchema>;
+
+export const achievementShareInviteStatusSchema = z.enum([
+  "pending",
+  "claiming",
+  "claimed",
+  "revoked",
+  "expired",
+]);
+
+export type AchievementShareInviteStatus = z.infer<
+  typeof achievementShareInviteStatusSchema
+>;
+
 export type AchievementShareInviteCreate = {
   id: string;
   sender_user_id: string;
@@ -19,3 +37,34 @@ export type AchievementShareInviteCreate = {
   token_hash: string;
   status: string;
 };
+
+export const achievementShareInviteCreateV2Schema = z.object({
+  id: z.uuid(),
+  sender_user_id: z.uuid(),
+  source_achievement_id: z.uuid(),
+  share_kind: achievementSharePageKindSchema,
+  token_hash: z.string().min(1),
+  status: achievementShareInviteStatusSchema,
+});
+
+/** Trusted share invite after boundary parse (v2 read model). */
+export type AchievementShareInviteCreateV2 = z.infer<
+  typeof achievementShareInviteCreateV2Schema
+>;
+
+function formatParseError(error: ZodError): string {
+  const issue = error.issues[0];
+  if (!issue) return "Invalid share invite.";
+  const path = issue.path.length > 0 ? issue.path.join(".") : "root";
+  return `Invalid share invite at ${path}: ${issue.message}`;
+}
+
+export function parseAchievementShareInviteCreateV2(
+  record: unknown,
+): Result<AchievementShareInviteCreateV2, string> {
+  const parsed = achievementShareInviteCreateV2Schema.safeParse(record);
+  if (!parsed.success) {
+    return err(formatParseError(parsed.error));
+  }
+  return ok(parsed.data);
+}

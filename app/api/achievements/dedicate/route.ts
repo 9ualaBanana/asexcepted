@@ -105,7 +105,6 @@ export async function POST(request: Request) {
   const achievementTitle = row.title ?? "Achievement";
 
   await sendPushToUsers({
-    supabase,
     userIds: [body.recipientUserId],
     kind: "dedication",
     params: {

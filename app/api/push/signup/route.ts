@@ -30,7 +30,6 @@ export async function POST(request: Request) {
   }
 
   await sendAdminNewSignupPush({
-    supabase,
     userId: parsed.data.userId,
     email: parsed.data.email,
   });
