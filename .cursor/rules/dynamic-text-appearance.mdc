@@ -18,15 +18,15 @@ Nicknames and other user- or content-supplied strings go through `lib/ui/dynamic
 
 “dedicated by”, “in collaboration w/”, and any other fixed prefix beside a dynamic value:
 
-- Fluid width: `AtomicLabeledText` with `measureKey` set to the clamped value. The prefix and the value are each `whitespace-nowrap`. If the scramble does not fit beside the prefix, the value moves to the next line as a whole and stays there after it reveals. Never let a scramble or a name break mid-glyph, and never slide a revealed name back onto the prefix line.
-- Known pixel width (OG, canvas): `labeledValueStacks`. Stack when it returns true.
+- Fluid width: `AtomicLabeledText`. The value is its own line under the prefix, `whitespace-nowrap`, so a scramble and the settled name stay together.
+- Known pixel width (OG, canvas): same column. Use `labeledValueStacks` only when a prefix is allowed to share the line and the width is fixed.
 
 ```tsx
 // ❌ BAD — inline name wraps one scramble glyph at a time
 <p>{prefix} <EncryptedText text={name} /></p>
 
 // ✅ GOOD
-<AtomicLabeledText prefix={prefix} measureKey={clampNickname(name)}>
+<AtomicLabeledText prefix={prefix}>
   <EncryptedText text={clampNickname(name)} />
 </AtomicLabeledText>
 ```

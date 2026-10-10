@@ -6,7 +6,7 @@ import {
 } from "@/lib/share-invites/invite-og-badge-image";
 import { getSharedAchievement } from "@/lib/achievements/application/share-invite";
 import { achievementToViewModel } from "@/lib/achievements/presentation/collection-view-models";
-import { clampNickname, labeledValueStacks } from "@/lib/ui/dynamic-text";
+import { clampNickname } from "@/lib/ui/dynamic-text";
 
 export const size = {
   width: 1200,
@@ -216,22 +216,15 @@ function OgByline({
   name: string;
   nameColor: string;
 }) {
-  const stacks = labeledValueStacks({
-    prefix,
-    value: name,
-    lineWidthPx: 648,
-    fontSizePx: 20,
-  });
-
   return (
     <div
       style={{
         display: "flex",
-        flexDirection: stacks ? "column" : "row",
-        alignItems: stacks ? "flex-start" : "center",
+        flexDirection: "column",
+        alignItems: "flex-start",
         marginTop: "26px",
         fontSize: 20,
-        gap: stacks ? "4px" : "0.35em",
+        gap: "4px",
       }}
     >
       <span style={{ color: "rgba(245,243,255,0.55)" }}>{prefix}</span>

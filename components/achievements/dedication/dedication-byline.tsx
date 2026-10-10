@@ -32,7 +32,6 @@ export function DedicationByline({
   return (
     <AtomicLabeledText
       prefix={prefix}
-      measureKey={resolvedName || "loading"}
       className={cn(
         "text-xs leading-snug text-white/55",
         className ?? "mt-2",
