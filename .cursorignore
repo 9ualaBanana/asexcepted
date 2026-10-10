@@ -1,0 +1,5 @@
+﻿# Cursor ignore — reduce stale/generated noise for the agent
+graphify-out/
+.next/
+node_modules/
+coverage/

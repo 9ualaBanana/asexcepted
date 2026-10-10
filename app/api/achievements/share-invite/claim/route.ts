@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { claimAchievementShareInvite } from "@/lib/share-invites/server";
+import { claimAchievementShareInvite } from "@/lib/achievements/application/share-invite";
 import { createServerSupabase } from "@/lib/supabase/clients/server";
 
 const claimBodySchema = z.object({

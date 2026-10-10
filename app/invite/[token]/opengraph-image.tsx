@@ -1,15 +1,12 @@
 import { ImageResponse } from "next/og";
 
-import { shareInviteRowToBadgeViewModel } from "@/lib/achievements/data/achievement-surface-view-models";
-import { resolveInviteOgImageTitle } from "@/lib/share-invites/invite-share-title";
 import {
   fetchInviteOgBadgeImageDataUrl,
   resolveInviteOgBadgeImageUrl,
 } from "@/lib/share-invites/invite-og-badge-image";
-import {
-  getAchievementShareInviteKind,
-  getAchievementShareInvitePresentationByToken,
-} from "@/lib/share-invites/server";
+import { getSharedAchievement } from "@/lib/achievements/application/share-invite";
+import { achievementToViewModel } from "@/lib/achievements/presentation/collection-view-models";
+import { clampNickname } from "@/lib/ui/dynamic-text";
 
 export const size = {
   width: 1200,
@@ -44,7 +41,7 @@ function OgUnavailableCard({ message }: { message: string }) {
 
 export default async function Image({ params }: ImageProps) {
   const { token } = await params;
-  const result = await getAchievementShareInvitePresentationByToken(token);
+  const result = await getSharedAchievement(token);
 
   if (result.isErr()) {
     return new ImageResponse(<OgUnavailableCard message="Shared achievement unavailable" />, size);
@@ -52,21 +49,22 @@ export default async function Image({ params }: ImageProps) {
 
   const {
     invite,
-    senderDisplayName: rawSenderName,
-    collectionOwnerDisplayName: rawOwnerName,
+    snapshot,
+    senderDisplayName,
+    ownerDisplayName,
   } = result.value;
-  const senderDisplayName = rawSenderName.trim() || "Someone";
-  const collectionOwnerName = rawOwnerName?.trim() || senderDisplayName;
-  const pageKind = getAchievementShareInviteKind(invite);
-  const title = resolveInviteOgImageTitle(invite);
-  const description =
-    invite.description?.trim() ||
-    (pageKind === "showcase"
-      ? `An achievement from ${collectionOwnerName}'s collection.`
-      : `${senderDisplayName} shared this for your collection.`);
 
-  const inviteBadge = shareInviteRowToBadgeViewModel(invite);
-  const badgeImageUrl = resolveInviteOgBadgeImageUrl(inviteBadge);
+  const pageKind = invite.share_kind;
+  const title = snapshot.title?.trim() || snapshot.category?.trim() || "Achievement invite";
+  const description =
+    snapshot.description?.trim() ||
+    (pageKind === "showcase"
+      ? `An achievement from ${ownerDisplayName}'s collection.`
+      : pageKind === "collaborate"
+        ? `${senderDisplayName} invited you to collaborate on an achievement.`
+        : `${senderDisplayName} shared this for your collection.`);
+
+  const badgeImageUrl = resolveInviteOgBadgeImageUrl(snapshot.icon_url);
   const badgeImageSrc = badgeImageUrl
     ? await fetchInviteOgBadgeImageDataUrl(badgeImageUrl)
     : null;
@@ -145,7 +143,7 @@ export default async function Image({ params }: ImageProps) {
               justifyContent: "center",
             }}
           >
-            {invite.category?.trim() ? (
+            {snapshot.category?.trim() ? (
               <div
                 style={{
                   display: "flex",
@@ -155,7 +153,7 @@ export default async function Image({ params }: ImageProps) {
                   color: "rgba(245,243,255,0.42)",
                 }}
               >
-                {invite.category}
+                {snapshot.category}
               </div>
             ) : null}
 
@@ -184,33 +182,53 @@ export default async function Image({ params }: ImageProps) {
               {description}
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                marginTop: "26px",
-                fontSize: 20,
-                alignItems: "center",
-                gap: "0.35em",
-              }}
-            >
-              <span style={{ color: "rgba(245,243,255,0.55)" }}>
-                {pageKind === "showcase" ? "by" : "dedicated by"}
-              </span>
-              <span
-                style={{
-                  color:
-                    pageKind === "showcase"
-                      ? "rgba(167,243,208,0.9)"
-                      : "rgba(253,230,138,0.92)",
-                }}
-              >
-                {pageKind === "showcase" ? collectionOwnerName : senderDisplayName}
-              </span>
-            </div>
+            <OgByline
+              prefix={
+                pageKind === "showcase"
+                  ? "by"
+                  : pageKind === "collaborate"
+                    ? "in collaboration w/"
+                    : "dedicated by"
+              }
+              name={clampNickname(
+                pageKind === "showcase" ? ownerDisplayName : senderDisplayName,
+              )}
+              nameColor={
+                pageKind === "showcase"
+                  ? "rgba(167,243,208,0.9)"
+                  : "rgba(253,230,138,0.92)"
+              }
+            />
           </div>
         </div>
       </div>
     ),
     size,
+  );
+}
+
+function OgByline({
+  prefix,
+  name,
+  nameColor,
+}: {
+  prefix: string;
+  name: string;
+  nameColor: string;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-start",
+        marginTop: "26px",
+        fontSize: 20,
+        gap: "4px",
+      }}
+    >
+      <span style={{ color: "rgba(245,243,255,0.55)" }}>{prefix}</span>
+      <span style={{ color: nameColor }}>{name}</span>
+    </div>
   );
 }

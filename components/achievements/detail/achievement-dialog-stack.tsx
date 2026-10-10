@@ -31,7 +31,7 @@ import {
   achievementDialogIconSideSlot,
   type RemoteAssetStorageSession,
 } from "@/components/achievements/achievement-editor-shared";
-import type { FormState } from "@/lib/achievements/data/achievement-form-state";
+import type { FormState } from "@/lib/achievements/presentation/form-state";
 import { formatAchievedAt } from "@/lib/feed/format-feed-event-time";
 import { DedicationByline } from "@/components/achievements/dedication/dedication-byline";
 import { DedicationBylineChromeRow } from "@/components/achievements/dedication/dedication-byline-chrome-row";
@@ -42,13 +42,11 @@ import { useOverlayTransitionPresentation } from "@/components/achievements/deta
 import { AchievementVisibilityToggle } from "@/components/achievements/detail/achievement-visibility-toggle";
 import {
   canEditDedicatedVisibility,
+  isAchievementFormDirty,
   isDedicatedAchievement,
   isDedicatedVisibilityDirty,
-} from "@/lib/achievements/dedication/dedication-utils";
-import {
-  isAchievementFormDirty,
-  type AchievementDetailViewModel,
-} from "@/lib/achievements/data/achievement-view-models";
+  type AchievementViewModel,
+} from "@/lib/achievements/presentation/collection-view-models";
 import type { OverlayTransitionSession } from "@/lib/achievements/ui/overlay-transition";
 import { useBodyScrollLock } from "@/lib/dom/body-scroll-lock";
 import { getTutorial, TUTORIAL_IDS, useTutorial, useTutorialToast } from "@/lib/tutorials";
@@ -76,7 +74,7 @@ export type AchievementDialogStackProps = {
   isVisibilityOnlyEdit?: boolean;
   detailViewSessionKey: number;
   overlayTransition: OverlayTransitionSession;
-  detailAchievement: AchievementDetailViewModel | null;
+  detailAchievement: AchievementViewModel | null;
   panelForm: FormState;
   setPanelForm: Dispatch<SetStateAction<FormState>>;
   setPanelUploadInProgress: (inProgress: boolean) => void;
@@ -108,11 +106,19 @@ export type AchievementDialogStackProps = {
   dedicateShareDisabledReason?: string | null;
   showcaseShareDisabledReason?: string | null;
   showDedicateShareOption?: boolean;
+  showCollaborateShareOption?: boolean;
+  collaborateShareDisabledReason?: string | null;
+  showEndCollaboration?: boolean;
+  showShowcaseShareOption?: boolean;
   onShareShowcase: () => void;
   onRequestDedicateInviteShare: () => void;
+  onCollaborate: () => void;
+  onEndCollaboration: () => void;
   onEmbedLink: () => void;
   onRequestDelete: (achievementId: string) => void;
   onImpressionRecorded: (added: boolean) => void;
+  collaborationPartnerUserId?: string | null;
+  isShelfCollaborator?: boolean;
   dedicationSenderDisplayName?: string | null;
   dedicationSenderNameLoading?: boolean;
   isDedicatingCreate?: boolean;
@@ -168,11 +174,19 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
     dedicateShareDisabledReason = null,
     showcaseShareDisabledReason = null,
     showDedicateShareOption = true,
+    showCollaborateShareOption = false,
+    collaborateShareDisabledReason = null,
+    showEndCollaboration = false,
+    showShowcaseShareOption = true,
     onShareShowcase,
     onRequestDedicateInviteShare,
+    onCollaborate,
+    onEndCollaboration,
     onEmbedLink,
     onRequestDelete,
     onImpressionRecorded,
+    collaborationPartnerUserId = null,
+    isShelfCollaborator = false,
     dedicationSenderDisplayName,
     dedicationSenderNameLoading = false,
     isDedicatingCreate = false,
@@ -575,6 +589,8 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                             <Check className="h-4 w-4" aria-hidden />
                           )}
                         </BubbleButton>
+                      ) : isShelfCollaborator ? (
+                        <span className="inline-flex h-10 w-10 shrink-0" aria-hidden />
                       ) : (
                         <BubbleButton
                           aria-label="Edit"
@@ -609,6 +625,14 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                           senderNameLoading={dedicationSenderNameLoading}
                           className="mt-0 px-1"
                         />
+                      ) : detailMode === "view" && collaborationPartnerUserId ? (
+                        <DedicationByline
+                          prefix="in collaboration w/"
+                          senderUserId={collaborationPartnerUserId}
+                          senderDisplayName={dedicationSenderDisplayName}
+                          senderNameLoading={dedicationSenderNameLoading}
+                          className="mt-0 px-1"
+                        />
                       ) : null}
                     </div>
                     <div
@@ -622,12 +646,18 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                           busy={shareMenuBusy}
                           showDedicateOption={showDedicateShareOption}
                           dedicateDisabledReason={dedicateShareDisabledReason}
+                          showCollaborateOption={showCollaborateShareOption}
+                          collaborateDisabledReason={collaborateShareDisabledReason}
+                          showEndCollaboration={showEndCollaboration}
+                          showShowcaseOption={showShowcaseShareOption}
                           showcaseDisabledReason={showcaseShareDisabledReason}
                           showEmbedOption
                           motion={chromeMotion}
                           index={2}
                           onShareShowcase={onShareShowcase}
                           onRequestDedicateInvite={onRequestDedicateInviteShare}
+                          onCollaborate={onCollaborate}
+                          onEndCollaboration={onEndCollaboration}
                           onEmbed={onEmbedLink}
                         />
                       ) : null}
@@ -649,18 +679,50 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                           disabled={isSaving}
                           busy={shareMenuBusy}
                           showDedicateOption={false}
+                          showShowcaseOption={showShowcaseShareOption}
                           showEmbedOption={false}
                           showcaseDisabledReason={showcaseShareDisabledReason}
                           motion={chromeMotion}
                           index={2}
                           onShareShowcase={onShareShowcase}
                           onRequestDedicateInvite={onRequestDedicateInviteShare}
+                          onCollaborate={onCollaborate}
+                          onEndCollaboration={onEndCollaboration}
                           onEmbed={onEmbedLink}
                         />
                       ) : undefined
                     }
                   />
-                ) : detailAchievement.hasCustomBadge ? (
+                ) : collaborationPartnerUserId ? (
+                  <DedicationBylineChromeRow
+                    prefix="in collaboration w/"
+                    senderUserId={collaborationPartnerUserId}
+                    senderDisplayName={dedicationSenderDisplayName}
+                    senderNameLoading={dedicationSenderNameLoading}
+                    className={
+                      !formatAchievedAt(detailAchievement.achievedAt) ? "mt-6" : undefined
+                    }
+                    endSlot={
+                      detailAchievement.hasCustomBadge && showShowcaseShareOption ? (
+                        <AchievementDetailShareMenu
+                          disabled={isSaving}
+                          busy={shareMenuBusy}
+                          showDedicateOption={false}
+                          showShowcaseOption={showShowcaseShareOption}
+                          showEmbedOption={false}
+                          showcaseDisabledReason={showcaseShareDisabledReason}
+                          motion={chromeMotion}
+                          index={2}
+                          onShareShowcase={onShareShowcase}
+                          onRequestDedicateInvite={onRequestDedicateInviteShare}
+                          onCollaborate={onCollaborate}
+                          onEndCollaboration={onEndCollaboration}
+                          onEmbed={onEmbedLink}
+                        />
+                      ) : undefined
+                    }
+                  />
+                ) : detailAchievement.hasCustomBadge && showShowcaseShareOption ? (
                   <div
                     className={cn(
                       badgeChromeWidth,
@@ -673,12 +735,15 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                       disabled={isSaving}
                       busy={shareMenuBusy}
                       showDedicateOption={false}
+                      showShowcaseOption={showShowcaseShareOption}
                       showEmbedOption={false}
                       showcaseDisabledReason={showcaseShareDisabledReason}
                       motion={chromeMotion}
                       index={2}
                       onShareShowcase={onShareShowcase}
                       onRequestDedicateInvite={onRequestDedicateInviteShare}
+                      onCollaborate={onCollaborate}
+                      onEndCollaboration={onEndCollaboration}
                       onEmbed={onEmbedLink}
                     />
                   </div>
@@ -699,7 +764,7 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
               onClosePanel={requestChromeClose}
               showEditChrome
               onRequestDelete={
-                detailAchievement
+                detailAchievement && !isShelfCollaborator
                   ? () => onRequestDelete(detailAchievement.id)
                   : undefined
               }

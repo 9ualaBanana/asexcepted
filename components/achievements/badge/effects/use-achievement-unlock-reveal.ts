@@ -10,19 +10,17 @@ import {
   type SetStateAction,
 } from "react";
 
-import { unlockAchievement } from "@/lib/achievements/data/achievement-repository";
+import { unlockAchievement } from "@/lib/achievements/application/achievements";
 import {
   UNLOCK_HOLD_DURATION_MS,
   UNLOCK_REVEAL_DURATION_MS,
   UNLOCK_REVEAL_LUT_STEPS,
 } from "@/components/achievements/achievement-manager-utils";
-import type { AchievementDetailViewModel } from "@/lib/achievements/data/achievement-view-models";
 import {
-  mapCollectionDetails,
   sortCollectionEntries,
-  updateCollectionEntryDetail,
-  type AchievementCollectionEntryViewModel,
-} from "@/lib/achievements/data/achievement-view-models";
+  updateAchievementInMem,
+  type AchievementViewModel,
+} from "@/lib/achievements/presentation/collection-view-models";
 import { useAchievementSounds } from "@/components/achievements/badge/effects/use-achievement-sounds";
 import { useRevealClipPathDriver } from "@/components/achievements/badge/effects/unlock-reveal-wave";
 import {
@@ -32,20 +30,16 @@ import {
   type AlphaMaskData,
 } from "@/lib/achievements/badge/parallax/shape-utils";
 import { ensureBadgeAlphaMaskData } from "@/lib/achievements/badge/shared/render-cache";
-import { type createBrowserSupabase } from "@/lib/supabase/clients/browser";
-
-type SupabaseClient = ReturnType<typeof createBrowserSupabase>;
 
 type UseAchievementUnlockRevealArgs = {
   readOnly: boolean;
-  detailAchievement: AchievementDetailViewModel | null;
+  detailAchievement: AchievementViewModel | null;
   detailRenderSrc: string | null;
   detailViewSessionKey: number;
   isSaving: boolean;
   setIsSaving: Dispatch<SetStateAction<boolean>>;
   setError: Dispatch<SetStateAction<string | null>>;
-  setAchievements: Dispatch<SetStateAction<AchievementCollectionEntryViewModel[]>>;
-  supabase: SupabaseClient;
+  setAchievements: Dispatch<SetStateAction<AchievementViewModel[]>>;
   onFirstUnlockComplete?: () => void;
   onFirstUnlockReverted?: () => void;
 };
@@ -59,7 +53,6 @@ export function useAchievementUnlockReveal({
   setIsSaving,
   setError,
   setAchievements,
-  supabase,
   onFirstUnlockComplete,
   onFirstUnlockReverted,
 }: UseAchievementUnlockRevealArgs) {
@@ -102,7 +95,6 @@ export function useAchievementUnlockReveal({
   const detailIsLockedUi =
     Boolean(detailAchievement?.isLocked) &&
     optimisticUnlockedAchievementId !== detailAchievement?.id;
-  const detailFloating = !detailIsLockedUi && !detailIsUnlocking;
 
   const clipPathLut = useMemo(
     () => (detailAchievement ? buildUnlockRevealClipPathLut() : null),
@@ -260,7 +252,7 @@ export function useAchievementUnlockReveal({
     const targetId = detailAchievement.id;
     let hadUnlockedBefore = false;
     setAchievements((prev) => {
-      hadUnlockedBefore = prev.some((entry) => !entry.detail.isLocked);
+      hadUnlockedBefore = prev.some((achievement) => !achievement.isLocked);
       return prev;
     });
 
@@ -295,8 +287,10 @@ export function useAchievementUnlockReveal({
 
     setAchievements((prev) =>
       sortCollectionEntries(
-        mapCollectionDetails(prev, (detail) =>
-          detail.id === targetId ? { ...detail, isLocked: false } : detail,
+        prev.map((achievement) =>
+          achievement.id === targetId
+            ? { ...achievement, isLocked: false }
+            : achievement,
         ),
       ),
     );
@@ -311,7 +305,7 @@ export function useAchievementUnlockReveal({
       onFirstUnlockCompleteRef.current?.();
     }
 
-    const unlockResult = await unlockAchievement(supabase, targetId);
+    const unlockResult = await unlockAchievement(targetId);
     if (unlockResult.isErr()) {
       if (!hadUnlockedBefore) {
         onFirstUnlockRevertedRef.current?.();
@@ -319,8 +313,10 @@ export function useAchievementUnlockReveal({
       setError(unlockResult.error);
       setAchievements((prev) =>
         sortCollectionEntries(
-          mapCollectionDetails(prev, (detail) =>
-            detail.id === targetId ? { ...detail, isLocked: true } : detail,
+          prev.map((achievement) =>
+            achievement.id === targetId
+              ? { ...achievement, isLocked: true }
+              : achievement,
           ),
         ),
       );
@@ -331,7 +327,7 @@ export function useAchievementUnlockReveal({
 
     const unlockedAchievement = unlockResult.value;
     setAchievements((prev) =>
-      updateCollectionEntryDetail(prev, unlockedAchievement),
+      updateAchievementInMem(prev, unlockedAchievement),
     );
     setOptimisticUnlockedAchievementId(null);
 
@@ -351,7 +347,6 @@ export function useAchievementUnlockReveal({
     setError,
     setIsSaving,
     stopUnlockSound,
-    supabase,
   ]);
 
   const startUnlockHold = useCallback(() => {
@@ -401,7 +396,6 @@ export function useAchievementUnlockReveal({
     isUnlockHolding,
     detailIsUnlocking,
     detailIsLockedUi,
-    detailFloating,
     optimisticUnlockedAchievementId,
     unlockRevealClipPathRef: revealClip.clipPathRef,
     unlockAlphaMaskRef,

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getAchievementForUnlockPush } from "@/lib/achievements/data/achievement-repository";
+import { getAchievementForUnlockPush } from "@/lib/achievements/persistence/achievements";
 import { resolveDisplayName, sendPushToUsers } from "@/lib/notifications";
 import { createServerSupabase } from "@/lib/supabase/clients/server";
 
@@ -69,7 +69,6 @@ export async function POST(request: Request) {
   }
 
   const result = await sendPushToUsers({
-    supabase,
     userIds: followerIds,
     kind: "unlock",
     params: {

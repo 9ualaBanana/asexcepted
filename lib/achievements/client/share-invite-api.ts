@@ -1,28 +1,21 @@
 import { err, ok, type Result } from "neverthrow";
 import { z } from "zod";
 
-import type { AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
 import { fetchFailureMessage, postJson } from "@/lib/client/fetch-json";
 
-export type AchievementShareInviteIntent = "showcase" | "dedicate";
+export type AchievementShareInviteIntent = "showcase" | "dedicate" | "collaborate";
 
-type CreateShareInviteBody =
-  | {
-      mode: "existing";
-      achievementId: string;
-      intent: AchievementShareInviteIntent;
-    }
-  | {
-      mode: "draft";
-      payload: AchievementDbWritePayload;
-    };
+type CreateShareInviteBody = {
+  achievementId: string;
+  intent: AchievementShareInviteIntent;
+}
 
 const shareInviteSuccessSchema = z.object({
   shareUrl: z.string().min(1),
 });
 
 const claimInviteSuccessSchema = z.object({
-  achievementId: z.string().uuid(),
+  achievementId: z.uuid(),
   redirectPath: z.string().min(1),
 });
 
@@ -55,4 +48,19 @@ export async function postClaimAchievementShareInvite(args: {
     return err(fetchFailureMessage(result.error));
   }
   return ok(result.value);
+}
+
+export async function postEndAchievementCollaboration(
+  achievementId: string,
+): Promise<Result<void, string>> {
+  const result = await postJson(
+    "/api/achievements/collaboration",
+    { achievementId },
+    z.object({ ok: z.literal(true) }),
+    "Could not end this collaboration.",
+  );
+  if (result.isErr()) {
+    return err(fetchFailureMessage(result.error));
+  }
+  return ok(undefined);
 }

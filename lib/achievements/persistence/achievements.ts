@@ -1,54 +1,44 @@
 import { err, ok, type Result } from "neverthrow";
 
 import { todayDateString } from "@/lib/feed/format-feed-event-time";
-import type {
-  AchievementDbRow,
-  AchievementDbWritePayload,
-} from "@/lib/achievements/data/achievement-db-schema";
 import {
-  normalizeAchievementRowsForList,
-  tryNormalizeAchievement,
-} from "@/lib/achievements/data/achievement-transformers";
-import {
-  attachImpressionCounts,
-  fetchImpressionCountMap,
-} from "@/lib/achievements/data/impression-counts";
-import {
-  embedBadgeRowToViewModel,
-  embedMintRowToViewModel,
-  type AchievementEmbedBadgeViewModel,
-  type AchievementEmbedMintViewModel,
-} from "@/lib/achievements/data/achievement-surface-view-models";
-import {
-  domainRowToDetailViewModel,
-  domainRowsToCollectionEntries,
-  sortCollectionEntries,
-  type AchievementCollectionEntryViewModel,
-  type AchievementDetailViewModel,
-} from "@/lib/achievements/data/achievement-view-models";
+  parseAchievement,
+  parseAchievements,
+  type Achievement,
+  type AchievementWrite,
+} from "@/lib/achievements/domain/achievement";
 import {
   normalizeNetworkFailureMessage,
   retryOnTransientNetworkError,
 } from "@/lib/client/fetch-json";
 import type {
   DatabaseSupabaseClient,
-  RlsScopedSupabaseClient,
   ServiceRoleSupabaseClient,
 } from "@/lib/supabase/clients/client-types";
 import type { Database } from "@/lib/supabase/database.types";
 import { formatSupabaseSingleRowError } from "@/lib/supabase/postgrest-errors";
 
 const ACHIEVEMENT_FULL_SELECT =
-  "id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_cc_attribution,icon_model_yaw,icon_model_pitch,icon_model_animation_play,icon_model_animation_speed,tone,is_locked,achieved_at,created_at,visibility,dedicated_by_user_id,dedication_status";
+  "id,user_id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_cc_attribution,icon_model_yaw,icon_model_pitch,icon_model_animation_play,icon_model_animation_speed,tone,is_locked,achieved_at,created_at,visibility,dedicated_by_user_id,dedication_status,collaborator_user_id";
 
-export type { AchievementDbRow, AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
-export type {
-  AchievementEmbedBadgeViewModel,
-  AchievementEmbedMintViewModel,
-} from "@/lib/achievements/data/achievement-surface-view-models";
+export type AchievementEmbedBadgeSource = {
+  icon_url: string | null;
+  icon_asset_kind?: string | null;
+  icon_asset_path?: string | null;
+  icon_model_yaw?: number | null;
+  icon_model_pitch?: number | null;
+  icon_model_animation_play?: boolean | null;
+  icon_model_animation_speed?: number | null;
+  icon_cc_attribution?: string | null;
+};
 
-export type AchievementListResult = Result<AchievementCollectionEntryViewModel[], string>;
-export type AchievementSingleResult = Result<AchievementDetailViewModel, string>;
+export type AchievementEmbedMintSource = {
+  id: string;
+  icon_url: string | null;
+};
+
+export type AchievementListResult = Result<Achievement[], string>;
+export type AchievementSingleResult = Result<Achievement, string>;
 export type AchievementDeleteResult = Result<void, string>;
 
 export type AchievementUnlockPushRow = {
@@ -85,12 +75,12 @@ export type AchievementShareInviteSnapshotRow = Pick<
   | "dedicated_by_user_id"
 >;
 
-function toAchievementSingleResult(row: AchievementDbRow): AchievementSingleResult {
-  const normalized = tryNormalizeAchievement(row);
-  if (normalized.isErr()) {
+function toSingleResult(row: unknown): AchievementSingleResult {
+  const parsed = parseAchievement(row);
+  if (parsed.isErr()) {
     return err("Invalid achievement data received from the server.");
   }
-  return ok(domainRowToDetailViewModel(normalized.value));
+  return ok(parsed.value);
 }
 
 export async function listAchievements(
@@ -100,7 +90,7 @@ export async function listAchievements(
   const { data, error } = await supabase
     .from("achievements")
     .select(ACHIEVEMENT_FULL_SELECT)
-    .eq("user_id", userId)
+    .or(`user_id.eq.${userId},collaborator_user_id.eq.${userId}`)
     .or("dedication_status.is.null,dedication_status.eq.accepted")
     .order("achieved_at", { ascending: false })
     .order("created_at", { ascending: false });
@@ -109,27 +99,59 @@ export async function listAchievements(
     return err(error.message);
   }
 
-  const domainRows = normalizeAchievementRowsForList(
-    data ?? [],
-    "listAchievements",
-  );
-  const countMap = await fetchImpressionCountMap(
-    supabase,
-    domainRows.map((record) => record.id),
-  );
-  const rowsWithCounts = attachImpressionCounts(domainRows, countMap);
-  return ok(sortCollectionEntries(domainRowsToCollectionEntries(rowsWithCounts)));
+  const rows = parseAchievements(data ?? []);
+  return ok(rows);
+}
+
+export async function getAchievement(
+  supabase: DatabaseSupabaseClient,
+  achievementId: string,
+): Promise<AchievementSingleResult> {
+  const { data, error } = await supabase
+    .from("achievements")
+    .select(ACHIEVEMENT_FULL_SELECT)
+    .eq("id", achievementId)
+    .single();
+
+  if (error) {
+    return err(formatSupabaseSingleRowError(error, "This achievement could not be found."));
+  }
+
+  return toSingleResult(data);
+}
+
+export async function getAchievementIdForOwner(
+  supabase: DatabaseSupabaseClient,
+  achievementId: string,
+  ownerUserId: string,
+): Promise<Result<string, string>> {
+  const { data, error } = await supabase
+    .from("achievements")
+    .select("id")
+    .eq("id", achievementId)
+    .eq("user_id", ownerUserId)
+    .single();
+
+  if (error) {
+    return err(
+      formatSupabaseSingleRowError(
+        error,
+        "Could not verify your achievement before completing the dedicate link.",
+      ),
+    );
+  }
+  return ok(data.id);
 }
 
 export async function createAchievement(
   supabase: DatabaseSupabaseClient,
-  payload: AchievementDbWritePayload,
+  write: AchievementWrite,
 ): Promise<AchievementSingleResult> {
   return retryOnTransientNetworkError(async () => {
     try {
       const { data, error } = await supabase
         .from("achievements")
-        .insert(payload)
+        .insert(write)
         .select(ACHIEVEMENT_FULL_SELECT)
         .single();
 
@@ -139,7 +161,7 @@ export async function createAchievement(
       if (!data || typeof data === "string") {
         return err("Unexpected response while creating achievement.");
       }
-      return toAchievementSingleResult(data);
+      return toSingleResult(data);
     } catch (e) {
       const message = e instanceof Error ? e.message : "Network error.";
       return err(normalizeNetworkFailureMessage(message));
@@ -150,13 +172,13 @@ export async function createAchievement(
 export async function updateAchievement(
   supabase: DatabaseSupabaseClient,
   achievementId: string,
-  payload: AchievementDbWritePayload,
+  write: AchievementWrite,
 ): Promise<AchievementSingleResult> {
   return retryOnTransientNetworkError(async () => {
     try {
       const { data, error } = await supabase
         .from("achievements")
-        .update(payload)
+        .update(write)
         .eq("id", achievementId)
         .select(ACHIEVEMENT_FULL_SELECT)
         .single();
@@ -167,7 +189,7 @@ export async function updateAchievement(
       if (!data || typeof data === "string") {
         return err("Unexpected response while updating achievement.");
       }
-      return toAchievementSingleResult(data);
+      return toSingleResult(data);
     } catch (e) {
       const message = e instanceof Error ? e.message : "Network error.";
       return err(normalizeNetworkFailureMessage(message));
@@ -181,7 +203,7 @@ export async function updateAchievement(
  * not by this helper. Do not pass a service-role client.
  */
 export async function deleteAchievement(
-  supabase: RlsScopedSupabaseClient,
+  supabase: DatabaseSupabaseClient,
   achievementId: string,
 ): Promise<AchievementDeleteResult> {
   const { error } = await supabase
@@ -202,7 +224,7 @@ export async function deleteAchievement(
  * delete-by-id when the principal is the service role.
  */
 export async function deleteAchievementForOwner(
-  supabase: ServiceRoleSupabaseClient,
+  supabase: DatabaseSupabaseClient,
   achievementId: string,
   ownerUserId: string,
 ): Promise<AchievementDeleteResult> {
@@ -251,7 +273,7 @@ export async function unlockAchievement(
   if (!data || typeof data === "string") {
     return err("Unexpected response while unlocking achievement.");
   }
-  return toAchievementSingleResult(data);
+  return toSingleResult(data);
 }
 
 export async function getAchievementForUnlockPush(
@@ -273,10 +295,10 @@ export async function getAchievementForUnlockPush(
   return ok(data);
 }
 
-export async function getAchievementEmbedBadgeById(
+export async function getAchievementEmbedBadgeSource(
   supabase: DatabaseSupabaseClient,
   achievementId: string,
-): Promise<Result<AchievementEmbedBadgeViewModel, string>> {
+): Promise<Result<AchievementEmbedBadgeSource, string>> {
   const { data, error } = await supabase
     .from("achievements")
     .select("icon_url,icon_asset_kind,icon_asset_path,icon_model_yaw,icon_model_pitch")
@@ -289,18 +311,14 @@ export async function getAchievementEmbedBadgeById(
   if (!data) {
     return err("Achievement not found");
   }
-  const badge = embedBadgeRowToViewModel(data);
-  if (!badge) {
-    return err("Achievement not found");
-  }
-  return ok(badge);
+  return ok(data);
 }
 
-export async function getAchievementEmbedMintForOwner(
+export async function getAchievementEmbedMintSource(
   supabase: DatabaseSupabaseClient,
   achievementId: string,
   ownerUserId: string,
-): Promise<Result<AchievementEmbedMintViewModel, string>> {
+): Promise<Result<AchievementEmbedMintSource, string>> {
   const { data, error } = await supabase
     .from("achievements")
     .select("id,icon_url")
@@ -314,11 +332,7 @@ export async function getAchievementEmbedMintForOwner(
   if (!data) {
     return err("Achievement not found");
   }
-  const mint = embedMintRowToViewModel(data.id, data);
-  if (!mint) {
-    return err("Achievement not found");
-  }
-  return ok(mint);
+  return ok(data);
 }
 
 export async function getAchievementDedicationNotifyRow(
@@ -340,53 +354,50 @@ export async function getAchievementDedicationNotifyRow(
   return ok(data);
 }
 
-export async function getAchievementShareInviteSnapshotRow(
+export async function setAchievementCollaborator(
   supabase: DatabaseSupabaseClient,
   achievementId: string,
-): Promise<Result<AchievementShareInviteSnapshotRow, string>> {
+  collaboratorUserId: string,
+): Promise<AchievementSingleResult> {
   const { data, error } = await supabase
     .from("achievements")
-    .select(
-      "id,user_id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_cc_attribution,icon_model_yaw,icon_model_pitch,tone,achieved_at,visibility,dedicated_by_user_id",
-    )
+    .update({ collaborator_user_id: collaboratorUserId })
     .eq("id", achievementId)
+    .is("collaborator_user_id", null)
+    .is("dedicated_by_user_id", null)
+    .neq("user_id", collaboratorUserId)
+    .select(ACHIEVEMENT_FULL_SELECT)
     .maybeSingle();
 
   if (error) {
-    return err(formatSupabaseSingleRowError(error, "This achievement could not be found."));
+    return err(error.message);
   }
   if (!data) {
-    return err("This achievement could not be found.");
+    return err("This achievement cannot be collaborated on.");
   }
-  return ok(data);
+  return toSingleResult(data);
 }
 
-export async function getAchievementIdForOwner(
+export async function clearAchievementCollaborator(
   supabase: DatabaseSupabaseClient,
   achievementId: string,
-  ownerUserId: string,
-): Promise<Result<{ id: string }, string>> {
+  actorUserId: string,
+): Promise<AchievementSingleResult> {
   const { data, error } = await supabase
     .from("achievements")
-    .select("id")
+    .update({ collaborator_user_id: null })
     .eq("id", achievementId)
-    .eq("user_id", ownerUserId)
+    .or(`user_id.eq.${actorUserId},collaborator_user_id.eq.${actorUserId}`)
+    .select(ACHIEVEMENT_FULL_SELECT)
     .maybeSingle();
 
   if (error) {
-    return err(
-      formatSupabaseSingleRowError(
-        error,
-        "Could not verify your achievement before completing the dedicate link.",
-      ),
-    );
+    return err(error.message);
   }
   if (!data) {
-    return err(
-      "This achievement is no longer in your collection. It may have already been dedicated.",
-    );
+    return err("Could not end this collaboration.");
   }
-  return ok(data);
+  return toSingleResult(data);
 }
 
 export async function getAchievementOwnerUserId(
@@ -404,4 +415,3 @@ export async function getAchievementOwnerUserId(
   }
   return ok(data?.user_id ?? null);
 }
-

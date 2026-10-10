@@ -7,7 +7,7 @@ import { Badge } from "@/components/achievements/badge/display/badge";
 import { badgeOptionsForFeedRow } from "@/components/achievements/badge/display/badge-presets";
 import { FeedActivityText } from "@/components/social/feed/feed-activity-text";
 import { ProfileAvatarSlot } from "@/components/profile/profile-avatar-slot";
-import type { AchievementFeedItemViewModel } from "@/lib/achievements/data/achievement-surface-view-models";
+import type { AchievementFeedItemViewModel } from "@/lib/achievements/presentation/surface-view-models";
 import { formatFeedEventTimestamp } from "@/lib/feed/format-feed-event-time";
 import {
   FEED_BADGE_PX,

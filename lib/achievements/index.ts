@@ -1,9 +1,10 @@
 /** Achievement domain + badge pipeline — prefer subpath imports for tree-shaking. */
 
 export type {
-  AchievementDbRow,
-  AchievementDbWritePayload,
-} from "./data/achievement-db-schema";
+  Achievement,
+  AchievementCreate,
+  AchievementWrite,
+} from "./domain/achievement";
 export {
   ACHIEVEMENT_ICON_KEYS,
   ACHIEVEMENT_TONES,
@@ -21,76 +22,104 @@ export {
   type AchievementTone,
   type AchievementVisibility,
   type IconAssetKind,
-} from "./data/achievement-enums";
+} from "./domain/enums";
 export {
-  tryNormalizeAchievement,
-  normalizeAchievementRowsForList,
-  achievementDomainRowSchema,
-  type AchievementDomainRow,
-} from "./data/achievement-transformers";
+  parseAchievement,
+  parseAchievements,
+  achievementSchema,
+} from "./domain/achievement";
 export {
-  type AchievementCollectionEntryViewModel,
-  type AchievementDetailViewModel,
-  type AchievementGridViewModel,
-  achievementDetailToForm,
-  collectionEntryFromDetail,
-  detailToShareInviteSnapshotSource,
-  domainRowToCollectionEntry,
-  domainRowToDetailViewModel,
-  formToPayload,
-  isAchievementFormDirty,
-  mapCollectionDetails,
-  sortCollectionEntries,
-  updateCollectionEntryDetail,
-  upsertCollectionEntry,
-} from "./data/achievement-view-models";
-export {
-  createInitialForm,
-  hasMeaningfulContent,
-  toNullable,
-  type FormState,
-} from "./data/achievement-form-state";
-export {
-  createAchievement,
-  deleteAchievement,
-  getAchievementEmbedBadgeById,
-  getAchievementEmbedMintForOwner,
-  listAchievements,
-  unlockAchievement,
-  updateAchievement,
-} from "./data/achievement-repository";
-export {
-  attachImpressionCounts,
-  fetchImpressionCountMap,
-} from "./data/impression-counts";
-export {
-  type AchievementEmbedBadgeViewModel,
-  type AchievementEmbedMintViewModel,
-  type AchievementFeedItemViewModel,
-  type AchievementShareInviteBadgeViewModel,
-  type FeedEventType,
-  type FollowingUnlockFeedRow,
   FEED_EVENT_TYPES,
-  embedBadgeRowToViewModel,
-  embedMintRowToViewModel,
-  feedRpcRowToViewModel,
+  type FeedEventType,
+  type FollowingUnlockFeedEvent,
+  followingUnlockFeedEventSchema,
+  followingUnlockFeedEventsSchema,
   followingUnlockFeedRowSchema,
   followingUnlockFeedRowsSchema,
-  shareInviteRowToBadgeViewModel,
-} from "./data/achievement-surface-view-models";
+  type FollowingUnlockFeedRow,
+} from "./domain/feed-event";
 export {
-  fetchFollowingUnlockFeed,
-  type FeedCursor,
-  type FeedPage,
-} from "./data/feed-db";
-
-export {
+  type AchievementViewModel as AchievementDetailViewModel,
+  achievementToForm as achievementDetailToForm,
+  achievementToViewModel as achievementToDetailViewModel,
+  formToAchievementWrite,
+  isAchievementFormDirty,
+  sortCollectionEntries,
+  updateAchievementInMem as updateCollectionEntryDetail,
   canEditDedicatedVisibility,
   isDedicatedAchievement,
   isDedicatedVisibilityDirty,
   showsDedicatedBadgeAura,
   showsDedicatedBadgeEffect,
-} from "./dedication/dedication-utils";
+} from "./presentation/collection-view-models";
+export {
+  createInitialForm,
+  hasMeaningfulContent,
+  toNullable,
+  type FormState,
+} from "./presentation/form-state";
+export {
+  deleteAchievementForOwner,
+  getAchievementForUnlockPush,
+  getAchievementDedicationNotifyRow,
+  getAchievement as getAchievementShareInviteSnapshotRow,
+  getAchievementIdForOwner,
+  getAchievementOwnerUserId,
+} from "./persistence/achievements";
+
+export type {
+  AchievementPort,
+  DedicationPort,
+  EmbedPort,
+  FeedPort,
+  ImpressionPort,
+  FeedCursor,
+  FeedEventPage,
+} from "./application/ports";
+export {
+  createAchievementPort,
+  createDedicationPort,
+  createEmbedPort,
+  createFeedPort,
+  createImpressionPort,
+} from "./application/adapters";
+
+export {
+  listAchievements,
+  createAchievement,
+  updateAchievement,
+  deleteAchievement,
+  unlockAchievement,
+} from "./application/achievements";
+export {
+  listCollection,
+  type ListCollectionPorts,
+} from "./application/collection";
+export {
+  createImpression,
+  loadImpressionCountMap,
+} from "./application/impressions";
+export {
+  type FeedPage,
+  loadFollowingUnlockFeed,
+} from "./application/feed";
+export {
+  listPendingDedications,
+  acceptPendingDedication,
+  rejectPendingDedication,
+} from "./application/dedication-queue";
+export { loadEmbedBadge, loadEmbedMint } from "./application/embed";
+
+export {
+  type AchievementEmbedBadgeViewModel,
+  type AchievementEmbedMintViewModel,
+  type AchievementFeedItemViewModel,
+  type AchievementShareInviteBadgeViewModel,
+  embedBadgeRowToViewModel,
+  embedMintRowToViewModel,
+  feedEventToViewModel,
+  shareInviteRowToBadgeViewModel,
+} from "./presentation/surface-view-models";
 
 export {
   useHideLockedPreference,

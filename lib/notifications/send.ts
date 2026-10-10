@@ -1,4 +1,3 @@
-import type { DatabaseSupabaseClient } from "@/lib/supabase/clients/client-types";
 import { createServiceRoleSupabase } from "@/lib/supabase/clients/server";
 import { buildFcmWebPushMessage } from "@/lib/notifications/fcm";
 import type { NotificationKind } from "@/lib/notifications/kinds";
@@ -73,7 +72,6 @@ async function pruneStaleTokens(
 }
 
 export async function sendPushToUsers<K extends NotificationKind>(args: {
-  supabase: DatabaseSupabaseClient;
   userIds: string[];
   kind: K;
   params: NotificationParams[K];
@@ -118,7 +116,6 @@ export async function sendPushToUsers<K extends NotificationKind>(args: {
 
 /** Admin signup alert — tokens for admin uid and/or FCM topic subscription. */
 export async function sendAdminNewSignupPush(args: {
-  supabase: DatabaseSupabaseClient;
   userId: string;
   email?: string;
 }): Promise<{ ok: boolean }> {
@@ -130,7 +127,6 @@ export async function sendAdminNewSignupPush(args: {
   const adminUserId = getAdminUserId();
   if (adminUserId) {
     const tokenResult = await sendPushToUsers({
-      supabase: args.supabase,
       userIds: [adminUserId],
       kind: "admin_new_signup",
       params: { userId: args.userId, email: args.email },

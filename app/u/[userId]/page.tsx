@@ -11,7 +11,7 @@ import {
   fetchPublicUserDisplayName,
   isAuthUserIdSegment,
   isUserFollowingProfile,
-} from "@/lib/achievements/data/user-profile-db";
+} from "@/lib/profile/follow";
 
 type PageProps = {
   params: Promise<{ userId: string }>;

@@ -1,8 +1,4 @@
 import {
-  type FormState,
-  toNullable,
-} from "@/lib/achievements/data/achievement-form-state";
-import {
   isModelGlbAsset,
   parseBadgeModelAsset,
   type BadgeModelAsset,
@@ -15,18 +11,18 @@ import {
   type AchievementIconKey,
   type AchievementTone,
   type AchievementVisibility,
-} from "@/lib/achievements/data/achievement-enums";
-import type { AchievementDbWritePayload } from "@/lib/achievements/data/achievement-db-schema";
-import type { AchievementDomainRow } from "@/lib/achievements/data/achievement-transformers";
-import {
-  showsDedicatedBadgeAura,
-  showsDedicatedBadgeEffect,
-} from "@/lib/achievements/dedication/dedication-utils";
-import { formatGridDate } from "@/lib/feed/format-feed-event-time";
+} from "@/lib/achievements/domain/enums";
+import type {
+  Achievement,
+  AchievementWrite,
+} from "@/lib/achievements/domain/achievement";
 import { normalizeImageKitFileId } from "@/lib/imagekit/client/imagekit-api";
 import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
-import type { CollectionAchievementSnapshotSource } from "@/lib/share-invites/invite-snapshot";
 import { z } from "zod";
+import {
+  type FormState,
+  toNullable,
+} from "@/lib/achievements/presentation/form-state";
 
 const badgeModelFormFieldsSchema = z.object({
   assetPath: z.string(),
@@ -94,7 +90,7 @@ const formToPayloadSchema = z
     visibility: achievementVisibilitySchema,
   })
   .transform(
-    (form): AchievementDbWritePayload => ({
+    (form): AchievementWrite => ({
       title: toNullable(form.title),
       description: toNullable(form.description),
       category: toNullable(form.category),
@@ -118,21 +114,9 @@ const formToPayloadSchema = z
     }),
   );
 
-export type AchievementGridViewModel = {
+export type AchievementViewModel = {
   id: string;
-  title: string | null;
-  dateLabel: string | null;
-  displaySrc: string | null;
-  icon: AchievementIconKey;
-  tone: AchievementTone;
-  isLocked: boolean;
-  hasImpressions: boolean;
-  /** Dedicated particle effect (image badges only). */
-  showDedicatedEffect: boolean;
-};
-
-export type AchievementDetailViewModel = {
-  id: string;
+  userId: string;
   title: string | null;
   description: string | null;
   category: string | null;
@@ -153,36 +137,15 @@ export type AchievementDetailViewModel = {
   showDedicatedEffect: boolean;
   dedicatedByUserId: string | null;
   dedicationStatus: "pending" | "accepted" | null;
+  collaboratorUserId: string | null;
 };
-
-export type AchievementCollectionEntryViewModel = {
-  grid: AchievementGridViewModel;
-  detail: AchievementDetailViewModel;
-};
-
-function createdAtMs(detail: AchievementDetailViewModel): number {
-  return new Date(detail.createdAt).getTime();
-}
-
-function achievedAtMs(detail: AchievementDetailViewModel): number {
-  if (!detail.achievedAt) return 0;
-  return new Date(`${detail.achievedAt}T00:00:00`).getTime();
-}
-
-/** 0 = locked undated, 1 = unlocked undated, 2 = has achievedAt */
-function detailSortKey(detail: AchievementDetailViewModel): [number, number, number] {
-  const dated = Boolean(detail.achievedAt);
-  if (!dated && detail.isLocked) return [0, 0, -createdAtMs(detail)];
-  if (!dated && !detail.isLocked) return [1, 0, -createdAtMs(detail)];
-  return [2, -achievedAtMs(detail), -createdAtMs(detail)];
-}
 
 export function sortCollectionEntries(
-  entries: AchievementCollectionEntryViewModel[],
-): AchievementCollectionEntryViewModel[] {
-  return [...entries].sort((a, b) => {
-    const ak = detailSortKey(a.detail);
-    const bk = detailSortKey(b.detail);
+  achievements: AchievementViewModel[],
+): AchievementViewModel[] {
+  return [...achievements].sort((a, b) => {
+    const ak = achievementSortKey(a);
+    const bk = achievementSortKey(b);
     for (let i = 0; i < ak.length; i++) {
       if (ak[i] !== bk[i]) return ak[i] - bk[i];
     }
@@ -190,7 +153,24 @@ export function sortCollectionEntries(
   });
 }
 
-export function domainRowToDetailViewModel(row: AchievementDomainRow): AchievementDetailViewModel {
+/** 0 = locked undated, 1 = unlocked undated, 2 = has achievedAt */
+function achievementSortKey(detail: AchievementViewModel): [number, number, number] {
+  const dated = Boolean(detail.achievedAt);
+  if (!dated && detail.isLocked) return [0, 0, -createdAtMs(detail)];
+  if (!dated && !detail.isLocked) return [1, 0, -createdAtMs(detail)];
+  return [2, -achievedAtMs(detail), -createdAtMs(detail)];
+}
+
+function createdAtMs(detail: AchievementViewModel): number {
+  return new Date(detail.createdAt).getTime();
+}
+
+function achievedAtMs(detail: AchievementViewModel): number {
+  if (!detail.achievedAt) return 0;
+  return new Date(`${detail.achievedAt}T00:00:00`).getTime();
+}
+
+export function achievementToViewModel(row: Achievement): AchievementViewModel {
   const iconUrl = row.icon_url;
   const model = parseBadgeModelAsset({
     iconAssetKind: row.icon_asset_kind,
@@ -203,6 +183,7 @@ export function domainRowToDetailViewModel(row: AchievementDomainRow): Achieveme
   });
   return {
     id: row.id,
+    userId: row.user_id,
     title: row.title,
     description: row.description,
     category: row.category,
@@ -216,7 +197,7 @@ export function domainRowToDetailViewModel(row: AchievementDomainRow): Achieveme
     achievedAt: row.achieved_at,
     createdAt: row.created_at,
     visibility: row.visibility,
-    impressionCount: row.impression_count,
+    impressionCount: 0,
     hasCustomBadge: iconUrl !== null,
     showDedicatedEffect: showsDedicatedBadgeEffect(
       showsDedicatedBadgeAura({
@@ -227,101 +208,83 @@ export function domainRowToDetailViewModel(row: AchievementDomainRow): Achieveme
     ),
     dedicatedByUserId: row.dedicated_by_user_id,
     dedicationStatus: row.dedication_status,
+    collaboratorUserId: row.collaborator_user_id,
   };
 }
 
-export function detailToGridViewModel(detail: AchievementDetailViewModel): AchievementGridViewModel {
-  return {
-    id: detail.id,
-    title: detail.title,
-    dateLabel: formatGridDate(detail.achievedAt),
-    displaySrc: detail.renderSrc,
-    icon: detail.icon,
-    tone: detail.tone,
-    isLocked: detail.isLocked,
-    hasImpressions: detail.impressionCount > 0,
-    showDedicatedEffect: detail.showDedicatedEffect,
-  };
+export function isDedicatedAchievement(
+  achievement: Pick<AchievementViewModel, "dedicatedByUserId">,
+): boolean {
+  return Boolean(achievement.dedicatedByUserId);
 }
 
-export function collectionEntryFromDetail(
-  detail: AchievementDetailViewModel,
-): AchievementCollectionEntryViewModel {
-  return {
-    detail,
-    grid: detailToGridViewModel(detail),
-  };
-}
-
-export function domainRowToCollectionEntry(row: AchievementDomainRow): AchievementCollectionEntryViewModel {
-  return collectionEntryFromDetail(domainRowToDetailViewModel(row));
-}
-
-export function domainRowsToCollectionEntries(
-  rows: AchievementDomainRow[],
-): AchievementCollectionEntryViewModel[] {
-  return rows.map(domainRowToCollectionEntry);
-}
-
-export function updateCollectionEntryDetail(
-  entries: AchievementCollectionEntryViewModel[],
-  detail: AchievementDetailViewModel,
-): AchievementCollectionEntryViewModel[] {
-  return entries.map((entry) =>
-    entry.detail.id === detail.id ? collectionEntryFromDetail(detail) : entry,
+export function canEditDedicatedVisibility(
+  achievement: Pick<
+    AchievementViewModel,
+    "dedicatedByUserId" | "dedicationStatus"
+  >,
+): boolean {
+  return (
+    Boolean(achievement.dedicatedByUserId) &&
+    achievement.dedicationStatus === "accepted"
   );
 }
 
-export function mapCollectionDetails(
-  entries: AchievementCollectionEntryViewModel[],
-  mapDetail: (detail: AchievementDetailViewModel) => AchievementDetailViewModel,
-): AchievementCollectionEntryViewModel[] {
-  return entries.map((entry) => collectionEntryFromDetail(mapDetail(entry.detail)));
+export function showsDedicatedBadgeAura(
+  achievement: Pick<
+    AchievementViewModel,
+    "dedicatedByUserId" | "dedicationStatus"
+  >,
+): boolean {
+  return (
+    Boolean(achievement.dedicatedByUserId) &&
+    achievement.dedicationStatus === "accepted"
+  );
 }
 
-export function upsertCollectionEntry(
-  entries: AchievementCollectionEntryViewModel[],
-  detail: AchievementDetailViewModel,
-): AchievementCollectionEntryViewModel[] {
-  const rest = entries.filter((entry) => entry.detail.id !== detail.id);
-  return sortCollectionEntries([collectionEntryFromDetail(detail), ...rest]);
+export function showsDedicatedBadgeEffect(
+  showsAura: boolean,
+  isModelBadge: boolean,
+): boolean {
+  return showsAura && !isModelBadge;
 }
 
-export function detailToShareInviteSnapshotSource(
-  detail: AchievementDetailViewModel,
-): CollectionAchievementSnapshotSource {
-  return {
-    title: detail.title,
-    description: detail.description,
-    category: detail.category,
-    icon: detail.icon,
-    icon_url: detail.iconUrl ?? "",
-    icon_file_id: detail.iconFileId,
-    icon_asset_kind: detail.model ? "model_glb" : "image",
-    icon_asset_path: detail.model?.assetPath ?? null,
-    icon_cc_attribution: detail.model?.ccAttribution ?? null,
-    icon_model_yaw: detail.model?.yaw ?? 0,
-    icon_model_pitch: detail.model?.pitch ?? 0,
-    tone: detail.tone,
-    achieved_at: detail.achievedAt,
-  };
+export function isDedicatedVisibilityDirty(
+  form: Pick<FormState, "visibility">,
+  detail: Pick<AchievementViewModel, "visibility">,
+): boolean {
+  return form.visibility !== detail.visibility;
 }
 
-export function achievementDetailToForm(detail: AchievementDetailViewModel): FormState {
-  return detailToFormSchema.parse(detail);
+export function updateAchievementInMem(
+  achievements: AchievementViewModel[],
+  updatedAchievement: AchievementViewModel,
+): AchievementViewModel[] {
+  return achievements.map((achievement) =>
+    achievement.id === updatedAchievement.id
+      ? {
+          ...updatedAchievement,
+          impressionCount: achievement.impressionCount,
+        }
+      : achievement,
+  );
 }
 
-export function formToPayload(form: FormState): AchievementDbWritePayload {
+export function achievementToForm(achievement: AchievementViewModel): FormState {
+  return detailToFormSchema.parse(achievement);
+}
+
+export function formToAchievementWrite(form: FormState): AchievementWrite {
   return formToPayloadSchema.parse(form);
 }
 
 /** True when panel edit form differs from the saved achievement. */
 export function isAchievementFormDirty(
   form: FormState,
-  detail: AchievementDetailViewModel,
+  achievement: AchievementViewModel,
 ): boolean {
-  const current = formToPayload(form);
-  const baseline = formToPayload(achievementDetailToForm(detail));
+  const current = formToAchievementWrite(form);
+  const baseline = formToAchievementWrite(achievementToForm(achievement));
   return (
     current.title !== baseline.title ||
     current.description !== baseline.description ||
@@ -342,5 +305,3 @@ export function isAchievementFormDirty(
     current.visibility !== baseline.visibility
   );
 }
-
-export { showsDedicatedBadgeAura };

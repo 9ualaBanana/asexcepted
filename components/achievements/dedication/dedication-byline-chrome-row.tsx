@@ -19,6 +19,7 @@ type DedicationBylineChromeRowProps = {
   startSlot?: ReactNode;
   endSlot?: ReactNode;
   className?: string;
+  prefix?: string;
 };
 
 /**
@@ -32,6 +33,7 @@ export function DedicationBylineChromeRow({
   startSlot,
   endSlot,
   className,
+  prefix,
 }: DedicationBylineChromeRowProps) {
   return (
     <div
@@ -51,6 +53,7 @@ export function DedicationBylineChromeRow({
           senderDisplayName={senderDisplayName}
           senderNameLoading={senderNameLoading}
           className="mt-0 px-1"
+          prefix={prefix}
         />
       </div>
       <div className={cn(achievementDialogIconSideSlot, "justify-end")}>

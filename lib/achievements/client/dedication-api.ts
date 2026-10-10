@@ -1,11 +1,11 @@
 import { err, ok, type Result } from "neverthrow";
 import { z } from "zod";
 
-import { tryNormalizeAchievement } from "@/lib/achievements/data/achievement-transformers";
+import { parseAchievement } from "@/lib/achievements/domain/achievement";
 import {
-  domainRowToDetailViewModel,
-  type AchievementDetailViewModel,
-} from "@/lib/achievements/data/achievement-view-models";
+  achievementToViewModel,
+  type AchievementViewModel,
+} from "@/lib/achievements/presentation/collection-view-models";
 import { fetchFailureMessage, fetchJson } from "@/lib/client/fetch-json";
 
 const acceptDedicationResponseSchema = z.object({
@@ -13,7 +13,7 @@ const acceptDedicationResponseSchema = z.object({
 });
 
 export type AcceptDedicationResult =
-  | { kind: "accepted"; achievement: AchievementDetailViewModel }
+  | { kind: "accepted"; achievement: AchievementViewModel }
   | { kind: "already_accepted" };
 
 export async function postAcceptDedication(
@@ -38,13 +38,13 @@ export async function postAcceptDedication(
     return err("Could not read dedication after accepting.");
   }
 
-  const normalized = tryNormalizeAchievement(parsed.data.achievement);
+  const normalized = parseAchievement(parsed.data.achievement);
   if (normalized.isErr()) {
     return err(normalized.error);
   }
 
   return ok({
     kind: "accepted",
-    achievement: domainRowToDetailViewModel(normalized.value),
+    achievement: achievementToViewModel(normalized.value),
   });
 }

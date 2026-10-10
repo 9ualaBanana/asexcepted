@@ -4,11 +4,9 @@ import { isPublicHttpImageUrl } from "@/lib/achievements/badge/shared/badge-asse
 
 const OG_IMAGE_FETCH_TIMEOUT_MS = 8_000;
 
-export function resolveInviteOgBadgeImageUrl(invite: {
-  iconUrl: string | null;
-}): string | null {
-  const iconUrl = invite.iconUrl?.trim() ?? "";
-  return isPublicHttpImageUrl(iconUrl) ? iconUrl : null;
+export function resolveInviteOgBadgeImageUrl(iconUrl: string | null): string | null {
+  const trimmed = iconUrl?.trim() ?? "";
+  return isPublicHttpImageUrl(trimmed) ? trimmed : null;
 }
 
 export async function fetchInviteOgBadgeImageDataUrl(

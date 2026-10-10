@@ -1,8 +1,8 @@
-import type { AchievementDomainRow } from "@/lib/achievements/data/achievement-transformers";
+import type { Achievement } from "@/lib/achievements/domain/achievement";
 import {
-  domainRowToDetailViewModel,
-  type AchievementDetailViewModel,
-} from "@/lib/achievements/data/achievement-view-models";
+  achievementToViewModel,
+  type AchievementViewModel,
+} from "@/lib/achievements/presentation/collection-view-models";
 
 /** Shared ImageKit asset shown on welcome and seeded as the first locked achievement. */
 export const INTRO_ACHIEVEMENT_ICON_URL =
@@ -26,9 +26,10 @@ export const INTRO_ACHIEVEMENT_SEED = {
 
 const WELCOME_INTRO_ID = "welcome-intro-preview";
 
-function welcomeIntroDomainRow(): AchievementDomainRow {
+function welcomeIntroAchievement(): Achievement {
   return {
     id: WELCOME_INTRO_ID,
+    user_id: "00000000-0000-4000-8000-000000000000",
     title: INTRO_ACHIEVEMENT_SEED.title,
     description: INTRO_ACHIEVEMENT_SEED.description,
     category: INTRO_ACHIEVEMENT_SEED.category,
@@ -46,14 +47,14 @@ function welcomeIntroDomainRow(): AchievementDomainRow {
     is_locked: false,
     achieved_at: INTRO_ACHIEVEMENT_SEED.achieved_at,
     created_at: "1970-01-01T00:00:00.000Z",
-    impression_count: 0,
     visibility: "public",
     dedicated_by_user_id: null,
     dedication_status: null,
+    collaborator_user_id: null,
   };
 }
 
 /** Static detail view model for the marketing preview (not persisted). */
-export function getWelcomeIntroDetailViewModel(): AchievementDetailViewModel {
-  return domainRowToDetailViewModel(welcomeIntroDomainRow());
+export function getWelcomeIntroDetailViewModel(): AchievementViewModel {
+  return achievementToViewModel(welcomeIntroAchievement());
 }

@@ -19,5 +19,8 @@ export const ACHIEVEMENT_UI_COPY = {
   shareInviteUnknownError: "Could not create invite link.",
   shareMenuShowcase: "Share",
   shareMenuDedicate: "Dedicate",
+  shareMenuCollaborate: "Collaborate",
+  shareMenuEndCollaboration: "End collaboration",
   shareMenuEmbed: "Embed",
+  shareMenuCollaboratorShowcaseBlocked: "Only the owner can share this achievement.",
 } as const;

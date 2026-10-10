@@ -13,22 +13,22 @@ import {
   achievementToneSchema,
   achievementVisibilitySchema,
   iconAssetKindSchema,
-} from "@/lib/achievements/data/achievement-enums";
+} from "@/lib/achievements/domain/enums";
 import {
-  normalizeAchievementRowsForList,
-  tryNormalizeAchievement,
-  type AchievementDomainRow,
-} from "@/lib/achievements/data/achievement-transformers";
+  parseAchievement,
+  parseAchievements,
+  type Achievement,
+} from "@/lib/achievements/domain/achievement";
 import {
-  detailToGridViewModel,
-  domainRowToDetailViewModel,
-} from "@/lib/achievements/data/achievement-view-models";
+  achievementToViewModel,
+} from "@/lib/achievements/presentation/collection-view-models";
 
 const DEDICATED_BY = "44444444-4444-4444-8444-444444444444";
 
 function baseRow(over: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     id: "11111111-1111-4111-8111-111111111111",
+    user_id: "22222222-2222-4222-8222-222222222222",
     title: "T",
     description: null,
     category: null,
@@ -49,6 +49,7 @@ function baseRow(over: Record<string, unknown> = {}): Record<string, unknown> {
     visibility: DEFAULT_ACHIEVEMENT_VISIBILITY,
     dedicated_by_user_id: null,
     dedication_status: null,
+    collaborator_user_id: null,
     ...over,
   };
 }
@@ -73,13 +74,14 @@ describe("enum schemas are closed unions", () => {
   });
 });
 
-describe("tryNormalizeAchievement hard domain", () => {
+describe("parseAchievement hard domain", () => {
   it("maps a minimal public image row", () => {
-    const normalized = tryNormalizeAchievement(baseRow());
-    expect(normalized.isOk()).toBe(true);
-    if (normalized.isOk()) {
-      expect(normalized.value).toEqual({
+    const parsed = parseAchievement(baseRow());
+    expect(parsed.isOk()).toBe(true);
+    if (parsed.isOk()) {
+      expect(parsed.value).toEqual({
         id: "11111111-1111-4111-8111-111111111111",
+        user_id: "22222222-2222-4222-8222-222222222222",
         title: "T",
         description: null,
         category: null,
@@ -98,29 +100,29 @@ describe("tryNormalizeAchievement hard domain", () => {
         achieved_at: null,
         created_at: "2024-01-01T00:00:00.000Z",
         visibility: DEFAULT_ACHIEVEMENT_VISIBILITY,
-        impression_count: 0,
         dedicated_by_user_id: null,
         dedication_status: null,
-      } satisfies AchievementDomainRow);
+        collaborator_user_id: null,
+      } satisfies Achievement);
     }
   });
 
   it("rejects garbage enums and empty id", () => {
-    expect(tryNormalizeAchievement(baseRow({ icon: "nope" })).isErr()).toBe(true);
-    expect(tryNormalizeAchievement(baseRow({ tone: "HOTPINK" })).isErr()).toBe(true);
-    expect(tryNormalizeAchievement(baseRow({ visibility: "secret" })).isErr()).toBe(
+    expect(parseAchievement(baseRow({ icon: "nope" })).isErr()).toBe(true);
+    expect(parseAchievement(baseRow({ tone: "HOTPINK" })).isErr()).toBe(true);
+    expect(parseAchievement(baseRow({ visibility: "secret" })).isErr()).toBe(
       true,
     );
     expect(
-      tryNormalizeAchievement(baseRow({ icon_asset_kind: "mesh" })).isErr(),
+      parseAchievement(baseRow({ icon_asset_kind: "mesh" })).isErr(),
     ).toBe(true);
-    expect(tryNormalizeAchievement(baseRow({ id: "" })).isErr()).toBe(true);
-    expect(tryNormalizeAchievement(baseRow({ id: "not-uuid" })).isErr()).toBe(true);
-    expect(tryNormalizeAchievement(baseRow({ tone: null })).isErr()).toBe(true);
+    expect(parseAchievement(baseRow({ id: "" })).isErr()).toBe(true);
+    expect(parseAchievement(baseRow({ id: "not-uuid" })).isErr()).toBe(true);
+    expect(parseAchievement(baseRow({ tone: null })).isErr()).toBe(true);
   });
 
   it("accepts valid closed enums including model_glb + private + rose", () => {
-    const normalized = tryNormalizeAchievement(
+    const parsed = parseAchievement(
       baseRow({
         icon: "spiral",
         tone: "rose",
@@ -129,18 +131,18 @@ describe("tryNormalizeAchievement hard domain", () => {
         icon_asset_path: " path/model.glb ",
       }),
     );
-    expect(normalized.isOk()).toBe(true);
-    if (normalized.isOk()) {
-      expect(normalized.value.icon).toBe("spiral");
-      expect(normalized.value.tone).toBe("rose");
-      expect(normalized.value.visibility).toBe("private");
-      expect(normalized.value.icon_asset_kind).toBe("model_glb");
-      expect(normalized.value.icon_asset_path).toBe("path/model.glb");
+    expect(parsed.isOk()).toBe(true);
+    if (parsed.isOk()) {
+      expect(parsed.value.icon).toBe("spiral");
+      expect(parsed.value.tone).toBe("rose");
+      expect(parsed.value.visibility).toBe("private");
+      expect(parsed.value.icon_asset_kind).toBe("model_glb");
+      expect(parsed.value.icon_asset_path).toBe("path/model.glb");
     }
   });
 
-  it("dedication_status pending / accepted / legacy dedicated_by rules", () => {
-    const pending = tryNormalizeAchievement(
+  it("dedication_status pending / accepted / null without derive", () => {
+    const pending = parseAchievement(
       baseRow({
         dedication_status: "pending",
         dedicated_by_user_id: DEDICATED_BY,
@@ -148,7 +150,7 @@ describe("tryNormalizeAchievement hard domain", () => {
     );
     expect(pending.isOk() && pending.value.dedication_status).toBe("pending");
 
-    const accepted = tryNormalizeAchievement(
+    const accepted = parseAchievement(
       baseRow({
         dedication_status: "accepted",
         dedicated_by_user_id: DEDICATED_BY,
@@ -156,26 +158,25 @@ describe("tryNormalizeAchievement hard domain", () => {
     );
     expect(accepted.isOk() && accepted.value.dedication_status).toBe("accepted");
 
-    const legacy = tryNormalizeAchievement(
+    const missingStatus = parseAchievement(
       baseRow({ dedicated_by_user_id: DEDICATED_BY }),
     );
-    expect(legacy.isOk() && legacy.value.dedication_status).toBe("accepted");
+    expect(missingStatus.isOk() && missingStatus.value.dedication_status).toBe(
+      null,
+    );
   });
 });
 
-describe("normalizeAchievementRowsForList", () => {
+describe("parseAchievements", () => {
   it("keeps valid rows and drops invalid ones", () => {
-    const rows = normalizeAchievementRowsForList(
-      [
-        baseRow(),
-        baseRow({ id: "bad", icon: "nope" }),
-        baseRow({
-          id: "22222222-2222-4222-8222-222222222222",
-          icon: "flame",
-        }),
-      ],
-      "test-list",
-    );
+    const rows = parseAchievements([
+      baseRow(),
+      baseRow({ id: "bad", icon: "nope" }),
+      baseRow({
+        id: "22222222-2222-4222-8222-222222222222",
+        icon: "flame",
+      }),
+    ]);
     expect(rows).toHaveLength(2);
     expect(rows[0]?.icon).toBe(DEFAULT_ACHIEVEMENT_ICON_KEY);
     expect(rows[1]?.icon).toBe("flame");
@@ -184,7 +185,7 @@ describe("normalizeAchievementRowsForList", () => {
 
 describe("domain → detail/grid trusts enums", () => {
   it("passes tone/icon/visibility without re-defaulting valid values", () => {
-    const normalized = tryNormalizeAchievement(
+    const parsed = parseAchievement(
       baseRow({
         icon: "flame",
         tone: "orange",
@@ -192,38 +193,40 @@ describe("domain → detail/grid trusts enums", () => {
         is_locked: true,
       }),
     );
-    expect(normalized.isOk()).toBe(true);
-    if (!normalized.isOk()) return;
-    const detail = domainRowToDetailViewModel(normalized.value);
+    expect(parsed.isOk()).toBe(true);
+    if (!parsed.isOk()) return;
+    const detail = achievementToViewModel(parsed.value);
     expect(detail.icon).toBe("flame");
     expect(detail.tone).toBe("orange");
     expect(detail.visibility).toBe("private");
     expect(detail.isLocked).toBe(true);
-    const grid = detailToGridViewModel(detail);
-    expect(grid.icon).toBe("flame");
-    expect(grid.tone).toBe("orange");
   });
 });
 
-describe("data layer import boundary", () => {
-  it("does not import from components achievement UI modules", () => {
-    const dataDir = path.resolve("lib/achievements/data");
-    const files = readdirSync(dataDir).filter((f) => f.endsWith(".ts"));
-    const forbidden = [
-      'from "@/components/',
-      "from '@/components/",
+describe("achievements import boundary", () => {
+  it("domain and persistence must not import from components", () => {
+    const roots = [
+      path.resolve("lib/achievements/domain"),
+      path.resolve("lib/achievements/persistence"),
+      path.resolve("lib/achievements/application"),
     ];
-    for (const file of files) {
-      const text = readFileSync(path.join(dataDir, file), "utf8");
-      for (const needle of forbidden) {
-        expect(text.includes(needle), `${file} imports components`).toBe(false);
+    const forbidden = ['from "@/components/', "from '@/components/"];
+    for (const dir of roots) {
+      const files = readdirSync(dir).filter((f) => f.endsWith(".ts"));
+      for (const file of files) {
+        const text = readFileSync(path.join(dir, file), "utf8");
+        for (const needle of forbidden) {
+          expect(text.includes(needle), `${dir}/${file} imports components`).toBe(
+            false,
+          );
+        }
       }
     }
     expect(
-      readFileSync(path.join(dataDir, "achievement-enums.ts"), "utf8"),
+      readFileSync(path.resolve("lib/achievements/domain/enums.ts"), "utf8"),
     ).toMatch(/DEFAULT_ACHIEVEMENT_TONE/);
     expect(
-      readFileSync(path.join(dataDir, "achievement-enums.ts"), "utf8"),
+      readFileSync(path.resolve("lib/achievements/domain/enums.ts"), "utf8"),
     ).not.toMatch(/export function parseTone/);
   });
 });

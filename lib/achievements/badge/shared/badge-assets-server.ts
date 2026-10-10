@@ -181,17 +181,17 @@ type BadgeModelBundle = {
 
 function resolveSourcePreviewPath(
   modelPath: string,
-  ownerUserId: string,
+  senderUserId: string,
 ): string {
   if (isShareInviteBadgeModelPath(modelPath)) {
     return buildShareInviteBadgePreviewPath(modelPath.split("/")[1] ?? "");
   }
-  return previewPathForModelPath(ownerUserId, modelPath);
+  return previewPathForModelPath(senderUserId, modelPath);
 }
 
 async function downloadBadgeModelBundle(args: {
   modelPath: string;
-  ownerUserId: string;
+  senderUserId: string;
 }): Promise<BadgeModelBundle> {
   const sourceModelPath = sanitizeBadgeAssetPath(args.modelPath);
   if (!sourceModelPath) {
@@ -199,7 +199,7 @@ async function downloadBadgeModelBundle(args: {
   }
 
   if (!isShareInviteBadgeModelPath(sourceModelPath)) {
-    assertUserOwnedBadgeModelPath(args.ownerUserId, sourceModelPath);
+    assertUserOwnedBadgeModelPath(args.senderUserId, sourceModelPath);
   }
 
   const supabase = createServiceRoleSupabase();
@@ -219,7 +219,7 @@ async function downloadBadgeModelBundle(args: {
     throw new Error("The badge model is too large.");
   }
 
-  const previewPath = resolveSourcePreviewPath(sourceModelPath, args.ownerUserId);
+  const previewPath = resolveSourcePreviewPath(sourceModelPath, args.senderUserId);
   const { data: previewBlob, error: previewDownloadError } = await supabase.storage
     .from(BADGE_PREVIEW_BUCKET)
     .download(previewPath);
@@ -294,7 +294,7 @@ export async function pinBadgeAssetsForShareInvite(args: {
 
   const bundle = await downloadBadgeModelBundle({
     modelPath: sourceModelPath,
-    ownerUserId: args.senderUserId,
+    senderUserId: args.senderUserId,
   });
 
   return uploadBadgeModelBundle({
@@ -322,7 +322,7 @@ export async function cloneBadgeModelForClaimer(args: {
 
   const bundle = await downloadBadgeModelBundle({
     modelPath: sourceModelPath,
-    ownerUserId: args.senderUserId,
+    senderUserId: args.senderUserId,
   });
 
   const assetId = crypto.randomUUID();

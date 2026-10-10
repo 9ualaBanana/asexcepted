@@ -1,10 +1,12 @@
 import Link from "next/link";
 
+import { AtomicLabeledText } from "@/components/ui/atomic-labeled-text";
 import {
   EncryptedText,
   EncryptedTextPlaceholder,
 } from "@/components/ui/encrypted-text";
 import { userCollection } from "@/lib/routes";
+import { clampNickname, NICKNAME_MAX_LENGTH } from "@/lib/ui/dynamic-text";
 import { cn } from "@/lib/utils";
 
 type DedicationBylineProps = {
@@ -24,20 +26,20 @@ export function DedicationByline({
   className,
   prefix = "dedicated by",
 }: DedicationBylineProps) {
-  const resolvedName = senderDisplayName?.trim() ?? "";
+  const resolvedName = clampNickname(senderDisplayName ?? "");
   const showPlaceholder = senderNameLoading || !resolvedName;
 
   return (
-    <p
+    <AtomicLabeledText
+      prefix={prefix}
       className={cn(
-        "text-center text-xs leading-snug text-white/55",
+        "text-xs leading-snug text-white/55",
         className ?? "mt-2",
       )}
     >
-      {prefix}{" "}
       {showPlaceholder ? (
         <EncryptedTextPlaceholder
-          length={10}
+          length={resolvedName.length || NICKNAME_MAX_LENGTH}
           className={accentClassName ?? "text-amber-200/95"}
           encryptedClassName="text-amber-200/70"
         />
@@ -63,6 +65,6 @@ export function DedicationByline({
       ) : (
         <span className="sr-only">{resolvedName}</span>
       )}
-    </p>
+    </AtomicLabeledText>
   );
 }

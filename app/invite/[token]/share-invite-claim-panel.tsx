@@ -7,8 +7,6 @@ import { WelcomeCollectButton } from "@/components/welcome/welcome-collect-butto
 import {
   achievementShareInvitePath,
   loginWithNext,
-  ROUTES,
-  userCollection,
 } from "@/lib/routes";
 import { postClaimAchievementShareInvite } from "@/lib/achievements/client/share-invite-api";
 import { createBrowserSupabase } from "@/lib/supabase/clients/browser";
@@ -18,8 +16,7 @@ type ShareInviteClaimPanelProps = {
   token: string;
   senderUserId: string;
   inviteStatus: string;
-  pageKind: "invite" | "showcase";
-  ownerDetailPath: string | null;
+  ownerDetailPath: string;
 };
 
 type AuthState =
@@ -30,7 +27,6 @@ export function ShareInviteClaimPanel({
   token,
   senderUserId,
   inviteStatus,
-  pageKind,
   ownerDetailPath,
 }: ShareInviteClaimPanelProps) {
   const router = useRouter();
@@ -39,7 +35,6 @@ export function ShareInviteClaimPanel({
   const [authState, setAuthState] = useState<AuthState>({ ready: false, userId: null });
   const [busy, setBusy] = useState(false);
   const autoClaimAttemptedRef = useRef(false);
-  const senderFallbackPath = ownerDetailPath ?? userCollection(senderUserId);
 
   const claimRequested = searchParams.get("claim") === "1";
   const autoAccept = searchParams.get("auto") === "1";
@@ -72,13 +67,12 @@ export function ShareInviteClaimPanel({
   );
 
   useEffect(() => {
-    if (pageKind !== "invite") return;
     if (!authState.ready || !authState.userId || !claimRequested) return;
     if (inviteStatus !== "pending") return;
     if (autoClaimAttemptedRef.current) return;
     autoClaimAttemptedRef.current = true;
     void runClaim(autoAccept);
-  }, [authState, autoAccept, claimRequested, inviteStatus, pageKind, runClaim]);
+  }, [authState, autoAccept, claimRequested, inviteStatus, runClaim]);
 
   if (inviteStatus !== "pending") {
     return null;
@@ -93,8 +87,7 @@ export function ShareInviteClaimPanel({
   }
 
   if (!authState.userId) {
-    const authNext =
-      pageKind === "showcase" ? senderFallbackPath : `${pathname}?claim=1&auto=1`;
+    const authNext = `${pathname}?claim=1&auto=1`;
     return (
       <div className="flex w-full max-w-sm flex-col gap-3 pt-2">
         <WelcomeCollectButton href={loginWithNext(authNext)} />
@@ -102,18 +95,10 @@ export function ShareInviteClaimPanel({
     );
   }
 
-  if (pageKind === "showcase") {
-    return (
-      <div className="flex w-full max-w-sm flex-col gap-3 pt-2">
-        <WelcomeCollectButton href={senderFallbackPath} />
-      </div>
-    );
-  }
-
   if (authState.userId === senderUserId) {
     return (
       <div className="flex w-full max-w-sm flex-col gap-3 pt-2">
-        <WelcomeCollectButton href={senderFallbackPath} />
+        <WelcomeCollectButton href={ownerDetailPath} />
       </div>
     );
   }

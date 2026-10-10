@@ -51,7 +51,6 @@ export async function POST(request: Request) {
   const followerName = await resolveDisplayName(supabase, parsed.data.followerId);
 
   const result = await sendPushToUsers({
-    supabase,
     userIds: [parsed.data.followingId],
     kind: "new_follower",
     params: { followerName },
