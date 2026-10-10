@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AccountMenuNav } from "@/components/layout/account-menu-nav";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/lib/routes";
+import { clampNickname } from "@/lib/ui/dynamic-text";
 import { createServerSupabase } from "@/lib/supabase/clients/server";
 
 export async function AccountMenu() {
@@ -34,6 +35,6 @@ function headerLabelFromUser(user: {
 }) {
   const meta = user.user_metadata ?? {};
   const dn = meta.display_name ?? meta.full_name ?? meta.name;
-  if (typeof dn === "string" && dn.trim()) return dn.trim();
+  if (typeof dn === "string" && dn.trim()) return clampNickname(dn);
   return user.email ?? "";
 }

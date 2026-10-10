@@ -1,4 +1,5 @@
 import type { AchievementFeedItemViewModel } from "@/lib/achievements/presentation/surface-view-models";
+import { clampNickname } from "@/lib/ui/dynamic-text";
 
 export type ActivityTextPart = {
   kind: "actor" | "achievement" | "muted";
@@ -26,10 +27,11 @@ export function buildFeedActivityText(
 function buildNewInspirationActivityText(
   actor: string,
 ): ActivityTextCopy {
+  const name = clampNickname(actor);
   return {
-    text: `${actor} is now inspired by you`,
+    text: `${name} is now inspired by you`,
     parts: [
-      { kind: "actor", text: actor },
+      { kind: "actor", text: name },
       { kind: "muted", text: "is now inspired by you" },
     ],
   };
@@ -39,10 +41,11 @@ function buildUnlockActivityText(
   achievement: string,
   actor: string,
 ): ActivityTextCopy {
+  const name = clampNickname(actor);
   return {
-    text: `${actor} unlocked ${achievement}`,
+    text: `${name} unlocked ${achievement}`,
     parts: [
-      { kind: "actor", text: actor },
+      { kind: "actor", text: name },
       { kind: "muted", text: "unlocked " },
       { kind: "achievement", text: achievement },
     ],
@@ -53,12 +56,13 @@ function buildImpressionActivityText(
   achievement: string,
   actor: string,
 ): ActivityTextCopy {
+  const name = clampNickname(actor);
   return {
-    text: `${achievement} left impression on ${actor}`,
+    text: `${achievement} left impression on ${name}`,
     parts: [
       { kind: "achievement", text: achievement },
       { kind: "muted", text: "left impression on " },
-      { kind: "actor", text: actor },
+      { kind: "actor", text: name },
     ],
   };
 }
@@ -67,10 +71,11 @@ function buildDedicationActivityText(
   achievement: string,
   actor: string,
 ): ActivityTextCopy {
+  const name = clampNickname(actor);
   return {
-    text: `${actor} dedicated ${achievement} to u`,
+    text: `${name} dedicated ${achievement} to u`,
     parts: [
-      { kind: "actor", text: actor },
+      { kind: "actor", text: name },
       { kind: "muted", text: "dedicated " },
       { kind: "achievement", text: achievement },
       { kind: "muted", text: " to u" },
@@ -107,10 +112,11 @@ function buildDedicationAcceptedActivityText(
   achievement: string,
   recipientName: string,
 ): ActivityTextCopy {
+  const name = clampNickname(recipientName);
   return {
-    text: `${recipientName} added ${achievement} to their collection`,
+    text: `${name} added ${achievement} to their collection`,
     parts: [
-      { kind: "actor", text: recipientName },
+      { kind: "actor", text: name },
       { kind: "muted", text: " added " },
       { kind: "achievement", text: achievement },
       { kind: "muted", text: " to their collection" },

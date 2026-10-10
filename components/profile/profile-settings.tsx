@@ -13,6 +13,7 @@ import { ProfileAvatarSlot } from "@/components/profile/profile-avatar-slot";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NICKNAME_MAX_LENGTH, clampNickname } from "@/lib/ui/dynamic-text";
 import {
   beginProfileAvatarSession,
   commitProfileAvatarUploadSession,
@@ -35,7 +36,7 @@ import { useErrorToast } from "@/lib/toast";
 function displayNameFromMetadata(meta: Record<string, unknown> | null | undefined) {
   if (!meta) return "";
   const v = meta.display_name ?? meta.full_name ?? meta.name;
-  if (typeof v === "string" && v.trim()) return v.trim();
+  if (typeof v === "string" && v.trim()) return clampNickname(v);
   return "";
 }
 
@@ -161,7 +162,7 @@ export function ProfileSettings({
     setSaving(true);
     setError(null);
 
-    const trimmed = displayName.trim();
+    const trimmed = clampNickname(displayName);
     if (displayNameDirty) {
       const { error: updErr } = await supabase.auth.updateUser({
         data: trimmed
@@ -297,6 +298,7 @@ export function ProfileSettings({
               }
             }}
             placeholder="Shown in the app header and Supabase Auth"
+            maxLength={NICKNAME_MAX_LENGTH}
             autoComplete="name"
             disabled={saving}
           />

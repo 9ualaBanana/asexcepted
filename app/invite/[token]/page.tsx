@@ -16,6 +16,8 @@ import {
   userCollection,
 } from "@/lib/routes";
 import { getSharedAchievement } from "@/lib/achievements/application/share-invite";
+import { AtomicLabeledText } from "@/components/ui/atomic-labeled-text";
+import { clampNickname } from "@/lib/ui/dynamic-text";
 import { ShareInviteClaimPanel } from "./share-invite-claim-panel";
 import { achievementToViewModel } from "@/lib/achievements/presentation/collection-view-models";
 
@@ -147,20 +149,20 @@ export default async function Page({ params }: PageProps) {
       ? {
           label: "by",
           href: collectionOwnerPath,
-          name: ownerDisplayName,
+          name: clampNickname(ownerDisplayName),
           nameClass: "text-emerald-200/90",
         }
       : pageKind === "collaborate"
         ? {
             label: "in collaboration w/",
             href: userCollection(invite.sender_user_id),
-            name: senderDisplayName,
+            name: clampNickname(senderDisplayName),
             nameClass: "text-amber-200/95",
           }
         : {
             label: "dedicated by",
             href: userCollection(invite.sender_user_id),
-            name: senderDisplayName,
+            name: clampNickname(senderDisplayName),
             nameClass: "text-amber-200/95",
           };
 
@@ -216,17 +218,17 @@ export default async function Page({ params }: PageProps) {
             ) : null}
           </div>
 
-          <div className="mt-5 flex justify-center text-center">
-            <p className="text-xs leading-snug text-white/55">
-              {byline.label}{" "}
-              <Link
-                href={byline.href}
-                className={`font-semibold ${byline.nameClass} underline-offset-2 hover:underline`}
-              >
-                {byline.name}
-              </Link>
-            </p>
-          </div>
+          <AtomicLabeledText
+            prefix={byline.label}
+            className="mt-5 text-xs leading-snug text-white/55"
+          >
+            <Link
+              href={byline.href}
+              className={`font-semibold ${byline.nameClass} underline-offset-2 hover:underline`}
+            >
+              {byline.name}
+            </Link>
+          </AtomicLabeledText>
 
           <div className="mt-6 flex justify-center">
             <ShareInviteClaimPanel

@@ -54,7 +54,7 @@ function renderPart(
 
 function ActorLabel({ children }: { children: string }) {
   return (
-    <span className="font-semibold text-foreground">{children}</span>
+    <span className="whitespace-nowrap font-semibold text-foreground">{children}</span>
   );
 }
 

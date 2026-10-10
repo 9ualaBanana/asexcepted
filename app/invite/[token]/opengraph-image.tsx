@@ -6,6 +6,7 @@ import {
 } from "@/lib/share-invites/invite-og-badge-image";
 import { getSharedAchievement } from "@/lib/achievements/application/share-invite";
 import { achievementToViewModel } from "@/lib/achievements/presentation/collection-view-models";
+import { clampNickname, labeledValueStacks } from "@/lib/ui/dynamic-text";
 
 export const size = {
   width: 1200,
@@ -181,37 +182,60 @@ export default async function Image({ params }: ImageProps) {
               {description}
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                marginTop: "26px",
-                fontSize: 20,
-                alignItems: "center",
-                gap: "0.35em",
-              }}
-            >
-              <span style={{ color: "rgba(245,243,255,0.55)" }}>
-                {pageKind === "showcase"
+            <OgByline
+              prefix={
+                pageKind === "showcase"
                   ? "by"
                   : pageKind === "collaborate"
                     ? "in collaboration w/"
-                    : "dedicated by"}
-              </span>
-              <span
-                style={{
-                  color:
-                    pageKind === "showcase"
-                      ? "rgba(167,243,208,0.9)"
-                      : "rgba(253,230,138,0.92)",
-                }}
-              >
-                {pageKind === "showcase" ? ownerDisplayName : senderDisplayName}
-              </span>
-            </div>
+                    : "dedicated by"
+              }
+              name={clampNickname(
+                pageKind === "showcase" ? ownerDisplayName : senderDisplayName,
+              )}
+              nameColor={
+                pageKind === "showcase"
+                  ? "rgba(167,243,208,0.9)"
+                  : "rgba(253,230,138,0.92)"
+              }
+            />
           </div>
         </div>
       </div>
     ),
     size,
+  );
+}
+
+function OgByline({
+  prefix,
+  name,
+  nameColor,
+}: {
+  prefix: string;
+  name: string;
+  nameColor: string;
+}) {
+  const stacks = labeledValueStacks({
+    prefix,
+    value: name,
+    lineWidthPx: 648,
+    fontSizePx: 20,
+  });
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: stacks ? "column" : "row",
+        alignItems: stacks ? "flex-start" : "center",
+        marginTop: "26px",
+        fontSize: 20,
+        gap: stacks ? "4px" : "0.35em",
+      }}
+    >
+      <span style={{ color: "rgba(245,243,255,0.55)" }}>{prefix}</span>
+      <span style={{ color: nameColor }}>{name}</span>
+    </div>
   );
 }

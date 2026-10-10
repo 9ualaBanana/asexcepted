@@ -1,0 +1,32 @@
+---
+description: Size and wrap nicknames and other dynamic text so scramble and long values stay intact
+globs: "**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Dynamic text appearance
+
+Nicknames and other user- or content-supplied strings go through `lib/ui/dynamic-text.ts` before they are rendered. Do not pick a one-off `maxLength`, ellipsis, or wrap at the call site.
+
+## Length
+
+- Nicknames: `clampNickname` (`NICKNAME_MAX_LENGTH`). Use that same constant as the input `maxLength`.
+- Other dynamic copy (titles, captions): `clampDynamicText` with the budget for that surface.
+- A loading scramble uses the clamped string’s length, not a magic character count. Scramble glyphs are wider than the settled letters; width math uses `dynamicTextWidthPx(..., scramble: true)`.
+
+## Prefix + value
+
+“dedicated by”, “in collaboration w/”, and any other fixed prefix beside a dynamic value:
+
+- Fluid width: `AtomicLabeledText` with `measureKey` set to the clamped value. The prefix and the value are each `whitespace-nowrap`. If the scramble does not fit beside the prefix, the value moves to the next line as a whole and stays there after it reveals. Never let a scramble or a name break mid-glyph, and never slide a revealed name back onto the prefix line.
+- Known pixel width (OG, canvas): `labeledValueStacks`. Stack when it returns true.
+
+```tsx
+// ❌ BAD — inline name wraps one scramble glyph at a time
+<p>{prefix} <EncryptedText text={name} /></p>
+
+// ✅ GOOD
+<AtomicLabeledText prefix={prefix} measureKey={clampNickname(name)}>
+  <EncryptedText text={clampNickname(name)} />
+</AtomicLabeledText>
+```
