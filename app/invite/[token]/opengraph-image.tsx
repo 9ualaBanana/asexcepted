@@ -59,7 +59,9 @@ export default async function Image({ params }: ImageProps) {
     snapshot.description?.trim() ||
     (pageKind === "showcase"
       ? `An achievement from ${ownerDisplayName}'s collection.`
-      : `${senderDisplayName} shared this for your collection.`);
+      : pageKind === "collaborate"
+        ? `${senderDisplayName} invited you to collaborate on an achievement.`
+        : `${senderDisplayName} shared this for your collection.`);
 
   const badgeImageUrl = resolveInviteOgBadgeImageUrl(snapshot.icon_url);
   const badgeImageSrc = badgeImageUrl
@@ -189,7 +191,11 @@ export default async function Image({ params }: ImageProps) {
               }}
             >
               <span style={{ color: "rgba(245,243,255,0.55)" }}>
-                {pageKind === "showcase" ? "by" : "dedicated by"}
+                {pageKind === "showcase"
+                  ? "by"
+                  : pageKind === "collaborate"
+                    ? "in collaboration w/"
+                    : "dedicated by"}
               </span>
               <span
                 style={{

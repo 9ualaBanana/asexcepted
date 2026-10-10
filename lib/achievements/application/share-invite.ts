@@ -42,7 +42,7 @@ import { createAchievementShareInviteToken } from "@/lib/share-invites/token";
 import type { ServiceRoleSupabaseClient } from "@/lib/supabase/clients/client-types";
 import { createServiceRoleSupabase } from "@/lib/supabase/clients/server";
 
-export type AchievementShareInviteIntent = "showcase" | "dedicate";
+export type AchievementShareInviteIntent = "showcase" | "dedicate" | "collaborate";
 
 export type CreateShareInviteSuccess = {
   inviteId: string;
@@ -93,14 +93,14 @@ export async function createAchievementShareInvite(
     {
       senderUserId: args.senderUserId,
       achievement,
-      shareKind: args.intent === "showcase" ? "showcase" : "invite",
+      shareKind: shareKindForIntent(args.intent),
     },
     ports,
   );
   if (inviteResult.isErr()) {
     return inviteResult;
   }
-  if (args.intent === "showcase") {
+  if (args.intent === "showcase" || args.intent === "collaborate") {
     return inviteResult;
   }
   const invite = inviteResult.value;
@@ -184,6 +184,10 @@ export async function claimAchievementShareInvite(
   ports: ShareInviteUseCasePorts = defaultShareInviteUseCasePorts(),
 ): Promise<Result<ClaimAchievementShareInviteSuccess, string>> {
   const claimedAt = new Date().toISOString();
+  const collaborateResult = await claimCollaborationInvite(args, ports);
+  if (collaborateResult !== null) {
+    return collaborateResult;
+  }
 
   const reservedInviteResult = await ports.shareInvites.reserveClaim(
     args.claimerUserId,
@@ -331,8 +335,83 @@ function canBeShared(
     }
   } else if (achievement.dedicated_by_user_id) {
     return err("Dedicated achievements cannot be re-shared.");
+  } else if (args.intent === "collaborate") {
+    if (achievement.collaborator_user_id) {
+      return err("This achievement already has a collaborator.");
+    }
   }
   return ok();
+}
+
+export async function endAchievementCollaboration(
+  args: {
+    actorUserId: string;
+    achievementId: string;
+  },
+  ports: ShareInviteUseCasePorts = defaultShareInviteUseCasePorts(),
+): Promise<Result<void, string>> {
+  const cleared = await ports.achievements.clearCollaborator(
+    args.achievementId,
+    args.actorUserId,
+  );
+  if (cleared.isErr()) {
+    return err(cleared.error);
+  }
+  return ok(undefined);
+}
+
+function shareKindForIntent(
+  intent: AchievementShareInviteIntent,
+): AchievementSharePageKind {
+  if (intent === "showcase") return "showcase";
+  if (intent === "collaborate") return "collaborate";
+  return "invite";
+}
+
+async function claimCollaborationInvite(
+  args: {
+    token: string;
+    claimerUserId: string;
+  },
+  ports: ShareInviteUseCasePorts,
+): Promise<Result<ClaimAchievementShareInviteSuccess, string> | null> {
+  const inviteResult = await ports.shareInvites.getV2(args.token);
+  if (inviteResult.isErr()) {
+    return null;
+  }
+  if (inviteResult.value.share_kind !== "collaborate") {
+    return null;
+  }
+  const invite = inviteResult.value;
+  if (invite.status !== "pending") {
+    return err("This invite is no longer available.");
+  }
+  if (invite.sender_user_id === args.claimerUserId) {
+    return err("You cannot claim your own invite.");
+  }
+
+  const claimed = await ports.shareInvites.claimCollaboration(invite.id);
+  if (claimed.isErr()) {
+    return err(claimed.error);
+  }
+
+  const attached = await ports.achievements.setCollaborator(
+    invite.source_achievement_id,
+    args.claimerUserId,
+  );
+  if (attached.isErr()) {
+    await ports.shareInvites.releaseCollaboration(invite.id);
+    return err(attached.error);
+  }
+
+  return ok({
+    achievementId: invite.source_achievement_id,
+    redirectPath: userAchievementDetail(
+      args.claimerUserId,
+      invite.source_achievement_id,
+      false,
+    ),
+  });
 }
 
 async function insertShareInviteWithSnapshot(

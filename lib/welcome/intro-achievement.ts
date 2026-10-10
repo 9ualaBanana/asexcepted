@@ -50,6 +50,7 @@ function welcomeIntroAchievement(): Achievement {
     visibility: "public",
     dedicated_by_user_id: null,
     dedication_status: null,
+    collaborator_user_id: null,
   };
 }
 

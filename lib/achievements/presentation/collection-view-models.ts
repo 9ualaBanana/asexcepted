@@ -116,6 +116,7 @@ const formToPayloadSchema = z
 
 export type AchievementViewModel = {
   id: string;
+  userId: string;
   title: string | null;
   description: string | null;
   category: string | null;
@@ -136,6 +137,7 @@ export type AchievementViewModel = {
   showDedicatedEffect: boolean;
   dedicatedByUserId: string | null;
   dedicationStatus: "pending" | "accepted" | null;
+  collaboratorUserId: string | null;
 };
 
 export function sortCollectionEntries(
@@ -181,6 +183,7 @@ export function achievementToViewModel(row: Achievement): AchievementViewModel {
   });
   return {
     id: row.id,
+    userId: row.user_id,
     title: row.title,
     description: row.description,
     category: row.category,
@@ -205,6 +208,7 @@ export function achievementToViewModel(row: Achievement): AchievementViewModel {
     ),
     dedicatedByUserId: row.dedicated_by_user_id,
     dedicationStatus: row.dedication_status,
+    collaboratorUserId: row.collaborator_user_id,
   };
 }
 

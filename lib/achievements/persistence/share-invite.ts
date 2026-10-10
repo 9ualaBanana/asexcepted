@@ -121,6 +121,45 @@ export async function createShareInviteV2(
   return ok({ inviteId: data.id });
 }
 
+export async function claimCollaborationShareInvite(
+  supabase: ServiceRoleSupabaseClient,
+  inviteId: string,
+): Promise<Result<void, string>> {
+  const { data, error } = await supabase
+    .from("achievement_share_invites_v2")
+    .update({ status: "claimed" })
+    .eq("id", inviteId)
+    .eq("status", "pending")
+    .eq("share_kind", "collaborate")
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    return err(error.message);
+  }
+  if (!data?.id) {
+    return err("This invite is no longer available.");
+  }
+  return ok(undefined);
+}
+
+export async function releaseCollaborationShareInvite(
+  supabase: ServiceRoleSupabaseClient,
+  inviteId: string,
+): Promise<Result<void, string>> {
+  const { error } = await supabase
+    .from("achievement_share_invites_v2")
+    .update({ status: "pending" })
+    .eq("id", inviteId)
+    .eq("status", "claimed")
+    .eq("share_kind", "collaborate");
+
+  if (error) {
+    return err(error.message);
+  }
+  return ok(undefined);
+}
+
 export async function deleteShareInvite(
   supabase: ServiceRoleSupabaseClient,
   inviteId: string,

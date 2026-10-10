@@ -251,6 +251,7 @@ export type Database = {
         Row: {
           achieved_at: string | null
           category: string | null
+          collaborator_user_id: string | null
           created_at: string
           dedicated_by_user_id: string | null
           dedication_status: string | null
@@ -276,6 +277,7 @@ export type Database = {
         Insert: {
           achieved_at?: string | null
           category?: string | null
+          collaborator_user_id?: string | null
           created_at?: string
           dedicated_by_user_id?: string | null
           dedication_status?: string | null
@@ -301,6 +303,7 @@ export type Database = {
         Update: {
           achieved_at?: string | null
           category?: string | null
+          collaborator_user_id?: string | null
           created_at?: string
           dedicated_by_user_id?: string | null
           dedication_status?: string | null

@@ -35,6 +35,14 @@ export type AchievementPort = {
   delete(id: string): Promise<Result<void, string>>;
   deleteForOwner(id: string, ownerUserId: string): Promise<Result<void, string>>;
   unlock(id: string): Promise<Result<Achievement, string>>;
+  setCollaborator(
+    achievementId: string,
+    collaboratorUserId: string,
+  ): Promise<Result<Achievement, string>>;
+  clearCollaborator(
+    achievementId: string,
+    actorUserId: string,
+  ): Promise<Result<Achievement, string>>;
 };
 
 export type ShareInvitePort = {
@@ -56,6 +64,8 @@ export type ShareInvitePort = {
   reserveClaim(claimerUserId: string, token: string, claimedAt: string): Promise<Result<AchievementShareInviteCreate, string>>;
   releaseClaim(inviteId: string): Promise<Result<void, string>>;
   completeClaim(inviteId: string, claimedAchievementId: string, claimedByUserId: string, claimedAt: string): Promise<Result<void, string>>;
+  claimCollaboration(inviteId: string): Promise<Result<void, string>>;
+  releaseCollaboration(inviteId: string): Promise<Result<void, string>>;
 }
 
 export type DedicationPort = {

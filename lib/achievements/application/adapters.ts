@@ -18,6 +18,8 @@ import {
   getAchievementIdForOwner,
   deleteAchievementForOwner,
   getAchievementOwnerUserId,
+  setAchievementCollaborator,
+  clearAchievementCollaborator,
 } from "@/lib/achievements/persistence/achievements";
 import {
   acceptPendingDedicationForRecipient,
@@ -31,7 +33,7 @@ import type {
   ServiceRoleSupabaseClient,
 } from "@/lib/supabase/clients/client-types";
 import { createImpression, fetchCountMap } from "@/lib/achievements/persistence/impressions";
-import { completeShareInviteClaim, createShareInvite, deleteShareInvite, getAchievementShareInviteByToken, reserveShareInviteClaim, releaseShareInviteClaim, createShareInviteV2, getAchievementShareInviteByTokenV2 } from "@/lib/achievements/persistence/share-invite";
+import { completeShareInviteClaim, createShareInvite, deleteShareInvite, getAchievementShareInviteByToken, reserveShareInviteClaim, releaseShareInviteClaim, createShareInviteV2, getAchievementShareInviteByTokenV2, claimCollaborationShareInvite, releaseCollaborationShareInvite } from "@/lib/achievements/persistence/share-invite";
 
 export function createAchievementPort(
   supabase: DatabaseSupabaseClient,
@@ -46,6 +48,10 @@ export function createAchievementPort(
     delete: (id) => deleteAchievement(supabase, id),
     deleteForOwner: (id, ownerUserId) => deleteAchievementForOwner(supabase, id, ownerUserId),
     unlock: (id) => unlockAchievement(supabase, id),
+    setCollaborator: (achievementId, collaboratorUserId) =>
+      setAchievementCollaborator(supabase, achievementId, collaboratorUserId),
+    clearCollaborator: (achievementId, actorUserId) =>
+      clearAchievementCollaborator(supabase, achievementId, actorUserId),
   };
 }
 
@@ -59,6 +65,8 @@ export function createShareInvitePort(supabase: ServiceRoleSupabaseClient): Shar
     reserveClaim: (claimerUserId, token, claimedAt) => reserveShareInviteClaim(supabase, claimerUserId, token, claimedAt),
     releaseClaim: (inviteId) => releaseShareInviteClaim(supabase, inviteId),
     completeClaim: (inviteId, claimedAchievementId, claimedByUserId, claimedAt) => completeShareInviteClaim(supabase, inviteId, claimedAchievementId, claimedByUserId, claimedAt),
+    claimCollaboration: (inviteId) => claimCollaborationShareInvite(supabase, inviteId),
+    releaseCollaboration: (inviteId) => releaseCollaborationShareInvite(supabase, inviteId),
   };
 }
 

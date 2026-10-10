@@ -1,7 +1,11 @@
 import { err, ok, type Result } from "neverthrow";
 import { z, type ZodError } from "zod";
 
-export const achievementSharePageKindSchema = z.enum(["invite", "showcase"]);
+export const achievementSharePageKindSchema = z.enum([
+  "invite",
+  "showcase",
+  "collaborate",
+]);
 export type AchievementSharePageKind = z.infer<typeof achievementSharePageKindSchema>;
 
 export const achievementShareInviteStatusSchema = z.enum([

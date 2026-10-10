@@ -8,7 +8,7 @@ import { createAchievementShareInvite } from "@/lib/achievements/application/sha
 
 const createShareInviteBodySchema = z.object({
   achievementId: z.uuid(),
-  intent: z.enum(["showcase", "dedicate"]).default("showcase"),
+  intent: z.enum(["showcase", "dedicate", "collaborate"]).default("showcase"),
 });
 
 export async function POST(request: Request) {

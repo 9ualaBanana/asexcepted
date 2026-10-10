@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { fetchFailureMessage, postJson } from "@/lib/client/fetch-json";
 
-export type AchievementShareInviteIntent = "showcase" | "dedicate";
+export type AchievementShareInviteIntent = "showcase" | "dedicate" | "collaborate";
 
 type CreateShareInviteBody = {
   achievementId: string;
@@ -48,4 +48,19 @@ export async function postClaimAchievementShareInvite(args: {
     return err(fetchFailureMessage(result.error));
   }
   return ok(result.value);
+}
+
+export async function postEndAchievementCollaboration(
+  achievementId: string,
+): Promise<Result<void, string>> {
+  const result = await postJson(
+    "/api/achievements/collaboration",
+    { achievementId },
+    z.object({ ok: z.literal(true) }),
+    "Could not end this collaboration.",
+  );
+  if (result.isErr()) {
+    return err(fetchFailureMessage(result.error));
+  }
+  return ok(undefined);
 }

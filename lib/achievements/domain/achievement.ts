@@ -51,6 +51,7 @@ export const achievementSchema = z.object({
   visibility: achievementVisibilitySchema,
   dedicated_by_user_id: z.uuid().nullable(),
   dedication_status: z.enum(["pending", "accepted"]).nullable().default(null),
+  collaborator_user_id: z.uuid().nullable(),
 });
 
 /** Trusted achievement after boundary parse (read model). */

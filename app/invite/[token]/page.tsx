@@ -81,7 +81,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     snapshot.description?.trim() ||
     (pageKind === "showcase"
       ? `An achievement from ${ownerDisplayName}'s collection.`
-      : `${senderDisplayName} shared an achievement waiting in your collection.`);
+      : pageKind === "collaborate"
+        ? `${senderDisplayName} invited you to collaborate on an achievement.`
+        : `${senderDisplayName} shared an achievement waiting in your collection.`);
 
   const pageUrl = origin ? `${origin}${achievementShareInvitePath(token)}` : undefined;
   const ogImageUrl = origin
@@ -140,19 +142,27 @@ export default async function Page({ params }: PageProps) {
     ? await createSignedBadgeModelUrl(inviteBadge.model.assetPath)
     : null;
 
-  const byline = pageKind === "showcase"
-  ? {
-    label: "by",
-    href: collectionOwnerPath,
-    name: ownerDisplayName,
-    nameClass: "text-emerald-200/90",
-  }
-  : {
-    label: "dedicated by",
-    href: userCollection(invite.sender_user_id),
-    name: senderDisplayName,
-    nameClass: "text-amber-200/95",
-  };
+  const byline =
+    pageKind === "showcase"
+      ? {
+          label: "by",
+          href: collectionOwnerPath,
+          name: ownerDisplayName,
+          nameClass: "text-emerald-200/90",
+        }
+      : pageKind === "collaborate"
+        ? {
+            label: "in collaboration w/",
+            href: userCollection(invite.sender_user_id),
+            name: senderDisplayName,
+            nameClass: "text-amber-200/95",
+          }
+        : {
+            label: "dedicated by",
+            href: userCollection(invite.sender_user_id),
+            name: senderDisplayName,
+            nameClass: "text-amber-200/95",
+          };
 
   if (invite.status !== "pending") {
     return <InviteUnavailableState claimed={invite.status === "claimed"} />;

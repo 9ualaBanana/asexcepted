@@ -19,7 +19,7 @@ import type { Database } from "@/lib/supabase/database.types";
 import { formatSupabaseSingleRowError } from "@/lib/supabase/postgrest-errors";
 
 const ACHIEVEMENT_FULL_SELECT =
-  "id,user_id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_cc_attribution,icon_model_yaw,icon_model_pitch,icon_model_animation_play,icon_model_animation_speed,tone,is_locked,achieved_at,created_at,visibility,dedicated_by_user_id,dedication_status";
+  "id,user_id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_cc_attribution,icon_model_yaw,icon_model_pitch,icon_model_animation_play,icon_model_animation_speed,tone,is_locked,achieved_at,created_at,visibility,dedicated_by_user_id,dedication_status,collaborator_user_id";
 
 export type AchievementEmbedBadgeSource = {
   icon_url: string | null;
@@ -90,7 +90,7 @@ export async function listAchievements(
   const { data, error } = await supabase
     .from("achievements")
     .select(ACHIEVEMENT_FULL_SELECT)
-    .eq("user_id", userId)
+    .or(`user_id.eq.${userId},collaborator_user_id.eq.${userId}`)
     .or("dedication_status.is.null,dedication_status.eq.accepted")
     .order("achieved_at", { ascending: false })
     .order("created_at", { ascending: false });
@@ -352,6 +352,52 @@ export async function getAchievementDedicationNotifyRow(
     return err("Achievement not found");
   }
   return ok(data);
+}
+
+export async function setAchievementCollaborator(
+  supabase: DatabaseSupabaseClient,
+  achievementId: string,
+  collaboratorUserId: string,
+): Promise<AchievementSingleResult> {
+  const { data, error } = await supabase
+    .from("achievements")
+    .update({ collaborator_user_id: collaboratorUserId })
+    .eq("id", achievementId)
+    .is("collaborator_user_id", null)
+    .is("dedicated_by_user_id", null)
+    .neq("user_id", collaboratorUserId)
+    .select(ACHIEVEMENT_FULL_SELECT)
+    .maybeSingle();
+
+  if (error) {
+    return err(error.message);
+  }
+  if (!data) {
+    return err("This achievement cannot be collaborated on.");
+  }
+  return toSingleResult(data);
+}
+
+export async function clearAchievementCollaborator(
+  supabase: DatabaseSupabaseClient,
+  achievementId: string,
+  actorUserId: string,
+): Promise<AchievementSingleResult> {
+  const { data, error } = await supabase
+    .from("achievements")
+    .update({ collaborator_user_id: null })
+    .eq("id", achievementId)
+    .or(`user_id.eq.${actorUserId},collaborator_user_id.eq.${actorUserId}`)
+    .select(ACHIEVEMENT_FULL_SELECT)
+    .maybeSingle();
+
+  if (error) {
+    return err(error.message);
+  }
+  if (!data) {
+    return err("Could not end this collaboration.");
+  }
+  return toSingleResult(data);
 }
 
 export async function getAchievementOwnerUserId(

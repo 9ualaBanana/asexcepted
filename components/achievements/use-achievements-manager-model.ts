@@ -205,6 +205,7 @@ export function useAchievementsManagerModel({
   });
   const loadAchievements = data.loadAchievements;
   const shareInvite = useAchievementShareInviteController({
+    shelfUserId: userId,
     detailAchievement,
     onReloadRequired: () => {
       if (ui.detailAchievementId) {
@@ -286,7 +287,8 @@ export function useAchievementsManagerModel({
   }, [deepLinkAchievementId, loadAchievements, pathname, userId]);
 
   useEffect(() => {
-    const senderId = detailAchievement?.dedicatedByUserId;
+    const senderId =
+      shareInvite.collaborationPartnerUserId ?? detailAchievement?.dedicatedByUserId;
     if (!senderId) {
       setDedicationBySenderName(null);
       setDedicationSenderNameLoading(false);
@@ -305,7 +307,11 @@ export function useAchievementsManagerModel({
     return () => {
       cancelled = true;
     };
-  }, [detailAchievement?.dedicatedByUserId, supabase]);
+  }, [
+    shareInvite.collaborationPartnerUserId,
+    detailAchievement?.dedicatedByUserId,
+    supabase,
+  ]);
 
   useEffect(() => {
     if (!detailAchievement || ui.isVisibilityOnlyEdit) return;
@@ -533,9 +539,19 @@ export function useAchievementsManagerModel({
     shareMenuBusy: shareInvite.shareInviteBusy || embedLink.embedCopyBusy,
     dedicateShareDisabledReason: shareInvite.dedicateShareDisabledReason,
     showDedicateShareOption: shareInvite.showDedicateShareOption,
+    showCollaborateShareOption: shareInvite.showCollaborateShareOption,
+    collaborateShareDisabledReason: shareInvite.collaborateShareDisabledReason,
+    showEndCollaboration: shareInvite.showEndCollaboration,
+    showShowcaseShareOption: shareInvite.showShowcaseShareOption,
+    collaborationPartnerUserId: shareInvite.collaborationPartnerUserId,
+    isShelfCollaborator: shareInvite.isShelfCollaborator,
     showcaseShareDisabledReason: shareInvite.showcaseShareDisabledReason,
     onShareShowcase: shareInvite.shareShowcaseAchievement,
     onRequestDedicateInviteShare: shareInvite.requestDedicateInviteShare,
+    onCollaborate: shareInvite.shareCollaborateInvite,
+    onEndCollaboration: () => {
+      void shareInvite.endCollaboration();
+    },
     onEmbedLink: () => void embedLink.copyEmbedLink(),
     onRequestDelete: ui.actions.requestDelete,
     onImpressionRecorded: (added: boolean) => {

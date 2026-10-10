@@ -49,6 +49,7 @@ function baseRow(over: Record<string, unknown> = {}): Record<string, unknown> {
     visibility: DEFAULT_ACHIEVEMENT_VISIBILITY,
     dedicated_by_user_id: null,
     dedication_status: null,
+    collaborator_user_id: null,
     ...over,
   };
 }
@@ -101,6 +102,7 @@ describe("parseAchievement hard domain", () => {
         visibility: DEFAULT_ACHIEVEMENT_VISIBILITY,
         dedicated_by_user_id: null,
         dedication_status: null,
+        collaborator_user_id: null,
       } satisfies Achievement);
     }
   });

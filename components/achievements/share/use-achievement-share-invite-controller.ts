@@ -6,6 +6,7 @@ import { ACHIEVEMENT_UI_COPY } from "@/components/achievements/share/achievement
 import { copyTextToClipboard } from "@/lib/copy-text-to-clipboard";
 import {
   postCreateAchievementShareInvite as postShareAchievement,
+  postEndAchievementCollaboration,
   type AchievementShareInviteIntent,
 } from "@/lib/achievements/client/share-invite-api";
 import {
@@ -44,12 +45,20 @@ async function tryNativeShare(args: {
 }
 
 type UseAchievementShareInviteControllerArgs = {
+  shelfUserId: string;
   detailAchievement: AchievementViewModel | null;
   /** Called after a dedicate invite is created (sender copy removed server-side). */
   onReloadRequired: () => void;
 };
 
+function refuseWhen(reason: string | null, toastId: string) {
+  if (!reason) return false;
+  showErrorToast(reason, { id: toastId });
+  return true;
+}
+
 export function useAchievementShareInviteController({
+  shelfUserId,
   detailAchievement,
   onReloadRequired,
 }: UseAchievementShareInviteControllerArgs) {
@@ -58,17 +67,19 @@ export function useAchievementShareInviteController({
   const [dedicateInviteConfirmOpen, setDedicateInviteConfirmOpen] = useState(false);
   const dedicateRequestInFlightRef = useRef(false);
 
-  const detailAchievementId = detailAchievement?.id ?? null;
-  const detailTitle = detailAchievement?.title;
-  const detailDescription = detailAchievement?.description;
-
-  const showDedicateShareOption = useMemo(
-    () =>
-      detailAchievement
-        ? canDedicateAchievementViaShareInvite(detailAchievement)
-        : false,
-    [detailAchievement],
-  );
+  const ownsCard = detailAchievement?.userId === shelfUserId;
+  const isShelfCollaborator = detailAchievement != null && !ownsCard;
+  const showDedicateShareOption =
+    ownsCard &&
+    detailAchievement != null &&
+    canDedicateAchievementViaShareInvite(detailAchievement);
+  const showCollaborateShareOption =
+    showDedicateShareOption && detailAchievement?.collaboratorUserId == null;
+  const collaborationPartnerUserId = detailAchievement?.collaboratorUserId
+    ? ownsCard
+      ? detailAchievement.collaboratorUserId
+      : detailAchievement.userId
+    : null;
 
   const shareReadinessError = useMemo(() => {
     if (!detailAchievement) return null;
@@ -79,16 +90,13 @@ export function useAchievementShareInviteController({
     });
   }, [detailAchievement]);
 
-  const showcaseShareDisabledReason = shareReadinessError;
-
-  const dedicateShareDisabledReason = useMemo(() => {
-    if (!showDedicateShareOption) return null;
-    return shareReadinessError;
-  }, [shareReadinessError, showDedicateShareOption]);
+  const showcaseShareDisabledReason = isShelfCollaborator
+    ? ACHIEVEMENT_UI_COPY.shareMenuCollaboratorShowcaseBlocked
+    : shareReadinessError;
 
   const shareExistingAchievement = useCallback(
     async (intent: AchievementShareInviteIntent) => {
-      if (!detailAchievementId) return;
+      if (!detailAchievement) return;
       if (intent === "dedicate") {
         if (dedicateRequestInFlightRef.current) return;
         dedicateRequestInFlightRef.current = true;
@@ -97,7 +105,7 @@ export function useAchievementShareInviteController({
       setShareInviteBusy(true);
       try {
         const shareInviteResult = await postShareAchievement({
-          achievementId: detailAchievementId,
+          achievementId: detailAchievement.id,
           intent,
         });
 
@@ -125,24 +133,19 @@ export function useAchievementShareInviteController({
         setShareInviteBusy(false);
       }
     },
-    [
-      detailAchievementId,
-      detailDescription,
-      detailTitle,
-      onReloadRequired,
-    ],
+    [detailAchievement, onReloadRequired],
   );
 
   const displayShareLink = useCallback(async (shareUrl: string) => {
     const nativeShareResult = await tryNativeShare({
       shareUrl,
-      title: detailTitle,
-      text: detailDescription,
+      title: detailAchievement?.title,
+      text: detailAchievement?.description,
     });
     if (nativeShareResult === "fallback") {
       await finishWithClipboardFallback(shareUrl);
     }
-  }, [detailDescription, detailTitle]);
+  }, [detailAchievement]);
 
   async function finishWithClipboardFallback(shareUrl: string) {
     const copied = await copyTextToClipboard(shareUrl);
@@ -160,12 +163,7 @@ export function useAchievementShareInviteController({
   }
 
   const shareShowcaseAchievement = useCallback(() => {
-    if (showcaseShareDisabledReason) {
-      showErrorToast(showcaseShareDisabledReason, {
-        id: "achievement-showcase-not-ready",
-      });
-      return;
-    }
+    if (refuseWhen(showcaseShareDisabledReason, "achievement-showcase-not-ready")) return;
     void shareExistingAchievement("showcase");
   }, [shareExistingAchievement, showcaseShareDisabledReason]);
 
@@ -173,36 +171,49 @@ export function useAchievementShareInviteController({
     void shareExistingAchievement("dedicate");
   }, [shareExistingAchievement]);
 
+  const shareCollaborateInvite = useCallback(() => {
+    if (!showCollaborateShareOption) return;
+    if (refuseWhen(shareReadinessError, "achievement-collaborate-not-ready")) return;
+    void shareExistingAchievement("collaborate");
+  }, [shareExistingAchievement, shareReadinessError, showCollaborateShareOption]);
+
+  const endCollaboration = useCallback(async () => {
+    if (!detailAchievement?.collaboratorUserId) return;
+    setShareInviteBusy(true);
+    try {
+      const result = await postEndAchievementCollaboration(detailAchievement.id);
+      if (result.isErr()) {
+        showErrorToast(result.error, { id: "achievement-end-collaboration" });
+        return;
+      }
+      onReloadRequired();
+    } catch (error) {
+      showErrorToast(
+        error instanceof Error ? error.message : "Could not end this collaboration.",
+        { id: "achievement-end-collaboration" },
+      );
+    } finally {
+      setShareInviteBusy(false);
+    }
+  }, [detailAchievement, onReloadRequired]);
+
   const requestDedicateInviteShare = useCallback(() => {
     if (!showDedicateShareOption) return;
-    if (dedicateShareDisabledReason) {
-      showErrorToast(dedicateShareDisabledReason, {
-        id: "achievement-dedicate-not-ready",
-      });
-      return;
-    }
+    if (refuseWhen(shareReadinessError, "achievement-dedicate-not-ready")) return;
     setDedicateInviteConfirmOpen(true);
-  }, [dedicateShareDisabledReason, showDedicateShareOption]);
+  }, [shareReadinessError, showDedicateShareOption]);
 
   const confirmDedicateInviteShare = useCallback(() => {
-    if (!showDedicateShareOption) {
-      setDedicateInviteConfirmOpen(false);
-      return;
-    }
-    if (dedicateShareDisabledReason) {
-      showErrorToast(dedicateShareDisabledReason, {
-        id: "achievement-dedicate-not-ready",
-      });
+    if (
+      !showDedicateShareOption ||
+      refuseWhen(shareReadinessError, "achievement-dedicate-not-ready")
+    ) {
       setDedicateInviteConfirmOpen(false);
       return;
     }
     setDedicateInviteConfirmOpen(false);
     void shareExistingAchievement("dedicate");
-  }, [
-    dedicateShareDisabledReason,
-    shareExistingAchievement,
-    showDedicateShareOption,
-  ]);
+  }, [shareExistingAchievement, shareReadinessError, showDedicateShareOption]);
 
   const onManualShareCopied = useCallback(() => {
     setManualShareUrl(null);
@@ -218,10 +229,18 @@ export function useAchievementShareInviteController({
     dedicateInviteConfirmOpen,
     setDedicateInviteConfirmOpen,
     showDedicateShareOption,
-    dedicateShareDisabledReason,
+    showCollaborateShareOption,
+    showEndCollaboration: detailAchievement?.collaboratorUserId != null,
+    showShowcaseShareOption: !isShelfCollaborator,
+    collaborationPartnerUserId,
+    isShelfCollaborator,
+    dedicateShareDisabledReason: shareReadinessError,
+    collaborateShareDisabledReason: shareReadinessError,
     showcaseShareDisabledReason,
     shareShowcaseAchievement,
     shareDedicationInvite,
+    shareCollaborateInvite,
+    endCollaboration,
     requestDedicateInviteShare,
     confirmDedicateInviteShare,
     onManualShareCopied,
