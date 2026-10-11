@@ -14,6 +14,7 @@ import {
   useBadgeGltfSignedUrl,
 } from "@/components/achievements/badge/display/gltf/badge-gltf-viewer";
 import { BadgeParallaxViewer } from "@/components/achievements/badge/display/parallax/badge-parallax-viewer";
+import { useIosDevice } from "@/lib/achievements/badge/model/ios-webgl";
 import { cn } from "@/lib/utils";
 
 type BadgeInteractiveContentLayerProps = {
@@ -35,6 +36,7 @@ export function BadgeInteractiveContentLayer({
   content,
   impressionEffect,
 }: BadgeInteractiveContentLayerProps) {
+  const ios = useIosDevice();
   const { isEditor, isLiveViewer, interactive, editor } =
     getBadgeContentMode(content);
 
@@ -68,11 +70,15 @@ export function BadgeInteractiveContentLayer({
     motionSeed,
     motionStartCentered: interactive?.motionStartCentered,
   };
+  const glbFloatingLayerProps = {
+    ...floatingLayerProps,
+    enabled: floatingLayerProps.enabled && ios !== true,
+  };
 
   switch (visualMode) {
     case "glb":
       return (
-        <BadgeFloatingLayer {...floatingLayerProps}>
+        <BadgeFloatingLayer {...glbFloatingLayerProps}>
           <div
             className={cn(
               "relative h-full w-full",

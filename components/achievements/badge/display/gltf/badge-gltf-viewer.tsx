@@ -4,6 +4,7 @@ import { useCallback, useEffectEvent } from "react";
 
 import { useSignedBadgeModelUrl } from "@/components/achievements/badge/display/gltf/hooks/use-signed-badge-model-url";
 import { BadgeModelCanvas } from "@/components/achievements/badge/display/gltf/r3f/badge-model-canvas";
+import { useIosDevice } from "@/lib/achievements/badge/model/ios-webgl";
 import type { BadgeModelAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +50,7 @@ export function BadgeGltfViewer({
     onPoseChange?.(yaw, pitch),
   );
 
+  const ios = useIosDevice();
   const viewStateKey = stateKey?.trim() || motionSeed;
 
   const handleVisualReady = useCallback(() => {
@@ -70,7 +72,7 @@ export function BadgeGltfViewer({
         className={cn(
           "h-full w-full touch-none transition-opacity duration-300",
           !interactive && "cursor-default",
-          !ready && "opacity-0",
+          !ready && ios !== true && "opacity-0",
         )}
       >
         <BadgeModelCanvas

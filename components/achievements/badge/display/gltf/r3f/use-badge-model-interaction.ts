@@ -6,6 +6,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import type { Group } from "three";
 
 import { badgeModelConfig } from "@/lib/achievements/badge/model/badge-model-config";
+import { isIosDevice } from "@/lib/achievements/badge/model/ios-webgl";
 import { applyBadgeModelPose } from "@/lib/achievements/badge/model/scene-graph";
 import { badgeModelViewStateStore } from "@/lib/achievements/badge/model/view-state";
 
@@ -144,7 +145,9 @@ export function useBadgeModelInteraction({
       enabled: interactive && enabled,
       filterTaps: true,
       threshold: 6,
-      pointer: { capture: true },
+      pointer: isIosDevice()
+        ? { capture: false, touch: true }
+        : { capture: true },
     },
   );
 
