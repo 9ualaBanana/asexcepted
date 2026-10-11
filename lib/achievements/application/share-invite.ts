@@ -19,9 +19,10 @@ import {
   isShareInviteBadgeModelPath,
 } from "@/lib/achievements/badge/shared/badge-assets";
 import { resolveClaimedBadgeIconFields } from "@/lib/achievements/badge/shared/badge-assets-server";
-import type {
-  Achievement,
-  AchievementCreate,
+import {
+  parseAchievement,
+  type Achievement,
+  type AchievementCreate,
 } from "@/lib/achievements/domain/achievement";
 import {
   DEFAULT_ACHIEVEMENT_ICON_KEY,
@@ -30,7 +31,11 @@ import {
   type AchievementTone,
   type IconAssetKind,
 } from "@/lib/achievements/domain/enums";
-import type { AchievementSharePageKind } from "@/lib/achievements/domain/share-invite";
+import {
+  achievementShareInviteCreateV2Schema,
+  type AchievementShareInviteCreate,
+  type AchievementSharePageKind,
+} from "@/lib/achievements/domain/share-invite";
 import { insertClaimedAchievementFromInvite } from "@/lib/achievements/persistence/dedications";
 import type { AchievementShareInvitePresentation } from "@/lib/achievements/presentation/share-invite-view-models";
 import { todayDateString } from "@/lib/feed/format-feed-event-time";
@@ -137,7 +142,7 @@ export async function getSharedAchievement(
 ): Promise<Result<AchievementShareInvitePresentation, string>> {
   const inviteResult = await ports.shareInvites.getV2(token);
   if (inviteResult.isErr()) {
-    return err(inviteResult.error);
+    return presentDedicateInvite(token, ports);
   }
   const invite = inviteResult.value;
 
@@ -368,6 +373,78 @@ function shareKindForIntent(
   return "invite";
 }
 
+async function presentDedicateInvite(
+  token: string,
+  ports: ShareInviteUseCasePorts,
+): Promise<Result<AchievementShareInvitePresentation, string>> {
+  const inviteResult = await ports.shareInvites.get(token);
+  if (inviteResult.isErr()) {
+    return err(inviteResult.error);
+  }
+  const row = inviteResult.value;
+  const inviteParsed = achievementShareInviteCreateV2Schema.safeParse({
+    id: row.id,
+    sender_user_id: row.sender_user_id,
+    source_achievement_id: row.source_achievement_id ?? row.id,
+    share_kind: row.share_kind,
+    token_hash: row.token_hash,
+    status: row.status,
+  });
+  if (!inviteParsed.success) {
+    return err("Could not find the share invite.");
+  }
+  const snapshotResult = achievementFromDedicateInvite(row);
+  if (snapshotResult.isErr()) {
+    return err(snapshotResult.error);
+  }
+
+  const senderNameResult = await fetchPublicUserDisplayName(
+    ports.supabase,
+    row.sender_user_id,
+  );
+  const senderDisplayName = senderNameResult.isOk()
+    ? senderNameResult.value
+    : "Someone";
+
+  return ok({
+    invite: inviteParsed.data,
+    snapshot: snapshotResult.value,
+    senderDisplayName,
+    ownerUserId: row.sender_user_id,
+    ownerDisplayName: senderDisplayName,
+  });
+}
+
+function achievementFromDedicateInvite(
+  row: AchievementShareInviteCreate,
+): Result<Achievement, string> {
+  return parseAchievement({
+    id: row.id,
+    user_id: row.sender_user_id,
+    title: row.title,
+    description: row.description,
+    category: row.category,
+    icon: row.icon,
+    icon_url: row.icon_url,
+    icon_file_id: row.icon_file_id,
+    icon_asset_kind: row.icon_asset_kind,
+    icon_asset_path: row.icon_asset_path,
+    icon_cc_attribution: row.icon_cc_attribution,
+    icon_model_yaw: row.icon_model_yaw ?? 0,
+    icon_model_pitch: row.icon_model_pitch ?? 0,
+    icon_model_animation_play: true,
+    icon_model_animation_speed: 1,
+    tone: row.tone ?? DEFAULT_ACHIEVEMENT_TONE,
+    is_locked: true,
+    achieved_at: row.achieved_at,
+    created_at: new Date().toISOString(),
+    visibility: "public",
+    dedicated_by_user_id: row.sender_user_id,
+    dedication_status: "pending",
+    collaborator_user_id: null,
+  });
+}
+
 async function claimCollaborationInvite(
   args: {
     token: string;
@@ -430,7 +507,11 @@ async function insertShareInviteWithSnapshot(
   }
 
   const token = createAchievementShareInviteToken();
-  const shareInviteResult = await ports.shareInvites.createV2({
+  const writeInvite =
+    args.shareKind === "invite"
+      ? ports.shareInvites.create
+      : ports.shareInvites.createV2;
+  const shareInviteResult = await writeInvite({
     senderUserId: args.senderUserId,
     snapshot: args.achievement,
     shareKind: args.shareKind,
