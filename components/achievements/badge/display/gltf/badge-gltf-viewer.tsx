@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useEffectEvent, useRef, useState, type RefObject } from "react";
+import { useCallback, useEffect, useEffectEvent } from "react";
 
 import { useBadgeGltfSource } from "@/components/achievements/badge/display/gltf/hooks/use-badge-gltf-source";
 import { useSignedBadgeModelUrl } from "@/components/achievements/badge/display/gltf/hooks/use-signed-badge-model-url";
@@ -48,8 +48,6 @@ export function BadgeGltfViewer({
     onPoseChange?.(yaw, pitch),
   );
 
-  const hostRef = useRef<HTMLDivElement>(null);
-  const painted = usePaintedHost(hostRef);
   const { gltf, error } = useBadgeGltfSource(signedModelUrl);
   const viewStateKey = stateKey?.trim() || motionSeed;
 
@@ -72,14 +70,14 @@ export function BadgeGltfViewer({
   }, [error, handleLoadErrorWithAnimationReset]);
 
   return (
-    <div ref={hostRef} className={cn("relative h-full w-full p-1", className)}>
+    <div className={cn("absolute inset-0 p-1", className)}>
       <div
         className={cn(
-          "h-full w-full touch-none",
+          "relative h-full w-full touch-none",
           !interactive && "cursor-default",
         )}
       >
-        {painted && !error ? (
+        {!error ? (
           <BadgeModelCanvas
             model={model}
             gltf={gltf}
@@ -96,58 +94,6 @@ export function BadgeGltfViewer({
       </div>
     </div>
   );
-}
-
-function usePaintedHost(ref: RefObject<HTMLElement | null>): boolean {
-  const [painted, setPainted] = useState(false);
-
-  useEffect(() => {
-    const node = ref.current;
-    if (!node) return;
-
-    let frame = 0;
-    const tick = () => {
-      if (isPainted(node)) {
-        setPainted(true);
-        return;
-      }
-      frame = requestAnimationFrame(tick);
-    };
-    tick();
-
-    return () => cancelAnimationFrame(frame);
-  }, [ref]);
-
-  return painted;
-}
-
-function isPainted(node: HTMLElement): boolean {
-  if (typeof node.checkVisibility === "function") {
-    try {
-      return node.checkVisibility({
-        opacityProperty: true,
-        visibilityProperty: true,
-      });
-    } catch {
-      return paintedByStyle(node);
-    }
-  }
-
-  return paintedByStyle(node);
-}
-
-function paintedByStyle(node: HTMLElement): boolean {
-  const rect = node.getBoundingClientRect();
-  if (rect.width < 1 || rect.height < 1) return false;
-
-  let current: HTMLElement | null = node;
-  while (current) {
-    const style = getComputedStyle(current);
-    if (style.display === "none" || style.visibility === "hidden") return false;
-    if (Number.parseFloat(style.opacity) < 0.01) return false;
-    current = current.parentElement;
-  }
-  return true;
 }
 
 /** Client signing when `Badge` has a model but no pre-resolved URL. */

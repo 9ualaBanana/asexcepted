@@ -4,7 +4,6 @@ import { Canvas } from "@react-three/fiber";
 import { useCallback } from "react";
 
 import { badgeModelConfig } from "@/lib/achievements/badge/model/badge-model-config";
-import { isIosDevice } from "@/lib/achievements/badge/model/ios-webgl";
 import { configureBadgeModelRenderer } from "@/lib/achievements/badge/model/studio-environment";
 
 import { BadgeModelScene } from "./badge-model-scene";
@@ -20,7 +19,6 @@ export function BadgeModelCanvas({
   onInvalidateReady,
   ...contentProps
 }: BadgeModelCanvasProps) {
-  const ios = isIosDevice();
   const handleCreated = useCallback(
     ({
       gl,
@@ -39,13 +37,12 @@ export function BadgeModelCanvas({
   return (
     <Canvas
       className={className}
-      frameloop={ios || contentProps.model.animationPlay ? "always" : "demand"}
-      dpr={ios ? [1, 1.5] : [1, 2]}
+      frameloop={contentProps.model.animationPlay ? "always" : "demand"}
+      dpr={[1, 2]}
       gl={{
         alpha: true,
-        antialias: !ios,
-        powerPreference: ios ? "default" : "high-performance",
-        failIfMajorPerformanceCaveat: false,
+        antialias: true,
+        powerPreference: "high-performance",
       }}
       camera={{
         fov: badgeModelConfig.camera.fov,
@@ -54,7 +51,14 @@ export function BadgeModelCanvas({
         position: [0, 0, 5],
       }}
       onCreated={handleCreated}
-      style={{ width: "100%", height: "100%", display: "block", touchAction: "none" }}
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        display: "block",
+        touchAction: "none",
+      }}
     >
       <BadgeModelScene />
       <BadgeModelContent {...contentProps} />

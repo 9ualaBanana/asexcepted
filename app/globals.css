@@ -160,16 +160,6 @@
     );
 }
 
-@supports (-webkit-touch-callout: none) {
-  @media (hover: none) and (pointer: coarse) {
-    .badge-object-float:has(canvas) {
-      animation: none;
-      transform: none;
-      will-change: auto;
-    }
-  }
-}
-
 /* Slightly larger stage so the badge can "breathe" while floating. */
 .achievement-badge-float-room {
   position: absolute;
