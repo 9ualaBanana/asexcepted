@@ -9,8 +9,12 @@ export const BADGE_MODEL_DRACO_DECODER_CDN =
 export async function withConfiguredGltfLoader<T>(
   run: (loader: GLTFLoader) => Promise<T>,
 ): Promise<T> {
-  using scope = createConfiguredGltfLoader();
-  return run(scope.loader);
+  const scope = createConfiguredGltfLoader();
+  try {
+    return await run(scope.loader);
+  } finally {
+    scope[Symbol.dispose]();
+  }
 }
 
 type ConfiguredGltfLoader = Disposable & {

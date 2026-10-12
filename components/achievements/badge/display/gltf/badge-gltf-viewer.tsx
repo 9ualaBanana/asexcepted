@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffectEvent } from "react";
+import { useCallback, useEffect, useEffectEvent } from "react";
 
+import { useBadgeGltfSource } from "@/components/achievements/badge/display/gltf/hooks/use-badge-gltf-source";
 import { useSignedBadgeModelUrl } from "@/components/achievements/badge/display/gltf/hooks/use-signed-badge-model-url";
 import { BadgeModelCanvas } from "@/components/achievements/badge/display/gltf/r3f/badge-model-canvas";
 import type { BadgeModelAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
@@ -19,7 +20,6 @@ export type BadgeGltfViewerProps = {
   onPoseChange?: (yaw: number, pitch: number) => void;
   allowInertia?: boolean;
   interactive?: boolean;
-  ready?: boolean;
   onVisualReadyFromCanvas?: () => void;
   onLoadError?: () => void;
 };
@@ -37,7 +37,6 @@ export function BadgeGltfViewer({
   onPoseChange,
   allowInertia = true,
   interactive = true,
-  ready = true,
   onVisualReadyFromCanvas,
   onLoadError,
 }: BadgeGltfViewerProps) {
@@ -49,6 +48,7 @@ export function BadgeGltfViewer({
     onPoseChange?.(yaw, pitch),
   );
 
+  const { gltf, error } = useBadgeGltfSource(signedModelUrl);
   const viewStateKey = stateKey?.trim() || motionSeed;
 
   const handleVisualReady = useCallback(() => {
@@ -64,28 +64,33 @@ export function BadgeGltfViewer({
     notifyHasAnimationChange(false);
   }, [notifyHasAnimationChange, onLoadError]);
 
+  useEffect(() => {
+    if (!error) return;
+    handleLoadErrorWithAnimationReset();
+  }, [error, handleLoadErrorWithAnimationReset]);
+
   return (
-    <div className={cn("relative h-full w-full p-1", className)}>
+    <div className={cn("absolute inset-0 p-1", className)}>
       <div
         className={cn(
-          "h-full w-full touch-none transition-opacity duration-300",
+          "relative h-full w-full touch-none",
           !interactive && "cursor-default",
-          !ready && "opacity-0",
         )}
       >
-        <BadgeModelCanvas
-          model={model}
-          className="h-full w-full"
-          signedModelUrl={signedModelUrl}
-          viewStateKey={viewStateKey}
-          motionStartCentered={motionStartCentered}
-          interactive={interactive}
-          allowInertia={allowInertia}
-          onPoseChange={notifyPoseChange}
-          onHasAnimationChange={notifyHasAnimationChange}
-          onVisualReady={handleVisualReady}
-          onLoadError={handleLoadErrorWithAnimationReset}
-        />
+        {!error ? (
+          <BadgeModelCanvas
+            model={model}
+            gltf={gltf}
+            className="h-full w-full"
+            viewStateKey={viewStateKey}
+            motionStartCentered={motionStartCentered}
+            interactive={interactive}
+            allowInertia={allowInertia}
+            onPoseChange={notifyPoseChange}
+            onHasAnimationChange={notifyHasAnimationChange}
+            onVisualReady={handleVisualReady}
+          />
+        ) : null}
       </div>
     </div>
   );

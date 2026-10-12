@@ -4,13 +4,13 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useAnimations } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import { Group, PerspectiveCamera } from "three";
+import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 import { badgeModelConfig } from "@/lib/achievements/badge/model/badge-model-config";
 import { applyBadgeModelGltfTuning } from "@/lib/achievements/badge/model/gltf-tuning";
 import { frameCameraForBadgeModel } from "@/lib/achievements/badge/model/rendering";
 import { prepareBadgeGltfRoot } from "@/lib/achievements/badge/model/scene-graph";
 
-import { useBadgeGltfSource } from "../hooks/use-badge-gltf-source";
 import { useBadgeModelAnimation } from "./use-badge-model-animation";
 import { useBadgeMixerPersistence } from "./use-badge-mixer-persistence";
 import { useBadgeModelInteraction } from "./use-badge-model-interaction";
@@ -18,7 +18,7 @@ import { type BadgeModelAsset } from "@/lib/achievements/badge/shared/badge-mode
 
 export type BadgeModelContentProps = {
   model: BadgeModelAsset;
-  signedModelUrl: string;
+  gltf: GLTF | null;
   viewStateKey: string;
   motionStartCentered: boolean;
   interactive: boolean;
@@ -26,12 +26,11 @@ export type BadgeModelContentProps = {
   onPoseChange?: (yaw: number, pitch: number) => void;
   onHasAnimationChange?: (hasAnimation: boolean) => void;
   onVisualReady?: () => void;
-  onLoadError?: () => void;
 };
 
 export function BadgeModelContent({
   model,
-  signedModelUrl,
+  gltf,
   viewStateKey,
   motionStartCentered,
   interactive,
@@ -39,23 +38,14 @@ export function BadgeModelContent({
   onPoseChange,
   onHasAnimationChange,
   onVisualReady,
-  onLoadError,
 }: BadgeModelContentProps) {
   const orbitRootRef = useRef<Group>(null);
   const modelRootRef = useRef<Group>(null);
-
-  const { gltf, error } = useBadgeGltfSource(signedModelUrl);
 
   const invalidate = useThree((state) => state.invalidate);
   const gl = useThree((state) => state.gl);
   const scene = useThree((state) => state.scene);
   const camera = useThree((state) => state.camera) as PerspectiveCamera;
-
-  useEffect(() => {
-    if (!error) return;
-    onLoadError?.();
-    onHasAnimationChange?.(false);
-  }, [error, onHasAnimationChange, onLoadError]);
 
   const modelObject = useMemo(() => {
     if (!gltf) return null;

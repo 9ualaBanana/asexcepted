@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { Suspense, useCallback } from "react";
+import { useCallback } from "react";
 
 import { badgeModelConfig } from "@/lib/achievements/badge/model/badge-model-config";
 import { configureBadgeModelRenderer } from "@/lib/achievements/badge/model/studio-environment";
@@ -51,12 +51,17 @@ export function BadgeModelCanvas({
         position: [0, 0, 5],
       }}
       onCreated={handleCreated}
-      style={{ width: "100%", height: "100%", display: "block", touchAction: "none" }}
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        display: "block",
+        touchAction: "none",
+      }}
     >
-      <Suspense fallback={null}>
-        <BadgeModelScene />
-        <BadgeModelContent {...contentProps} />
-      </Suspense>
+      <BadgeModelScene />
+      <BadgeModelContent {...contentProps} />
     </Canvas>
   );
 }

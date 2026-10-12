@@ -163,16 +163,11 @@ export function getBadgeContentMode(content: BadgeContent) {
 export function resolveLiveVisualMode(params: {
   hasDisplaySrc: boolean;
   hasModel: boolean;
-  hasSignedModelUrl: boolean;
   isLiveViewer: boolean;
 }): BadgeLiveVisualMode {
-  const useGlbStack =
-    params.hasDisplaySrc &&
-    params.hasModel &&
-    params.hasSignedModelUrl &&
-    params.isLiveViewer;
-
-  if (useGlbStack) return "glb";
+  if (params.hasDisplaySrc && params.hasModel && params.isLiveViewer) {
+    return "glb";
+  }
 
   if (params.isLiveViewer && params.hasDisplaySrc) return "parallax";
 

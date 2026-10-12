@@ -91,7 +91,10 @@ export function useBadgeModelAnimation({
     };
 
     if (clip && !actions[clip.name]) {
-      return;
+      ensureVisualReady();
+      return () => {
+        cancelVisualReady?.();
+      };
     }
 
     if (!clip) {

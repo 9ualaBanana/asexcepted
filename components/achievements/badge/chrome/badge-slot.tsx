@@ -52,7 +52,7 @@ export function BadgeSlot(props: BadgeSlotProps) {
   const { size, className, children } = props;
   return (
     <div data-badge-container="" className={cn(sizeClass[size], className)}>
-      {children}
+      <div className="absolute inset-0">{children}</div>
     </div>
   );
 }

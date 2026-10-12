@@ -1,5 +1,7 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
+
 import { BadgeFloatingLayer } from "@/components/achievements/badge/display/badge-floating-layer";
 import {
   getBadgeContentMode,
@@ -44,10 +46,14 @@ export function BadgeInteractiveContentLayer({
     interactive?.onModelUrlReady ?? editor?.onModelUrlReady,
   );
 
+  const [modelFailed, setModelFailed] = useState(false);
+  useEffect(() => {
+    setModelFailed(false);
+  }, [model?.assetPath, signedModelUrl]);
+
   const visualMode = resolveLiveVisualMode({
     hasDisplaySrc: !!displaySrc,
-    hasModel: !!model,
-    hasSignedModelUrl: !!signedModelUrl,
+    hasModel: !!model && !modelFailed,
     isLiveViewer,
   });
 
@@ -57,6 +63,11 @@ export function BadgeInteractiveContentLayer({
       showPreviewOverlay: editor?.showPreviewOverlay ?? true,
       onVisualReady: interactive?.onVisualReady,
     });
+
+  const failModel = useCallback(() => {
+    setModelFailed(true);
+    handleLoadError();
+  }, [handleLoadError]);
 
   if (!displaySrc) return null;
 
@@ -82,7 +93,7 @@ export function BadgeInteractiveContentLayer({
             <div
               className={cn(
                 "pointer-events-none absolute inset-0 z-10 transition-opacity duration-200",
-                previewVisible ? "opacity-100" : "opacity-0",
+                previewVisible || !ready ? "opacity-100" : "opacity-0",
               )}
             >
               <BadgePreviewLayer
@@ -91,20 +102,21 @@ export function BadgeInteractiveContentLayer({
                 onDecoded={onImageDecoded}
               />
             </div>
-            <BadgeGltfViewer
-              model={model!}
-              signedModelUrl={signedModelUrl!}
-              motionSeed={motionSeed}
-              motionStartCentered={interactive?.motionStartCentered}
-              stateKey={interactive?.viewerStateKey}
-              onVisualReadyFromCanvas={handleVisualReady}
-              onLoadError={handleLoadError}
-              onHasAnimationChange={editor?.onHasAnimationChange}
-              onPoseChange={editor?.onPoseChange}
-              allowInertia={!isEditor}
-              interactive={editor?.allowModelRotation ?? true}
-              ready={ready}
-            />
+            {signedModelUrl ? (
+              <BadgeGltfViewer
+                model={model!}
+                signedModelUrl={signedModelUrl}
+                motionSeed={motionSeed}
+                motionStartCentered={interactive?.motionStartCentered}
+                stateKey={interactive?.viewerStateKey}
+                onVisualReadyFromCanvas={handleVisualReady}
+                onLoadError={failModel}
+                onHasAnimationChange={editor?.onHasAnimationChange}
+                onPoseChange={editor?.onPoseChange}
+                allowInertia={!isEditor}
+                interactive={editor?.allowModelRotation ?? true}
+              />
+            ) : null}
           </div>
         </BadgeFloatingLayer>
       );
