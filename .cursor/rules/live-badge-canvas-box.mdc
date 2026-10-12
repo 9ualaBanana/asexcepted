@@ -1,0 +1,37 @@
+---
+description: Keep the live 3D badge canvas filling the slot so iPhone still presents and receives drags
+globs: components/achievements/badge/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Live badge canvas box
+
+iPhone Safari does not give an in-flow `height: 100%` child a box inside the aspect-ratio badge slot. The poster is absolute, so it still shows, and a collapsed canvas never paints or receives a drag. Desktop will not catch this.
+
+Read `docs/adr/0001-live-badge-canvas-box.md` before changing `BadgeSlot`, the GLB canvas, the poster overlay, or `BadgeModelScene`.
+
+## Required
+
+- Slot content and the canvas fill the square with `absolute inset-0`. The canvas stays at full opacity when its WebGL context is created. The poster covers it until the model is ready.
+- Studio HDR sits in its own Suspense and error boundary. It must not suspend the model.
+
+## Do not
+
+- Size the live canvas with in-flow `h-full` / `height: 100%` inside the aspect-ratio frame.
+- Hide the canvas with `opacity-0` until visual ready.
+- Put `Environment` and `BadgeModelContent` under one Suspense boundary.
+- Treat a `powerPreference` or other iPhone-only renderer flag as the fix.
+
+```tsx
+// ❌ BAD — percentage height in the flex square; canvas faded out before it can present
+<div className="relative flex aspect-square">
+  <Canvas className="h-full w-full" style={{ opacity: 0 }} />
+</div>
+
+// ✅ GOOD — absolute fill, canvas opaque, poster on top until ready
+<div className="relative flex aspect-square">
+  <div className="absolute inset-0">
+    <Canvas style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+  </div>
+</div>
+```
