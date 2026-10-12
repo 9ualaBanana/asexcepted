@@ -4,7 +4,7 @@ import { Canvas } from "@react-three/fiber";
 import { useCallback } from "react";
 
 import { badgeModelConfig } from "@/lib/achievements/badge/model/badge-model-config";
-import { useIosDevice } from "@/lib/achievements/badge/model/ios-webgl";
+import { isIosDevice } from "@/lib/achievements/badge/model/ios-webgl";
 import { configureBadgeModelRenderer } from "@/lib/achievements/badge/model/studio-environment";
 
 import { BadgeModelScene } from "./badge-model-scene";
@@ -20,7 +20,7 @@ export function BadgeModelCanvas({
   onInvalidateReady,
   ...contentProps
 }: BadgeModelCanvasProps) {
-  const ios = useIosDevice();
+  const ios = isIosDevice();
   const handleCreated = useCallback(
     ({
       gl,
@@ -35,10 +35,6 @@ export function BadgeModelCanvas({
     },
     [onInvalidateReady],
   );
-
-  if (ios === null) {
-    return <div className={className} />;
-  }
 
   return (
     <Canvas

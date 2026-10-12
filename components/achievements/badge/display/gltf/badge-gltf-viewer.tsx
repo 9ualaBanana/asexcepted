@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffectEvent } from "react";
+import { useCallback, useEffect, useEffectEvent, useRef, useState, type RefObject } from "react";
 
+import { useBadgeGltfSource } from "@/components/achievements/badge/display/gltf/hooks/use-badge-gltf-source";
 import { useSignedBadgeModelUrl } from "@/components/achievements/badge/display/gltf/hooks/use-signed-badge-model-url";
 import { BadgeModelCanvas } from "@/components/achievements/badge/display/gltf/r3f/badge-model-canvas";
-import { useIosDevice } from "@/lib/achievements/badge/model/ios-webgl";
 import type { BadgeModelAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +20,6 @@ export type BadgeGltfViewerProps = {
   onPoseChange?: (yaw: number, pitch: number) => void;
   allowInertia?: boolean;
   interactive?: boolean;
-  ready?: boolean;
   onVisualReadyFromCanvas?: () => void;
   onLoadError?: () => void;
 };
@@ -38,7 +37,6 @@ export function BadgeGltfViewer({
   onPoseChange,
   allowInertia = true,
   interactive = true,
-  ready = true,
   onVisualReadyFromCanvas,
   onLoadError,
 }: BadgeGltfViewerProps) {
@@ -50,7 +48,9 @@ export function BadgeGltfViewer({
     onPoseChange?.(yaw, pitch),
   );
 
-  const ios = useIosDevice();
+  const hostRef = useRef<HTMLDivElement>(null);
+  const painted = usePaintedHost(hostRef);
+  const { gltf, error } = useBadgeGltfSource(signedModelUrl);
   const viewStateKey = stateKey?.trim() || motionSeed;
 
   const handleVisualReady = useCallback(() => {
@@ -66,31 +66,88 @@ export function BadgeGltfViewer({
     notifyHasAnimationChange(false);
   }, [notifyHasAnimationChange, onLoadError]);
 
+  useEffect(() => {
+    if (!error) return;
+    handleLoadErrorWithAnimationReset();
+  }, [error, handleLoadErrorWithAnimationReset]);
+
   return (
-    <div className={cn("relative h-full w-full p-1", className)}>
+    <div ref={hostRef} className={cn("relative h-full w-full p-1", className)}>
       <div
         className={cn(
-          "h-full w-full touch-none transition-opacity duration-300",
+          "h-full w-full touch-none",
           !interactive && "cursor-default",
-          !ready && ios !== true && "opacity-0",
         )}
       >
-        <BadgeModelCanvas
-          model={model}
-          className="h-full w-full"
-          signedModelUrl={signedModelUrl}
-          viewStateKey={viewStateKey}
-          motionStartCentered={motionStartCentered}
-          interactive={interactive}
-          allowInertia={allowInertia}
-          onPoseChange={notifyPoseChange}
-          onHasAnimationChange={notifyHasAnimationChange}
-          onVisualReady={handleVisualReady}
-          onLoadError={handleLoadErrorWithAnimationReset}
-        />
+        {painted && !error ? (
+          <BadgeModelCanvas
+            model={model}
+            gltf={gltf}
+            className="h-full w-full"
+            viewStateKey={viewStateKey}
+            motionStartCentered={motionStartCentered}
+            interactive={interactive}
+            allowInertia={allowInertia}
+            onPoseChange={notifyPoseChange}
+            onHasAnimationChange={notifyHasAnimationChange}
+            onVisualReady={handleVisualReady}
+          />
+        ) : null}
       </div>
     </div>
   );
+}
+
+function usePaintedHost(ref: RefObject<HTMLElement | null>): boolean {
+  const [painted, setPainted] = useState(false);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+
+    let frame = 0;
+    const tick = () => {
+      if (isPainted(node)) {
+        setPainted(true);
+        return;
+      }
+      frame = requestAnimationFrame(tick);
+    };
+    tick();
+
+    return () => cancelAnimationFrame(frame);
+  }, [ref]);
+
+  return painted;
+}
+
+function isPainted(node: HTMLElement): boolean {
+  if (typeof node.checkVisibility === "function") {
+    try {
+      return node.checkVisibility({
+        opacityProperty: true,
+        visibilityProperty: true,
+      });
+    } catch {
+      return paintedByStyle(node);
+    }
+  }
+
+  return paintedByStyle(node);
+}
+
+function paintedByStyle(node: HTMLElement): boolean {
+  const rect = node.getBoundingClientRect();
+  if (rect.width < 1 || rect.height < 1) return false;
+
+  let current: HTMLElement | null = node;
+  while (current) {
+    const style = getComputedStyle(current);
+    if (style.display === "none" || style.visibility === "hidden") return false;
+    if (Number.parseFloat(style.opacity) < 0.01) return false;
+    current = current.parentElement;
+  }
+  return true;
 }
 
 /** Client signing when `Badge` has a model but no pre-resolved URL. */

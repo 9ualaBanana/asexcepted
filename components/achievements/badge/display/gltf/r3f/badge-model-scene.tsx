@@ -1,22 +1,19 @@
 "use client";
 
-import { Component, Suspense, useLayoutEffect, useState, type ReactNode } from "react";
-import { useThree } from "@react-three/fiber";
+import { Component, Suspense, type ReactNode } from "react";
 import { Environment } from "@react-three/drei";
-import { PMREMGenerator } from "three";
-import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
 import { badgeModelConfig } from "@/lib/achievements/badge/model/badge-model-config";
 import { isIosDevice } from "@/lib/achievements/badge/model/ios-webgl";
 
 export function BadgeModelScene() {
   if (isIosDevice()) {
-    return <BadgeModelIosLighting />;
+    return <BadgeModelPlainLights />;
   }
 
   return (
     <BadgeModelLightingBoundary>
-      <Suspense fallback={null}>
+      <Suspense fallback={<BadgeModelPlainLights />}>
         <Environment
           preset="studio"
           environmentIntensity={badgeModelConfig.environment.intensity}
@@ -24,34 +21,6 @@ export function BadgeModelScene() {
       </Suspense>
     </BadgeModelLightingBoundary>
   );
-}
-
-function BadgeModelIosLighting() {
-  const gl = useThree((state) => state.gl);
-  const scene = useThree((state) => state.scene);
-  const [needsLights, setNeedsLights] = useState(false);
-
-  useLayoutEffect(() => {
-    const pmrem = new PMREMGenerator(gl);
-    try {
-      const texture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-      scene.environment = texture;
-      scene.environmentIntensity = badgeModelConfig.environment.intensity;
-      return () => {
-        texture.dispose();
-        pmrem.dispose();
-        if (scene.environment === texture) {
-          scene.environment = null;
-        }
-      };
-    } catch {
-      pmrem.dispose();
-      setNeedsLights(true);
-    }
-  }, [gl, scene]);
-
-  if (!needsLights) return null;
-  return <BadgeModelPlainLights />;
 }
 
 function BadgeModelPlainLights() {
