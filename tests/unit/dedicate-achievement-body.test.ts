@@ -12,7 +12,6 @@ const baseBody = {
   icon_file_id: null,
   icon_asset_kind: "image",
   icon_asset_path: null,
-  icon_cc_attribution: null,
   icon_model_yaw: 0,
   icon_model_pitch: 0,
   icon_model_animation_play: true,

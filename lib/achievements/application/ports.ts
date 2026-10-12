@@ -95,7 +95,6 @@ export type EmbedPort = {
         icon_model_pitch?: number | null;
         icon_model_animation_play?: boolean | null;
         icon_model_animation_speed?: number | null;
-        icon_cc_attribution?: string | null;
       },
       string
     >

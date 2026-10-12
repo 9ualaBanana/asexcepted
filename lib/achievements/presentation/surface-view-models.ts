@@ -68,7 +68,6 @@ export type AchievementShareInviteBadgeViewModel = {
   iconUrl: string | null;
   renderSrc: string | null;
   model: BadgeModelAsset | null;
-  showAttributionPopover: boolean;
 };
 
 export function feedEventToViewModel(
@@ -108,7 +107,6 @@ type EmbedBadgeRowSource = {
   icon_asset_path?: string | null;
   icon_model_yaw?: number | null;
   icon_model_pitch?: number | null;
-  icon_cc_attribution?: string | null;
   icon_model_animation_play?: boolean | null;
   icon_model_animation_speed?: number | null;
 };
@@ -124,7 +122,6 @@ export function embedBadgeRowToViewModel(row: EmbedBadgeRowSource): AchievementE
     iconModelPitch: row.icon_model_pitch,
     iconModelAnimationPlay: row.icon_model_animation_play,
     iconModelAnimationSpeed: row.icon_model_animation_speed,
-    iconCcAttribution: row.icon_cc_attribution,
   });
 
   return {
@@ -156,13 +153,11 @@ export function shareInviteRowToBadgeViewModel(
     iconModelPitch: row.icon_model_pitch,
     iconModelAnimationPlay: row.icon_model_animation_play,
     iconModelAnimationSpeed: row.icon_model_animation_speed,
-    iconCcAttribution: row.icon_cc_attribution,
   });
 
   return {
     iconUrl,
     renderSrc: toOptimizedRenderUrl(iconUrl),
     model,
-    showAttributionPopover: Boolean(model?.ccAttribution),
   };
 }

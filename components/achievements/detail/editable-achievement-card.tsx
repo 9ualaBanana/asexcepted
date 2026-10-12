@@ -108,7 +108,6 @@ export function EditableAchievementCard({
     [
       form.iconAssetKind,
       form.iconAssetPath,
-      form.iconCcAttribution,
       form.iconModelYaw,
       form.iconModelPitch,
       form.iconModelAnimationPlay,

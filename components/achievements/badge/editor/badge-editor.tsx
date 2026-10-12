@@ -17,7 +17,6 @@ import { Badge } from "@/components/achievements/badge/display/badge";
 import { badgeOptionsForEditor } from "@/components/achievements/badge/display/badge-presets";
 import { BadgeEditorUploadTarget } from "@/components/achievements/badge/editor/badge-editor-upload-target";
 import { BadgeSlot } from "@/components/achievements/badge/chrome/badge-slot";
-import { BadgeAttributionPopover } from "@/components/achievements/badge/chrome/badge-attribution-popover";
 import {
   deleteRemoteAssetStorageRefQuietly,
   getReplacedRemoteAssetStorageRef,
@@ -353,15 +352,6 @@ export function BadgeEditor({
             })}
           />
         </BadgeEditorUploadTarget>
-        {model != null && (
-          <BadgeAttributionPopover
-            value={model.ccAttribution ?? ""}
-            editable
-            onChange={(value) => patchModel({ ccAttribution: value })}
-            disabled={disabled || busy}
-            emptyState="Add creator credit, license, source link, or any required attribution."
-          />
-        )}
         {canToggleLocked ? (
           <div className="group/lock pointer-events-none absolute inset-0 z-30 flex items-center justify-center">
             <button

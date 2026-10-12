@@ -25,7 +25,6 @@ export {
   BadgeIconDisc,
   badgeIconDiscSizeStyles,
 } from "./chrome/badge-icon-disc";
-export { BadgeAttributionPopover } from "./chrome/badge-attribution-popover";
 
 export { RemoteBadgeImage } from "./display/remote-badge-image";
 export { FallbackBadge } from "./display/fallback-badge";

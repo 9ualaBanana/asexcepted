@@ -18,7 +18,6 @@ export type FormState = {
   iconFileId: string;
   iconAssetKind: IconAssetKind;
   iconAssetPath: string;
-  iconCcAttribution: string;
   iconModelYaw: number;
   iconModelPitch: number;
   iconModelAnimationPlay: boolean;
@@ -54,7 +53,6 @@ export function createInitialForm(): FormState {
     iconFileId: "",
     iconAssetKind: DEFAULT_ICON_ASSET_KIND,
     iconAssetPath: "",
-    iconCcAttribution: "",
     iconModelYaw: 0,
     iconModelPitch: 0,
     iconModelAnimationPlay: true,

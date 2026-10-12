@@ -3,7 +3,6 @@ import Link from "next/link";
 
 import { Badge } from "@/components/achievements/badge/display/badge";
 import { badgeOptionsForInvite } from "@/components/achievements/badge/display/badge-presets";
-import { BadgeAttributionPopover } from "@/components/achievements/badge";
 import { formatAchievedAt } from "@/lib/feed/format-feed-event-time";
 import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/shared/badge-assets-server";
 import { APP_DISPLAY_NAME } from "@/lib/brand";
@@ -184,12 +183,6 @@ export default async function Page({ params }: PageProps) {
                     model: inviteBadge.model,
                     signedModelUrl,
                   })}
-                />
-              ) : null}
-              {inviteBadge.model?.ccAttribution ? (
-                <BadgeAttributionPopover
-                  value={inviteBadge.model.ccAttribution}
-                  emptyState="No attribution was provided for this 3D badge."
                 />
               ) : null}
             </div>

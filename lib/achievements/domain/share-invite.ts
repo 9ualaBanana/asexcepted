@@ -33,7 +33,6 @@ export type AchievementShareInviteCreate = {
   icon_file_id: string | null;
   icon_asset_kind: string;
   icon_asset_path: string | null;
-  icon_cc_attribution: string | null;
   icon_model_yaw: number;
   icon_model_pitch: number;
   tone: string | null;

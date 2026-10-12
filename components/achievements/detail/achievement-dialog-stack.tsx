@@ -17,7 +17,6 @@ import { Check, Loader2, PenLine, X, type LucideIcon } from "lucide-react";
 import type { AchievementTone } from "@/components/achievements/achievement-manager-utils";
 import {
   Badge,
-  BadgeAttributionPopover,
   badgeOptionsForDetailInteractive,
   postAchievementImpression,
   type BadgeSessionController,
@@ -528,12 +527,6 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                           : undefined,
                       })}
                     />
-                    {detailAchievement.model != null && (
-                      <BadgeAttributionPopover
-                        value={detailAchievement.model.ccAttribution ?? ""}
-                        emptyState="No attribution was provided for this 3D badge."
-                      />
-                    )}
                   </div>
                 </div>
               </div>

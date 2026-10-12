@@ -39,7 +39,6 @@ export const achievementSchema = z.object({
   icon_file_id: trimmedNullableTextSchema,
   icon_asset_kind: iconAssetKindSchema,
   icon_asset_path: trimmedNullableTextSchema,
-  icon_cc_attribution: trimmedNullableTextSchema,
   icon_model_yaw: z.number(),
   icon_model_pitch: z.number(),
   icon_model_animation_play: z.boolean(),
@@ -67,7 +66,6 @@ export type AchievementWrite = {
   icon_file_id: string | null;
   icon_asset_kind: IconAssetKind;
   icon_asset_path: string | null;
-  icon_cc_attribution: string | null;
   icon_model_yaw?: number;
   icon_model_pitch?: number;
   icon_model_animation_play?: boolean;

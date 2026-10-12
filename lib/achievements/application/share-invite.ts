@@ -265,7 +265,6 @@ export async function claimAchievementShareInvite(
     icon_asset_kind: (reservedInvite.icon_asset_kind ??
       "image") as IconAssetKind,
     icon_asset_path: claimedIconAssetPath,
-    icon_cc_attribution: reservedInvite.icon_cc_attribution,
     icon_model_yaw: reservedInvite.icon_model_yaw ?? 0,
     icon_model_pitch: reservedInvite.icon_model_pitch ?? 0,
     tone: (reservedInvite.tone ?? DEFAULT_ACHIEVEMENT_TONE) as AchievementTone,
@@ -429,7 +428,6 @@ function achievementFromDedicateInvite(
     icon_file_id: row.icon_file_id,
     icon_asset_kind: row.icon_asset_kind,
     icon_asset_path: row.icon_asset_path,
-    icon_cc_attribution: row.icon_cc_attribution,
     icon_model_yaw: row.icon_model_yaw ?? 0,
     icon_model_pitch: row.icon_model_pitch ?? 0,
     icon_model_animation_play: true,

@@ -67,7 +67,6 @@ export async function createShareInvite(
       icon_file_id: args.snapshot.icon_file_id,
       icon_asset_kind: args.snapshot.icon_asset_kind,
       icon_asset_path: args.snapshot.icon_asset_path,
-      icon_cc_attribution: args.snapshot.icon_cc_attribution,
       icon_model_yaw: args.snapshot.icon_model_yaw,
       icon_model_pitch: args.snapshot.icon_model_pitch,
       tone: args.snapshot.tone,

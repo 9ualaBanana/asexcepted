@@ -30,7 +30,6 @@ const badgeModelFormFieldsSchema = z.object({
   pitch: z.number(),
   animationPlay: z.boolean(),
   animationSpeed: z.number(),
-  ccAttribution: z.string().nullable(),
 });
 
 const detailToFormSchema = z
@@ -57,7 +56,6 @@ const detailToFormSchema = z
       iconFileId: detail.iconFileId ?? "",
       iconAssetKind: detail.model ? "model_glb" : "image",
       iconAssetPath: detail.model?.assetPath ?? "",
-      iconCcAttribution: detail.model?.ccAttribution ?? "",
       iconModelYaw: detail.model?.yaw ?? 0,
       iconModelPitch: detail.model?.pitch ?? 0,
       iconModelAnimationPlay: detail.model?.animationPlay ?? true,
@@ -79,7 +77,6 @@ const formToPayloadSchema = z
     iconFileId: z.string(),
     iconAssetKind: iconAssetKindSchema,
     iconAssetPath: z.string(),
-    iconCcAttribution: z.string(),
     iconModelYaw: z.number(),
     iconModelPitch: z.number(),
     iconModelAnimationPlay: z.boolean(),
@@ -99,7 +96,6 @@ const formToPayloadSchema = z
       icon_file_id: normalizeImageKitFileId(form.iconFileId),
       icon_asset_kind: form.iconAssetKind,
       icon_asset_path: toNullable(form.iconAssetPath),
-      icon_cc_attribution: toNullable(form.iconCcAttribution),
       icon_model_yaw: form.iconModelYaw,
       icon_model_pitch: form.iconModelPitch,
       icon_model_animation_play: form.iconModelAnimationPlay,
@@ -179,7 +175,6 @@ export function achievementToViewModel(row: Achievement): AchievementViewModel {
     iconModelPitch: row.icon_model_pitch,
     iconModelAnimationPlay: row.icon_model_animation_play,
     iconModelAnimationSpeed: row.icon_model_animation_speed,
-    iconCcAttribution: row.icon_cc_attribution,
   });
   return {
     id: row.id,
@@ -294,7 +289,6 @@ export function isAchievementFormDirty(
     current.icon_file_id !== baseline.icon_file_id ||
     current.icon_asset_kind !== baseline.icon_asset_kind ||
     current.icon_asset_path !== baseline.icon_asset_path ||
-    current.icon_cc_attribution !== baseline.icon_cc_attribution ||
     current.icon_model_yaw !== baseline.icon_model_yaw ||
     current.icon_model_pitch !== baseline.icon_model_pitch ||
     current.icon_model_animation_play !== baseline.icon_model_animation_play ||

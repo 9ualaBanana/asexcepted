@@ -7,14 +7,13 @@ export const BADGE_MODEL_ASSET_KIND = "model_glb" as const;
 
 export type BadgeModelAssetKind = typeof BADGE_MODEL_ASSET_KIND;
 
-/** Persisted GLB badge: storage path, pose, animation, attribution. */
+/** Persisted GLB badge: storage path, pose, and animation. */
 export type BadgeModelAsset = {
   assetPath: string;
   yaw: number;
   pitch: number;
   animationPlay: boolean;
   animationSpeed: number;
-  ccAttribution: string | null;
 };
 
 /** DB rows, view models, and forms may use camelCase or legacy `icon*` field names. */
@@ -31,8 +30,6 @@ export type BadgeModelAssetFields = {
   iconModelAnimationPlay?: boolean | null;
   animationSpeed?: number | null;
   iconModelAnimationSpeed?: number | null;
-  ccAttribution?: string | null;
-  iconCcAttribution?: string | null;
 };
 
 export function isModelBadgeAssetKind(
@@ -100,10 +97,6 @@ export function parseBadgeModelAsset(
   const assetPath = sanitizeBadgeAssetPath(readAssetPath(fields));
   if (!assetPath) return null;
 
-  const ccRaw = fields.ccAttribution ?? fields.iconCcAttribution;
-  const ccAttribution =
-    typeof ccRaw === "string" ? ccRaw.trim() || null : null;
-
   const animationSpeedRaw = fields.animationSpeed ?? fields.iconModelAnimationSpeed;
   const animationSpeed =
     typeof animationSpeedRaw === "number"
@@ -116,7 +109,6 @@ export function parseBadgeModelAsset(
     pitch: Number(fields.pitch ?? fields.iconModelPitch) || 0,
     animationPlay: (fields.animationPlay ?? fields.iconModelAnimationPlay) !== false,
     animationSpeed,
-    ccAttribution,
   };
 }
 
@@ -141,7 +133,6 @@ export type BadgeModelFormFields = Pick<
   FormState,
   | "iconAssetKind"
   | "iconAssetPath"
-  | "iconCcAttribution"
   | "iconModelYaw"
   | "iconModelPitch"
   | "iconModelAnimationPlay"
@@ -160,7 +151,6 @@ export function badgeModelFromStagedUpload(staged: {
     pitch: staged.iconModelPitch,
     animationPlay: true,
     animationSpeed: 1,
-    ccAttribution: null,
   };
 }
 
@@ -170,7 +160,6 @@ export function badgeModelFromForm(
   return parseBadgeModelAsset({
     iconAssetKind: form.iconAssetKind,
     iconAssetPath: form.iconAssetPath,
-    iconCcAttribution: form.iconCcAttribution,
     iconModelYaw: form.iconModelYaw,
     iconModelPitch: form.iconModelPitch,
     iconModelAnimationPlay: form.iconModelAnimationPlay,
@@ -187,7 +176,6 @@ export function applyBadgeModelToForm(
       ...form,
       iconAssetKind: "image",
       iconAssetPath: "",
-      iconCcAttribution: "",
       iconModelYaw: 0,
       iconModelPitch: 0,
       iconModelAnimationPlay: true,
@@ -198,7 +186,6 @@ export function applyBadgeModelToForm(
     ...form,
     iconAssetKind: BADGE_MODEL_ASSET_KIND,
     iconAssetPath: model.assetPath,
-    iconCcAttribution: model.ccAttribution ?? "",
     iconModelYaw: model.yaw,
     iconModelPitch: model.pitch,
     iconModelAnimationPlay: model.animationPlay,
@@ -211,13 +198,10 @@ export function patchBadgeModelAsset(
   patch: Partial<BadgeModelAsset>,
 ): BadgeModelAsset {
   const animationSpeedRaw = patch.animationSpeed ?? model.animationSpeed;
-  const ccRaw = patch.ccAttribution !== undefined ? patch.ccAttribution : model.ccAttribution;
   return {
     ...model,
     ...patch,
     animationSpeed: Math.min(2, Math.max(0.1, animationSpeedRaw)),
-    ccAttribution:
-      typeof ccRaw === "string" ? ccRaw.trim() || null : null,
   };
 }
 
@@ -231,6 +215,5 @@ export function badgeModelAssetFieldsFromModel(
     pitch: model.pitch,
     animationPlay: model.animationPlay,
     animationSpeed: model.animationSpeed,
-    ccAttribution: model.ccAttribution,
   };
 }
