@@ -50,6 +50,13 @@ export type DedicationAcceptedParams = {
   achievementId: string;
 };
 
+export type CollaborationJoinedParams = {
+  claimerName: string;
+  achievementTitle: string;
+  ownerUserId: string;
+  achievementId: string;
+};
+
 export type TestParams = Record<string, never>;
 
 export type AdminNewSignupParams = {
@@ -63,6 +70,7 @@ export type NotificationParams = {
   impression: ImpressionParams;
   dedication: DedicationParams;
   dedication_accepted: DedicationAcceptedParams;
+  collaboration_joined: CollaborationJoinedParams;
   test: TestParams;
   admin_new_signup: AdminNewSignupParams;
 };
@@ -136,6 +144,18 @@ export function buildNotificationContent<K extends NotificationKind>(
         body: formatDedicationActivityMessage(p.achievementTitle, p.sender),
         url: links.achievementDetail(p.recipientUserId, p.achievementId, true),
         type: "dedication",
+      };
+    }
+    case "collaboration_joined": {
+      const p = params as CollaborationJoinedParams;
+      return {
+        title: "Collaboration accepted",
+        body: formatDedicationAcceptedActivityMessage(
+          p.achievementTitle,
+          p.claimerName,
+        ),
+        url: links.achievementDetail(p.ownerUserId, p.achievementId),
+        type: "collaboration_joined",
       };
     }
     case "dedication_accepted": {

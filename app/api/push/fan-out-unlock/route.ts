@@ -3,7 +3,10 @@ import { z } from "zod";
 
 import { getAchievementForUnlockPush } from "@/lib/achievements/persistence/achievements";
 import { resolveDisplayName, sendPushToUsers } from "@/lib/notifications";
-import { createServerSupabase } from "@/lib/supabase/clients/server";
+import {
+  createServerSupabase,
+  createServiceRoleSupabase,
+} from "@/lib/supabase/clients/server";
 
 const bodySchema = z.object({
   achievementId: z.string().uuid(),
@@ -33,8 +36,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Achievement not found" }, { status: 404 });
   }
   const achievement = achievementResult.value;
+  const partyIds = [achievement.user_id, achievement.collaborator_user_id].filter(
+    (id): id is string => typeof id === "string" && id.length > 0,
+  );
 
-  if (achievement.user_id !== user.id) {
+  if (!partyIds.includes(user.id)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -50,31 +56,36 @@ export async function POST(request: Request) {
   }
 
   const actorName = await resolveDisplayName(supabase, user.id);
-
-  const { data: follows, error: followError } = await supabase
+  const admin = createServiceRoleSupabase();
+  const { data: follows, error: followError } = await admin
     .from("profile_follow")
     .select("follower_id")
-    .eq("following_id", user.id);
+    .in("following_id", partyIds);
 
   if (followError) {
     return NextResponse.json({ error: followError.message }, { status: 500 });
   }
 
-  const followerIds = (follows ?? [])
-    .map((r) => r.follower_id)
-    .filter((id) => id !== user.id);
+  const recipientIds = new Set(
+    (follows ?? [])
+      .map((row) => row.follower_id)
+      .filter((id) => id !== user.id),
+  );
+  for (const partyId of partyIds) {
+    if (partyId !== user.id) recipientIds.add(partyId);
+  }
 
-  if (followerIds.length === 0) {
+  if (recipientIds.size === 0) {
     return NextResponse.json({ ok: true, requested: 0, successCount: 0, failureCount: 0 });
   }
 
   const result = await sendPushToUsers({
-    userIds: followerIds,
+    userIds: [...recipientIds],
     kind: "unlock",
     params: {
       actorName,
       achievementTitle: achievement.title ?? "Achievement",
-      ownerUserId: user.id,
+      ownerUserId: achievement.user_id,
       achievementId: achievement.id,
     },
     excludeUserIds: [user.id],

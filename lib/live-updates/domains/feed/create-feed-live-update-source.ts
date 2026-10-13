@@ -63,7 +63,17 @@ export function createFeedLiveUpdateSource(
       }
       if (table === UNLOCK_TABLE) {
         const ownerId = row?.owner_user_id;
-        return typeof ownerId === "string" && followingIds.has(ownerId);
+        const collaboratorId = row?.collaborator_user_id;
+        const actorId =
+          typeof row?.actor_user_id === "string" ? row.actor_user_id : ownerId;
+        const followsParty =
+          (typeof ownerId === "string" && followingIds.has(ownerId)) ||
+          (typeof collaboratorId === "string" && followingIds.has(collaboratorId));
+        const isOtherParty =
+          typeof actorId === "string" &&
+          actorId !== userId &&
+          (userId === ownerId || userId === collaboratorId);
+        return followsParty || isOtherParty;
       }
       if (table === FOLLOW_TABLE) {
         void refreshFollowing();

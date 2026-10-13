@@ -43,6 +43,7 @@ export type AchievementDeleteResult = Result<void, string>;
 export type AchievementUnlockPushRow = {
   id: string;
   user_id: string;
+  collaborator_user_id: string | null;
   title: string | null;
   is_locked: boolean;
   visibility: Database["public"]["Tables"]["achievements"]["Row"]["visibility"];
@@ -280,7 +281,7 @@ export async function getAchievementForUnlockPush(
 ): Promise<Result<AchievementUnlockPushRow, string>> {
   const { data, error } = await supabase
     .from("achievements")
-    .select("id,user_id,title,is_locked,visibility")
+    .select("id,user_id,collaborator_user_id,title,is_locked,visibility")
     .eq("id", achievementId)
     .single();
 

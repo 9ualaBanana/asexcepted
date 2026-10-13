@@ -4,6 +4,7 @@ export const NOTIFICATION_KINDS = [
   "impression",
   "dedication",
   "dedication_accepted",
+  "collaboration_joined",
   "test",
   "admin_new_signup",
 ] as const;

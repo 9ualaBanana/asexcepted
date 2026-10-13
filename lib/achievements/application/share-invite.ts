@@ -39,6 +39,7 @@ import {
 import { insertClaimedAchievementFromInvite } from "@/lib/achievements/persistence/dedications";
 import type { AchievementShareInvitePresentation } from "@/lib/achievements/presentation/share-invite-view-models";
 import { todayDateString } from "@/lib/feed/format-feed-event-time";
+import { notifyCollaborationJoined } from "@/lib/notifications/collaboration-joined";
 import { notifyDedicationAccepted } from "@/lib/notifications/dedication-accepted";
 import { fetchPublicUserDisplayName } from "@/lib/profile/follow";
 import { userAchievementDetail } from "@/lib/routes";
@@ -478,6 +479,12 @@ async function claimCollaborationInvite(
     await ports.shareInvites.releaseCollaboration(invite.id);
     return err(attached.error);
   }
+
+  await notifyCollaborationJoined({
+    achievementId: invite.source_achievement_id,
+    claimerUserId: args.claimerUserId,
+    senderUserId: invite.sender_user_id,
+  });
 
   return ok({
     achievementId: invite.source_achievement_id,

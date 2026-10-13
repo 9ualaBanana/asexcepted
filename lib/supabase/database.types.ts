@@ -218,18 +218,24 @@ export type Database = {
       achievement_unlock_events: {
         Row: {
           achievement_id: string
+          actor_user_id: string
+          collaborator_user_id: string | null
           created_at: string
           id: string
           owner_user_id: string
         }
         Insert: {
           achievement_id: string
+          actor_user_id: string
+          collaborator_user_id?: string | null
           created_at?: string
           id?: string
           owner_user_id: string
         }
         Update: {
           achievement_id?: string
+          actor_user_id?: string
+          collaborator_user_id?: string | null
           created_at?: string
           id?: string
           owner_user_id?: string
