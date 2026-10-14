@@ -134,10 +134,8 @@ function AchievementOriginEditor({
     inputRef.current?.focus({ preventScroll: true });
     const viewport = window.visualViewport;
     viewport?.addEventListener("resize", place);
-    viewport?.addEventListener("scroll", place);
     return () => {
       viewport?.removeEventListener("resize", place);
-      viewport?.removeEventListener("scroll", place);
     };
   }, [open]);
 
