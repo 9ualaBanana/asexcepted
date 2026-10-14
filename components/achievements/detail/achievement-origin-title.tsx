@@ -2,6 +2,7 @@
 
 import { Check, ExternalLink, X } from "lucide-react";
 import { useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 import { normalizeOriginUrl } from "@/lib/achievements/domain/achievement";
 
@@ -109,9 +110,27 @@ function AchievementOriginEditor({
   onCommit: (originUrl: string) => void;
 }) {
   const fieldId = useId();
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(originUrl);
   const [error, setError] = useState<string | null>(null);
+  const [panelTop, setPanelTop] = useState(0);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const place = () => {
+      const rect = buttonRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setPanelTop(rect.bottom + 8);
+    };
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true);
+    return () => {
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place, true);
+    };
+  }, [open]);
 
   function openEditor() {
     setDraft(originUrl);
@@ -145,6 +164,7 @@ function AchievementOriginEditor({
   return (
     <div className="relative">
       <button
+        ref={buttonRef}
         type="button"
         aria-label="Edit origin link"
         aria-expanded={open}
@@ -154,8 +174,12 @@ function AchievementOriginEditor({
       >
         <ExternalLink className={originIconClass} aria-hidden />
       </button>
-      {open ? (
-        <div className="absolute top-full right-0 z-30 mt-2 w-72 rounded-xl border border-white/15 bg-[#14121c] p-2 text-left shadow-[0_16px_40px_rgba(0,0,0,0.55)]">
+      {open
+        ? createPortal(
+            <div
+              className="fixed left-1/2 z-[260] w-[min(18rem,calc(100vw-2rem))] -translate-x-1/2 rounded-xl border border-white/15 bg-[#14121c] p-2 text-left shadow-[0_16px_40px_rgba(0,0,0,0.55)]"
+              style={{ top: panelTop }}
+            >
           <div className="flex items-center gap-1">
             <label htmlFor={fieldId} className="sr-only">
               Origin URL
@@ -188,8 +212,10 @@ function AchievementOriginEditor({
             </button>
           </div>
           {error ? <p className="mt-2 px-1 text-xs text-rose-200/90">{error}</p> : null}
-        </div>
-      ) : null}
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }
