@@ -110,25 +110,34 @@ function AchievementOriginEditor({
   onCommit: (originUrl: string) => void;
 }) {
   const fieldId = useId();
-  const buttonRef = useRef<HTMLButtonElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(originUrl);
   const [error, setError] = useState<string | null>(null);
-  const [panelTop, setPanelTop] = useState(0);
+  const [center, setCenter] = useState({ top: 0, left: 0, width: 288 });
 
   useLayoutEffect(() => {
     if (!open) return;
     const place = () => {
-      const rect = buttonRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      setPanelTop(rect.bottom + 8);
+      const viewport = window.visualViewport;
+      const height = viewport?.height ?? window.innerHeight;
+      const width = viewport?.width ?? window.innerWidth;
+      const offsetTop = viewport?.offsetTop ?? 0;
+      const offsetLeft = viewport?.offsetLeft ?? 0;
+      setCenter({
+        top: offsetTop + height / 2,
+        left: offsetLeft + width / 2,
+        width: Math.min(288, Math.max(0, width - 32)),
+      });
     };
     place();
-    window.addEventListener("resize", place);
-    window.addEventListener("scroll", place, true);
+    inputRef.current?.focus({ preventScroll: true });
+    const viewport = window.visualViewport;
+    viewport?.addEventListener("resize", place);
+    viewport?.addEventListener("scroll", place);
     return () => {
-      window.removeEventListener("resize", place);
-      window.removeEventListener("scroll", place, true);
+      viewport?.removeEventListener("resize", place);
+      viewport?.removeEventListener("scroll", place);
     };
   }, [open]);
 
@@ -164,7 +173,6 @@ function AchievementOriginEditor({
   return (
     <div className="relative">
       <button
-        ref={buttonRef}
         type="button"
         aria-label="Edit origin link"
         aria-expanded={open}
@@ -177,14 +185,15 @@ function AchievementOriginEditor({
       {open
         ? createPortal(
             <div
-              className="fixed left-1/2 z-[260] w-[min(18rem,calc(100vw-2rem))] -translate-x-1/2 rounded-xl border border-white/15 bg-[#14121c] p-2 text-left shadow-[0_16px_40px_rgba(0,0,0,0.55)]"
-              style={{ top: panelTop }}
+              className="fixed z-[260] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-white/15 bg-[#14121c] p-2 text-left shadow-[0_16px_40px_rgba(0,0,0,0.55)]"
+              style={{ top: center.top, left: center.left, width: center.width }}
             >
           <div className="flex items-center gap-1">
             <label htmlFor={fieldId} className="sr-only">
               Origin URL
             </label>
             <input
+              ref={inputRef}
               id={fieldId}
               value={draft}
               onChange={(event) => {
