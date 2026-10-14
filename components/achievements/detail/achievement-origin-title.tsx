@@ -182,6 +182,8 @@ function OriginUrlField({
     onClose();
   }
 
+  if (!host || top == null) return null;
+
   const panel = (
     <div
       ref={panelRef}
@@ -224,6 +226,5 @@ function OriginUrlField({
     </div>
   );
 
-  if (!host || top == null) return null;
   return createPortal(panel, host);
 }
