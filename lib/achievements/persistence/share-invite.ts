@@ -59,6 +59,7 @@ export async function createShareInvite(
       source_achievement_id: args.snapshot.id,
       share_kind: args.shareKind,
       title: args.snapshot.title,
+      origin_url: args.snapshot.origin_url,
       description: args.snapshot.description,
       category: args.snapshot.category,
       icon: args.snapshot.icon,

@@ -32,6 +32,7 @@ export async function seedIntroAchievementIfEmpty(
     tone: INTRO_ACHIEVEMENT_SEED.tone,
     is_locked: INTRO_ACHIEVEMENT_SEED.is_locked,
     achieved_at: INTRO_ACHIEVEMENT_SEED.achieved_at,
+    origin_url: null,
   });
 
   if (result.isErr()) {

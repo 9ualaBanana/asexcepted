@@ -26,6 +26,7 @@ export type AchievementShareInviteCreate = {
   source_achievement_id: string | null;
   share_kind: string;
   title: string | null;
+  origin_url: string | null;
   description: string | null;
   category: string | null;
   icon: string;

@@ -49,6 +49,7 @@ function welcomeIntroAchievement(): Achievement {
     dedicated_by_user_id: null,
     dedication_status: null,
     collaborator_user_id: null,
+    origin_url: null,
   };
 }
 

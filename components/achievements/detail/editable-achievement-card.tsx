@@ -11,6 +11,7 @@ import {
   type SetStateAction,
 } from "react";
 import { ArrowLeft, Check, Loader2, Trash2, X } from "lucide-react";
+import { AchievementOriginTitleField } from "@/components/achievements/detail/achievement-origin-title";
 
 import {
   BadgeEditor,
@@ -247,18 +248,23 @@ export function EditableAchievementCard({
         />
       </div>
 
-      <div className="mt-1.5 w-full max-w-md px-1">
+      <AchievementOriginTitleField
+        text={form.title.trim() || "Title"}
+        originUrl={form.originUrl}
+        disabled={isSaving}
+        onCommit={(originUrl) => setForm((prev) => ({ ...prev, originUrl }))}
+      >
         <Input
           value={form.title}
           onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
           placeholder="Title"
           className={cn(
-            "h-auto border-0 bg-transparent p-0 text-center text-xl font-semibold leading-tight shadow-none focus-visible:ring-0 md:text-xl",
+            "h-auto w-full border-0 bg-transparent p-0 text-center text-xl font-semibold leading-tight shadow-none focus-visible:ring-0 md:text-xl",
             fieldTitle,
             "placeholder:text-white/35",
           )}
         />
-      </div>
+      </AchievementOriginTitleField>
 
       <div className="mt-2 w-full max-w-md px-1">
         <textarea

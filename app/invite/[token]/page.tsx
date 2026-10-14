@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Badge } from "@/components/achievements/badge/display/badge";
+import { AchievementOriginHeading } from "@/components/achievements/detail/achievement-origin-title";
 import { badgeOptionsForInvite } from "@/components/achievements/badge/display/badge-presets";
 import { formatAchievedAt } from "@/lib/feed/format-feed-event-time";
 import { createSignedBadgeModelUrl } from "@/lib/achievements/badge/shared/badge-assets-server";
@@ -195,9 +196,12 @@ export default async function Page({ params }: PageProps) {
               </p>
             ) : null}
             {snapshot.title?.trim() ? (
-              <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white">
-                {snapshot.title}
-              </h1>
+              <AchievementOriginHeading
+                as="h1"
+                title={snapshot.title.trim()}
+                originUrl={snapshot.origin_url}
+                className="mt-3 text-3xl font-semibold tracking-tight text-white"
+              />
             ) : null}
             {snapshot.description?.trim() ? (
               <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-white/68">

@@ -16,6 +16,11 @@ import {
 
 const nullableTextSchema = z.string().nullable();
 
+const originUrlSchema = z
+  .string()
+  .nullable()
+  .transform((value) => normalizeOriginUrl(value));
+
 const trimmedNullableTextSchema = z
   .string()
   .nullable()
@@ -29,6 +34,7 @@ export const achievementSchema = z.object({
   id: z.uuid(),
   user_id: z.uuid(),
   title: nullableTextSchema,
+  origin_url: originUrlSchema,
   description: nullableTextSchema,
   category: nullableTextSchema,
   icon: achievementIconKeySchema,
@@ -59,6 +65,7 @@ export type Achievement = z.infer<typeof achievementSchema>;
 /** Content fields written on create/update of an achievement. */
 export type AchievementWrite = {
   title: string | null;
+  origin_url: string | null;
   description: string | null;
   category: string | null;
   icon: AchievementIconKey;
@@ -82,6 +89,20 @@ export type AchievementCreate = AchievementWrite & {
   dedicated_by_user_id?: string | null;
   dedication_status?: "pending" | "accepted" | null;
 };
+
+export function normalizeOriginUrl(value: string | null | undefined): string | null {
+  if (value == null) return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  let url: URL;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+  return url.toString();
+}
 
 function formatParseError(error: ZodError): string {
   const issue = error.issues[0];

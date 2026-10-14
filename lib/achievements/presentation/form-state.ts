@@ -11,6 +11,7 @@ import {
 
 export type FormState = {
   title: string;
+  originUrl: string;
   description: string;
   category: string;
   icon: AchievementIconKey;
@@ -46,6 +47,7 @@ export function hasMeaningfulContent(form: FormState) {
 export function createInitialForm(): FormState {
   return {
     title: "",
+    originUrl: "",
     description: "",
     category: "",
     icon: DEFAULT_ACHIEVEMENT_ICON_KEY,

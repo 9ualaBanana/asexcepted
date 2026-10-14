@@ -22,6 +22,7 @@ import {
   type BadgeSessionController,
 } from "@/components/achievements/badge";
 import { useLockedBadgeRefuseMotion } from "@/components/achievements/badge/effects/use-locked-badge-refuse-motion";
+import { AchievementOriginHeading } from "@/components/achievements/detail/achievement-origin-title";
 import { useUnlockedBadgePokeMotion } from "@/components/achievements/badge/effects/use-unlocked-badge-poke-motion";
 import type { AlphaMaskData } from "@/lib/achievements/badge/parallax/shape-utils";
 import {
@@ -535,13 +536,16 @@ export function AchievementDialogStack(props: AchievementDialogStackProps) {
                 {detailAchievement.category?.trim() ||
                   (detailIsLockedUi ? "Locked" : "Uncategorized")}
               </p>
-              <h2
+              <AchievementOriginHeading
+                as="h2"
                 id="achievement-detail-title"
+                title={
+                  detailAchievement.title?.trim() ||
+                  (detailIsLockedUi ? "Locked" : "Untitled")
+                }
+                originUrl={detailAchievement.originUrl}
                 className="mt-2 text-center text-xl font-semibold tracking-tight text-white"
-              >
-                {detailAchievement.title?.trim() ||
-                  (detailIsLockedUi ? "Locked" : "Untitled")}
-              </h2>
+              />
               <p className="mt-4 break-words text-center text-sm leading-relaxed text-white/65">
                 {detailIsLockedUi
                   ? detailAchievement.description?.trim() ||

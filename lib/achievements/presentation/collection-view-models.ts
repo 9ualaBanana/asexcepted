@@ -12,9 +12,10 @@ import {
   type AchievementTone,
   type AchievementVisibility,
 } from "@/lib/achievements/domain/enums";
-import type {
-  Achievement,
-  AchievementWrite,
+import {
+  normalizeOriginUrl,
+  type Achievement,
+  type AchievementWrite,
 } from "@/lib/achievements/domain/achievement";
 import { normalizeImageKitFileId } from "@/lib/imagekit/client/imagekit-api";
 import { toOptimizedRenderUrl } from "@/lib/imagekit/render-src";
@@ -35,6 +36,7 @@ const badgeModelFormFieldsSchema = z.object({
 const detailToFormSchema = z
   .object({
     title: z.string().nullable(),
+    originUrl: z.string().nullable(),
     description: z.string().nullable(),
     category: z.string().nullable(),
     icon: achievementIconKeySchema,
@@ -49,6 +51,7 @@ const detailToFormSchema = z
   .transform(
     (detail): FormState => ({
       title: detail.title ?? "",
+      originUrl: detail.originUrl ?? "",
       description: detail.description ?? "",
       category: detail.category ?? "",
       icon: detail.icon,
@@ -70,6 +73,7 @@ const detailToFormSchema = z
 const formToPayloadSchema = z
   .object({
     title: z.string(),
+    originUrl: z.string(),
     description: z.string(),
     category: z.string(),
     icon: achievementIconKeySchema,
@@ -89,6 +93,7 @@ const formToPayloadSchema = z
   .transform(
     (form): AchievementWrite => ({
       title: toNullable(form.title),
+      origin_url: normalizeOriginUrl(form.originUrl),
       description: toNullable(form.description),
       category: toNullable(form.category),
       icon: form.icon,
@@ -114,6 +119,7 @@ export type AchievementViewModel = {
   id: string;
   userId: string;
   title: string | null;
+  originUrl: string | null;
   description: string | null;
   category: string | null;
   icon: AchievementIconKey;
@@ -180,6 +186,7 @@ export function achievementToViewModel(row: Achievement): AchievementViewModel {
     id: row.id,
     userId: row.user_id,
     title: row.title,
+    originUrl: row.origin_url,
     description: row.description,
     category: row.category,
     icon: row.icon,
@@ -282,6 +289,7 @@ export function isAchievementFormDirty(
   const baseline = formToAchievementWrite(achievementToForm(achievement));
   return (
     current.title !== baseline.title ||
+    current.origin_url !== baseline.origin_url ||
     current.description !== baseline.description ||
     current.category !== baseline.category ||
     current.icon !== baseline.icon ||

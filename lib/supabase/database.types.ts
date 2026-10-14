@@ -103,6 +103,7 @@ export type Database = {
           source_achievement_id: string | null
           status: string
           title: string | null
+          origin_url: string | null
           token_hash: string
           tone: string | null
           updated_at: string
@@ -131,6 +132,7 @@ export type Database = {
           source_achievement_id?: string | null
           status?: string
           title?: string | null
+          origin_url?: string | null
           token_hash: string
           tone?: string | null
           updated_at?: string
@@ -159,6 +161,7 @@ export type Database = {
           source_achievement_id?: string | null
           status?: string
           title?: string | null
+          origin_url?: string | null
           token_hash?: string
           tone?: string | null
           updated_at?: string
@@ -271,6 +274,7 @@ export type Database = {
           id: string
           is_locked: boolean
           title: string | null
+          origin_url: string | null
           tone: string | null
           updated_at: string
           user_id: string
@@ -296,6 +300,7 @@ export type Database = {
           id?: string
           is_locked?: boolean
           title?: string | null
+          origin_url?: string | null
           tone?: string | null
           updated_at?: string
           user_id?: string
@@ -321,6 +326,7 @@ export type Database = {
           id?: string
           is_locked?: boolean
           title?: string | null
+          origin_url?: string | null
           tone?: string | null
           updated_at?: string
           user_id?: string

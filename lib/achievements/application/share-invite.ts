@@ -274,6 +274,7 @@ export async function claimAchievementShareInvite(
     visibility: "public",
     dedicated_by_user_id: reservedInvite.sender_user_id,
     dedication_status: dedicationStatus,
+    origin_url: reservedInvite.origin_url,
   };
   const createResult = await insertClaimedAchievementFromInvite(
     ports.supabase,
@@ -422,6 +423,7 @@ function achievementFromDedicateInvite(
     id: row.id,
     user_id: row.sender_user_id,
     title: row.title,
+    origin_url: row.origin_url,
     description: row.description,
     category: row.category,
     icon: row.icon,

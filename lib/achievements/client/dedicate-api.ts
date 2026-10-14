@@ -3,9 +3,10 @@ import { z } from "zod";
 
 import { isPublicHttpImageUrl } from "@/lib/achievements/badge/shared/badge-assets";
 import { isModelGlbAsset } from "@/lib/achievements/badge/shared/badge-model-asset";
-import type {
-  AchievementCreate,
-  AchievementWrite,
+import {
+  normalizeOriginUrl,
+  type AchievementCreate,
+  type AchievementWrite,
 } from "@/lib/achievements/domain/achievement";
 import {
   DEFAULT_ACHIEVEMENT_ICON_KEY,
@@ -33,6 +34,7 @@ export const dedicateAchievementBodySchema = z.object({
   icon_model_animation_speed: z.number().min(0.1).max(2).default(1),
   tone: achievementToneSchema.default(DEFAULT_ACHIEVEMENT_TONE),
   achieved_at: z.string().nullable().optional(),
+  origin_url: z.string().nullable().optional(),
 });
 
 export type DedicateAchievementBody = z.infer<typeof dedicateAchievementBodySchema>;
@@ -98,6 +100,7 @@ export function dedicateBodyToAchievementCreate(
     tone: body.tone,
     is_locked: true,
     achieved_at: body.achieved_at ?? null,
+    origin_url: normalizeOriginUrl(body.origin_url),
     visibility: "public",
     dedicated_by_user_id: dedicatorUserId,
     dedication_status: "pending",
@@ -128,6 +131,7 @@ export function payloadToDedicateApiBody(
     icon_model_animation_speed: write.icon_model_animation_speed,
     tone: write.tone,
     achieved_at: write.achieved_at,
+    origin_url: write.origin_url,
   });
 }
 

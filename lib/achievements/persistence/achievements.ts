@@ -19,7 +19,7 @@ import type { Database } from "@/lib/supabase/database.types";
 import { formatSupabaseSingleRowError } from "@/lib/supabase/postgrest-errors";
 
 const ACHIEVEMENT_FULL_SELECT =
-  "id,user_id,title,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_model_yaw,icon_model_pitch,icon_model_animation_play,icon_model_animation_speed,tone,is_locked,achieved_at,created_at,visibility,dedicated_by_user_id,dedication_status,collaborator_user_id";
+  "id,user_id,title,origin_url,description,category,icon,icon_url,icon_file_id,icon_asset_kind,icon_asset_path,icon_model_yaw,icon_model_pitch,icon_model_animation_play,icon_model_animation_speed,tone,is_locked,achieved_at,created_at,visibility,dedicated_by_user_id,dedication_status,collaborator_user_id";
 
 export type AchievementEmbedBadgeSource = {
   icon_url: string | null;
